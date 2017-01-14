@@ -1,37 +1,43 @@
 package gov.usgs.locator;
 
+/**
+ * Utility methods for the travel-time package.
+ * 
+ * @author Ray Buland
+ *
+ */
 public class TauUtil {
-	
 	/**
-	 * Given a normalized, Earth flattened depth, return the 
-	 * dimensional radius.
-	 * 
-	 * @param z Normalized, Earth flattened depth
-	 * @return Radius in km
+	 * Global tolerance value
 	 */
-	static double realR(double z) {
-		return Math.exp(z)/ReadTau.xn;
-	}
-	
+	static double dTol = 1-9d;
 	/**
-	 * Given a normalized, Earth flattened depth, return the 
-	 * dimensional depth.
-	 * 
-	 * @param z Normalized, Earth flattened depth
-	 * @return Depth in km
+	 * Global minimum positive value
 	 */
-	static double realZ(double z) {
-		return (1d-Math.exp(z))/ReadTau.xn;
-	}
-
-	/**
-	 * Given the normalized slowness and depth, return the 
-	 * dimensional velocity at that depth.
-	 * @param p Normalized slowness
-	 * @param z Normalized, Earth flattened depth
-	 * @return Velocity at that depth in km/s
-	 */
-	static double realV(double p, double z) {
-		return ReadTau.tn*realZ(z)/p;
+	static double dMin = 1-30d;
+		
+	public static String phSeg(String phCode) {
+		int index;
+		String phGen;
+		
+		if((index = phCode.indexOf("df")) >= 0) return phCode.substring(0, index);
+		if((index = phCode.indexOf("ab")) >= 0) return phCode.substring(0, index);
+		if((index = phCode.indexOf("ac")) >= 0) return phCode.substring(0, index);
+		if((index = phCode.indexOf("g")) >= 0) {
+			phGen = phCode.substring(0, index)+phCode.substring(index+1, phCode.length());
+			if((index = phGen.indexOf("g")) >= 0) return phGen.substring(0, index);
+			else return phGen;
+		}
+		if((index = phCode.indexOf("b")) >= 0) {
+			phGen = phCode.substring(0, index)+phCode.substring(index+1, phCode.length());
+			if((index = phGen.indexOf("b")) >= 0) return phGen.substring(0, index);
+			else return phGen;
+		}
+		if((index = phCode.indexOf("n")) >= 0) {
+			phGen = phCode.substring(0, index)+phCode.substring(index+1, phCode.length());
+			if((index = phGen.indexOf("n")) >= 0) return phGen.substring(0, index);
+			else return phGen;
+		}
+		return phCode;
 	}
 }

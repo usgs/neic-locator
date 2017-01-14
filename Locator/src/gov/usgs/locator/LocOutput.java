@@ -188,18 +188,18 @@ public class LocOutput {
 	/**
 	 * The following error parameters are produced by an event relocation.
 	 * 
-	 * @param timeError 
-	 * @param latError
-	 * @param lonError
-	 * @param depthError
-	 * @param stdError
-	 * @param errh
-	 * @param errz
-	 * @param avh
-	 * @param bayesDepth
-	 * @param bayesSpread
-	 * @param depthImport
-	 * @param ellipsoid
+	 * @param timeError Origin time error in seconds.
+	 * @param latError Latitude 90% confidence interval in kilometers.
+	 * @param lonError Longitude 90% confidence interval in kilometers.
+	 * @param depthError Depth 90% confidence interval in kilometers.
+	 * @param stdError Median travel-time residual in seconds.
+	 * @param errh Summary horizontal (tangential) error in kilometers.
+	 * @param errz Summary vertical (radial) error in kilometers.
+	 * @param avh Equivalent radius of the error ellipse in kilometers.
+	 * @param bayesDepth Final Bayesian depth in kilometers.
+	 * @param bayesSpread Final Bayesian standard deviation in kilometers.
+	 * @param depthImport Data important for the depth.
+	 * @param ellipsoid 90% error ellipsoid in kilometers.
 	 */
 	public void addErrors(double timeError, double latError, double lonError, 
 			double depthError, double stdError, double errh, double errz, 

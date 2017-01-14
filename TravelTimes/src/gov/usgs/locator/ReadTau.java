@@ -5,97 +5,107 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
+import java.util.Arrays;
 
 /**
+ * Read the FORTRAN generated travel-time files.  ReadTau is temporary code 
+ * to aid in the porting of the seismic travel-time package and the earthquake 
+ * locator.  By reading the FORTRAN generated travel-time header and table 
+ * information, it should facilitate testing and allow the travel-time port to 
+ * a Java server to be completed in a third of the development time.
  * 
- * @author Ray
+ * @author Ray Buland
  *
- * ReadTau is temporary code to aid in the porting of the seismic travel-time 
- * package and the earthquake locator.  By reading the FORTRAN generated 
- * travel-time header and table information, it should facilitate testing and 
- * allow the travel-time port to a Java server to be completed in a third of 
- * the development time.
  */
 public class ReadTau {
-	// Global Fortran array limits.
-	public final int JSRC = 250;	// Maximum slowness points in earthquake depth range.
-	public final int JSEG = 30;		// Maximum number of travel-time segments.
-	public final int JBRN = 120;	// Maximum number of travel-time branches.
+	/**
+	 * FORTRAN array limit for the shallow part of the Earth model.
+	 */
+	public final int JSRC = 250;
+	/**
+	 * FORTRAN array limit for travel-time segments.
+	 */
+	public final int JSEG = 30;
+	/**
+	 * FORTRAN array limit for travel-time branches.
+	 */
+	public final int JBRN = 120;
+	/**
+	 * FORTRAN array limit for complete branch descriptions.
+	 */
 	public final int JOUT = 2500;
+	/**
+	 * FORTRAN array limit for up-going branches.
+	 */
 	public final int JTSM = 500;
+	
 	// Set up the reader.
-	final String modelPath = "../../Documents/Work/Models/";
+	final String modelPath = "../../../Documents/Work/Models/";
 	String modelName;
 	final int bufLen = 100020;
 	byte[] byteArray;
 	ByteBuffer byteBuf;
 	BufferedInputStream in;
-	int[] numRec;
 
 	/*
 	 *    Header variables:
 	 * 
 	 *    Global parameters
-	 * nasgr					Record size in the table file (recSizeUp)
-	 * len2						Not used? (5 X nl)
-	 * xn 						Distance normalization (xNorm)
-	 * pn							Slowness normalization (pNorm)
-	 * tn							Time normalization (tNorm)
-	 * rum						Upper mantle radius (above the ~410 km discontinuity; km) (rUpperMantle)
-	 * rmh						Moho radius (km) (rMoho)
-	 * rcn						Conrad radius (km) (rConrad)
+	 * nasgr -> recSizeUp									Record size in the table file
+	 * len2																Not used (5 X nl)
+	 * xn -> xNorm												Distance normalization
+	 * pn	-> pNorm												Slowness normalization
+	 * tn	-> tNorm												Time normalization
+	 * rum ->	rUpperMantle								Upper mantle radius (discontinuity near 
+	 * 																			410 km depth in km)
+	 * rmh ->	rMoho												Moho radius (km)
+	 * rcn -> rConrad											Conrad radius (km)
 	 * 
 	 *    Segment parameters (record 2)
-	 * nseg						Number of travel-time segments (numSeg)
-	 * fcs[nseg][3]		Number of traversals of each region (countReg)
-	 * nafl[nseg][3]	Phase type per region (1=P, 2=S) (typeReg)
-	 * indx[nseg][2]	Segment indices into pt, etc. (indexSeg)
-	 * kndx[nseg][2]	Not used?
+	 * nseg	-> numSeg											Number of travel-time segments
+	 * fcs -> countSeg[numSeg][3]					Number of traversals of each region
+	 * nafl -> typeSeg[numSeg][3]					Phase type per region (1=P, 2=S)
+	 * indx -> indexSeg[numSeg][2]				Segment indices into the branch specification
+	 * kndx																Not used
 	 * 
 	 *    Branch parameters (record 4)
-	 * nbrn						Number of travel-time branches (numBrn)
-	 * phcd[nbrn]			Branch phase codes (phCode)
-	 * jndx[nbrn][2]	Branch indices into pt, etc. (indexBrn)
-	 * px[nbrn][2]		Slowness range for branches (pBrn)
-	 * xt[nbrn][2]		Distance ranges for branches (xBrn)
+	 * nbrn -> numBrn											Number of travel-time branches
+	 * phcd -> phCode[numBrn]							Branch phase codes
+	 * jndx -> indexBrn[numBrn][2]				Branch indices into the branch specification
+	 * px -> pBrn[numBrn][2]							Slowness range for branches
+	 * xt -> xBrn[numBrn][2]							Distance ranges for branches
 	 * 
 	 *    Model parameters for upper 800 km (record 2)
-	 * mt[2]					Upper limit for pm, zm, ndex (numMod)
-	 * pm[2][mt+3]		Model slownesses (pMod)
-	 * zm[2][mt+3]		Model depths (zMod)
-	 * ndex[2][mt]		Record number in the table file (indexMod)
+	 * mt -> numMod[2]										Number of model samples
+	 * zm -> zMod[2][numMod+3]						Model depths
+	 * pm -> pMod[2][numMod+3]						Model slownesses
+	 * ndex -> indexMod[2][numMod]				Record number in the table file
 	 * 
-	 *    Slownesses associated with up-going branches (record 3)
-	 * ku[2]					Upper limit for pu and tauu (numTauUp)
-	 * km[2]					Upper limit for pux and xu (numXUp)
-	 * pu[2][ku+1]		Slowness sampling for up-going branches (pTauUp)
-	 * pux[2][km+1]		Distances for up-going branch ends (pXUp)
+	 *    Up-going branches (record 3 & table file)
+	 * ku -> numTauUp[2]									Number of up-going tau samples
+	 * pu -> pTauUp[2][numTauUp+1]				Slowness sampling for up-going branches
+	 * tauu -> tauUp[2][numRec][numTauUp] Up-going tau for all depths
+	 * km -> numXUp[2]										Number of up-going distance samples
+	 * pux -> pXUp[2][numXUp+1]						Distances for up-going branch ends
+	 * xu -> xUp[2][numRec][numXUp]				Up-going x for all depths
+	 * 		numRec[2]												Derived from ndex (indexMod)
 	 * 
 	 *    Tau(p), etc. for all branches (records 5 and 6)
-	 * nl							Upper limit for pt, taut, coef (ptLen) (numAll)
-	 * pt[nl+1]				Slowness sampling for all branches (pAll)
-	 * taut[nl]				Base tau(pt) for all branches (tauAll)
-	 * coef[nl][5]		Spline coefficients for taut(pt) (basisAll)
+	 * nl -> numSpec											Number of samples for all branches
+	 * pt -> pSpec[numSpec+1]							Slowness sampling for all branches
+	 * taut -> tauSpec[numSpec]						Surface focus tau(p) for all branches
+	 * coef -> basisSpec[numSpec][5]			Interpolation basis functions for tau(p)
 	 */
-	String[] phcd;
-	int nasgr, nl, nseg, nbrn = 0;
+	String[] phCode;
+	int recSizeUp, numSpec, numSeg, numBrn = 0;
 // int len2;
-	int[] mt = null, ku = null, km = null;
-	int[][] nafl, indx, ndex, jndx;
+	int[] numMod = null, numTauUp = null, numXUp = null, numRec;
+	int[][] typeSeg, indexSeg, indexMod, indexBrn;
 // int[][] kndx;
-	static double xn, pn, tn;
-	double rum, rmh, rcn;
-	double[] pt, taut;
-	double[][] fcs, pm, zm, pu, pux, px, xt, coef;
-	
-	/* 
-	 * Table variables:
-	 *
-	 * buf(nasgr) -> tauu(ku) and xu(km)
-	 * tauu[2][nrec][ku] 		Up-going tau(pt) for all branches (tauUp)
-	 * xu[2][nrec][km]			up-going x(pt) for all branches (xUp)
-	 */
-	double[][][] tauUp, delUp;
+	double xNorm, pNorm, tNorm, rUpperMantle, rMoho, rConrad, rSurface;
+	double[] pSpec, tauSpec;
+	double[][] countSeg, pMod, zMod, pTauUp, pXUp, pBrn, xBrn, basisSpec;
+	double[][][] tauUp, xUp;
 	
 	/**
 	 * The constructor sets up the read array and ByteBuffer to interpret 
@@ -117,7 +127,8 @@ public class ReadTau {
 	 * travel-time branch information including the surface focus tau interpolation 
 	 * for a wide variety of seismic phases.
 	 * 
-	 * @throws IOException
+	 * @throws IOException Throw an exception if the input file is not laid out 
+	 * as expected
 	 */
 	public void readHeader() throws IOException {
 		int bytesRead, recLen = 0, recLast;
@@ -139,65 +150,70 @@ public class ReadTau {
 		if(bytesRead >= recLen+4) {
 			// Read array limits and normalization constants: nasgr, nl, len2, 
 			// xn, pn, tn, mt, nseg, nbrn, ku, km.
-			nasgr = byteBuf.getInt();
-			nl = byteBuf.getInt();
+			recSizeUp = byteBuf.getInt();
+			numSpec = byteBuf.getInt();
 	//	This variable is never used in the following code, so just skip it.
 	//	len2 = byteBuf.getInt();
 			byteBuf.position(byteBuf.position()+Integer.BYTES);
-			xn = byteBuf.getFloat();
-			pn = byteBuf.getFloat();
-			tn = byteBuf.getFloat();
-			mt = new int[2];
-			mt[0] = byteBuf.getInt();
-			mt[1] = byteBuf.getInt();
-			nseg = byteBuf.getInt();
-			nbrn = byteBuf.getInt();
-			ku = new int[2];
-			ku[0] = byteBuf.getInt();
-			ku[1] = byteBuf.getInt();
-			km = new int[2];
-			km[0] = byteBuf.getInt();
-			km[1] = byteBuf.getInt();
+			xNorm = byteBuf.getFloat();
+			pNorm = byteBuf.getFloat();
+			tNorm = byteBuf.getFloat();
+			// This was apparently upside down.
+			tNorm = 1d/tNorm;
+			// This will be useful.
+			rSurface = 1d/xNorm;
+			// Get on with it.
+			numMod = new int[2];
+			numMod[0] = byteBuf.getInt();
+			numMod[1] = byteBuf.getInt();
+			numSeg = byteBuf.getInt();
+			numBrn = byteBuf.getInt();
+			numTauUp = new int[2];
+			numTauUp[0] = byteBuf.getInt();
+			numTauUp[1] = byteBuf.getInt();
+			numXUp = new int[2];
+			numXUp[0] = byteBuf.getInt();
+			numXUp[1] = byteBuf.getInt();
 			
 			// Read segment level parameters, etc.: fcs, nafl, indx, kndx.
-			fcs = new double[nseg][3];
+			countSeg = new double[numSeg][3];
 			for(int i=0; i<3; i++) {
-				for(int j=0; j<fcs.length; j++) {
-					fcs[j][i] = byteBuf.getFloat();
+				for(int j=0; j<countSeg.length; j++) {
+					countSeg[j][i] = byteBuf.getFloat();
 				}
-				byteBuf.position(byteBuf.position()+Float.BYTES*(JSEG-nseg));
+				byteBuf.position(byteBuf.position()+Float.BYTES*(JSEG-numSeg));
 			}
 			
-			nafl = new int[nseg][3];
+			typeSeg = new int[numSeg][3];
 			for(int i=0; i<3; i++) {
-				for(int j=0; j<nafl.length; j++) {
-					nafl[j][i] = byteBuf.getInt();
+				for(int j=0; j<typeSeg.length; j++) {
+					typeSeg[j][i] = byteBuf.getInt();
 				}
-				byteBuf.position(byteBuf.position()+Integer.BYTES*(JSEG-nseg));
+				byteBuf.position(byteBuf.position()+Integer.BYTES*(JSEG-numSeg));
 			}
 			
-			indx = new int[nseg][2];
+			indexSeg = new int[numSeg][2];
 			for(int i=0; i<2; i++) {
-				for(int j=0; j<indx.length; j++) {
-					indx[j][i] = byteBuf.getInt();
+				for(int j=0; j<indexSeg.length; j++) {
+					indexSeg[j][i] = byteBuf.getInt();
 				}
-				byteBuf.position(byteBuf.position()+Integer.BYTES*(JSEG-nseg));
+				byteBuf.position(byteBuf.position()+Integer.BYTES*(JSEG-numSeg));
 			}
 			
 	/*  This variable is apparently never used in the later code, so just skip it.
-			kndx = new int[nseg][2];
+			kndx = new int[numSeg][2];
 			for(int i=0; i<2; i++) {
 				for(int j=0; j<kndx.length; j++) {
 					kndx[j][i] = byteBuf.getInt();
 				}
-				byteBuf.position(byteBuf.position()+Integer.BYTES*(JSEG-nseg));
+				byteBuf.position(byteBuf.position()+Integer.BYTES*(JSEG-numSeg));
 			} */
 			byteBuf.position(byteBuf.position()+2*Integer.BYTES*JSEG);
 			
 			// Read the radiuses of critical internal boundaries: rum, rmh, rcn.
-			rum = byteBuf.getFloat();
-			rmh = byteBuf.getFloat();
-			rcn = byteBuf.getFloat();
+			rUpperMantle = byteBuf.getFloat();
+			rMoho = byteBuf.getFloat();
+			rConrad = byteBuf.getFloat();
 		}
 		recLast = byteBuf.getInt();
 		if(recLast != recLen) {
@@ -226,31 +242,31 @@ public class ReadTau {
 		if(bytesRead-byteBuf.position() >= recLen+4) {
 			
 			// Model parameters down to the deepest earthquake: pm, zm, ndex.
-			pm = new double[2][];
+			pMod = new double[2][];
 			for(int i=0; i<2; i++) {
-				pm[i] = new double[mt[i]+3];
-				for(int j=0; j<pm[i].length; j++) {
-					pm[i][j] = byteBuf.getDouble();
+				pMod[i] = new double[numMod[i]+3];
+				for(int j=0; j<pMod[i].length; j++) {
+					pMod[i][j] = byteBuf.getDouble();
 				}
-				byteBuf.position(byteBuf.position()+Double.BYTES*(JSRC-mt[i]-3));
+				byteBuf.position(byteBuf.position()+Double.BYTES*(JSRC-numMod[i]-3));
 			}
 			
-			zm = new double[2][];
+			zMod = new double[2][];
 			for(int i=0; i<2; i++) {
-				zm[i] = new double[mt[i]+3];
-				for(int j=0; j<zm[i].length; j++) {
-					zm[i][j] = byteBuf.getDouble();
+				zMod[i] = new double[numMod[i]+3];
+				for(int j=0; j<zMod[i].length; j++) {
+					zMod[i][j] = byteBuf.getDouble();
 				}
-				byteBuf.position(byteBuf.position()+Double.BYTES*(JSRC-mt[i]-3));
+				byteBuf.position(byteBuf.position()+Double.BYTES*(JSRC-numMod[i]-3));
 			}
 			
-			ndex = new int[2][];
+			indexMod = new int[2][];
 			for(int i=0; i<2; i++) {
-				ndex[i] = new int[mt[i]];
-				for(int j=0; j<ndex[i].length; j++) {
-					ndex[i][j] = byteBuf.getInt();
+				indexMod[i] = new int[numMod[i]];
+				for(int j=0; j<indexMod[i].length; j++) {
+					indexMod[i][j] = byteBuf.getInt();
 				}
-				byteBuf.position(byteBuf.position()+Integer.BYTES*(JSRC-mt[i]));
+				byteBuf.position(byteBuf.position()+Integer.BYTES*(JSRC-numMod[i]));
 			}
 		}
 		recLast = byteBuf.getInt();
@@ -281,22 +297,22 @@ public class ReadTau {
 			
 			// Slownesses associated with the up-going branch information in the 
 			// table file: pu, pux.
-			pu = new double[2][];
+			pTauUp = new double[2][];
 			for(int i=0; i<2; i++) {
-				pu[i] = new double[ku[i]+1];
-				for(int j=0; j<pu[i].length; j++) {
-					pu[i][j] = byteBuf.getDouble();
+				pTauUp[i] = new double[numTauUp[i]+1];
+				for(int j=0; j<pTauUp[i].length; j++) {
+					pTauUp[i][j] = byteBuf.getDouble();
 				}
-				byteBuf.position(byteBuf.position()+Double.BYTES*(JTSM-ku[i]));
+				byteBuf.position(byteBuf.position()+Double.BYTES*(JTSM-numTauUp[i]));
 			}
 			
-			pux = new double[2][];
+			pXUp = new double[2][];
 			for(int i=0; i<2; i++) {
-				pux[i] = new double[km[i]+1];
-				for(int j=0; j<pux[i].length; j++) {
-					pux[i][j] = byteBuf.getDouble();
+				pXUp[i] = new double[numXUp[i]+1];
+				for(int j=0; j<pXUp[i].length; j++) {
+					pXUp[i][j] = byteBuf.getDouble();
 				}
-				byteBuf.position(byteBuf.position()+Double.BYTES*(JBRN-km[i]-1));
+				byteBuf.position(byteBuf.position()+Double.BYTES*(JBRN-numXUp[i]-1));
 			}
 		}
 		recLast = byteBuf.getInt();
@@ -327,35 +343,35 @@ public class ReadTau {
 			
 			// Branch level information: phcd, px, xt, jndx.
 			byte[] temp = new byte[8];
-			phcd = new String[nbrn];
-			for(int j=0; j<phcd.length; j++) {
+			phCode = new String[numBrn];
+			for(int j=0; j<phCode.length; j++) {
 				byteBuf.get(temp);
-				phcd[j] = new String(temp);
+				phCode[j] = new String(temp).trim();
 			}
-			byteBuf.position(byteBuf.position()+temp.length*(JBRN-nbrn));
+			byteBuf.position(byteBuf.position()+temp.length*(JBRN-numBrn));
 			
-			px = new double[nbrn][2];
+			pBrn = new double[numBrn][2];
 			for(int i=0; i<2; i++) {
-				for(int j=0; j<px.length; j++) {
-					px[j][i] = byteBuf.getDouble();
+				for(int j=0; j<pBrn.length; j++) {
+					pBrn[j][i] = byteBuf.getDouble();
 				}
-				byteBuf.position(byteBuf.position()+Double.BYTES*(JBRN-nbrn));
-			}
-			
-			xt = new double[nbrn][2];
-			for(int i=0; i<2; i++) {
-				for(int j=0; j<xt.length; j++) {
-					xt[j][i] = byteBuf.getDouble();
-				}
-				byteBuf.position(byteBuf.position()+Double.BYTES*(JBRN-nbrn));
+				byteBuf.position(byteBuf.position()+Double.BYTES*(JBRN-numBrn));
 			}
 			
-			jndx = new int[nbrn][2];
+			xBrn = new double[numBrn][2];
 			for(int i=0; i<2; i++) {
-				for(int j=0; j<jndx.length; j++) {
-					jndx[j][i] = byteBuf.getInt();
+				for(int j=0; j<xBrn.length; j++) {
+					xBrn[j][i] = byteBuf.getDouble();
 				}
-				byteBuf.position(byteBuf.position()+Integer.BYTES*(JBRN-nbrn));
+				byteBuf.position(byteBuf.position()+Double.BYTES*(JBRN-numBrn));
+			}
+			
+			indexBrn = new int[numBrn][2];
+			for(int i=0; i<2; i++) {
+				for(int j=0; j<indexBrn.length; j++) {
+					indexBrn[j][i] = byteBuf.getInt();
+				}
+				byteBuf.position(byteBuf.position()+Integer.BYTES*(JBRN-numBrn));
 			}
 		}
 		recLast = byteBuf.getInt();
@@ -385,17 +401,17 @@ public class ReadTau {
 		if(bytesRead-byteBuf.position() >= recLen+4) {
 			
 			// Slowness and tau for all branches: pt, taut.
-			pt = new double[nl+1];
-			for(int j=0; j<pt.length; j++) {
-				pt[j] = byteBuf.getDouble();
+			pSpec = new double[numSpec+1];
+			for(int j=0; j<pSpec.length; j++) {
+				pSpec[j] = byteBuf.getDouble();
 			}
-			byteBuf.position(byteBuf.position()+Double.BYTES*(JOUT-nl-1));
+			byteBuf.position(byteBuf.position()+Double.BYTES*(JOUT-numSpec-1));
 			
-			taut = new double[nl];
-			for(int j=0; j<taut.length; j++) {
-				taut[j] = byteBuf.getDouble();
+			tauSpec = new double[numSpec];
+			for(int j=0; j<tauSpec.length; j++) {
+				tauSpec[j] = byteBuf.getDouble();
 			}
-			byteBuf.position(byteBuf.position()+Double.BYTES*(JOUT-nl));
+			byteBuf.position(byteBuf.position()+Double.BYTES*(JOUT-numSpec));
 		}
 		recLast = byteBuf.getInt();
 		if(recLast != recLen) {
@@ -424,13 +440,13 @@ public class ReadTau {
 		if(bytesRead-byteBuf.position() >= recLen+4) {
 			
 			// Coefficients for the tau interpolation basis functions: coef.
-			coef = new double[nl][5];
-			for(int j=0; j<nl; j++) {
+			basisSpec = new double[numSpec][5];
+			for(int j=0; j<numSpec; j++) {
 				for(int i=0; i<5; i++) {
-					coef[j][i] = byteBuf.getDouble();
+					basisSpec[j][i] = byteBuf.getDouble();
 				}
 			}
-			byteBuf.position(byteBuf.position()+5*Double.BYTES*(JOUT-nl));
+			byteBuf.position(byteBuf.position()+5*Double.BYTES*(JOUT-numSpec));
 		}
 		recLast = byteBuf.getInt();
 		if(recLast != recLen) {
@@ -438,6 +454,7 @@ public class ReadTau {
 			throw new IOException();
 		}
 		in.close();
+		repairHed();
 	}
 	
 	/**
@@ -451,7 +468,8 @@ public class ReadTau {
 	 * depth were random accessed to save memory.  In the Java implementation, the 
 	 * entire table is read into memory.
 	 * 
-	 * @throws IOException
+	 * @throws IOException Throw an exception if the input file is not laid out as 
+	 * expected
 	 */
 	public void readTable() throws IOException {
 		int bytesRead;
@@ -465,26 +483,26 @@ public class ReadTau {
 		// Set the random access record length.  Note: the factor of four reflects 
 		// a bug in the Fortran code (the record length for direct access binary 
 		// files is set in words, not bytes).
-		recSize = 4*nasgr;
+		recSize = 4*recSizeUp;
 		
 		// Set up table record limits.
 		numRec = new int[2];
 		upSize = new int[2];
 		for(int i=0; i<2; i++){
-			numRec[i] = ndex[i][ndex[i].length-1];
-			upSize[i] = Double.BYTES*(ku[i]+km[i]);
+			numRec[i] = indexMod[i][indexMod[i].length-1];
+			upSize[i] = Double.BYTES*(numTauUp[i]+numXUp[i]);
 		}
 		numRec[1] = numRec[1]-numRec[0];
 		
 		// Set up the data arrays.
 		tauUp = new double[2][][];
-		delUp = new double[2][][];
+		xUp = new double[2][][];
 		for(int i=0; i<2; i++) {
 			tauUp[i] = new double[numRec[i]][];
-			delUp[i] = new double[numRec[i]][];
+			xUp[i] = new double[numRec[i]][];
 			for(int j=0; j<numRec[i]; j++) {
-				tauUp[i][j] = new double[ku[i]];
-				delUp[i][j] = new double[km[i]];
+				tauUp[i][j] = new double[numTauUp[i]];
+				xUp[i][j] = new double[numXUp[i]];
 			}
 		}
 					
@@ -509,19 +527,57 @@ public class ReadTau {
 					for(int k=0; k<tauUp[i][j].length; k++) {
 						tauUp[i][j][k] = byteBuf.getDouble();
 					}
-					for(int k=0; k<delUp[i][j].length; k++) {
-						delUp[i][j][k] = byteBuf.getDouble();
+					for(int k=0; k<xUp[i][j].length; k++) {
+						xUp[i][j][k] = byteBuf.getDouble();
 					}
 				}
 				byteBuf.position(byteBuf.position()+recSize-upSize[i]);
-		//	System.out.println("New Position: "+byteBuf.position()+" "+recSize+" "+upSize[i]);
+		//	System.out.println("New Position: "+byteBuf.position()+" "+recSize+" "+
+		//			upSize[i]);
 				byteBuf.compact();
 			}
 	//	recBase = numRec[i];
 		}
 		in.close();
+//	repairTbl();
+		byteArray = null;
 	}
 	
+	/**
+	 * Deal with non-fatal flaws in the FORTRAN file layout.
+	 */
+	private void repairHed() {
+		double maxZ = Math.log(xNorm*(rSurface-800d));
+		int[] iTmp;
+		double[] dTmp;
+		
+		// This was done in Tabin in the FORTRAN code--not quite sure why yet.
+		for(int i=0; i<2; i++) {
+			pTauUp[i][numTauUp[i]] = pMod[i][0];
+		}
+		
+		// The P velocity model is truncated at 800 km depth, but the 
+		// S velocity model goes to the core-mantle boundary--oops.
+		for(int j=0; j<zMod[1].length; j++) {
+			if(zMod[1][j] < maxZ) {
+				numMod[1] = j+1;
+				for(int k=0; k<3; k++) {
+					zMod[1][j+k+1] = zMod[1][zMod[1].length+k-3];
+					pMod[1][j+k+1] = pMod[1][pMod[1].length+k-3];
+				}
+				dTmp = Arrays.copyOf(zMod[1], numMod[1]+3);
+				zMod[1] = Arrays.copyOf(dTmp, numMod[1]+3);
+				dTmp = Arrays.copyOf(pMod[1], numMod[1]+3);
+				pMod[1] = Arrays.copyOf(dTmp, numMod[1]+3);
+				iTmp = Arrays.copyOf(indexMod[1], numMod[1]);
+				indexMod[1] = Arrays.copyOf(iTmp, numMod[1]);
+				return;
+			}
+		}
+		iTmp = null;
+		dTmp = null;
+	}
+		
 	/**
 	 * Print the contents of the first header record to the console.
 	 * 
@@ -529,27 +585,27 @@ public class ReadTau {
 	 */
 	public void dumpRec1(boolean full) {
 		
-		System.out.println("\nNasgr nl = " + nasgr + " " + nl);
-		System.out.println("Xn pn tn = " + xn + " " + pn + " " + tn);
-		System.out.println("Mt nseg nbrn ku km = " + mt[0] + " " + 
-				mt[1] + " " + nseg + " " + nbrn + " " + ku[0] + " " + 
-				ku[1] + " " + km[0] + " " + km[1]);
+		System.out.println("\nrecSizeUp numSpec = " + recSizeUp + " " + numSpec);
+		System.out.println("xNorm pNorm tNorm = " + xNorm + " " + pNorm + " " + tNorm);
+		System.out.println("numMod numSeg numBrn numTauUp numXUp = " + numMod[0] + 
+				" " + numMod[1] + " " + numSeg + " " + numBrn + " " + numTauUp[0] + " " + 
+				numTauUp[1] + " " + numXUp[0] + " " + numXUp[1]);
 		
 		if(full) {
-			System.out.println("\nFcs:");
-			for(int j=0; j<fcs.length; j++) 
-			System.out.println("" + j + ": " + (float)fcs[j][0] + ", " + 
-					(float)fcs[j][1] + ", " + (float)fcs[j][2]);
+			System.out.println("\ncountSeg:");
+			for(int j=0; j<countSeg.length; j++) 
+			System.out.println("" + j + ": " + (float)countSeg[j][0] + ", " + 
+					(float)countSeg[j][1] + ", " + (float)countSeg[j][2]);
 			
-			System.out.println("\nNafl:");
-			for(int j=0; j<nafl.length; j++) 
-				System.out.println("" + j + ": " + nafl[j][0] + ", " + 
-					nafl[j][1] + ", " + nafl[j][2]);
+			System.out.println("\ntypeSeg:");
+			for(int j=0; j<typeSeg.length; j++) 
+				System.out.println("" + j + ": " + typeSeg[j][0] + ", " + 
+					typeSeg[j][1] + ", " + typeSeg[j][2]);
 			
-			System.out.println("\nIndx:");
-			for(int j=0; j<indx.length; j++) 
-				System.out.println("" + j + ": " + indx[j][0] + ", " + 
-					indx[j][1]);
+			System.out.println("\nindexSeg:");
+			for(int j=0; j<indexSeg.length; j++) 
+				System.out.println("" + j + ": " + indexSeg[j][0] + ", " + 
+					indexSeg[j][1]);
 	
 	/*	System.out.println("\nKndx:");
 			for(int j=0; j<kndx.length; j++) 
@@ -557,8 +613,8 @@ public class ReadTau {
 					kndx[j][1]); */
 		}
 		
-		System.out.println("\nRum rmh rcn = " + rum + " " + rmh + " " + 
-				rcn);
+		System.out.println("\nrUpperMantle RMoho rConrad = " + rUpperMantle + " " + 
+				rMoho + " " + rConrad);
 	}
 	
 	/**
@@ -566,23 +622,25 @@ public class ReadTau {
 	 */
 	public void dumpRec2() {
 		
-		System.out.println("\nPm:");
-		for(int j=0; j<pm[0].length; j++) 
-			System.out.println("" + j + ": " + (float)pm[0][j] + ", " + (float)pm[1][j]);
-		for(int j=pm[0].length; j<pm[1].length; j++) 
-			System.out.println("" + j + ":                     " + (float)pm[1][j]);
+		System.out.println("\npMod:");
+		for(int j=0; j<pMod[0].length; j++) 
+			System.out.println("" + j + ": " + (float)pMod[0][j] + ", " + 
+					(float)pMod[1][j]);
+		for(int j=pMod[0].length; j<pMod[1].length; j++) 
+			System.out.println("" + j + ":                     " + (float)pMod[1][j]);
 		
-		System.out.println("\nZm:");
-		for(int j=0; j<zm[0].length; j++) 
-			System.out.println("" + j + ": " + (float)zm[0][j] + ", " + (float)zm[1][j]);
-		for(int j=zm[0].length; j<zm[1].length; j++) 
-			System.out.println("" + j + ":                     " + (float)zm[1][j]);
+		System.out.println("\nzMod:");
+		for(int j=0; j<zMod[0].length; j++) 
+			System.out.println("" + j + ": " + (float)zMod[0][j] + ", " + 
+					(float)zMod[1][j]);
+		for(int j=zMod[0].length; j<zMod[1].length; j++) 
+			System.out.println("" + j + ":                     " + (float)zMod[1][j]);
 		
-		System.out.println("\nNdex:");
-		for(int j=0; j<ndex[0].length; j++) 
-			System.out.println("" + j + ": " + ndex[0][j] + ", " + ndex[1][j]);
-		for(int j=ndex[0].length; j<ndex[1].length; j++) 
-			System.out.println("" + j + ":           " + ndex[1][j]);
+		System.out.println("\nindexMod:");
+		for(int j=0; j<indexMod[0].length; j++) 
+			System.out.println("" + j + ": " + indexMod[0][j] + ", " + indexMod[1][j]);
+		for(int j=indexMod[0].length; j<indexMod[1].length; j++) 
+			System.out.println("" + j + ":           " + indexMod[1][j]);
 	}
 	
 	/**
@@ -590,17 +648,19 @@ public class ReadTau {
 	 */
 	public void dumpRec3() {
 		
-		System.out.println("\nPu:");
-		for(int j=0; j<pu[0].length; j++) 
-			System.out.println("" + j + ": " + (float)pu[0][j] + ", " + (float)pu[1][j]);
-		for(int j=pu[0].length; j<pu[1].length; j++) 
-			System.out.println("" + j + ":                     " + (float)pu[1][j]);
+		System.out.println("\npTauUp:");
+		for(int j=0; j<pTauUp[0].length; j++) 
+			System.out.println("" + j + ": " + (float)pTauUp[0][j] + ", " + 
+					(float)pTauUp[1][j]);
+		for(int j=pTauUp[0].length; j<pTauUp[1].length; j++) 
+			System.out.println("" + j + ":                     " + (float)pTauUp[1][j]);
 		
-		System.out.println("\nPux:");
-		for(int j=0; j<pux[0].length; j++) 
-			System.out.println("" + j + ": " + (float)pux[0][j] + ", " + (float)pux[1][j]);
-		for(int j=pux[0].length; j<pux[1].length; j++) 
-			System.out.println("" + j + ":                     " + (float)pux[1][j]);
+		System.out.println("\npXUp:");
+		for(int j=0; j<pXUp[0].length; j++) 
+			System.out.println("" + j + ": " + (float)pXUp[0][j] + ", " + 
+					(float)pXUp[1][j]);
+		for(int j=pXUp[0].length; j<pXUp[1].length; j++) 
+			System.out.println("" + j + ":                     " + (float)pXUp[1][j]);
 	}
 	
 	/**
@@ -608,21 +668,24 @@ public class ReadTau {
 	 */
 	public void dumpRec4() {
 		
-		System.out.println("\nPhcd:");
-		for(int j=0; j<phcd.length; j++) 
-			System.out.println("" + j + ": " + phcd[j]);
+		System.out.println("\nphCode:");
+		for(int j=0; j<phCode.length; j++) 
+			System.out.println("" + j + ": " + phCode[j]);
 		
-		System.out.println("\nPx:");
-		for(int j=0; j<px.length; j++) 
-			System.out.println("" + j + ": " + (float)px[j][0] + ", " + (float)px[j][1]);
+		System.out.println("\npBrn:");
+		for(int j=0; j<pBrn.length; j++) 
+			System.out.println("" + j + ": " + (float)pBrn[j][0] + ", " + 
+					(float)pBrn[j][1]);
 		
-		System.out.println("\nXt:");
-		for(int j=0; j<xt.length; j++) 
-			System.out.println("" + j + ": " + (float)xt[j][0] + ", " + (float)xt[j][1]);
+		System.out.println("\nxBrn:");
+		for(int j=0; j<xBrn.length; j++) 
+			System.out.println("" + j + ": " + (float)xBrn[j][0] + ", " + 
+					(float)xBrn[j][1]);
 		
-		System.out.println("\nJndx:");
-		for(int j=0; j<jndx.length; j++) 
-			System.out.println("" + j + ": " + jndx[j][0] + ", " + jndx[j][1]);
+		System.out.println("\nindexBrn:");
+		for(int j=0; j<indexBrn.length; j++) 
+			System.out.println("" + j + ": " + indexBrn[j][0] + ", " + 
+					indexBrn[j][1]);
 	}
 	
 	/**
@@ -630,13 +693,13 @@ public class ReadTau {
 	 */
 	public void dumpRec5() {
 		
-		System.out.println("\nPt:");
-		for(int j=0; j<pt.length; j++) 
-			System.out.println("" + j + ": " + (float)pt[j]);
+		System.out.println("\npSpec:");
+		for(int j=0; j<pSpec.length; j++) 
+			System.out.println("" + j + ": " + (float)pSpec[j]);
 		
-		System.out.println("\nTaut:");
-		for(int j=0; j<taut.length; j++) 
-			System.out.println("" + j + ": " + (float)taut[j]);
+		System.out.println("\ntauSpec:");
+		for(int j=0; j<tauSpec.length; j++) 
+			System.out.println("" + j + ": " + (float)tauSpec[j]);
 	}
 	
 	/**
@@ -644,10 +707,11 @@ public class ReadTau {
 	 */
 	public void dumpRec6() {
 		
-		System.out.println("\nCoef:");
-		for(int j=0; j<coef.length; j++) 
-			System.out.println("" +j+": "+(float)coef[j][0]+", "+(float)coef[j][1]+
-					", "+(float)coef[j][2]+", "+(float)coef[j][3]+", "+(float)coef[j][4]);
+		System.out.println("\nbasisSpec:");
+		for(int j=0; j<basisSpec.length; j++) 
+			System.out.println("" +j+": "+(float)basisSpec[j][0]+", "+
+					(float)basisSpec[j][1]+", "+(float)basisSpec[j][2]+", "+
+					(float)basisSpec[j][3]+", "+(float)basisSpec[j][4]);
 	}
 	
 	/**
@@ -672,9 +736,9 @@ public class ReadTau {
 			System.out.println("" + k + " " + (float)tauUp[i][j][k]);
 		}
 		
-		System.out.println("\nDelUp:");
-		for(int k=0; k<delUp[i][j].length; k++) {
-			System.out.println("" + k + " " + (float)delUp[i][j][k]);
+		System.out.println("\nxUp:");
+		for(int k=0; k<xUp[i][j].length; k++) {
+			System.out.println("" + k + " " + (float)xUp[i][j][k]);
 		}
 	}
 	
@@ -683,74 +747,98 @@ public class ReadTau {
 	 */
 	public void dumpGlobal() {
 		System.out.println("\n     Global Varaiables");
-		System.out.format("Limits: nasgr =%5d  nl =%5d  nseg =%3d  nbrn =%3d\n",
-				nasgr,nl,nseg,nbrn);
-		System.out.format("Normalization: xn =%11.4e  pn =%11.4e  tn =%11.4e\n",
-				xn,pn,tn);
-		System.out.format("Radii: rum =%7.1f  rmh =%7.1f  rcn =%7.1f\n",rum,rmh,rcn);
+		System.out.format("Limits: recSizeUp =%5d  numSpec =%5d  numSeg =%3d  "+
+				"numBrn =%3d\n",recSizeUp,numSpec,numSeg,numBrn);
+		System.out.format("Normalization: xNorm =%11.4e  pNorm =%11.4e  "+
+				"tNorm =%11.4e\n",xNorm,pNorm,tNorm);
+		System.out.format("Radii: rUpperMantle =%7.1f  RMoho =%7.1f  rConrad =%7.1f\n",
+				rUpperMantle,rMoho,rConrad);
 	}
 	
 	/**
 	 * Print the segment variables all together mimicking the Setbrn formatting.
 	 */
 	public void dumpSegments() {
-		System.out.println("\n     Segment Summary (nafl, indx, and fcs)");
-		for(int j=0; j<nseg; j++) {
+		System.out.println("\n     Segment Summary (typeSeg, indexSeg, and countSeg)");
+		for(int j=0; j<numSeg; j++) {
 			System.out.format("%2d:  %2d  %2d  %2d  %4d  %4d  %3.1f  %3.1f  %3.1f\n",
-					j,nafl[j][0],nafl[j][1],nafl[j][2],indx[j][0],indx[j][1],fcs[j][0],
-					fcs[j][1],fcs[j][2]);
+					j,typeSeg[j][0],typeSeg[j][1],typeSeg[j][2],indexSeg[j][0],indexSeg[j][1],
+					countSeg[j][0],countSeg[j][1],countSeg[j][2]);
 		}
 	}
 	
 	/**
 	 * Print the branch variables all together mimicking the Setbrn formatting.
 	 */
-	public void dumpBranches() {
-		final double rad2Deg = 180d/Math.PI;
-		
-		System.out.println("\n     Branch Summary (jndx, px, xt, and phcd)");
-		for(int j=0; j<nbrn; j++) {
+	public void dumpBranches() {		
+		System.out.println("\n     Branch Summary (indexBrn, pBrn, xBrn, and phCode)");
+		for(int j=0; j<numBrn; j++) {
 			System.out.format("%2d:  %4d  %4d  %8.6f  %8.6f  %6.2f  %6.2f  %s\n",j,
-					jndx[j][0],jndx[j][1],px[j][0],px[j][1],rad2Deg*xt[j][0],
-					rad2Deg*xt[j][1],phcd[j]);
+					indexBrn[j][0],indexBrn[j][1],pBrn[j][0],pBrn[j][1],
+					Math.toDegrees(xBrn[j][0]),Math.toDegrees(xBrn[j][1]),phCode[j]);
 		}
 	}
 	
 	/**
 	 * Print the model parameters all together mimicking the Setbrn formatting.
+	 * 
+	 * @param nice If true print the depth and velocity in dimensional units 
+	 * instead of the normalized values.
 	 */
 	public void dumpModel(boolean nice) {
-		System.out.println("\n     Model Summary (zm, pm, and ndex)");
+		System.out.println("\n     Model Summary (zMod, pMod, and indexMod)");
 		if(nice) {
-			for(int j=0; j<mt[0]; j++) {
+			for(int j=0; j<numMod[0]; j++) {
 				System.out.format("%3d: %6.1f  %5.2f  %3d  %6.1f %5.2f  %3d\n",
-						j,TauUtil.realZ(zm[0][j]),TauUtil.realV(pm[0][j],zm[0][j]),ndex[0][j],
-						TauUtil.realZ(zm[1][j]),TauUtil.realV(pm[1][j],zm[1][j]),ndex[1][j]);
+						j,realZ(zMod[0][j]),realV(pMod[0][j],zMod[0][j]),
+						indexMod[0][j],realZ(zMod[1][j]),realV(pMod[1][j],
+						zMod[1][j]),indexMod[1][j]);
 			}
-			for(int j=mt[0]; j<mt[1]; j++) {
+			for(int j=numMod[0]; j<numMod[0]+3; j++) {
+				System.out.format("%3d: %6.1f  %5.2f       %6.1f %5.2f  %3d\n",
+						j,realZ(zMod[0][j]),realV(pMod[0][j],zMod[0][j]),
+						realZ(zMod[1][j]),realV(pMod[1][j],zMod[1][j]),indexMod[1][j]);
+			}
+			for(int j=numMod[0]+3; j<numMod[1]; j++) {
 				System.out.format("%3d:                     %6.1f %5.2f  %3d\n",j,
-						TauUtil.realZ(zm[1][j]),TauUtil.realV(pm[1][j],zm[1][j]),ndex[1][j]);
+						realZ(zMod[1][j]),realV(pMod[1][j],zMod[1][j]),
+						indexMod[1][j]);
+			}
+			for(int j=numMod[1]; j<numMod[1]+3; j++) {
+				System.out.format("%3d:                     %6.1f %5.2f\n",j,
+						realZ(zMod[1][j]),realV(pMod[1][j],zMod[1][j]));
 			}
 		} else {
-			for(int j=0; j<mt[0]; j++) {
+			for(int j=0; j<numMod[0]; j++) {
 				System.out.format("%3d: %9.6f  %8.6f  %3d  %9.6f %8.6f  %3d\n",
-						j,zm[0][j],pm[0][j],ndex[0][j],zm[1][j],pm[1][j],ndex[1][j]);
+						j,zMod[0][j],pMod[0][j],indexMod[0][j],zMod[1][j],pMod[1][j],
+						indexMod[1][j]);
 			}
-			for(int j=mt[0]; j<mt[1]; j++) {
+			for(int j=numMod[0]; j<numMod[0]+3; j++) {
+				System.out.format("%3d: %9.6f  %8.6f       %9.6f %8.6f  %3d\n",
+						j,zMod[0][j],pMod[0][j],zMod[1][j],pMod[1][j],indexMod[1][j]);
+			}
+			for(int j=numMod[0]+3; j<numMod[1]; j++) {
 				System.out.format("%3d:                           "+
-						"%9.6f %8.6f  %3d\n",j,zm[1][j],pm[1][j],ndex[1][j]);
+						"%9.6f %8.6f  %3d\n",j,zMod[1][j],pMod[1][j],indexMod[1][j]);
+			}
+			for(int j=numMod[1]; j<numMod[1]+3; j++) {
+				System.out.format("%3d:                           "+
+						"%9.6f %8.6f\n",j,zMod[1][j],pMod[1][j]);
 			}
 		}
 	}
 	
 	/**
 	 * Print the up-going variables all together for one table record.
+	 * 
+	 * @param rec Table record to print.
 	 */
 	public void dumpUp(int rec) {
 		int i, j;
 		
 		System.out.println("\n     Up-going Summary for record "+rec+
-				" (pu, tauu, pux, and xu)");
+				" (pTauUp, tauUp, pXUp, and xUp)");
 		
 		if(rec < numRec[0]) {
 			i = 0;
@@ -761,12 +849,12 @@ public class ReadTau {
 			j = rec-numRec[0];
 		}
 		
-		for(int k=0; k<km[i]; k++) {
+		for(int k=0; k<xUp[i][j].length; k++) {
 			System.out.format("%3d  %8.6f  %8.6f  %8.6f  %9.6f\n",k,
-					pu[i][k],tauUp[i][j][k],pux[i][k],delUp[i][j][k]);
+					pTauUp[i][k],tauUp[i][j][k],pXUp[i][k],xUp[i][j][k]);
 		}
-		for(int k=km[i]; k<ku[i]; k++) {
-			System.out.format("%3d  %8.6f  %8.6f\n",k,pu[i][k],tauUp[i][j][k]);
+		for(int k=xUp[i][j].length; k<tauUp[i][j].length; k++) {
+			System.out.format("%3d  %8.6f  %8.6f\n",k,pTauUp[i][k],tauUp[i][j][k]);
 		}
 	}
 	
@@ -775,10 +863,37 @@ public class ReadTau {
 	 * Setbrn formatting.
 	 */
 	public void dumpAll() {
-		System.out.println("\n     All Branches (pt, taut, and coef)");
-		for(int j=0; j<nl; j++) {
+		System.out.println("\n     All Branches (pSpec, tauSpec, and basisSpec)");
+		for(int j=0; j<numSpec; j++) {
 			System.out.format("%3d: %8.6f  %8.6f  %9.2e  %9.2e  %9.2e  %9.2e  %9.2e\n",
-					j,pt[j],taut[j],coef[j][0],coef[j][1],coef[j][2],coef[j][3],coef[j][4]);
+					j,pSpec[j],tauSpec[j],basisSpec[j][0],basisSpec[j][1],basisSpec[j][2],
+					basisSpec[j][3],basisSpec[j][4]);
 		}
+	}
+	
+	/**
+	 * Given a normalized, Earth flattened depth, return the 
+	 * dimensional depth.  This version is needed because the static 
+	 * normalization constants haven't been set up yet.
+	 * 
+	 * @param z Normalized, Earth flattened depth
+	 * @return Depth in kilometers
+	 */
+	private double realZ(double z) {
+		return (1d-Math.exp(z))/xNorm;
+	}
+
+	/**
+	 * Given the normalized slowness and depth, return the 
+	 * dimensional velocity at that depth.  This version is needed 
+	 * because the static normalization constants haven't been set 
+	 * up yet.
+	 * 
+	 * @param p Normalized slowness
+	 * @param z Normalized, Earth flattened depth
+	 * @return Velocity at that depth in kilometers/second
+	 */
+	private double realV(double p, double z) {
+		return Math.exp(z)/(tNorm*xNorm*p);
 	}
 }
