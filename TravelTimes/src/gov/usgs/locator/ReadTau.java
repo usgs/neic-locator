@@ -5,7 +5,6 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
-import java.util.Arrays;
 
 /**
  * Read the FORTRAN generated travel-time files.  ReadTau is temporary code 
@@ -454,7 +453,7 @@ public class ReadTau {
 			throw new IOException();
 		}
 		in.close();
-		repairHed();
+//	repairHed();
 	}
 	
 	/**
@@ -543,21 +542,24 @@ public class ReadTau {
 		byteArray = null;
 	}
 	
-	/**
-	 * Deal with non-fatal flaws in the FORTRAN file layout.
-	 */
+	/*
 	private void repairHed() {
-		double maxZ = Math.log(xNorm*(rSurface-800d));
-		int[] iTmp;
-		double[] dTmp;
+  	double maxZ = Math.log(xNorm*(rSurface-800d));
+  	int[] iTmp;
+  	double[] dTmp;
 		
 		// This was done in Tabin in the FORTRAN code--not quite sure why yet.
 		for(int i=0; i<2; i++) {
+			System.out.println("Replace pTauUp["+i+"] with pMod "+
+					pTauUp[i][numTauUp[i]]+" "+pMod[i][0]);
 			pTauUp[i][numTauUp[i]] = pMod[i][0];
 		}
 		
 		// The P velocity model is truncated at 800 km depth, but the 
 		// S velocity model goes to the core-mantle boundary--oops.
+		
+		// Oops indeed!  In fact, we need the deeper depth for the S velocity 
+		// in order to handle P to S conversions.
 		for(int j=0; j<zMod[1].length; j++) {
 			if(zMod[1][j] < maxZ) {
 				numMod[1] = j+1;
@@ -577,6 +579,7 @@ public class ReadTau {
 		iTmp = null;
 		dTmp = null;
 	}
+	*/
 		
 	/**
 	 * Print the contents of the first header record to the console.

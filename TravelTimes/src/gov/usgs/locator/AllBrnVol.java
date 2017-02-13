@@ -9,7 +9,7 @@ package gov.usgs.locator;
 public class AllBrnVol {	
 	BrnDataVol[] branches;						// Surface focus branch data
 	UpDataVol pUp, sUp;								// Up-going branch data
-	double rSource;										// Dimensional source depth in kilometers
+	double dSource;										// Dimensional source depth in kilometers
 	double zSource;										// Flat Earth source depth
 	AllBrnRef ref;
 	ModConvert cvt;
@@ -23,14 +23,16 @@ public class AllBrnVol {
 	public AllBrnVol(AllBrnRef ref, ModConvert cvt) {
 		this.ref = ref;
 		this.cvt = cvt;
+		
+		// Set up the up-going branch data.
+		pUp = new UpDataVol(ref.pUp, ref.pModel, ref.sModel, cvt);
+		sUp = new UpDataVol(ref.sUp, ref.sModel, ref.pModel, cvt);
+		
 		// Set up the branch data.
 		branches = new BrnDataVol[ref.branches.length];
 		for(int j=0; j<branches.length; j++) {
-			branches[j] = new BrnDataVol(ref.branches[j]);
+			branches[j] = new BrnDataVol(ref.branches[j], pUp, sUp);
 		}
-		// Set up the up-going branch data.
-		pUp = new UpDataVol(ref.pUp, ref.pModel, ref.sModel);
-		sUp = new UpDataVol(ref.sUp, ref.sModel, ref.pModel);
 	}
 	
 	/**
@@ -42,13 +44,20 @@ public class AllBrnVol {
 	 * @throws Exception 
 	 */
 	public void newSession(double depth, String[] phList) throws Exception {
+		double xMin;
+		
 		// Set up the new source depth.
-		rSource = depth;
+		dSource = Math.max(depth, 0.011d);
 		// The interpolation gets squirrelly for very shallow sources.
-		if(rSource < 0.011d) rSource = 0d;
-		zSource = Math.min(Math.log(Math.max(1d-rSource*cvt.xNorm, 
-				TauUtil.dMin)), 0d);
-		cvt.dTdDepth = 1d/(cvt.pNorm*(1d-rSource*cvt.xNorm));
+		if(depth < 0.011d) {
+			zSource = 0d;
+			cvt.dTdDepth = 1d/cvt.pNorm;
+		} else {
+			zSource = Math.min(Math.log(Math.max(1d-dSource*cvt.xNorm, 
+					TauUtil.dMin)), 0d);
+			cvt.dTdDepth = 1d/(cvt.pNorm*(1d-dSource*cvt.xNorm));
+		}
+		System.out.println("zSource = "+zSource+" dTdDepth = "+cvt.dTdDepth);
 		
 		// Fake up the phase list commands for now.
 		for(int j=0; j<branches.length; j++) {
@@ -60,6 +69,12 @@ public class AllBrnVol {
 		// Correct the up-going branch data.
 		pUp.newDepth(zSource);
 		sUp.newDepth(zSource);
+		
+		// Now correct each branch.
+		xMin = cvt.xNorm*Math.min(Math.max(2d*dSource, 2d), 25d);
+		for(int j=0; j<branches.length; j++) {
+			branches[j].depthCorr(xMin);
+		}
 	}
 		
 	/**
@@ -106,10 +121,36 @@ public class AllBrnVol {
 	 * Print data for one travel-time branch for debugging purposes.  
 	 * 
 	 * @param iBrn Branch number
-	 * @param full If true print the detailed branch specification as well
+	 * @param full If true, print the detailed branch specification as well
 	 */
-	public void dumpBrn(int iBrn, boolean full) {
-		branches[iBrn].dumpBrn(full);
+	public void dumpBrn(int iBrn, boolean full, boolean sci) {
+		branches[iBrn].dumpBrn(full, sci);
+	}
+	
+	/**
+	 * Print data for one travel-time segment for debugging purposes.
+	 * 
+	 * @param seg Segment phase code
+	 * @param full If true, print the detailed specification for each branch
+	 * as well
+	 */
+	public void dumpBrn(String seg, boolean full, boolean sci) {
+		for(int j=0; j<branches.length; j++) {
+			if(branches[j].getPhSeg().equals(seg)) 
+				branches[j].dumpBrn(full, sci);
+		}
+	}
+	
+	/**
+	 * Print data for all travel-time segments for debugging purposes.
+	 * 
+	 * @param full If true, print the detailed specification for each branch
+	 * as well
+	 */
+	public void dumpBrn(boolean full, boolean sci) {
+		for(int j=0; j<branches.length; j++) {
+			branches[j].dumpBrn(full, sci);
+		}
 	}
 	
 	/**

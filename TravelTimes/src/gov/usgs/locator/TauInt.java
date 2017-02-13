@@ -9,7 +9,9 @@ package gov.usgs.locator;
  *
  */
 public class TauInt {
+	double xLayer = 0d, xSum = 0d;
 	ModDataRef model;
+	static boolean debug = false;
 
 	/**
 	 * The constructor remembers the model data.  Note that this 
@@ -31,17 +33,17 @@ public class TauInt {
 	 * @return Normalized integrated tau
 	 * @throws Exception If tau or x is negative in any layer
 	 */
-	public double intRange(double p, int start, int end, double xSum) 
+	public double intRange(double p, int start, int end) 
 			throws Exception {
-		double tauSum, xLayer= 0d;
+		double tauSum;
 		
 		tauSum = 0d;
 		xSum = 0d;
 		// Loop over grid points accumulating the integrals.
 		for(int j=start; j<end; j++) {
 			tauSum = tauSum+intLayer(p, model.pMod[j], model.pMod[j+1], 
-					model.zMod[j], model.zMod[j+1], xLayer);
-			xSum += xLayer;
+					model.zMod[j], model.zMod[j+1]);
+			xSum += getXLayer();
 		}
 		return tauSum;
 	}
@@ -60,21 +62,21 @@ public class TauInt {
 	 * @throws Exception If tau or x is negative in any layer
 	 */
 	public double intRange(double p, int start, int end, double pLast, 
-			double zLast, double xSum) throws Exception {
-		double tauSum, xLayer= 0d;
+			double zLast) throws Exception {
+		double tauSum;
 		
 		tauSum = 0d;
 		xSum = 0d;
 		// Loop over grid points accumulating the integrals.
 		for(int j=start; j<end; j++) {
 			tauSum += intLayer(p, model.pMod[j], model.pMod[j+1], 
-					model.zMod[j], model.zMod[j+1], xLayer);
-			xSum += xLayer;
+					model.zMod[j], model.zMod[j+1]);
+			xSum += getXLayer();
 		}
 		// Add an increment at the end that's between grid points.
 		tauSum += intLayer(p, model.pMod[end], pLast, model.zMod[end], 
-				zLast, xLayer);
-		xSum += xLayer;
+				zLast);
+		xSum += getXLayer();
 		return tauSum;
 	}
 	
@@ -94,24 +96,24 @@ public class TauInt {
 	 * @throws Exception If tau or x is negative in any layer
 	 */
 	public double intRange(double p, int start, int end, double pFirst, 
-			double zFirst, double pLast, double zLast, double xSum) 
+			double zFirst, double pLast, double zLast) 
 			throws Exception {
-		double tauSum, xLayer= 0d;
+		double tauSum;
 		
 		// Start with an increment at the beginning that's between grid 
 		// points.
 		tauSum = intLayer(p, pFirst, model.pMod[start], zFirst, 
-				model.zMod[start], xSum);
+				model.zMod[start]);
 		// Loop over grid points accumulating the integrals.
 		for(int j=start; j<end; j++) {
 			tauSum += intLayer(p, model.pMod[j], model.pMod[j+1], 
-					model.zMod[j], model.zMod[j+1], xLayer);
-			xSum += xLayer;
+					model.zMod[j], model.zMod[j+1]);
+			xSum += getXLayer();
 		}
 		// Add an increment at the end that's between grid points.
 		tauSum += intLayer(p, model.pMod[end], pLast, model.zMod[end], 
-				zLast, xLayer);
-		xSum += xLayer;
+				zLast);
+		xSum += getXLayer();
 		return tauSum;
 	}
 	
@@ -130,41 +132,44 @@ public class TauInt {
 	 * @throws Exception If tau or x is negative
 	 */
 	public double intLayer(double p, double pTop, double pBot, 
-			double zTop, double zBot, double x) throws Exception {
+			double zTop, double zBot) throws Exception {
 		double tau, b, p2, pTop2, pBot2, bSq, b2, xInt;
 		
 		// Handle a zero thickness layer (discontinuity).
 		if(Math.abs(zTop-zBot) <= TauUtil.dTol) {
-			x = 0d;
+			xLayer = 0d;
 			return 0d;
 		}
 		
 		// Handle a constant slowness layer.
 		if(Math.abs(pTop-pBot) <= TauUtil.dTol) {
 			if(Math.abs(p-pTop) <= TauUtil.dTol) {
-				x = 0d;
+				xLayer = 0d;
 				return 0d;
 			} else {
 				b = Math.abs(zTop-zBot);
 				pTop2 = Math.sqrt(Math.abs(Math.pow(pTop, 2d)-Math.pow(pBot, 2d)));
-				x = b*p/pTop2;
+				xLayer = b*p/pTop2;
 				return b*pTop2;
 			}
 		}
 		
 		// Handle the straight through ray at the center.
 		if(p <= TauUtil.dTol && pBot <= TauUtil.dTol) {
-			x = Math.PI/2d;					// Accumulate all of x in the last layer.
+			xLayer = Math.PI/2d;					// Accumulate all of x in the last layer.
 			return pTop;
 		}
 		b = pTop-(pBot-pTop)/(Math.exp(zBot-zTop)-1d);
+		if(debug) System.out.println("b: "+pTop+" "+pBot+" "+
+				(float)(pBot-pTop)+" "+(float)(zBot-zTop)+" "+
+				(float)(Math.exp(zBot-zTop)-1d)+" "+(float)b);
 		// Handle the straight through ray elsewhere.
 		if(p <= TauUtil.dTol) {
 			tau = -(pBot-pTop+b*Math.log(pBot/pTop)-
 					b*Math.log(Math.max((pTop-b)*pBot/((pBot-b)*pTop), 
 					TauUtil.dMin)));
-			x = 0d;
-			tauTest(p, pTop, pBot, zTop, zBot, tau, x);
+			xLayer = 0d;
+			tauTest(p, pTop, pBot, zTop, zBot, tau);
 			return tau;
 		}
 		
@@ -176,15 +181,15 @@ public class TauInt {
 			if(Math.pow(b, 2d) >= p2) {
 				xInt = Math.log(Math.max((pTop-b)*(b*pBot-p2)/
 						((pBot-b)*(b2*pTop2+b*pTop-p2)), TauUtil.dMin));
-				x = pBot*xInt/b2;
+				xLayer = pBot*xInt/b2;
 			} else {
 				xInt = Math.copySign(Math.PI/2d, b-pBot)-
 						Math.asin(Math.max(Math.min((b*pTop-p2)/
 						(pBot*Math.abs(pTop-b)), 1d), -1d));
-				x = -pBot*xInt/b2;				
+				xLayer = -pBot*xInt/b2;				
 			}
 			tau = -(b*Math.log(pBot/(pTop+pTop2))-pTop2-b2*xInt);
-			tauTest(p, pTop, pBot, zTop, zBot, tau, x);
+			tauTest(p, pTop, pBot, zTop, zBot, tau);
 			return tau;
 			
 		// The ray parameter is equal to the layer top slowness.
@@ -195,15 +200,15 @@ public class TauInt {
 			if(Math.pow(b, 2d) >= p2) {
 				xInt = Math.log(Math.max((pTop-b)*(b2*pBot2+b*pBot-p2)/
 						((pBot-b)*(b*pTop-p2)), TauUtil.dMin));
-				x = pTop*xInt/b2;
+				xLayer = pTop*xInt/b2;
 			} else {
 				xInt = Math.asin(Math.max(Math.min((b*pBot-p2)/
 						(pTop*Math.abs(pBot-b)), 1d), -1d))-
 						Math.copySign(Math.PI/2d, b-pTop);
-				x = -pTop*xInt/b2;				
+				xLayer = -pTop*xInt/b2;				
 			}
 			tau = -(b*Math.log((pBot+pBot2)/pTop)+pBot2-b2*xInt);
-			tauTest(p, pTop, pBot, zTop, zBot, tau, x);
+			tauTest(p, pTop, pBot, zTop, zBot, tau);
 			return tau;
 		}
 		
@@ -213,24 +218,59 @@ public class TauInt {
 		pTop2 = Math.sqrt(Math.abs(Math.pow(pTop, 2d)-p2));
 		bSq = Math.pow(b, 2d);
 		b2 = Math.sqrt(Math.abs(bSq-p2));
+		if(debug) System.out.println("b p2 pBot2 pTop2 b2 = "+(float)b+" "+
+				(float)p2+" "+(float)pBot2+" "+(float)pTop2+" "+(float)b2);
 		if(b2 <= TauUtil.dMin) {
 			xInt = 0d;
-			x = p*(Math.sqrt(Math.abs((pBot+b)/(pBot-b)))-
+			xLayer = p*(Math.sqrt(Math.abs((pBot+b)/(pBot-b)))-
 					Math.sqrt(Math.abs((pTop+b)/(pTop-b))))/b;
 		} else if(bSq >= p2) {
 			xInt = Math.log(Math.max((pTop-b)*(b2*pBot2+b*pBot-p2)/
 					((pBot-b)*(b2*pTop2+b*pTop-p2)), TauUtil.dMin));
-			x = p*xInt/b2;
+			if(debug) System.out.println("bSq >= p2: "+
+					(float)((pTop-b)*(b2*pBot2+b*pBot-p2))+" "+
+					(float)((pBot-b)*(b2*pTop2+b*pTop-p2))+" "+
+					(float)Math.log((pTop-b)*(b2*pBot2+b*pBot-p2)/
+					((pBot-b)*(b2*pTop2+b*pTop-p2))));
+			xLayer = p*xInt/b2;
 		} else {
 			xInt = Math.asin(Math.max(Math.min((b*pBot-p2)/
 					(p*Math.abs(pBot-b)), 1d), -1d))-
 					Math.asin(Math.max(Math.min((b*pTop-p2)/
 					(p*Math.abs(pTop-b)), 1d), -1d));
-			x = -p*xInt/b2;				
+			if(debug){
+				System.out.println("Bot: "+(float)(b*pBot-p2)+" "+
+						(float)(p*Math.abs(pBot-b))+" "+
+						(float)Math.asin(b*pBot-p2)/(p*Math.abs(pBot-b)));
+				System.out.println("Top: "+(float)(b*pTop-p2)+" "+
+						(float)(p*Math.abs(pTop-b))+" "+
+						(float)Math.asin(b*pTop-p2)/(p*Math.abs(pTop-b)));
+			}
+			xLayer = -p*xInt/b2;				
 		}
 		tau = -(pBot2-pTop2+b*Math.log((pBot+pBot2)/(pTop+pTop2))-b2*xInt);
-		tauTest(p, pTop, pBot, zTop, zBot, tau, x);
+		if(debug) System.out.println("tau xInt xLayer = "+(float)tau+" "+(float)xInt+
+				" "+(float)xLayer);
+		tauTest(p, pTop, pBot, zTop, zBot, tau);
 		return tau;
+	}
+	
+	/**
+	 * Get the integrated distance, X, for one layer.
+	 * 
+	 * @return The normalized distance for one layer
+	 */
+	public double getXLayer() {
+		return xLayer;
+	}
+	
+	/**
+	 * Get the integrated distance, X, for a range of layers.
+	 * 
+	 * @return The normalized distance for a range of layers
+	 */
+	public double getXSum() {
+		return xSum;
 	}
 	
 	/**
@@ -246,16 +286,16 @@ public class TauInt {
 	 * @throws Exception If tau or x is negative
 	 */
 	private void tauTest(double p, double pTop, double pBot, double zTop, 
-			double zBot, double tau, double x) throws Exception {
+			double zBot, double tau) throws Exception {
 		if(tau < 0d) {
 			System.out.format("***** Bad tau: p = %8.6f, pTop = %8.6f, "+
 					"pBot = %8.6f, zTop = %9.6f, zBot = %9.6f, tau = %11.4e, "+
-					"x = %11.4e\n", p, pTop, pBot, zTop, zBot, tau, x);
+					"x = %11.4e\n", p, pTop, pBot, zTop, zBot, tau, xLayer);
 			throw new Exception();
-		} else if(x < 0d) {
+		} else if(xLayer < 0d) {
 			System.out.format("***** Bad x: p = %8.6f, pTop = %8.6f, "+
 					"pBot = %8.6f, zTop = %9.6f, zBot = %9.6f, tau = %11.4e, "+
-					"x = %11.4e\n", p, pTop, pBot, zTop, zBot, tau, x);
+					"x = %11.4e\n", p, pTop, pBot, zTop, zBot, tau, xLayer);
 			throw new Exception();
 		}
 	}

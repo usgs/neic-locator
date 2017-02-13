@@ -94,6 +94,7 @@ public class ModDataRef {
 	public double findZ(double p, boolean first) throws Exception {
 		// Search the model to bracket the source depth.
 		if(first) {
+			if(p > pMod[0]) throw new Exception();
 			for(iSource=0; iSource<indexUp.length; iSource++) {
 				if(pMod[iSource] <= p) break;
 			}
@@ -116,7 +117,7 @@ public class ModDataRef {
 		// Otherwise interpolate to find the correct slowness.
 		else zFound = zMod[iSource-1]+Math.log(Math.max((p-pMod[iSource-1])*
 				(Math.exp(zMod[iSource]-zMod[iSource-1])-1d)/
-				(pMod[iSource]-pMod[iSource-1]), TauUtil.dMin));
+				(pMod[iSource]-pMod[iSource-1])+1d, TauUtil.dMin));
 		return zFound;
 	}
 	

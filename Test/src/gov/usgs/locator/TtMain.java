@@ -7,7 +7,7 @@ public class TtMain {
 	public static void main(String[] args) throws Exception {
 		// Simulate a simple session request.
 		String earthModel = "ak135";
-		double sourceDepth = 10;
+		double sourceDepth = 12;
 		String[] phList = null;
 		// Simulate the session hand off.
 		ArrayList<String> knownModels = null;
@@ -54,16 +54,17 @@ public class TtMain {
 		// Set up the session.
 		allBrn = new AllBrnVol(allRef, convert);
 		// See what we've got.
+		allBrn.dumpHead();
 		allBrn.dumpTable();
-//	for(int j=0; j<allRef.getNoBranches(); j++) {
-//		allRef.dumpBrn(j, false);
-//		allBrn.dumpBrn(j, false);
-//	}
+//	allBrn.dumpMod('P', true);
+//	allBrn.dumpMod('S', true);
 //	allRef.dumpUp('P', 8);
 		// Set up a new session.
 		allBrn.newSession(sourceDepth, phList);
-		allBrn.dumpUp('P', true);
-//	allBrn.dumpUp('S', false);
+//	allBrn.dumpUp('P', true);
+//	allBrn.dumpUp('S', true);
+//	allBrn.dumpBrn("P", true, false);
+		allBrn.dumpBrn(true, true);
 	}
 
 }
