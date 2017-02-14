@@ -439,10 +439,10 @@ public class ReadTau {
 		if(bytesRead-byteBuf.position() >= recLen+4) {
 			
 			// Coefficients for the tau interpolation basis functions: coef.
-			basisSpec = new double[numSpec][5];
+			basisSpec = new double[5][numSpec];
 			for(int j=0; j<numSpec; j++) {
 				for(int i=0; i<5; i++) {
-					basisSpec[j][i] = byteBuf.getDouble();
+					basisSpec[i][j] = byteBuf.getDouble();
 				}
 			}
 			byteBuf.position(byteBuf.position()+5*Double.BYTES*(JOUT-numSpec));
