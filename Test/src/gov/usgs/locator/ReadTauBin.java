@@ -37,7 +37,7 @@ public class ReadTauBin {
 	//	reader.dumpUp(80);
 		
 		// Test the new data classes.
-		cvt = new ModConvert();
+		cvt = new ModConvert(reader);
 		ttData = new AllBrnRef(reader, cvt);
 		ttData.dumpHead();
 	//	ttData.dumpMod('P', false);
