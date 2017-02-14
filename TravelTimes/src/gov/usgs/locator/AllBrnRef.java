@@ -13,7 +13,7 @@ package gov.usgs.locator;
  *
  */
 public class AllBrnRef {
-	String modelName;									// Earth model name
+	final String modelName;									// Earth model name
 	ModDataRef pModel, sModel;				// Earth model data
 	BrnDataRef[] branches;						// Surface focus branch data
 	UpDataRef pUp, sUp;								// Up-going branch data
@@ -30,38 +30,25 @@ public class AllBrnRef {
 		this.cvt = cvt;
 		
 		this.modelName = in.modelName;
-		// Set up the normalization.
-		cvt.xNorm = in.xNorm;
-		cvt.pNorm = in.pNorm;
-		cvt.tNorm = in.tNorm;
-		// Compute a couple of useful constants.
-		cvt.vNorm = cvt.xNorm*cvt.pNorm;
-		cvt.dTdDelta = Math.toRadians(1d/(cvt.vNorm));
-		cvt.rSurface = in.rSurface;
-		// Compute some useful depths.
-		cvt.zUpperMantle = cvt.rSurface-in.rUpperMantle;
-		cvt.zMoho = cvt.rSurface-in.rMoho;
-		cvt.zConrad = cvt.rSurface-in.rConrad;
-		cvt.zNewUp = cvt.zMoho;
 		
 		// Set up the Earth model.
 		pModel = new ModDataRef(in, cvt, 'P');
 		sModel = new ModDataRef(in, cvt, 'S');
 		
-		// Set up the branch data.
+		// Set up the segment codes first.
 		segCode = new String[in.numSeg];
 		int i = -1;
 		int endSeg = 0;
-		// Loop over branches setting the segment codes.
 		for(int j=0; j<in.numBrn; j++) {
 			// Look for a new segment.
 			if(in.indexBrn[j][0] > endSeg) {
 				endSeg = in.indexSeg[++i][1];
 			}
-			// Load the branch data.
+			// Set the segment code.
 			segCode[i] = TauUtil.phSeg(in.phCode[j]);
 		}
 		
+		// Load the branch data.
 		branches = new BrnDataRef[in.numBrn];
 		Diffracted diff = new Diffracted();
 		i = -1;
@@ -126,6 +113,32 @@ public class AllBrnRef {
 	 */
 	public void dumpBrn(int iBrn, boolean full) {
 		branches[iBrn].dumpBrn(full);
+	}
+	
+	/**
+	 * Print data for one travel-time segment for debugging purposes.
+	 * 
+	 * @param seg Segment phase code
+	 * @param full If true, print the detailed specification for each branch
+	 * as well
+	 */
+	public void dumpBrn(String seg, boolean full) {
+		for(int j=0; j<branches.length; j++) {
+			if(branches[j].getPhSeg().equals(seg)) 
+				branches[j].dumpBrn(full);
+		}
+	}
+	
+	/**
+	 * Print data for all travel-time segments for debugging purposes.
+	 * 
+	 * @param full If true, print the detailed specification for each branch
+	 * as well
+	 */
+	public void dumpBrn(boolean full) {
+		for(int j=0; j<branches.length; j++) {
+			branches[j].dumpBrn(full);
+		}
 	}
 	
 	/**
