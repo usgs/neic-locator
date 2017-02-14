@@ -66,7 +66,7 @@ public class Decimate {
 				xTarget = xRange[0]+dx;
 				iBeg = 1;
 				iEnd = 0;
-				xLeast = TauUtil.dMax;
+				xLeast = TauUtil.DMAX;
 				
 				// Scan the ray parameter grid looking for points to kill.
 				for(int j=1; j<=i; j++) {
@@ -79,7 +79,7 @@ public class Decimate {
 						// Reset the kill pointers.
 						iBeg = iEnd+2;
 						iEnd = j-1;
-						xLeast = TauUtil.dMax;
+						xLeast = TauUtil.DMAX;
 						xTarget += (int)((xCur-xTarget-dx2)/dx+rnd)*dx;
 					}
 					// Look for the best points to kill.

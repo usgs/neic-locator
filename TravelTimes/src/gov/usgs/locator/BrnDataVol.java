@@ -73,7 +73,7 @@ public class BrnDataVol {
 				int m = 0;
 				for(i=0; i<xRange.length; i++) {
 					for(; m<pUp.ref.pXUp.length; m++) {
-						if(Math.abs(pRange[i]-pUp.ref.pXUp[m]) <= TauUtil.dTol) {
+						if(Math.abs(pRange[i]-pUp.ref.pXUp[m]) <= TauUtil.DTOL) {
 							xRange[i] += ref.signSeg*pUp.xUp[m];
 		//				if(i == xRange.length) gotLast = true;
 							break;
@@ -99,13 +99,13 @@ public class BrnDataVol {
 					i = 0;
 					for(int j=0; j<ref.pBrn.length; j++) {
 						// Add the last point.
-						if(ref.pBrn[j]-pUp.pMax >= TauUtil.dTol) {
+						if(ref.pBrn[j]-pUp.pMax >= TauUtil.DTOL) {
 							brnGrid.add(new BrnPoint(pUp.pMax, lastTau(), xRange[1]));
 							break;
 						// Otherwise, correct the next point.
 						} else {
 							// pTauUp is a superset of pBrn so we need to sync them.
-							while(Math.abs(ref.pBrn[j]-pUp.pUp[i]) > TauUtil.dTol) {
+							while(Math.abs(ref.pBrn[j]-pUp.pUp[i]) > TauUtil.DTOL) {
 								i++;
 				/*			if(i >= pUp.pUp.length) {
 									System.out.println("depthCorr: j i brnLen pUpLen = "+
@@ -139,7 +139,7 @@ public class BrnDataVol {
 				int m = 0;
 				for(i=0; i<xRange.length; i++) {
 					for(; m<sUp.ref.pXUp.length; m++) {
-						if(Math.abs(pRange[i]-sUp.ref.pXUp[m]) <= TauUtil.dTol) {
+						if(Math.abs(pRange[i]-sUp.ref.pXUp[m]) <= TauUtil.DTOL) {
 							xRange[i] += ref.signSeg*sUp.xUp[m];
 		//				if(i == xRange.length) gotLast = true;
 							break;
@@ -165,13 +165,13 @@ public class BrnDataVol {
 					i = 0;
 					for(int j=0; j<ref.pBrn.length; j++) {
 						// Add the last point.
-						if(ref.pBrn[j]-sUp.pMax >= TauUtil.dTol) {
+						if(ref.pBrn[j]-sUp.pMax >= TauUtil.DTOL) {
 							brnGrid.add(new BrnPoint(sUp.pMax, lastTau(), xRange[1]));
 							break;
 						// Otherwise, correct the next point.
 						} else {
 							// pTauUp is a superset of pBrn so we need to sync them.
-							while(Math.abs(ref.pBrn[j]-sUp.pUp[i]) > TauUtil.dTol) {
+							while(Math.abs(ref.pBrn[j]-sUp.pUp[i]) > TauUtil.DTOL) {
 								i++;
 							};
 							// Correct the tau value.
@@ -301,6 +301,11 @@ public class BrnDataVol {
 		return x;
 	}
 	
+	/**
+	 * get the branch segment code.
+	 * 
+	 * @return Branch segment code
+	 */
 	public String getPhSeg() {
 		return ref.phSeg;
 	}
@@ -316,15 +321,17 @@ public class BrnDataVol {
 		if(isUsed & exists) {
 			if(ref.isUpGoing) {
 				if(ref.isDiff) System.out.format("\n          phase = %sup"+
-						"  diff = %s\n", ref.phCode, ref.phDiff);
-				else System.out.format("\n          phase = %sup\n", ref.phCode);
+						"  diff = %s  isUsed = %b  \n", ref.phCode, ref.phDiff, isUsed);
+				else System.out.format("\n          phase = %sup  isUsed = %b  \n", 
+						ref.phCode, isUsed);
 				System.out.format("Segment: code = %s  type = %c        sign = %2d"+
 						"  count = %d\n", ref.phSeg, ref.typeSeg[0], ref.signSeg, 
 						ref.countSeg);
 			} else {
 				if(ref.isDiff) System.out.format("\n          phase = %s"+
-						"  diff = %s\n", ref.phCode, ref.phDiff);
-				else System.out.format("\n          phase = %s\n", ref.phCode);
+						"  diff = %s  isUsed = %b\n", ref.phCode, ref.phDiff, isUsed);
+				else System.out.format("\n          phase = %s  isUsed = %b  \n", 
+						ref.phCode, isUsed);
 				System.out.format("Segment: code = %s  type = %c, %c, %c  "+
 						"sign = %2d  count = %d\n", ref.phSeg, ref.typeSeg[0], 
 						ref.typeSeg[1], ref.typeSeg[2], ref.signSeg, ref.countSeg);
