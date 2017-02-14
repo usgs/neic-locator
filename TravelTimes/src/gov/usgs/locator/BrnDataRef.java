@@ -1,5 +1,7 @@
 package gov.usgs.locator;
 
+import java.util.Arrays;
+
 /**
  * Store all non-volatile information associated with one travel-time 
  * branch.  Note that all data are normalized and transformed for internal 
@@ -9,20 +11,21 @@ package gov.usgs.locator;
  *
  */
 public class BrnDataRef {
-	String phCode;					// Branch phase code
-	String phSeg;						// Generic phase code for all branches in this segment
-	String phDiff = "";			// Phase code of an associated diffracted phase
-	boolean isUpGoing;			// True if this is an up-going branch
-	boolean isDiff;					// True if this branch is also diffracted
-	char[] typeSeg;					// Phase type for correction, descending, ascending
-	int signSeg;						// Sign of the up-going correction
-	int countSeg;						// Number of mantle traversals
-	double[] pRange;				// Slowness range for this branch
-	double[] xRange;				// Distance range for this branch
-	double xDiff = 0d;			// Maximum distance of an associated diffracted phase
-	double[] pBrn;					// Slowness grid for this branch
-	double[] tauBrn;				// Tau for each grid point
-	double[][] basisBrn;		// Basis function coefficients for each grid point
+	final String phCode;					// Branch phase code
+	final String phSeg;						// Generic phase code for all branches in this segment
+	final String phDiff;					// Phase code of an associated diffracted phase
+	final boolean isUpGoing;			// True if this is an up-going branch
+	final boolean isDiff;					// True if this branch is also diffracted
+	final boolean isUseless;			// True if this phase is always in the coda of another phase
+	final char[] typeSeg;					// Phase type for correction, descending, ascending
+	final int signSeg;						// Sign of the up-going correction
+	final int countSeg;						// Number of mantle traversals
+	final double[] pRange;				// Slowness range for this branch
+	final double[] xRange;				// Distance range for this branch
+	final double xDiff;						// Maximum distance of an associated diffracted phase
+	final double[] pBrn;					// Slowness grid for this branch
+	final double[] tauBrn;				// Tau for each grid point
+	final double[][] basisBrn;		// Basis function coefficients for each grid point
 	
 	/**
 	 * Load data from the FORTRAN file reader for one branch.  The file 
@@ -43,6 +46,7 @@ public class BrnDataRef {
 		phSeg = segCode;
 		if(in.typeSeg[indexSeg][1] <= 0) isUpGoing = true;
 		else isUpGoing = false;
+		isUseless = TauUtil.setUseless(phCode);
 		typeSeg = new char[3];
 		for(int j=0; j<3; j++) {
 			if(Math.abs(in.typeSeg[indexSeg][j]) == 1) typeSeg[j] = 'P';			// P in this region
@@ -60,27 +64,46 @@ public class BrnDataRef {
 			pRange[j] = in.pBrn[indexBrn][j];
 			xRange[j] = in.xBrn[indexBrn][j];
 		}
-		if(!isUpGoing) {
-			isDiff = diff.isDiff(phCode);
-			if(isDiff) {
-				phDiff = diff.getPhDiff();
-				xDiff = diff.getPhLim();
-			}
+		if(!isUpGoing) isDiff = diff.isDiff(phCode);
+		else isDiff = false;
+		if(isDiff) {
+			phDiff = diff.getPhDiff();
+			xDiff = diff.getPhLim();
+		} else {
+			phDiff = "";
+			xDiff = 0d;
 		}
 		
 		// Do branch specification.
-		int len = in.indexBrn[indexBrn][1]-in.indexBrn[indexBrn][0]+1;
-		int base = in.indexBrn[indexBrn][0]-1;
-		pBrn = new double[len];
+//	int len = in.indexBrn[indexBrn][1]-in.indexBrn[indexBrn][0]+1;
+//	int base = in.indexBrn[indexBrn][0]-1;
+		int start = in.indexBrn[indexBrn][0]-1;
+		int end = in.indexBrn[indexBrn][1];
+/*	pBrn = new double[len];
 		tauBrn = new double[len];
-		basisBrn = new double[len][5];
+		basisBrn = new double[5][len];
 		for(int j=0; j<len; j++) {
 			pBrn[j] = in.pSpec[j+base];
 			tauBrn[j] = in.tauSpec[j+base];
 			for(int k=0; k<5; k++) {
-				basisBrn[j][k] = in.basisSpec[j+base][k];
+				basisBrn[j][k] = in.basisSpec[k][j+base];
 			}
+		} */
+		pBrn = Arrays.copyOfRange(in.pSpec, start, end);
+		tauBrn = Arrays.copyOfRange(in.tauSpec, start, end);
+		basisBrn = new double[5][];
+		for(int k=0; k<5; k++) {
+			basisBrn[k] = Arrays.copyOfRange(in.basisSpec[k], start, end);
 		}
+	}
+	
+	/**
+	 * get the branch segment code.
+	 * 
+	 * @return Branch segment code
+	 */
+	public String getPhSeg() {
+		return phSeg;
 	}
 	
 	/**
@@ -89,14 +112,21 @@ public class BrnDataRef {
 	 * @param full If true print the detailed branch specification as well
 	 */
 	public void dumpBrn(boolean full) {
-		System.out.format("\n          phase = %s  segment = %s\n", phCode, phSeg);
 		if(isUpGoing) {
-			System.out.format("Segment: type = %c        sign = %2d  count = %d  "+
-					"isUpGoing = %b\n", typeSeg[0], signSeg, countSeg, isUpGoing);
+			if(isDiff) System.out.format("\n          phase = %sup  diff = %s  "+
+					"isUseless = %b\n", phCode, phDiff, isUseless);
+			else System.out.format("\n          phase = %sup  isUseless = %b\n", 
+					phCode, isUseless);
+			System.out.format("Segment: code = %s  type = %c        sign = %2d"+
+					"  count = %d\n", phSeg, typeSeg[0], signSeg, countSeg);
 		} else {
-			System.out.format("Segment: type = %c, %c, %c  sign = %2d  count = %d  "+
-					"isUpGoing = %b\n", typeSeg[0], typeSeg[1], typeSeg[2], 
-					signSeg, countSeg, isUpGoing);
+			if(isDiff) System.out.format("\n          phase = %s  diff = %s  "+
+					"isUseless = %b\n", phCode, phDiff, isUseless);
+			else System.out.format("\n          phase = %s  isUseless = %b\n", 
+					phCode, isUseless);
+			System.out.format("Segment: code = %s  type = %c, %c, %c  "+
+					"sign = %2d  count = %d\n", phSeg, typeSeg[0], typeSeg[1], typeSeg[2], 
+					signSeg, countSeg);
 		}
 		System.out.format("Branch: pRange = %8.6f - %8.6f  xRange = %6.2f - %6.2f\n", 
 				pRange[0], pRange[1], Math.toDegrees(xRange[0]), Math.toDegrees(xRange[1]));
@@ -107,8 +137,8 @@ public class BrnDataRef {
 					"basis function coefficients");
 			for(int j=0; j<pBrn.length; j++) {
 				System.out.format("%3d: %8.6f  %8.6f  %9.2e  %9.2e  %9.2e  %9.2e  "+
-						"%9.2e\n", j, pBrn[j], tauBrn[j], basisBrn[j][0], basisBrn[j][1], 
-						basisBrn[j][2], basisBrn[j][3], basisBrn[j][4]);
+						"%9.2e\n", j, pBrn[j], tauBrn[j], basisBrn[0][j], basisBrn[1][j], 
+						basisBrn[2][j], basisBrn[3][j], basisBrn[4][j]);
 			}
 		}
 	}

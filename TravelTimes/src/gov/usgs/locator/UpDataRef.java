@@ -10,11 +10,11 @@ import java.util.Arrays;
  *
  */
 public class UpDataRef {
-	char typeUp;							// Type of up-going branches
-	double[] pTauUp;					// Slowness grid for this branch
-	double[][] tauUp;					// Tau for up-going branches by depth
-	double[] pXUp;						// Slownesses for branch end points
-	double[][] xUp;						// Distances for branch ends by depth
+	final char typeUp;							// Type of up-going branches
+	final double[] pTauUp;					// Slowness grid for this branch
+	final double[][] tauUp;					// Tau for up-going branches by depth
+	final double[] pXUp;						// Slownesses for branch end points
+	final double[][] xUp;						// Distances for branch ends by depth
 
 	/**
 	 * Load data from the FORTRAN file reader up-going branchs of one type.  
@@ -27,14 +27,10 @@ public class UpDataRef {
 	public UpDataRef(ReadTau in, char typeUp) {
 		this.typeUp = typeUp;
 		int i =-1, k;
-		if(typeUp == 'P') {
-			i = 0;
-		} else if(typeUp == 'S') {
-			i = 1;
-		} else {
-			System.out.println("Unknown up-going wave type ("+typeUp+").");
-			return;
-		}
+		
+		// Set the FORTRAN type index.
+		if(typeUp == 'P') i = 0;
+		else i = 1;
 		
 		// Copy the slowness grids.
 		pTauUp = Arrays.copyOf(in.pTauUp[i], in.pTauUp[i].length);

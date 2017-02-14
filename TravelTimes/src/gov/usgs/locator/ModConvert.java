@@ -7,17 +7,32 @@ package gov.usgs.locator;
  *
  */
 public class ModConvert {
-	double xNorm;						// Internal normalization constant for distance.
-	double pNorm;						// Internal normalization constant for slowness.
-	double tNorm;						// Internal normalization constant for time.
-	double vNorm;						// Internal normalization constant for velocity.
-	double dTdDelta;				// Convert dT/dDelta to dimensional units.
-	double dTdDepth = Double.NaN;		// Convert dT/dDepth to dimensional units.
-	double zUpperMantle;		// Depth of the upper mantle in kilometers.
-	double zMoho;						// Depth of the Moho in kilometers.
-	double zConrad;					// Depth of the Conrad discontinuity in kilometers.
-	double rSurface;				// Radius of the free surface of the Earth in kilometers.
-	double zNewUp;					// Up-going branch replacement depth.
+	final double xNorm;						// Internal normalization constant for distance.
+	final double pNorm;						// Internal normalization constant for slowness.
+	final double tNorm;						// Internal normalization constant for time.
+	final double vNorm;						// Internal normalization constant for velocity.
+	final double dTdDelta;				// Convert dT/dDelta to dimensional units.
+	final double zUpperMantle;		// Depth of the upper mantle in kilometers.
+	final double zMoho;						// Depth of the Moho in kilometers.
+	final double zConrad;					// Depth of the Conrad discontinuity in kilometers.
+	final double rSurface;				// Radius of the free surface of the Earth in kilometers.
+	final double zNewUp;					// Up-going branch replacement depth.
+	
+	public ModConvert(ReadTau in) {
+		// Set up the normalization.
+		xNorm = in.xNorm;
+		pNorm = in.pNorm;
+		tNorm = in.tNorm;
+		// Compute a couple of useful constants.
+		vNorm = xNorm*pNorm;
+		dTdDelta = Math.toRadians(1d/(vNorm));
+		rSurface = in.rSurface;
+		// Compute some useful depths.
+		zUpperMantle = rSurface-in.rUpperMantle;
+		zMoho = rSurface-in.rMoho;
+		zConrad = rSurface-in.rConrad;
+		zNewUp = zMoho;
+	}
 	
 	/**
 	 * Given a normalized, Earth flattened depth, return the 
