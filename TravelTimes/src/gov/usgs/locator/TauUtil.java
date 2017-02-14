@@ -10,15 +10,15 @@ public class TauUtil {
 	/**
 	 * Global tolerance value
 	 */
-	static double dTol = 1e-9d;
+	static final double DTOL = 1e-9d;
 	/**
 	 * Global minimum positive value
 	 */
-	static double dMin = 1e-30d;
+	static final double DMIN = 1e-30d;
 	/**
 	 * Global maximum positive value
 	 */
-	static double dMax = 1e30d;
+	static final double DMAX = 1e30d;
 	
 	/**
 	 * Create a segment code by stripping a phase code of unnecessary 
@@ -50,5 +50,19 @@ public class TauUtil {
 			else return phGen;
 		}
 		return phCode;
+	}
+	
+	/**
+	 * Algorithmically identify phases that are unlikely to be useful for 
+	 * earthquake location.  These are crustal phases that always appear in 
+	 * coda of the first arriving P or S phases.
+	 * 
+	 * @param phCode Phase code
+	 * @return True if phase is in the crustal P or S coda
+	 */
+	public static boolean setUseless(String phCode) {
+		if((phCode.contains("Pg") || phCode.contains("Pb") || phCode.contains("Sg") || 
+				phCode.contains("Sb")) && phCode.length() >= 3) return true;
+		else return false;
 	}
 }
