@@ -10,7 +10,7 @@ package gov.usgs.locator;
  */
 public class TauInt {
 	double xLayer = 0d, xSum = 0d;
-	ModDataRef model;
+	ModDataVol model;
 	static boolean debug = false;
 
 	/**
@@ -19,7 +19,7 @@ public class TauInt {
 	 * 
 	 * @param model Model data ('P' or 'S')
 	 */
-	public TauInt(ModDataRef model) {
+	public TauInt(ModDataVol model) {
 		this.model = model;
 	}
 	
@@ -41,8 +41,8 @@ public class TauInt {
 		xSum = 0d;
 		// Loop over grid points accumulating the integrals.
 		for(int j=start; j<end; j++) {
-			tauSum = tauSum+intLayer(p, model.pMod[j], model.pMod[j+1], 
-					model.zMod[j], model.zMod[j+1]);
+			tauSum = tauSum+intLayer(p, model.ref.pMod[j], model.ref.pMod[j+1], 
+					model.ref.zMod[j], model.ref.zMod[j+1]);
 			xSum += getXLayer();
 		}
 		return tauSum;
@@ -69,12 +69,12 @@ public class TauInt {
 		xSum = 0d;
 		// Loop over grid points accumulating the integrals.
 		for(int j=start; j<end; j++) {
-			tauSum += intLayer(p, model.pMod[j], model.pMod[j+1], 
-					model.zMod[j], model.zMod[j+1]);
+			tauSum += intLayer(p, model.ref.pMod[j], model.ref.pMod[j+1], 
+					model.ref.zMod[j], model.ref.zMod[j+1]);
 			xSum += getXLayer();
 		}
 		// Add an increment at the end that's between grid points.
-		tauSum += intLayer(p, model.pMod[end], pLast, model.zMod[end], 
+		tauSum += intLayer(p, model.ref.pMod[end], pLast, model.ref.zMod[end], 
 				zLast);
 		xSum += getXLayer();
 		return tauSum;
@@ -102,16 +102,16 @@ public class TauInt {
 		
 		// Start with an increment at the beginning that's between grid 
 		// points.
-		tauSum = intLayer(p, pFirst, model.pMod[start], zFirst, 
-				model.zMod[start]);
+		tauSum = intLayer(p, pFirst, model.ref.pMod[start], zFirst, 
+				model.ref.zMod[start]);
 		// Loop over grid points accumulating the integrals.
 		for(int j=start; j<end; j++) {
-			tauSum += intLayer(p, model.pMod[j], model.pMod[j+1], 
-					model.zMod[j], model.zMod[j+1]);
+			tauSum += intLayer(p, model.ref.pMod[j], model.ref.pMod[j+1], 
+					model.ref.zMod[j], model.ref.zMod[j+1]);
 			xSum += getXLayer();
 		}
 		// Add an increment at the end that's between grid points.
-		tauSum += intLayer(p, model.pMod[end], pLast, model.zMod[end], 
+		tauSum += intLayer(p, model.ref.pMod[end], pLast, model.ref.zMod[end], 
 				zLast);
 		xSum += getXLayer();
 		return tauSum;
@@ -136,14 +136,14 @@ public class TauInt {
 		double tau, b, p2, pTop2, pBot2, bSq, b2, xInt;
 		
 		// Handle a zero thickness layer (discontinuity).
-		if(Math.abs(zTop-zBot) <= TauUtil.dTol) {
+		if(Math.abs(zTop-zBot) <= TauUtil.DTOL) {
 			xLayer = 0d;
 			return 0d;
 		}
 		
 		// Handle a constant slowness layer.
-		if(Math.abs(pTop-pBot) <= TauUtil.dTol) {
-			if(Math.abs(p-pTop) <= TauUtil.dTol) {
+		if(Math.abs(pTop-pBot) <= TauUtil.DTOL) {
+			if(Math.abs(p-pTop) <= TauUtil.DTOL) {
 				xLayer = 0d;
 				return 0d;
 			} else {
@@ -155,7 +155,7 @@ public class TauInt {
 		}
 		
 		// Handle the straight through ray at the center.
-		if(p <= TauUtil.dTol && pBot <= TauUtil.dTol) {
+		if(p <= TauUtil.DTOL && pBot <= TauUtil.DTOL) {
 			xLayer = Math.PI/2d;					// Accumulate all of x in the last layer.
 			return pTop;
 		}
@@ -164,10 +164,10 @@ public class TauInt {
 				(float)(pBot-pTop)+" "+(float)(zBot-zTop)+" "+
 				(float)(Math.exp(zBot-zTop)-1d)+" "+(float)b);
 		// Handle the straight through ray elsewhere.
-		if(p <= TauUtil.dTol) {
+		if(p <= TauUtil.DTOL) {
 			tau = -(pBot-pTop+b*Math.log(pBot/pTop)-
 					b*Math.log(Math.max((pTop-b)*pBot/((pBot-b)*pTop), 
-					TauUtil.dMin)));
+					TauUtil.DMIN)));
 			xLayer = 0d;
 			tauTest(p, pTop, pBot, zTop, zBot, tau);
 			return tau;
@@ -180,7 +180,7 @@ public class TauInt {
 			b2 = Math.sqrt(Math.abs(Math.pow(b, 2d)-p2));
 			if(Math.pow(b, 2d) >= p2) {
 				xInt = Math.log(Math.max((pTop-b)*(b*pBot-p2)/
-						((pBot-b)*(b2*pTop2+b*pTop-p2)), TauUtil.dMin));
+						((pBot-b)*(b2*pTop2+b*pTop-p2)), TauUtil.DMIN));
 				xLayer = pBot*xInt/b2;
 			} else {
 				xInt = Math.copySign(Math.PI/2d, b-pBot)-
@@ -199,7 +199,7 @@ public class TauInt {
 			b2 = Math.sqrt(Math.abs(Math.pow(b, 2d)-p2));
 			if(Math.pow(b, 2d) >= p2) {
 				xInt = Math.log(Math.max((pTop-b)*(b2*pBot2+b*pBot-p2)/
-						((pBot-b)*(b*pTop-p2)), TauUtil.dMin));
+						((pBot-b)*(b*pTop-p2)), TauUtil.DMIN));
 				xLayer = pTop*xInt/b2;
 			} else {
 				xInt = Math.asin(Math.max(Math.min((b*pBot-p2)/
@@ -220,13 +220,13 @@ public class TauInt {
 		b2 = Math.sqrt(Math.abs(bSq-p2));
 		if(debug) System.out.println("b p2 pBot2 pTop2 b2 = "+(float)b+" "+
 				(float)p2+" "+(float)pBot2+" "+(float)pTop2+" "+(float)b2);
-		if(b2 <= TauUtil.dMin) {
+		if(b2 <= TauUtil.DMIN) {
 			xInt = 0d;
 			xLayer = p*(Math.sqrt(Math.abs((pBot+b)/(pBot-b)))-
 					Math.sqrt(Math.abs((pTop+b)/(pTop-b))))/b;
 		} else if(bSq >= p2) {
 			xInt = Math.log(Math.max((pTop-b)*(b2*pBot2+b*pBot-p2)/
-					((pBot-b)*(b2*pTop2+b*pTop-p2)), TauUtil.dMin));
+					((pBot-b)*(b2*pTop2+b*pTop-p2)), TauUtil.DMIN));
 			if(debug) System.out.println("bSq >= p2: "+
 					(float)((pTop-b)*(b2*pBot2+b*pBot-p2))+" "+
 					(float)((pBot-b)*(b2*pTop2+b*pTop-p2))+" "+

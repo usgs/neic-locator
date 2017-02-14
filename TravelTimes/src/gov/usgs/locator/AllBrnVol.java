@@ -7,10 +7,12 @@ package gov.usgs.locator;
  *
  */
 public class AllBrnVol {	
-	BrnDataVol[] branches;						// Surface focus branch data
-	UpDataVol pUp, sUp;								// Up-going branch data
+	BrnDataVol[] branches;						// Volatile branch data
+	ModDataVol pModel, sModel;				// Volatile model data
+	UpDataVol pUp, sUp;								// Volatile up-going branch data
 	double dSource;										// Dimensional source depth in kilometers
 	double zSource;										// Flat Earth source depth
+	double dTdDepth;									// Derivative of travel time with respect to depth
 	AllBrnRef ref;
 	ModConvert cvt;
 	
@@ -24,9 +26,12 @@ public class AllBrnVol {
 		this.ref = ref;
 		this.cvt = cvt;
 		
+		// Set up the volatile piece of the model.
+		pModel = new ModDataVol(ref.pModel, cvt);
+		sModel = new ModDataVol(ref.sModel, cvt);
 		// Set up the up-going branch data.
-		pUp = new UpDataVol(ref.pUp, ref.pModel, ref.sModel, cvt);
-		sUp = new UpDataVol(ref.sUp, ref.sModel, ref.pModel, cvt);
+		pUp = new UpDataVol(ref.pUp, pModel, sModel, cvt);
+		sUp = new UpDataVol(ref.sUp, sModel, pModel, cvt);
 		
 		// Set up the branch data.
 		branches = new BrnDataVol[ref.branches.length];
@@ -51,13 +56,13 @@ public class AllBrnVol {
 		// The interpolation gets squirrelly for very shallow sources.
 		if(depth < 0.011d) {
 			zSource = 0d;
-			cvt.dTdDepth = 1d/cvt.pNorm;
+			dTdDepth = 1d/cvt.pNorm;
 		} else {
 			zSource = Math.min(Math.log(Math.max(1d-dSource*cvt.xNorm, 
-					TauUtil.dMin)), 0d);
-			cvt.dTdDepth = 1d/(cvt.pNorm*(1d-dSource*cvt.xNorm));
+					TauUtil.DMIN)), 0d);
+			dTdDepth = 1d/(cvt.pNorm*(1d-dSource*cvt.xNorm));
 		}
-		System.out.println("zSource = "+zSource+" dTdDepth = "+cvt.dTdDepth);
+		System.out.println("zSource = "+zSource+" dTdDepth = "+dTdDepth);
 		
 		// Fake up the phase list commands for now.
 		for(int j=0; j<branches.length; j++) {
@@ -89,7 +94,7 @@ public class AllBrnVol {
 				"zConrad =%7.1f\n", cvt.zUpperMantle, cvt.zMoho, cvt.zConrad);
 		System.out.format("Derived: rSurface =%8.1f  zNewUp = %7.1f  "+
 				"dTdDel2P =%11.4e  dTdDepth = %11.4e\n", cvt.rSurface, cvt.zNewUp, 
-				cvt.dTdDelta, cvt.dTdDepth);
+				cvt.dTdDelta, dTdDepth);
 	}
 	
 	/**

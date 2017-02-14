@@ -28,7 +28,7 @@ public class UpDataVol {
 	double[] pDec;				// Decimated up-going branch ray parameters
 	double[] tauDec;			// Decimated up-going branch tau
 	UpDataRef ref;
-	ModDataRef modPri, modSec;
+	ModDataVol modPri, modSec;
 	ModConvert cvt;
 	TauInt intPri, intSec;
 	Decimate dec;
@@ -43,7 +43,7 @@ public class UpDataVol {
 	 * @param modPri The primary Earth model data source
 	 * @param modSec the secondary Earth model data source
 	 */
-	public UpDataVol(UpDataRef ref, ModDataRef modPri, ModDataRef modSec, ModConvert cvt) {
+	public UpDataVol(UpDataRef ref, ModDataVol modPri, ModDataVol modSec, ModConvert cvt) {
 		this.ref = ref;
 		this.modPri = modPri;
 		this.modSec = modSec;
@@ -90,7 +90,7 @@ public class UpDataVol {
 		pMax = modPri.findMaxP();
 		modPri.printFind(false);
 		// Copy the desired data into temporary storage.
-		iUp = modPri.indexUp[iSrc];
+		iUp = modPri.ref.indexUp[iSrc];
 		System.out.println("\t\t\tiUp = "+iUp);
 		pUp = Arrays.copyOf(ref.pTauUp, Math.min(ref.tauUp[iUp].length+1, 
 				ref.pTauUp.length));
@@ -98,13 +98,13 @@ public class UpDataVol {
 		xUp = Arrays.copyOf(ref.xUp[iUp], ref.xUp[iUp].length);
 		
 		// If the source is at the surface, we're already done.
-		if(-zSource <= TauUtil.dTol) {
+		if(-zSource <= TauUtil.DTOL) {
 			brnLen = tauUp.length;
 			return;
 		}
 		
 		// See if we need to correct tauUp.
-		if(Math.abs(ref.pTauUp[iUp]-pMax) <= TauUtil.dTol) corrTau = false;
+		if(Math.abs(ref.pTauUp[iUp]-pMax) <= TauUtil.DTOL) corrTau = false;
 		else corrTau = true;		
 		
 		// Debug code to make comparison with the FORTRAN version easier.
@@ -118,8 +118,8 @@ public class UpDataVol {
 		
 		// Correct the up-going tau values to the exact source depth.
 		System.out.println("Partial integrals: "+(float)pSource+" - "+
-				(float)modPri.pMod[iSrc]+"  "+(float)zSource+" - "+
-				(float)modPri.zMod[iSrc]);
+				(float)modPri.ref.pMod[iSrc]+"  "+(float)zSource+" - "+
+				(float)modPri.ref.zMod[iSrc]);
 		i=0;
 		for(int j=0; j<tauUp.length; j++) {
 			if(ref.pTauUp[j] <= pMax) {
@@ -127,12 +127,12 @@ public class UpDataVol {
 		//		System.out.println("j  p tau (before): "+(j+1)+" "+
 		//				(float)ref.pTauUp[j]+" "+(float)tauUp[j]);
 					tauUp[j] -= intPri.intLayer(ref.pTauUp[j], pSource, 
-							modPri.pMod[iSrc], zSource, modPri.zMod[iSrc]);
+							modPri.ref.pMod[iSrc], zSource, modPri.ref.zMod[iSrc]);
 		//		System.out.println("     tau (after): "+(float)tauUp[j]+" "+
 		//				(float)ref.pXUp[i]);
 					
 					// See if we need to correct an end point distance as well.
-					if(Math.abs(ref.pTauUp[j]-ref.pXUp[i]) <= TauUtil.dTol) {
+					if(Math.abs(ref.pTauUp[j]-ref.pXUp[i]) <= TauUtil.DTOL) {
 					xInt = intPri.getXLayer();
 		/*				System.out.println("i  x (before) dx = "+(i+1)+" "+
 								(float)xUp[i]+" "+(float)xInt);
@@ -150,7 +150,7 @@ public class UpDataVol {
 				}
 			} else {
 				// See if we need to add a new last ray parameter.
-				if(Math.abs(ref.pTauUp[j-1]-pMax) <= TauUtil.dTol) {
+				if(Math.abs(ref.pTauUp[j-1]-pMax) <= TauUtil.DTOL) {
 					brnLen = j-1;
 				}
 				else {
