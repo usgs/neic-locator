@@ -25,7 +25,8 @@ public class BrnDataRef {
 	final double xDiff;						// Maximum distance of an associated diffracted phase
 	final double[] pBrn;					// Slowness grid for this branch
 	final double[] tauBrn;				// Tau for each grid point
-	final double[][] basisBrn;		// Basis function coefficients for each grid point
+//	final double[][] basisBrn;		// Basis function coefficients for each grid point
+	double[][] basisBrn;		// Basis function coefficients for each grid point
 	
 	/**
 	 * Load data from the FORTRAN file reader for one branch.  The file 
@@ -95,6 +96,21 @@ public class BrnDataRef {
 		for(int k=0; k<5; k++) {
 			basisBrn[k] = Arrays.copyOfRange(in.basisSpec[k], start, end);
 		}
+	}
+	
+	/**
+	 * Test code for basisSpline.
+	 */
+	protected void reCompute() {
+		Spline spl;
+		
+		for(int i=0; i<5; i++) {
+			for(int j=0; j<basisBrn[i].length; j++) {
+				basisBrn[i][j] = Double.NaN;
+			}
+		}
+		spl = new Spline();
+		spl.basisSet(pBrn, basisBrn);
 	}
 	
 	/**

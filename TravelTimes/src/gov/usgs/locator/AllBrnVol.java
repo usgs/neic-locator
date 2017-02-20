@@ -1,5 +1,7 @@
 package gov.usgs.locator;
 
+import java.util.ArrayList;
+
 /**
  * Umbrella storage for all volatile travel-time data.  
  * 
@@ -36,7 +38,7 @@ public class AllBrnVol {
 		// Set up the branch data.
 		branches = new BrnDataVol[ref.branches.length];
 		for(int j=0; j<branches.length; j++) {
-			branches[j] = new BrnDataVol(ref.branches[j], pUp, sUp);
+			branches[j] = new BrnDataVol(ref.branches[j], pUp, sUp, cvt);
 		}
 	}
 	
@@ -49,6 +51,7 @@ public class AllBrnVol {
 	 * @throws Exception 
 	 */
 	public void newSession(double depth, String[] phList) throws Exception {
+		char tagBrn;
 		double xMin;
 		
 		// Set up the new source depth.
@@ -75,11 +78,45 @@ public class AllBrnVol {
 		pUp.newDepth(zSource);
 		sUp.newDepth(zSource);
 		
-		// Now correct each branch.
+		// To correct each branch we need a few depth dependent pieces.
 		xMin = cvt.xNorm*Math.min(Math.max(2d*dSource, 2d), 25d);
+		if(dSource <= cvt.zConrad) tagBrn = 'g';
+		else if(dSource <= cvt.zMoho) tagBrn = 'b';
+		else if(dSource <= cvt.zUpperMantle) tagBrn = 'n';
+		else tagBrn = ' ';
+		// Now correct each branch.
 		for(int j=0; j<branches.length; j++) {
-			branches[j].depthCorr(xMin);
+			branches[j].depthCorr(dTdDepth, xMin, tagBrn);
 		}
+	}
+	
+	/**
+	 * Get the travel times from all branches.
+	 * 
+	 * @return A list of travel times
+	 */
+	public ArrayList<TTime> getTT(double x, double elev) {
+		double[] xs;
+		ArrayList<TTime> TTimes = null;
+		
+		xs = new double[3];
+		xs[0] = Math.abs(Math.toRadians(x))%(2d*Math.PI);
+		if(xs[0] > Math.PI) xs[0] = 2d*Math.PI-xs[0];
+		xs[1] = 2d*Math.PI-xs[0];
+		xs[2] = xs[0]+2d*Math.PI;
+		if(Math.abs(xs[0]) <= TauUtil.DTOL) {
+			xs[0] = TauUtil.DTOL;
+			xs[2] = -10d;
+		}
+		if(Math.abs(xs[0]-Math.PI) <= TauUtil.DTOL) {
+			xs[0] = Math.PI-TauUtil.DTOL;
+			xs[1] = -10d;
+		}
+		
+		for(int j=0; j<branches.length; j++) {
+			branches[j].getTT(xs, TTimes);
+		}
+		return TTimes;
 	}
 		
 	/**

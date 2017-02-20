@@ -69,6 +69,15 @@ public class AllBrnRef {
 	}
 	
 	/**
+	 * Test code for basisSpline.
+	 * 
+	 * @param iBrn Branch number to test
+	 */
+	protected void reCompute(int iBrn) {
+		branches[iBrn].reCompute();
+	}
+	
+	/**
 	 * Get the number of travel-time branches loaded.
 	 * 
 	 * @return Number of travel-time branches loaded.

@@ -13,6 +13,11 @@ public class TtMain {
 		ArrayList<String> knownModels = null;
 		ArrayList<AllBrnRef> modelData = null;
 		ArrayList<ModConvert> converts = null;
+		// Simulate a simple travel time request.
+		double x = 5d;
+		double elev = 0d;
+		ArrayList<TTime> TTimes;
+		// Classes we will need.
 		ReadTau readTau = null;
 		AllBrnRef allRef = null;
 		ModConvert convert = null;
@@ -53,7 +58,10 @@ public class TtMain {
 			allRef = new AllBrnRef(readTau, convert);
 			modelData.add(allRef);
 			converts.add(convert);
-			allRef.dumpBrn(true);
+	//	allRef.dumpBrn(true);
+			allRef.dumpBrn(1, true);
+			allRef.reCompute(1);
+			allRef.dumpBrn(1,true);
 		}
 		
 		// At this point, we've either found the reference part of the model 
@@ -71,6 +79,9 @@ public class TtMain {
 //	allBrn.dumpUp('S', true);
 //	allBrn.dumpBrn("P", true, false);
 //	allBrn.dumpBrn(true, true);
+		
+		// Get the travel times.
+		TTimes = allBrn.getTT(x, elev);
 	}
 
 }
