@@ -9,20 +9,20 @@ package gov.usgs.locator;
  *
  */
 public class TTime {
-	String phCode;		// Phase code
-	double tt;				// Travel time (s)
-	double dTdD;			// Derivative of time with respect to 
-										// distance (s/degree)
-	double dTdZ;			// Derivative of time with respect to depth
-										// (s/km)
-	double dXdP;			// Derivative of distance with respect to 
-										// ray parameter (degree-s)
-	double spread;		// Statistical spread (s)
-	double observ;		// Relative statistical observability
-	String telGroup;	// Teleseismic phase group
-	String auxGroup;	// Auxiliary phase group
-	boolean canUse;		// If true, can use the phase for location
-	boolean dis;			// Disrespect (down weight) this phase
+	String phCode;					// Phase code
+	double tt;							// Travel time (s)
+	double dTdD;						// Derivative of time with respect to 
+													// distance (s/degree)
+	double dTdZ;						// Derivative of time with respect to depth
+													// (s/km)
+	double dXdP;						// Derivative of distance with respect to 
+													// ray parameter (degree-s)
+	double spread = 12d;		// Statistical spread (s)
+	double observ = 0d;			// Relative statistical observability
+	String telGroup = "";		// Teleseismic phase group
+	String auxGroup = "";		// Auxiliary phase group
+	boolean canUse = true;	// If true, can use the phase for location
+	boolean dis = false;		// Disrespect (down weight) this phase
 	
 	/**
 	 * The constructor accepts basic travel time information.
@@ -70,5 +70,35 @@ public class TTime {
 		this.auxGroup = auxGroup;
 		this.canUse = canUse;
 		this.dis = dis;
+	}
+	
+	/**
+	 * Make arrival times sortable into time order.
+	 * 
+	 * @param arrival An arrival object.
+	 * @return +1, 0, or -1 if arrival is later, the same time 
+	 * or earlier
+	 */
+	public int compareTo(TTime arrival) {
+		// Sort into arrival time order.
+		if(this.tt < arrival.tt) return +1;
+		else if(this.tt == arrival.tt) return 0;
+		else return -1;
+	}
+	
+	/**
+	 * Return this arrival formatted similarly to the arrival 
+	 * time list produced by the Locator version of Ttim.
+	 */
+	public String toString() {
+		int min = (int)(tt/60d);
+		double sec = 0.01d*(int)(100d*(tt-min*60d)+0.5d);
+		if(sec >= 60d) {
+			min++;
+			sec -= 60d;
+		}
+		return String.format("%8s %7.2f %3d %5.2f %10.2e %10.2e %5.2f "+
+				"%7.1f %b\n", 
+				phCode, tt, min, sec, dTdD, dTdZ, spread, observ, canUse);
 	}
 }

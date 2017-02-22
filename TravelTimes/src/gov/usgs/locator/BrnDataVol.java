@@ -18,7 +18,8 @@ public class BrnDataVol {
 	double pCaustic;				// Corrected slowness of a caustic, if any
 	double[] pBrn;					// Updated ray parameter grid
 	double[] tauBrn;				// Corrected tau values
-	double[][] polyBrn;			// Interpolation polynomial for tau(p)
+	double [] xBrn;					// Interpolated distance values
+	double[][] poly = null;	// Interpolation polynomial for tau(p)
 	double[][] xLim;				// Distance limits for each ray parameter interval
 	int iMin;								// Count of caustic minimums in this branch
 	int iMax;								// Count of caustic maximums in this branch
@@ -35,6 +36,7 @@ public class BrnDataVol {
 	 * @param ref The branch reference data source
 	 * @param pUp The corrected P up-going branch source
 	 * @param sUp The corrected S up-going branch source
+	 * @param cvt The conversion factor object
 	 */
 	public BrnDataVol(BrnDataRef ref, UpDataVol pUp, UpDataVol sUp, ModConvert cvt) {
 		this.ref = ref;
@@ -54,12 +56,17 @@ public class BrnDataVol {
 	/**
 	 * Correct this branch for source depth using the corrected 
 	 * up-going branch ray parameters and tau values.
-	 * @throws Exception 
+	 * 
+	 * @param dTdDepth Correction factor for dT/dDepth
+	 * @param xMin The minimum source-receiver distance desired 
+	 * between ray parameter samples
+	 * @tagBrn The P or S up-going branch suffix
+	 * @throws Exception If the tau integral fails
 	 */
 	public void depthCorr(double dTdDepth, double xMin, char tagBrn) 
 			throws Exception {
 		int i, len = 0;
-		double[][] basisBrn;
+		double[][] basisTmp;
 		Spline spline = new Spline();
 		this.dTdDepth = dTdDepth;
 		
@@ -89,10 +96,11 @@ public class BrnDataVol {
 					pBrn = pUp.realUp(xRange, xMin);
 					tauBrn = pUp.getDecTau();
 					len = pBrn.length;
-					basisBrn = new double[5][len];
-					spline.basisSet(pBrn, basisBrn);
-					polyBrn = new double[4][len-1];
-					spline.tauSpline(pBrn, tauBrn, xRange, basisBrn, polyBrn);
+					basisTmp = new double[5][len];
+					spline.basisSet(pBrn, basisTmp);
+					poly = new double[4][len];
+					xBrn = new double[len];
+					spline.tauSpline(pBrn, tauBrn, xRange, basisTmp, poly, xBrn);
 				
 				// Otherwise,correct a down-going branch.
 				} else {
@@ -140,8 +148,9 @@ public class BrnDataVol {
 							break;
 						}
 					}
-					polyBrn = new double[4][len-1];
-					spline.tauSpline(pBrn, tauBrn, xRange, ref.basisBrn, polyBrn);
+					poly = new double[4][len];
+					xBrn = new double[len];
+					spline.tauSpline(pBrn, tauBrn, xRange, ref.basis, poly, xBrn);
 				}
 			// Do phases that start as S.
 			} else {
@@ -166,10 +175,11 @@ public class BrnDataVol {
 					pBrn = sUp.realUp(xRange, xMin);
 					tauBrn = sUp.getDecTau();
 					len = pBrn.length;
-					basisBrn = new double[5][len];
-					spline.basisSet(pBrn, basisBrn);
-					polyBrn = new double[4][len-1];
-					spline.tauSpline(pBrn, tauBrn, xRange, basisBrn, polyBrn);
+					basisTmp = new double[5][len];
+					spline.basisSet(pBrn, basisTmp);
+					poly = new double[4][len];
+					xBrn = new double[len];
+					spline.tauSpline(pBrn, tauBrn, xRange, basisTmp, poly, xBrn);
 					
 				// Otherwise,correct a down-going branch.
 				} else {
@@ -217,8 +227,9 @@ public class BrnDataVol {
 							break;
 						}
 					}
-					polyBrn = new double[4][len-1];
-					spline.tauSpline(pBrn, tauBrn, xRange, ref.basisBrn, polyBrn);
+					poly = new double[4][len];
+					xBrn = new double[len];
+					spline.tauSpline(pBrn, tauBrn, xRange, ref.basis, poly, xBrn);
 				}
 			}
 			// Complete everything we'll need to compute a travel time.
@@ -339,21 +350,25 @@ public class BrnDataVol {
 		return x;
 	}
 	
+	/**
+	 * Using tau and distance (from tauSpline), compute the final 
+	 * spline interpolation polynomial.
+	 * 
+	 * @param tagBrn Up-going P and S branch suffix
+	 */
 	private void tauPoly(char tagBrn) {
 		int n;
 		double pEnd, dp, dtau, xMin, xMax, pExt, sqrtPext, xCaustic;
-		double[] x, dpe, sqrtDp, sqrt3Dp;
+		double[] dpe, sqrtDp, sqrt3Dp;
 		
 		// Fill in the rest of the interpolation polynomial.  Note that 
 		// distance will be overwritten with the linear polynomial 
 		// coefficient.
-		n = tauBrn.length;
+		n = pBrn.length;
 		pEnd = pBrn[n-1];
-		x = new double[2];
 		dpe = new double[2];
 		sqrtDp = new double[2];
 		sqrt3Dp = new double[2];
-		x[1] = polyBrn[1][0];
 		dpe[1] = pEnd-pBrn[0];
 		sqrtDp[1] = Math.sqrt(dpe[1]);
 		sqrt3Dp[1] = dpe[1]*sqrtDp[1];
@@ -367,49 +382,47 @@ public class BrnDataVol {
 		// Loop over ray parameter intervals.
 		for(int j=0; j<n-2; j++) {			
 			// Complete the interpolation polynomial.
-			x[0] = x[1];
 			dpe[0] = dpe[1];
 			sqrtDp[0] = sqrtDp[1];
 			sqrt3Dp[0] = sqrt3Dp[1];
-			x[1] = polyBrn[1][j+1];
 			dpe[1] = pEnd-pBrn[j+1];
 			sqrtDp[1] = Math.sqrt(dpe[1]);
 			sqrt3Dp[1] = dpe[1]*sqrtDp[1];
 			dp = pBrn[j]-pBrn[j+1];
 			dtau = tauBrn[j+1]-tauBrn[j];
-			polyBrn[3][j] = (2d*dtau-dp*(x[1]+x[0]))/
+			poly[3][j] = (2d*dtau-dp*(xBrn[j+1]+xBrn[j]))/
 					(0.5d*(sqrt3Dp[1]-sqrt3Dp[0])-1.5d*sqrtDp[1]*sqrtDp[0]*
 					(sqrtDp[1]-sqrtDp[0]));
-			polyBrn[2][j] = (dtau-dp*x[0]-(sqrt3Dp[1]+0.5d*sqrt3Dp[0]-
-					1.5d*dpe[1]*sqrtDp[0])*polyBrn[3][j])/Math.pow(dp,2d);
-			polyBrn[1][j] = (dtau-(Math.pow(dpe[1],2d)-Math.pow(dpe[0],2d))*
-					polyBrn[2][j]-(sqrt3Dp[1]-sqrt3Dp[0])*polyBrn[3][j])/dp;
-			polyBrn[0][j] = tauBrn[j]-sqrt3Dp[0]*polyBrn[3][j]-
-					dpe[0]*(dpe[0]*polyBrn[2][j]+polyBrn[1][j]);
+			poly[2][j] = (dtau-dp*xBrn[j]-(sqrt3Dp[1]+0.5d*sqrt3Dp[0]-
+					1.5d*dpe[1]*sqrtDp[0])*poly[3][j])/Math.pow(dp,2d);
+			poly[1][j] = (dtau-(Math.pow(dpe[1],2d)-Math.pow(dpe[0],2d))*
+					poly[2][j]-(sqrt3Dp[1]-sqrt3Dp[0])*poly[3][j])/dp;
+			poly[0][j] = tauBrn[j]-sqrt3Dp[0]*poly[3][j]-dpe[0]*(dpe[0]*
+					poly[2][j]+poly[1][j]);
 			
 			// Set up the distance limits.
-			xLim[0][j] = Math.min(x[0],x[1]);
-			xLim[1][j] = Math.max(x[0],x[1]);
+			xLim[0][j] = Math.min(xBrn[j],xBrn[j+1]);
+			xLim[1][j] = Math.max(xBrn[j],xBrn[j+1]);
 			if(xLim[0][j] < xMin) {
 				xMin = xLim[0][j];
-				if(x[0] <= x[1]) pCaustic = pBrn[j];
+				if(xBrn[j] <= xBrn[j+1]) pCaustic = pBrn[j];
 				else pCaustic = pBrn[j+1];
 			}
 			// See if there's a caustic in this interval.
 			flag[j] = "";
-			if(Math.abs(polyBrn[2][j]) > TauUtil.DMIN) {
-				sqrtPext = -0.375d*polyBrn[3][j]/polyBrn[2][j];
+			if(Math.abs(poly[2][j]) > TauUtil.DMIN) {
+				sqrtPext = -0.375d*poly[3][j]/poly[2][j];
 				pExt = Math.pow(sqrtPext,2d);
 				if(sqrtPext > 0d && pExt > dpe[1] && pExt < dpe[0]) {
-					xCaustic = polyBrn[1][j]+sqrtPext*(2d*sqrtPext*
-							polyBrn[2][j]+1.5d*polyBrn[3][j]);
+					xCaustic = poly[1][j]+sqrtPext*(2d*sqrtPext*
+							poly[2][j]+1.5d*poly[3][j]);
 					xLim[0][j] = Math.min(xLim[0][j],xCaustic);
 					xLim[1][j] = Math.max(xLim[1][j],xCaustic);
 					if(xCaustic < xMin) {
 						xMin = xCaustic;
 						pCaustic = pEnd-pExt;
 					}
-					if(polyBrn[3][j] < 0d) {
+					if(poly[3][j] < 0d) {
 						flag[j] = "min";
 						iMin++;
 					}
@@ -442,7 +455,7 @@ public class BrnDataVol {
 	 * @param An array of possible distances to search
 	 * @param TTimes A list of travel times
 	 */
-	public void getTT(double[] xs, ArrayList<TTime> TTimes) {
+	public void getTT(double[] xs, ArrayList<TTime> tTimes) {
 		String tmpCode;
 		boolean found = false;
 		int l;
@@ -471,17 +484,17 @@ public class BrnDataVol {
 						pTol = Math.max(3e-6d*(pBrn[j+1]-pBrn[j]),1e-4d);
 						
 						// This is the general case.
-						if(Math.abs(polyBrn[2][j]) > TauUtil.DMIN) {
+						if(Math.abs(poly[2][j]) > TauUtil.DMIN) {
 							// There should be two solutions.
 							for(int k=0; k<2; k++) {
 								if(k == 0) {
-									dps = -(3d*polyBrn[3][j]+
+									dps = -(3d*poly[3][j]+
 											Math.copySign(Math.sqrt(Math.abs(9d*
-											Math.pow(polyBrn[3][j],2d)+32d*polyBrn[2][j]*
-											(xs[i]-polyBrn[1][j]))),polyBrn[3][j]))/
-											(8d*polyBrn[2][j]);
+											Math.pow(poly[3][j],2d)+32d*poly[2][j]*
+											(xs[i]-poly[1][j]))),poly[3][j]))/
+											(8d*poly[2][j]);
 								} else {
-									dps = (polyBrn[1][j]-xs[i])/(2d*polyBrn[2][j]*dps);
+									dps = (poly[1][j]-xs[i])/(2d*poly[2][j]*dps);
 								}
 								dp = Math.copySign(Math.pow(dps,2d),dps);
 								// Arrivals outside the interval aren't real.
@@ -494,18 +507,18 @@ public class BrnDataVol {
 								l = tmpCode.indexOf("ab");
 								if(l >= 0 && ps <= pCaustic) tmpCode = 
 										tmpCode.substring(0, l-1)+"bc";
-								if(TTimes == null) TTimes = new ArrayList<TTime>();
-								TTimes.add(new TTime(tmpCode,cvt.tNorm*(polyBrn[0][j]+
-										dp*(polyBrn[1][j]+dp*polyBrn[2][j]+
-										dps*polyBrn[3][j])+ps*xs[i]),xSign*ps,zSign*
+								if(tTimes == null) tTimes = new ArrayList<TTime>();
+								tTimes.add(new TTime(tmpCode,cvt.tNorm*(poly[0][j]+
+										dp*(poly[1][j]+dp*poly[2][j]+
+										dps*poly[3][j])+ps*xs[i]),xSign*ps,zSign*
 										Math.sqrt(Math.abs(pSourceSq-Math.pow(ps,2d))),
-										-(2d*polyBrn[2][j]+0.75d*polyBrn[3][j]/
+										-(2d*poly[2][j]+0.75d*poly[3][j]/
 										Math.max(Math.abs(dps),TauUtil.DTOL))/cvt.tNorm));
 							}
 						// We have to be careful if the quadratic term is zero.
 						} else {
 							// On the plus side, there's only one solution.
-							dps = (xs[i]-polyBrn[1][j])/(1.5d*polyBrn[3][j]);
+							dps = (xs[i]-poly[1][j])/(1.5d*poly[3][j]);
 							dp = Math.copySign(Math.pow(dps,2d),dps);
 							// Arrivals outside the interval aren't real.
 							if(dp < pEnd-pBrn[j+1]-pTol  || dp > pEnd-pBrn[j]+pTol) 
@@ -517,11 +530,11 @@ public class BrnDataVol {
 							l = tmpCode.indexOf("ab");
 							if(l >= 0 && ps <= pCaustic) tmpCode = 
 									tmpCode.substring(0, l-1)+"bc";
-							if(TTimes == null) TTimes = new ArrayList<TTime>();
-							TTimes.add(new TTime(tmpCode,cvt.tNorm*(polyBrn[0][j]+
-									dp*(polyBrn[1][j]+dps*polyBrn[3][j])+ps*xs[i]),
+							if(tTimes == null) tTimes = new ArrayList<TTime>();
+							tTimes.add(new TTime(tmpCode,cvt.tNorm*(poly[0][j]+
+									dp*(poly[1][j]+dps*poly[3][j])+ps*xs[i]),
 									xSign*ps,zSign*Math.sqrt(Math.abs(pSourceSq-
-									Math.pow(ps,2d))),-(0.75d*polyBrn[3][j]/
+									Math.pow(ps,2d))),-(0.75d*poly[3][j]/
 									Math.max(Math.abs(dps),TauUtil.DTOL))/cvt.tNorm));
 						}
 						if(!found) {
@@ -533,8 +546,23 @@ public class BrnDataVol {
 					}
 				}
 			}
+			// See if we have a diffracted arrival.
 			if(ref.isDiff) {
-				
+				if(xs[i] > xRange[1] && xs[i] <= ref.xDiff) {
+					dp = pRange[1]-pRange[0];
+					dps = Math.sqrt(Math.abs(dp));
+					tmpCode = phCode;
+					l = tmpCode.indexOf("ab");
+					if(l >= 0 && pRange[0] <= pCaustic) tmpCode = 
+							tmpCode.substring(0, l-1)+"bc";
+					tmpCode = tmpCode.trim()+"dif";
+					if(tTimes == null) tTimes = new ArrayList<TTime>();
+					tTimes.add(new TTime(tmpCode,cvt.tNorm*(poly[0][0]+
+							dp*(poly[1][0]+dp*poly[2][0]+dps*poly[3][0])+
+							pRange[0]*xs[i]),xSign*pRange[0],zSign*Math.sqrt(Math.abs(pSourceSq-
+							Math.pow(pRange[0],2d))),-(2d*poly[2][0]+0.75d*poly[3][0]/
+							Math.max(Math.abs(dps),TauUtil.DTOL))/cvt.tNorm));
+				}
 			}
 		}
 	}
@@ -550,7 +578,7 @@ public class BrnDataVol {
 	}
 	
 	/**
-	 * get the branch segment code.
+	 * Get the branch segment code.
 	 * 
 	 * @return Branch segment code
 	 */
@@ -563,9 +591,11 @@ public class BrnDataVol {
 	 * partly duplicates the print function in AllBrnRef, but includes 
 	 * volatile data as well.
 	 * 
-	 * @param full If true print the detailed branch specification as well
+	 * @param full If true print the branch specification as well
+	 * @param all If true print even more specifications
+	 * @param sci if true print using scientific notation
 	 */
-	public void dumpBrn(boolean full, boolean sci) {
+	public void dumpBrn(boolean full, boolean all, boolean sci) {
 		if(isUsed & exists) {
 			if(ref.isUpGoing) {
 				if(ref.isDiff) System.out.format("\n          phase = %sup"+
@@ -591,41 +621,70 @@ public class BrnDataVol {
 					pCaustic, Math.toDegrees(ref.xDiff));
 			else System.out.format("        pCaustic = %8.6f\n", pCaustic);
 			if(full) {
-				if(sci) {
-					System.out.println("\n         p        tau                 "+
-							"basis function coefficients");
-					if(polyBrn != null) {
-						for(int j=0; j<pBrn.length; j++) {
-							System.out.format("%3d: %13.6e  %13.6e  %13.6e  %13.6e  %13.6e  "+
-									"%13.6e\n", j, pBrn[j], tauBrn[j], polyBrn[0][j], polyBrn[1][j], 
-									polyBrn[2][j], polyBrn[3][j]);
+				int n = pBrn.length;
+				if(all && poly != null) {
+					if(sci) {
+						System.out.println("\n         p        tau          x       "+
+								"basis function coefficients");
+						for(int j=0; j<n-1; j++) {
+							System.out.format("%3d: %3s %13.6e %13.6e %13.6e %13.6e %13.6e "+
+									"%13.6e %13.6e %13.6e %13.6e\n", j, flag[j], pBrn[j], tauBrn[j], 
+									xBrn[j], poly[0][j], poly[1][j], poly[2][j], poly[3][j], 
+									xLim[0][j], xLim[1][j]);
 						}
+						System.out.format("%3d:     %13.6e %13.6e %13.6e \n", n-1, pBrn[n-1], 
+								tauBrn[n-1], xBrn[n-1]);
 					} else {
-						System.out.format("%3d: %13.6e  %13.6e  %13.6e\n", 0, pBrn[0], 
-								tauBrn[0], xRange[0]);
-						for(int j=1; j<pBrn.length-1; j++) {
-							System.out.format("%3d: %13.6e  %13.6e\n", j, pBrn[j], tauBrn[j]);
+						System.out.println("\n         p        tau          x       "+
+								"basis function coefficients");
+						for(int j=0; j<n-1; j++) {
+							System.out.format("%3d: %3d %8.6f %8.6f %8.6f  %9.2e  %9.2e  "+
+									"%9.2e  %9.2e %8.6f %8.6f\n", j, flag[j], pBrn[j], tauBrn[j], 
+									xBrn[j], poly[0][j], poly[1][j], poly[2][j], poly[3][j], 
+									xLim[0][j], xLim[1][j]);
 						}
-						System.out.format("%3d: %13.6e  %13.6e  %13.6e\n", pBrn.length-1, 
-								pBrn[pBrn.length-1], tauBrn[pBrn.length-1], xRange[1]);
+						System.out.format("%3d:     %8.6f %8.6f %8.6f\n", n-1, pBrn[n-1], 
+								tauBrn[n-1], xBrn[n-1]);
 					}
 				} else {
-					System.out.println("\n         p        tau                 "+
-							"basis function coefficients");
-					if(polyBrn != null) {
-						for(int j=0; j<pBrn.length; j++) {
-							System.out.format("%3d: %8.6f  %8.6f  %9.2e  %9.2e  %9.2e  %9.2e\n", 
-									j, pBrn[j], tauBrn[j], polyBrn[0][j], polyBrn[1][j], 
-									polyBrn[2][j], polyBrn[3][j]);
+					if(sci) {
+						System.out.println("\n         p        tau          x       "+
+								"xLim");
+						if(poly != null) {
+							for(int j=0; j<n; j++) {
+								System.out.format("%3d: %3s %13.6e %13.6e %13.6e %13.6e %13.6e\n", 
+										j, flag[j], pBrn[j], tauBrn[j], xBrn[j], xLim[0][j], 
+										xLim[1][j]);
+							}
+						} else {
+							System.out.format("%3d:     %13.6e %13.6e %13.6e\n", 0, pBrn[0], 
+									tauBrn[0], xRange[0]);
+							for(int j=1; j<n-1; j++) {
+								System.out.format("%3d:     %13.6e %13.6e\n", j, pBrn[j], 
+										tauBrn[j]);
+							}
+							System.out.format("%3d:     %13.6e %13.6e %13.6e\n", n-1, pBrn[n-1], 
+									tauBrn[n-1], xRange[1]);
 						}
 					} else {
-						System.out.format("%3d: %8.6f  %8.6f  %8.6f\n", 0, pBrn[0], 
-								tauBrn[0], xRange[0]);
-						for(int j=1; j<pBrn.length-1; j++) {
-							System.out.format("%3d: %8.6f  %8.6f\n", j, pBrn[j], tauBrn[j]);
+						System.out.println("\n         p        tau          x       "+
+								"xLim");
+						if(poly != null) {
+							for(int j=0; j<n; j++) {
+								System.out.format("%3d: %3s %8.6f %8.6f %8.6f %8.6f %8.6f\n", 
+										j, flag[j], pBrn[j], tauBrn[j], xBrn[j], xLim[0][j], 
+										xLim[1][j]);
+							}
+						} else {
+							System.out.format("%3d:     %8.6f  %8.6f  %8.6f\n", 0, pBrn[0], 
+									tauBrn[0], xRange[0]);
+							for(int j=1; j<n-1; j++) {
+								System.out.format("%3d:     %8.6f  %8.6f\n", j, pBrn[j], 
+										tauBrn[j]);
+							}
+							System.out.format("%3d:     %8.6f  %8.6f  %8.6f\n", n-1, pBrn[n-1], 
+									tauBrn[n-1], xRange[1]);
 						}
-						System.out.format("%3d: %8.6f  %8.6f  %8.6f\n", pBrn.length-1, 
-								pBrn[pBrn.length-1], tauBrn[pBrn.length-1], xRange[1]);
 					}
 				}
 			}

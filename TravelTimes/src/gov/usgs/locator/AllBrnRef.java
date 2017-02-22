@@ -23,13 +23,14 @@ public class AllBrnRef {
 	 * Load all data from TauRead into more convenient Java classes.
 	 * 
 	 * @param in The TauRead data source
-	 * @param cvt The Earth model units converter
 	 */
-	public AllBrnRef(ReadTau in, ModConvert cvt) {
+	public AllBrnRef(ReadTau in) {
 		String[] segCode;
-		this.cvt = cvt;
 		
 		this.modelName = in.modelName;
+		
+		// Set up the conversion constants, etc.
+		cvt = new ModConvert(in);
 		
 		// Set up the Earth model.
 		pModel = new ModDataRef(in, cvt, 'P');
@@ -69,7 +70,7 @@ public class AllBrnRef {
 	}
 	
 	/**
-	 * Test code for basisSpline.
+	 * Test code for the spline basis functions.
 	 * 
 	 * @param iBrn Branch number to test
 	 */

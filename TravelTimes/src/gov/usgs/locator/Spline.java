@@ -198,29 +198,28 @@ public class Spline {
 	 * parameter grid
 	 * @param basis Ray parameter grid basis functions computed 
 	 * in method basisSet
-	 * @param poly Array to receive the interpolated distance 
-	 * values
+	 * @param poly Scratch array dimensioned [3][p.length]
+	 * @param x Normalized, interpolated distance values returned
 	 */
 	public void tauSpline(double[] p, double[] tau, double[] xRange, 
-			double[][] basis, double[][] poly) {
+			double[][] basis, double[][] poly, double[] x) {
 		int n;
 		double alr, gn;
-		double[] ap, b;
-		double[][] a;
+		double[] ap;
 		
-		n = tau.length;
-		// The first column of the polynomial is just tau.
-		poly[0] = tau;
+		n = p.length;
 		// Make sure we have a reasonable length branch.
 		if(n == 1) {
-			poly[1][1] = xRange[0];
+			x[0] = xRange[0];
 			return;
 		}
-		// Set up the working arrays.
-		b = Arrays.copyOf(tau, n);
-		a = new double[2][];
-		a[0] = Arrays.copyOf(basis[0], n);
-		a[1] = Arrays.copyOf(basis[1], n);
+		// Set up the working arrays.  In the FORTRAN routine Fitspl, 
+		// two temporary arrays were used, a(n,2) and b(n).  Since poly 
+		// happens to be available, I've just used poly[0][n] to store 
+		// b and poly[1][n] and poly[2][n] to store a.
+		poly[0] = Arrays.copyOf(tau, n);
+		poly[1] = Arrays.copyOf(basis[0], n);
+		poly[2] = Arrays.copyOf(basis[1], n);
 		ap = new double[3];
 		for(int j=0; j<3; j++) {
 			ap[j] = basis[j+2][n-1];
@@ -233,35 +232,35 @@ public class Spline {
 		// I(p) = sum(i=0,n+1) g;i * G;i(p).
 		
 		// First, eliminate the lower triangular portion of A to form A'.
-		alr = a[0][0]/basis[2][0];
-		a[0][0] = 1d-basis[3][0]*alr;
-		a[1][0] -= basis[4][0]*alr;
-		b[0] -= xRange[0]*alr;
+		alr = poly[1][0]/basis[2][0];
+		poly[1][0] = 1d-basis[3][0]*alr;
+		poly[2][0] -= basis[4][0]*alr;
+		poly[0][0] -= xRange[0]*alr;
 		
 		for(int j=1; j<n; j++) {
-			alr = a[0][j]/a[0][j-1];
-			a[0][j] = 1d-a[1][j-1]*alr;
-			b[j]-= b[j-1]*alr;
+			alr = poly[1][j]/poly[1][j-1];
+			poly[1][j] = 1d-poly[2][j-1]*alr;
+			poly[0][j]-= poly[0][j-1]*alr;
 		}
-		alr = ap[0]/a[0][n-2];
-		ap[1] -= a[1][n-2]*alr;
-		gn = xRange[1]-b[n-2]*alr;
+		alr = ap[0]/poly[1][n-2];
+		ap[1] -= poly[2][n-2]*alr;
+		gn = xRange[1]-poly[0][n-2]*alr;
 		
 		// Back solve the upper triangular portion of A' for 
 		// coefficients g;i.
-		alr = ap[1]/a[0][n-1];
-		gn = (gn-b[n-1]*alr)/(ap[2]-a[1][n-1]*alr);
-		b[n-1] = (b[n-1]-gn*a[1][n-1])/a[0][n-1];
+		alr = ap[1]/poly[1][n-1];
+		gn = (gn-poly[0][n-1]*alr)/(ap[2]-poly[2][n-1]*alr);
+		poly[0][n-1] = (poly[0][n-1]-gn*poly[2][n-1])/poly[1][n-1];
 		for(int j=n-2; j>=0; j++) {
-			b[j] = (b[j]-b[j+1]*a[1][j])/a[0][j];
+			poly[0][j] = (poly[0][j]-poly[0][j+1]*poly[2][j])/poly[1][j];
 		}
 		
 		// Fill in the interpolated distances.
-		poly[1][0] = xRange[0];
+		x[0] = xRange[0];
 		for(int j=1; j<n-1; j++) {
-			poly[1][j] = basis[2][j]*b[j-1]+basis[3][j]*b[j]+
-					basis[4][j]*b[j+1];
-			poly[1][n-1] = xRange[1];
+			x[j] = basis[2][j]*poly[0][j-1]+basis[3][j]*poly[0][j]+
+					basis[4][j]*poly[0][j+1];
+			x[n-1] = xRange[1];
 		}
 	}
 }

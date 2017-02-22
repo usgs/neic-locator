@@ -2,8 +2,11 @@ package gov.usgs.locator;
 
 import java.util.ArrayList;
 
+import gov.usgs.anss.util.Util;
+
 /**
- * Umbrella storage for all volatile travel-time data.  
+ * Umbrella storage for all volatile branch level travel-time 
+ * data.  
  * 
  * @author Ray Buland
  *
@@ -15,6 +18,7 @@ public class AllBrnVol {
 	double dSource;										// Dimensional source depth in kilometers
 	double zSource;										// Flat Earth source depth
 	double dTdDepth;									// Derivative of travel time with respect to depth
+	ArrayList<TTime> tTimes = null;		// Travel-time esults
 	AllBrnRef ref;
 	ModConvert cvt;
 	
@@ -22,11 +26,10 @@ public class AllBrnVol {
 	 * Set up volatile copies of data that changes with depth.
 	 * 
 	 * @param ref The reference data source
-	 * @param cvt The Earth model units converter
 	 */
-	public AllBrnVol(AllBrnRef ref, ModConvert cvt) {
+	public AllBrnVol(AllBrnRef ref) {
 		this.ref = ref;
-		this.cvt = cvt;
+		this.cvt = ref.cvt;
 		
 		// Set up the volatile piece of the model.
 		pModel = new ModDataVol(ref.pModel, cvt);
@@ -91,14 +94,16 @@ public class AllBrnVol {
 	}
 	
 	/**
-	 * Get the travel times from all branches.
+	 * Get the arrival times from all branches.
 	 * 
 	 * @return A list of travel times
 	 */
 	public ArrayList<TTime> getTT(double x, double elev) {
 		double[] xs;
-		ArrayList<TTime> TTimes = null;
 		
+		tTimes = null;
+		// The desired distance might translate to up to three 
+		// different distances (as the phases wrap around the Earth).
 		xs = new double[3];
 		xs[0] = Math.abs(Math.toRadians(x))%(2d*Math.PI);
 		if(xs[0] > Math.PI) xs[0] = 2d*Math.PI-xs[0];
@@ -113,10 +118,36 @@ public class AllBrnVol {
 			xs[1] = -10d;
 		}
 		
+		// Go get the arrivals.
 		for(int j=0; j<branches.length; j++) {
-			branches[j].getTT(xs, TTimes);
+			branches[j].getTT(xs, tTimes);
 		}
-		return TTimes;
+		return tTimes;
+	}
+	
+	/**
+	 * Print out a list of arrival times found in getTT.
+	 */
+	public void prtTTimes() {
+		if(tTimes != null) {
+			System.out.println("\nUnsorted:");
+			for(int j=0; j<tTimes.size(); j++) {
+				System.out.format("%2d  %s", j, tTimes.get(j));
+			}
+			// Try sorting it.
+			tTimes.sort(new ArrComp());
+			System.out.println("\nSorted:");
+			for(int j=0; j<tTimes.size(); j++) {
+				System.out.format("%2d  %s", j, tTimes.get(j));
+			}
+			// Try it again just for fun.
+			System.out.println("\nSorted again:");
+			for(TTime a: tTimes)
+			  System.out.format("%2d  %s", 0, a);
+			 Util.prt("This is a test.");
+		} else {
+			System.out.println("\nNo arrival times found.");
+		}
 	}
 		
 	/**
@@ -164,34 +195,38 @@ public class AllBrnVol {
 	 * 
 	 * @param iBrn Branch number
 	 * @param full If true, print the detailed branch specification as well
+	 * @param all If true print even more specifications
+	 * @param sci if true, print in scientific notation
 	 */
-	public void dumpBrn(int iBrn, boolean full, boolean sci) {
-		branches[iBrn].dumpBrn(full, sci);
+	public void dumpBrn(int iBrn, boolean full, boolean all, boolean sci) {
+		branches[iBrn].dumpBrn(full, all, sci);
 	}
 	
 	/**
 	 * Print data for one travel-time segment for debugging purposes.
 	 * 
 	 * @param seg Segment phase code
-	 * @param full If true, print the detailed specification for each branch
-	 * as well
+	 * @param full If true, print the detailed branch specification as well
+	 * @param all If true print even more specifications
+	 * @param sci if true, print in scientific notation
 	 */
-	public void dumpBrn(String seg, boolean full, boolean sci) {
+	public void dumpBrn(String seg, boolean full, boolean all, boolean sci) {
 		for(int j=0; j<branches.length; j++) {
 			if(branches[j].getPhSeg().equals(seg)) 
-				branches[j].dumpBrn(full, sci);
+				branches[j].dumpBrn(full, all, sci);
 		}
 	}
 	
 	/**
 	 * Print data for all travel-time segments for debugging purposes.
 	 * 
-	 * @param full If true, print the detailed specification for each branch
-	 * as well
+	 * @param full If true, print the detailed branch specification as well
+	 * @param all If true print even more specifications
+	 * @param sci if true, print in scientific notation
 	 */
-	public void dumpBrn(boolean full, boolean sci) {
+	public void dumpBrn(boolean full, boolean all, boolean sci) {
 		for(int j=0; j<branches.length; j++) {
-			branches[j].dumpBrn(full, sci);
+			branches[j].dumpBrn(full, all, sci);
 		}
 	}
 	

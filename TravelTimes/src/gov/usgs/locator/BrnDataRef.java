@@ -25,8 +25,8 @@ public class BrnDataRef {
 	final double xDiff;						// Maximum distance of an associated diffracted phase
 	final double[] pBrn;					// Slowness grid for this branch
 	final double[] tauBrn;				// Tau for each grid point
-//	final double[][] basisBrn;		// Basis function coefficients for each grid point
-	double[][] basisBrn;		// Basis function coefficients for each grid point
+//final double[][] basis;				// Basis function coefficients for each grid point
+	double[][] basis;							// Basis function coefficients for each grid point
 	
 	/**
 	 * Load data from the FORTRAN file reader for one branch.  The file 
@@ -35,8 +35,8 @@ public class BrnDataRef {
 	 * @param in Branch input data source.
 	 * @param indexBrn FORTRAN branch index
 	 * @param indexSeg FORTRAN segment index
-	 * @param phCodeDiff Array of phase codes for diffracted branches
-	 * @param phCodeUsed Array of use codes for diffracted branches
+	 * @param segCode Segment code for this branch
+	 * @param diff Diffracted branch object
 	 */
 	public BrnDataRef(ReadTau in, int indexBrn, int indexSeg, String segCode, 
 			Diffracted diff) {
@@ -48,15 +48,22 @@ public class BrnDataRef {
 		if(in.typeSeg[indexSeg][1] <= 0) isUpGoing = true;
 		else isUpGoing = false;
 		isUseless = TauUtil.setUseless(phCode);
+		// The three types are: 1) initial, 2) down-going, and 3) up-coming.
+		// For example, sP would be S, P, P, while ScP would be S, S, P.
 		typeSeg = new char[3];
 		for(int j=0; j<3; j++) {
-			if(Math.abs(in.typeSeg[indexSeg][j]) == 1) typeSeg[j] = 'P';			// P in this region
-			else if(Math.abs(in.typeSeg[indexSeg][j]) == 2) typeSeg[j] = 'S';	// S in this region
+			if(Math.abs(in.typeSeg[indexSeg][j]) == 1) typeSeg[j] = 'P';
+			else if(Math.abs(in.typeSeg[indexSeg][j]) == 2) typeSeg[j] = 'S';
 			else typeSeg[j] = ' ';
 		}
-		if(in.typeSeg[indexSeg][0] > 0) signSeg = 1;						// We need the sign of the correction
+		// We need to know whether to add or subtract the up-going correction.
+		// For example, the up-going correction would be subtracted for P, but 
+		// added for pP.
+		if(in.typeSeg[indexSeg][0] > 0) signSeg = 1;
 		else signSeg = -1;
-		countSeg = (int) Math.round(in.countSeg[indexSeg][0]);	// We only need the up-going count
+		// We might need to add or subtract the up-going correction more than 
+		// once.
+		countSeg = (int) Math.round(in.countSeg[indexSeg][0]);
 		
 		// Do branch summary information.
 		pRange = new double[2];
@@ -65,6 +72,7 @@ public class BrnDataRef {
 			pRange[j] = in.pBrn[indexBrn][j];
 			xRange[j] = in.xBrn[indexBrn][j];
 		}
+		// Set up the parameters for diffracted phases.
 		if(!isUpGoing) isDiff = diff.isDiff(phCode);
 		else isDiff = false;
 		if(isDiff) {
@@ -92,25 +100,25 @@ public class BrnDataRef {
 		} */
 		pBrn = Arrays.copyOfRange(in.pSpec, start, end);
 		tauBrn = Arrays.copyOfRange(in.tauSpec, start, end);
-		basisBrn = new double[5][];
+		basis = new double[5][];
 		for(int k=0; k<5; k++) {
-			basisBrn[k] = Arrays.copyOfRange(in.basisSpec[k], start, end);
+			basis[k] = Arrays.copyOfRange(in.basisSpec[k], start, end);
 		}
 	}
 	
 	/**
-	 * Test code for basisSpline.
+	 * Test code for the spline basis functions.
 	 */
 	protected void reCompute() {
 		Spline spl;
 		
 		for(int i=0; i<5; i++) {
-			for(int j=0; j<basisBrn[i].length; j++) {
-				basisBrn[i][j] = Double.NaN;
+			for(int j=0; j<basis[i].length; j++) {
+				basis[i][j] = Double.NaN;
 			}
 		}
 		spl = new Spline();
-		spl.basisSet(pBrn, basisBrn);
+		spl.basisSet(pBrn, basis);
 	}
 	
 	/**
@@ -153,8 +161,8 @@ public class BrnDataRef {
 					"basis function coefficients");
 			for(int j=0; j<pBrn.length; j++) {
 				System.out.format("%3d: %8.6f  %8.6f  %9.2e  %9.2e  %9.2e  %9.2e  "+
-						"%9.2e\n", j, pBrn[j], tauBrn[j], basisBrn[0][j], basisBrn[1][j], 
-						basisBrn[2][j], basisBrn[3][j], basisBrn[4][j]);
+						"%9.2e\n", j, pBrn[j], tauBrn[j], basis[0][j], basis[1][j], 
+						basis[2][j], basis[3][j], basis[4][j]);
 			}
 		}
 	}

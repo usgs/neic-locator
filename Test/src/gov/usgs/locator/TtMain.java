@@ -12,22 +12,20 @@ public class TtMain {
 		// Directory of known models.
 		ArrayList<String> knownModels = null;
 		ArrayList<AllBrnRef> modelData = null;
-		ArrayList<ModConvert> converts = null;
 		// Simulate a simple travel time request.
 		double x = 5d;
 		double elev = 0d;
-		ArrayList<TTime> TTimes;
+		@SuppressWarnings("unused")
+		ArrayList<TTime> tTimes;
 		// Classes we will need.
 		ReadTau readTau = null;
 		AllBrnRef allRef = null;
-		ModConvert convert = null;
 		AllBrnVol allBrn;
 
 		// Initialize model storage if necessary.
 		if(knownModels == null) {
 			knownModels = new ArrayList<String>();
 			modelData = new ArrayList<AllBrnRef>();
-			converts = new ArrayList<ModConvert>();
 		}
 		
 		// See if we know this model.
@@ -35,7 +33,6 @@ public class TtMain {
 		for(int j=0; j<knownModels.size(); j++) {
 			if(knownModels.get(j).equals(earthModel)) {
 				allRef = modelData.get(j);
-				convert = converts.get(j);
 				break;
 			}
 		}
@@ -54,10 +51,8 @@ public class TtMain {
 				System.exit(1);
 			}
 			knownModels.add(earthModel);
-			convert = new ModConvert(readTau);
-			allRef = new AllBrnRef(readTau, convert);
+			allRef = new AllBrnRef(readTau);
 			modelData.add(allRef);
-			converts.add(convert);
 	//	allRef.dumpBrn(true);
 			allRef.dumpBrn(1, true);
 			allRef.reCompute(1);
@@ -66,7 +61,7 @@ public class TtMain {
 		
 		// At this point, we've either found the reference part of the model 
 		// or read it in.  Now Set up the (depth dependent) volatile part.
-		allBrn = new AllBrnVol(allRef, convert);
+		allBrn = new AllBrnVol(allRef);
 		// See what we've got.
 		allBrn.dumpHead();
 		allBrn.dumpTable();
@@ -77,11 +72,13 @@ public class TtMain {
 		allBrn.newSession(sourceDepth, phList);
 //	allBrn.dumpUp('P', true);
 //	allBrn.dumpUp('S', true);
-//	allBrn.dumpBrn("P", true, false);
-//	allBrn.dumpBrn(true, true);
+//	allBrn.dumpBrn("P", true, true, false);
+//	allBrn.dumpBrn(true, true, true);
+		allBrn.dumpBrn(1, true, true, true);
 		
 		// Get the travel times.
-		TTimes = allBrn.getTT(x, elev);
+		tTimes = allBrn.getTT(x, elev);
+		// Print them.
+		allBrn.prtTTimes();
 	}
-
 }

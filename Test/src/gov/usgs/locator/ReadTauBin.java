@@ -23,7 +23,6 @@ public class ReadTauBin {
 	public static void main(String[] args) throws IOException {
 		ReadTau reader;
 		AllBrnRef ttData;
-		ModConvert cvt;
 		
 		reader = new ReadTau("ak135");
 		reader.readHeader();
@@ -38,7 +37,7 @@ public class ReadTauBin {
 		
 		// Test the new data classes.
 		cvt = new ModConvert(reader);
-		ttData = new AllBrnRef(reader, cvt);
+		ttData = new AllBrnRef(reader);
 		ttData.dumpHead();
 	//	ttData.dumpMod('P', false);
 	//	ttData.dumpMod('S', false);
