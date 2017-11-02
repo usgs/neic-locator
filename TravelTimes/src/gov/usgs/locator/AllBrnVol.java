@@ -46,7 +46,7 @@ public class AllBrnVol {
 	 * simple session parameters of use to the travel-time package.
 	 * 
 	 * @param depth Source depth in kilometers
-	 * @param phaseList Array of phase use commands
+	 * @param phList Array of phase use commands
 	 * @throws Exception If the depth is out of range
 	 */
 	public void newSession(double depth, String[] phList) throws Exception {

@@ -65,7 +65,7 @@ public class BrnDataVol {
 	 * @param dTdDepth Correction factor for dT/dDepth
 	 * @param xMin The minimum source-receiver distance desired 
 	 * between ray parameter samples
-	 * @tagBrn The P or S up-going branch suffix
+	 * @param tagBrn The P or S up-going branch suffix
 	 * @throws Exception If the tau integral fails
 	 */
 	public void depthCorr(double dTdDepth, double xMin, char tagBrn) 
@@ -574,7 +574,7 @@ public class BrnDataVol {
 	 * @param xs Desired distance in radians
 	 * @param dSource Source depth in kilometers
 	 * @param useful If true only return potentially useful phases
-	 * @param TTimes A list of travel times to be filled in
+	 * @param ttList A list of travel times to be filled in
 	 */
 	public void getTT(int depIndex, double xs, double dSource, boolean useful, 
 			TTime ttList) {

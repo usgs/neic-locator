@@ -22,9 +22,8 @@ public class ModDataVol {
 	 * wave type.  The file data should have already been loaded from the 
 	 * *.hed and *.tbl files.
 	 * 
-	 * @param in Branch input data source.
+	 * @param ref Model reference data source
 	 * @param cvt The Earth model units converter
-	 * @param typeMod Wave type ('P' or 'S')
 	 */
 	public ModDataVol(ModDataRef ref, ModConvert cvt) {
 		this.ref = ref;

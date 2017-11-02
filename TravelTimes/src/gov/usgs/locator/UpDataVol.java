@@ -41,6 +41,7 @@ public class UpDataVol {
 	 * @param ref The up-going reference data source
 	 * @param modPri The primary Earth model data source
 	 * @param modSec the secondary Earth model data source
+	 * @param cvt Model specific conversions
 	 */
 	public UpDataVol(UpDataRef ref, ModDataVol modPri, ModDataVol modSec, ModConvert cvt) {
 		this.ref = ref;
