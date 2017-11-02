@@ -9,12 +9,15 @@ import java.util.Comparator;
  * @author Ray Buland
  *
  */
-public class ArrComp implements Comparator<TTime> {
+public class ArrComp implements Comparator<TTimeData> {
 	@Override
 	/**
 	 * Compare the arrival time fields of two arrival results.
+	 * 
+	 * @param arr1 Travel-time data for the first phase
+	 * @param arr2 Travel-time data for the second phase
 	 */
-	public int compare(TTime arr1, TTime arr2) {
-		return (int)Math.signum(arr2.tt-arr1.tt);
+	public int compare(TTimeData arr1, TTimeData arr2) {
+		return (int)Math.signum(arr1.tt-arr2.tt);
 	}
 }

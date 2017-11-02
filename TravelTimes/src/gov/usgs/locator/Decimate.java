@@ -144,7 +144,9 @@ public class Decimate {
 			h1 = p[i-1]-p[i];
 			h2 = p[i+1]-p[i];
 			hh = h1*h2*(p[i-1]-p[i+1]);
-			return (Math.pow(h2, 2d)*tau[i-1]+(h2+h1)*tau[i]-Math.pow(h1, 2d)*tau[i+1])/hh;
+			h1 = Math.pow(h1, 2d);
+			h2 = -Math.pow(h2, 2d);
+			return -(h2*tau[i-1]-(h2+h1)*tau[i]+h1*tau[i+1])/hh;
 		}
 	}
 }

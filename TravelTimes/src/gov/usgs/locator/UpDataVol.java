@@ -10,7 +10,6 @@ import java.util.Arrays;
  *
  */
 public class UpDataVol {
-	int brnLen;						// Length of the corrected up-going branch
 	int iSrc;							// Source depth model index
 	double zSource;				// Normalized source depth
 	double pSource;				// Slowness at the source depth
@@ -88,38 +87,26 @@ public class UpDataVol {
 		pSource = modPri.findP(zSource);
 		iSrc = modPri.iSource;
 		pMax = modPri.findMaxP();
-		modPri.printFind(false);
+//	modPri.printFind(false);
 		// Copy the desired data into temporary storage.
 		iUp = modPri.ref.indexUp[iSrc];
-		System.out.println("\t\t\tiUp = "+iUp);
-		pUp = Arrays.copyOf(ref.pTauUp, Math.min(ref.tauUp[iUp].length+1, 
-				ref.pTauUp.length));
+//	System.out.println("\t\t\tiUp = "+iUp);
+		pUp = Arrays.copyOf(ref.pTauUp, ref.tauUp[iUp].length);
 		tauUp = Arrays.copyOf(ref.tauUp[iUp], pUp.length);
 		xUp = Arrays.copyOf(ref.xUp[iUp], ref.xUp[iUp].length);
 		
 		// If the source is at the surface, we're already done.
-		if(-zSource <= TauUtil.DTOL) {
-			brnLen = tauUp.length;
-			return;
-		}
+		if(-zSource <= TauUtil.DTOL) return;
 		
 		// See if we need to correct tauUp.
 		if(Math.abs(ref.pTauUp[iUp]-pMax) <= TauUtil.DTOL) corrTau = false;
 		else corrTau = true;		
 		
-		// Debug code to make comparison with the FORTRAN version easier.
-		zSource = -0.001885d;
-		if(ref.typeUp == 'P') {
-			pSource = 0.5954d;
-		} else {
-			pSource = 0.9981d;
-		}
 		pMax = pSource;
-		
 		// Correct the up-going tau values to the exact source depth.
-		System.out.println("Partial integrals: "+(float)pSource+" - "+
+/*	System.out.println("Partial integrals: "+(float)pSource+" - "+
 				(float)modPri.ref.pMod[iSrc]+"  "+(float)zSource+" - "+
-				(float)modPri.ref.zMod[iSrc]);
+				(float)modPri.ref.zMod[iSrc]); */
 		i=0;
 		for(int j=0; j<tauUp.length; j++) {
 			if(ref.pTauUp[j] <= pMax) {
@@ -134,43 +121,24 @@ public class UpDataVol {
 					// See if we need to correct an end point distance as well.
 					if(Math.abs(ref.pTauUp[j]-ref.pXUp[i]) <= TauUtil.DTOL) {
 					xInt = intPri.getXLayer();
-		/*				System.out.println("i  x (before) dx = "+(i+1)+" "+
-								(float)xUp[i]+" "+(float)xInt);
-						TauInt.debug = true;
-						tauUp[j] -= intPri.intLayer(ref.pTauUp[j], pSource, 
-								modPri.pMod[iSrc], zSource, modPri.zMod[iSrc]);
-						xInt = intPri.getXLayer();
-						System.out.println("i  x (before) dx = "+(i+1)+" "+
-								(float)xUp[i]+" "+(float)xInt);
-						TauInt.debug = false; */
 						xUp[i++] -= xInt;
-						System.out.println("i  x (after) dx = "+i+" "+
-								(float)xUp[i-1]+" "+(float)xInt);
+		//			System.out.println("i  x (after) dx = "+i+" "+
+		//					(float)xUp[i-1]+" "+(float)xInt);
 					}
 				}
-			} else {
-				// See if we need to add a new last ray parameter.
-				if(Math.abs(ref.pTauUp[j-1]-pMax) <= TauUtil.DTOL) {
-					brnLen = j-1;
-				}
-				else {
-					brnLen = j;
-					pUp[brnLen] = pMax;
-				}
-				break;
-			}
+			} else break;
 		}
 		
 		/**
 		 * Compute tau and distance for the ray parameter equal to the 
 		 * source slowness (i.e., horizontal take-off angle from the source).
 		 */
-		System.out.println("\nEnd integral: "+(float)pMax+" "+iSrc+" "+
-				(float)pSource+" "+(float)zSource);
+//	System.out.println("\nEnd integral: "+(float)pMax+" "+iSrc+" "+
+//			(float)pSource+" "+(float)zSource);
 		tauEndUp = intPri.intRange(pMax, 0, iSrc-1, pSource, 
 				zSource);
 		xEndUp = intPri.getXSum();
-		System.out.println("tau x = "+(float)tauEndUp+" "+xEndUp);
+//	System.out.println("tau x = "+(float)tauEndUp+" "+xEndUp);
 		
 		/**
 		 * If the source depth is in a low velocity zone, we need to 
@@ -180,13 +148,13 @@ public class UpDataVol {
 		if(pMax > pSource ) {
 			zMax = modPri.findZ(pMax, false);
 			iBot = modPri.iSource;
-			System.out.println("\nLVZ integral: "+(float)pMax+" "+iSrc+" "+
-					iBot+" "+(float)pSource+" "+(float)zSource+" "+(float)pMax+
-					" "+(float)zMax);
+	//	System.out.println("\nLVZ integral: "+(float)pMax+" "+iSrc+" "+
+	//			iBot+" "+(float)pSource+" "+(float)zSource+" "+(float)pMax+
+	//			" "+(float)zMax);
 			tauEndLvz = intPri.intRange(pMax, iSrc, iBot, pSource, 
 					zSource, pMax, zMax);
 			xEndLvz = intPri.getXSum();
-			System.out.println("tau x = "+(float)tauEndLvz+" "+xEndLvz);
+	//	System.out.println("tau x = "+(float)tauEndLvz+" "+xEndLvz);
 		} else {
 			tauEndLvz = 0d;
 			xEndLvz = 0d;
@@ -199,15 +167,15 @@ public class UpDataVol {
 		try{
 			zMax = modSec.findZ(pMax, true);
 			iBot = modSec.iSource;
-			System.out.println("\nCnv integral: "+(float)pMax+" "+iBot+" "+
-					(float)pMax+" "+(float)zMax);
+	//	System.out.println("\nCnv integral: "+(float)pMax+" "+iBot+" "+
+	//			(float)pMax+" "+(float)zMax);
 			tauEndCnv = intSec.intRange(pMax, 0, iBot-1, pMax, zMax);
 			xEndCnv = intSec.getXSum();
-			System.out.println("tau x = "+(float)tauEndCnv+" "+xEndCnv);
+	//	System.out.println("tau x = "+(float)tauEndCnv+" "+xEndCnv);
 		} catch(Exception e) {
 			tauEndCnv = 0d;
 			xEndCnv = 0d;
-			System.out.println("\nNo Cnv correction needed");
+	//	System.out.println("\nNo Cnv correction needed");
 		}
 	}
 	
@@ -221,11 +189,15 @@ public class UpDataVol {
 	 * For very shallow sources, even the decimated grid will be unstable 
 	 * and must be completely replaced.
 	 * 
+	 * @param pBrn Normalized raw ray parameter grid
+	 * @param tauBrn Normalized raw tau grid
+	 * @param xRange Normalized distance range
 	 * @param xMin Normalized minimum distance interval desired
 	 * @return A new grid of ray parameter values for the up-going branch
 	 * @throws Exception If the tau integration fails
 	 */
-	public double[] realUp(double[] xRange, double xMin) throws Exception {
+	public double[] realUp(double pBrn[], double tauBrn[], double[] xRange, 
+			double xMin) throws Exception {
 		int power;
 		double depth, dp;
 		
@@ -248,8 +220,8 @@ public class UpDataVol {
 			tauDec = new double[lenNew];
 			
 			// Create the up-going branch.
-			pDec[0] = pUp[0];
-			tauDec[0] = tauUp[0];
+			pDec[0] = pBrn[0];
+			tauDec[0] = tauBrn[0];
 			dp = 0.75d*pMax/Math.pow(lenNew-2, power);
 			for(int j=1; j<lenNew-1; j++) {
 					pDec[j] = pMax-dp*Math.pow(lenNew-j-1, power--);
@@ -261,10 +233,8 @@ public class UpDataVol {
 		} else {
 			// For deeper sources, it is enough to decimate the ray 
 			// parameter grid we already have.
-			tauUp[brnLen-1] = tauEndUp;
-			pDec = dec.decXFast(pUp, tauUp, xRange, xMin);
+			pDec = dec.decXFast(pBrn, tauBrn, xRange, xMin);
 			tauDec = dec.getDecTau();
-			brnLen = pDec.length;
 		}
 		return pDec;
 	}
@@ -285,7 +255,7 @@ public class UpDataVol {
 	 * 
 	 * @param full If true print the corrected tau array as well.
 	 */
-	public void dumpUp(boolean full) {
+	public void dumpCorrUp(boolean full) {
 		System.out.println("\n     Up-going "+ref.typeUp+" corrected");
 		System.out.format("TauEnd: %8.6f %8.6f %8.6f  XEnd: %8.6f %8.6f %8.6f\n", 
 				tauEndUp, tauEndLvz, tauEndCnv, xEndUp, xEndLvz, xEndCnv);
@@ -294,9 +264,26 @@ public class UpDataVol {
 			for(int k=0; k<tauUp.length; k++) {
 				System.out.format("%3d  %8.6f  %8.6f\n",k,pUp[k],tauUp[k]);
 			}
-			if(brnLen > tauUp.length) {
+	/*	if(brnLen > tauUp.length) {
 				System.out.format("%3d  %8.6f  %8.6f\n",brnLen-1,pUp[brnLen-1],
 						tauEndUp+tauEndLvz);
+			} */
+		}
+	}
+	
+	/**
+	 * Print out the decimated up-going branch data corrected for the source depth.
+	 * 
+	 * @param full If true print the corrected tau array as well.
+	 */
+	public void dumpDecUp(boolean full) {
+		System.out.println("\n     Up-going "+ref.typeUp+" decimated");
+		System.out.format("TauEnd: %8.6f %8.6f %8.6f  XEnd: %8.6f %8.6f %8.6f\n", 
+				tauEndUp, tauEndLvz, tauEndCnv, xEndUp, xEndLvz, xEndCnv);
+		if(full) {
+			System.out.println("          p        tau");
+			for(int k=0; k<tauDec.length; k++) {
+				System.out.format("%3d  %8.6f  %8.6f\n",k,pDec[k],tauDec[k]);
 			}
 		}
 	}

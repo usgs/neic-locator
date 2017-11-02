@@ -1,9 +1,5 @@
 package gov.usgs.locator;
 
-import java.util.ArrayList;
-
-import gov.usgs.anss.util.Util;
-
 /**
  * Umbrella storage for all volatile branch level travel-time 
  * data.  
@@ -18,9 +14,9 @@ public class AllBrnVol {
 	double dSource;										// Dimensional source depth in kilometers
 	double zSource;										// Flat Earth source depth
 	double dTdDepth;									// Derivative of travel time with respect to depth
-	ArrayList<TTime> tTimes = null;		// Travel-time esults
 	AllBrnRef ref;
 	ModConvert cvt;
+	int lastBrn = -1, upBrnP = -1, upBrnS = -1;
 	
 	/**
 	 * Set up volatile copies of data that changes with depth.
@@ -51,7 +47,7 @@ public class AllBrnVol {
 	 * 
 	 * @param depth Source depth in kilometers
 	 * @param phaseList Array of phase use commands
-	 * @throws Exception 
+	 * @throws Exception If the depth is out of range
 	 */
 	public void newSession(double depth, String[] phList) throws Exception {
 		char tagBrn;
@@ -68,11 +64,11 @@ public class AllBrnVol {
 					TauUtil.DMIN)), 0d);
 			dTdDepth = 1d/(cvt.pNorm*(1d-dSource*cvt.xNorm));
 		}
-		System.out.println("zSource = "+zSource+" dTdDepth = "+dTdDepth);
+//	System.out.println("\nzSource = "+(float)zSource+" dTdDepth = "+(float)dTdDepth);
 		
 		// Fake up the phase list commands for now.
 		for(int j=0; j<branches.length; j++) {
-			branches[j].setIsUsed(true);
+			branches[j].setCompute(true);
 		}
 		// If there are no commands, we're done.
 //	if(phList == null) return;
@@ -96,12 +92,24 @@ public class AllBrnVol {
 	/**
 	 * Get the arrival times from all branches.
 	 * 
-	 * @return A list of travel times
+	 * @param x Source receiver distance desired in degrees
+	 * @param elev Station elevation in kilometers
+	 * @param useful If true, only provide "useful" crustal phases
+	 * @param tectonic If true, map Pb and Sb onto Pg and Sg
+	 * @param noBackBrn If true, suppress back branches
+	 * @param rstt If true, use RSTT crustal phases
+	 * @return An array list of travel times
 	 */
-	public ArrayList<TTime> getTT(double x, double elev) {
+	public TTime getTT(double x, double elev, boolean useful, 
+			boolean tectonic, boolean noBackBrn, boolean rstt) {
+		int lastTT;
+		double delCorr;
 		double[] xs;
+		TTime ttList;
+		TTimeData tTime;
 		
-		tTimes = null;
+		ttList = new TTime();
+		lastTT = 0;
 		// The desired distance might translate to up to three 
 		// different distances (as the phases wrap around the Earth).
 		xs = new double[3];
@@ -118,35 +126,120 @@ public class AllBrnVol {
 			xs[1] = -10d;
 		}
 		
-		// Go get the arrivals.
+		// Set up the correction to surface focus.
+		findUpBrn();
+		
+		// Go get the arrivals.  This is a little convoluted because 
+		// of the correction to surface focus needed for the statistics.
 		for(int j=0; j<branches.length; j++) {
-			branches[j].getTT(xs, tTimes);
+			// Loop over possible distances.
+			for(int i=0; i<3; i++) {
+				branches[j].getTT(i, xs[i], dSource, useful, ttList);
+				// We have to add the phase statistics at this level.
+				if(ttList.size() > lastTT) {
+					for(int k=lastTT; k<ttList.size(); k++) {
+						tTime = ttList.get(k);
+						if(tTime.phCode.charAt(0) == 'L') {
+							// Travel-time corrections and correction to surface focus 
+							// don't make sense for surface waves.
+							delCorr = 0d;
+						} else {
+							// This is the normal case.  Do various travel-time corrections.
+							tTime.tt = tTime.tt+branches[j].elevCorr(elev, tTime.dTdD, 
+									rstt);
+							// Add auxiliary information.
+							try {
+								delCorr = upRay(tTime.phCode, tTime.dTdD);
+							} catch (Exception e) {
+								// This should never happen.
+								e.printStackTrace();
+								delCorr = 0d;
+							}
+						}
+						branches[j].addAux(tTime.phCode, xs[i], delCorr, tTime);
+					}
+					lastTT = ttList.size();
+				}
+			}
 		}
-		return tTimes;
+		
+		// Sort the arrivals into increasing time order, filter, etc.
+		ttList.finish(tectonic, noBackBrn);
+		return ttList;
 	}
 	
 	/**
-	 * Print out a list of arrival times found in getTT.
+	 * Compute the distance and travel-time for one surface focus ray.
+	 * 
+	 * @param phCode Phase code for the desired branch
+	 * @param dTdD Desired ray parameter in seconds/degree
+	 * @return Source-receiver distance in degrees
+	 * @throws Exception If the desired arrival doesn't exist
 	 */
-	public void prtTTimes() {
-		if(tTimes != null) {
-			System.out.println("\nUnsorted:");
-			for(int j=0; j<tTimes.size(); j++) {
-				System.out.format("%2d  %s", j, tTimes.get(j));
+	public double oneRay(String phCode, double dTdD) throws Exception {
+		String tmpCode;
+		
+		if(phCode.contains("bc")) tmpCode = TauUtil.phSeg(phCode)+"ab";
+		else tmpCode = phCode;
+		for(lastBrn=0; lastBrn<branches.length; lastBrn++) {
+			if(tmpCode.equals(branches[lastBrn].phCode)) {
+					return branches[lastBrn].oneRay(dTdD);
 			}
-			// Try sorting it.
-			tTimes.sort(new ArrComp());
-			System.out.println("\nSorted:");
-			for(int j=0; j<tTimes.size(); j++) {
-				System.out.format("%2d  %s", j, tTimes.get(j));
+		}
+		throw new Exception();
+	}
+	
+	/**
+	 * Compute the distance and travel-time for the portion of a 
+	 * surface focus ray cut off by the source depth.  This provides 
+	 * the distance needed to correct a down-going ray to surface 
+	 * focus.
+	 * 
+	 * @param phCode Phase code of the phase being corrected
+	 * @param dTdD Desired ray parameter in seconds/degree
+	 * @return Distance cut off in degrees
+	 * @throws Exception If the up-going arrival doesn't exist
+	 */
+	public double upRay(String phCode, double dTdD) throws Exception {
+		char type = phCode.charAt(0);
+		if(type == 'p' || type == 'P') lastBrn = upBrnP;
+		else if(type == 's' || type == 'S') lastBrn = upBrnS;
+		else throw new Exception();
+		return branches[lastBrn].oneRay(dTdD);
+	}
+	
+	/**
+	 * Getter for the time correction computed by the last call to oneRay 
+	 * or upRay.
+	 * 
+	 * @return travel-time in seconds
+	 */
+	public double getTimeCorr() {
+		return branches[lastBrn].getTimeCorr();
+	}
+	
+	/**
+	 * Find the indices of the up-going P and S phases.
+	 */
+	private void findUpBrn() {
+		// Initialize the pointers just in case.
+		upBrnP = -1;
+		upBrnS = -1;
+		// Find the up-going P type branch.
+		for(int j=0; j<branches.length; j++) {
+			if(branches[j].exists && branches[j].ref.isUpGoing && 
+					branches[j].ref.typeSeg[0] == 'P') {
+				upBrnP = j;
+				break;
 			}
-			// Try it again just for fun.
-			System.out.println("\nSorted again:");
-			for(TTime a: tTimes)
-			  System.out.format("%2d  %s", 0, a);
-			 Util.prt("This is a test.");
-		} else {
-			System.out.println("\nNo arrival times found.");
+		}
+		// Fine the up-going S type branch.
+		for(int j=0; j<branches.length; j++) {
+			if(branches[j].exists && branches[j].ref.isUpGoing && 
+					branches[j].ref.typeSeg[0] == 'S') {
+				upBrnS = j;
+				break;
+			}
 		}
 	}
 		
@@ -168,11 +261,13 @@ public class AllBrnVol {
 	/**
 	 * Print a summary table of branch information similar to the FORTRAN 
 	 * Ttim range list.
+	 * 
+	 * @param useful If true, only print "useful" crustal phases
 	 */
-	public void dumpTable() {
+	public void dumpTable(boolean useful) {
 		System.out.println("");
 		for(int j=0; j<branches.length; j++) {
-			System.out.println(branches[j].toString());
+			branches[j].forTable(useful);
 		}
 	}
 	
@@ -197,9 +292,11 @@ public class AllBrnVol {
 	 * @param full If true, print the detailed branch specification as well
 	 * @param all If true print even more specifications
 	 * @param sci if true, print in scientific notation
+	 * @param useful If true, only print "useful" crustal phases
 	 */
-	public void dumpBrn(int iBrn, boolean full, boolean all, boolean sci) {
-		branches[iBrn].dumpBrn(full, all, sci);
+	public void dumpBrn(int iBrn, boolean full, boolean all, boolean sci, 
+			boolean useful) {
+		branches[iBrn].dumpBrn(full, all, sci, useful);
 	}
 	
 	/**
@@ -209,11 +306,13 @@ public class AllBrnVol {
 	 * @param full If true, print the detailed branch specification as well
 	 * @param all If true print even more specifications
 	 * @param sci if true, print in scientific notation
+	 * @param useful If true, only print "useful" crustal phases
 	 */
-	public void dumpBrn(String seg, boolean full, boolean all, boolean sci) {
+	public void dumpBrn(String seg, boolean full, boolean all, boolean sci,
+			boolean useful) {
 		for(int j=0; j<branches.length; j++) {
 			if(branches[j].getPhSeg().equals(seg)) 
-				branches[j].dumpBrn(full, all, sci);
+				branches[j].dumpBrn(full, all, sci, useful);
 		}
 	}
 	
@@ -223,24 +322,40 @@ public class AllBrnVol {
 	 * @param full If true, print the detailed branch specification as well
 	 * @param all If true print even more specifications
 	 * @param sci if true, print in scientific notation
+	 * @param useful If true, only print "useful" crustal phases
 	 */
-	public void dumpBrn(boolean full, boolean all, boolean sci) {
+	public void dumpBrn(boolean full, boolean all, boolean sci, 
+			boolean useful) {
 		for(int j=0; j<branches.length; j++) {
-			branches[j].dumpBrn(full, all, sci);
+			branches[j].dumpBrn(full, all, sci, useful);
 		}
 	}
 	
 	/**
-	 * Print data for one up-going branch for debugging purposes.
+	 * Print data for one corrected up-going branch for debugging purposes.
 	 * 
 	 * @param typeUp Wave type ('P' or 'S')
 	 * @param full If true print the up-going tau values as well
 	 */
-	public void dumpUp(char typeUp, boolean full) {
+	public void dumpCorrUp(char typeUp, boolean full) {
 		if(typeUp == 'P') {
-			pUp.dumpUp(full);
+			pUp.dumpCorrUp(full);
 		} else if(typeUp == 'S') {
-			sUp.dumpUp(full);
+			sUp.dumpCorrUp(full);
+		}
+	}
+	
+	/**
+	 * Print data for one decimated up-going branch for debugging purposes.
+	 * 
+	 * @param typeUp Wave type ('P' or 'S')
+	 * @param full If true print the up-going tau values as well
+	 */
+	public void dumpDecUp(char typeUp, boolean full) {
+		if(typeUp == 'P') {
+			pUp.dumpDecUp(full);
+		} else if(typeUp == 'S') {
+			sUp.dumpDecUp(full);
 		}
 	}
 }

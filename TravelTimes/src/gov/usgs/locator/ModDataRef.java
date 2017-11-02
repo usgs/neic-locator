@@ -17,7 +17,7 @@ public class ModDataRef {
 	final double[] zMod;							// Flat Earth depths
 	final double[] pMod;							// Slowness samples
 	final int[] indexUp;							// Index into the up-going branch data
-	ModConvert cvt;
+	final ModConvert cvt;							// Model dependent conversions
 
 	/**
 	 * Load data from the FORTRAN file reader for the Earth model for one 

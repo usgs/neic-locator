@@ -541,45 +541,6 @@ public class ReadTau {
 //	repairTbl();
 		byteArray = null;
 	}
-	
-	/*
-	private void repairHed() {
-  	double maxZ = Math.log(xNorm*(rSurface-800d));
-  	int[] iTmp;
-  	double[] dTmp;
-		
-		// This was done in Tabin in the FORTRAN code--not quite sure why yet.
-		for(int i=0; i<2; i++) {
-			System.out.println("Replace pTauUp["+i+"] with pMod "+
-					pTauUp[i][numTauUp[i]]+" "+pMod[i][0]);
-			pTauUp[i][numTauUp[i]] = pMod[i][0];
-		}
-		
-		// The P velocity model is truncated at 800 km depth, but the 
-		// S velocity model goes to the core-mantle boundary--oops.
-		
-		// Oops indeed!  In fact, we need the deeper depth for the S velocity 
-		// in order to handle P to S conversions.
-		for(int j=0; j<zMod[1].length; j++) {
-			if(zMod[1][j] < maxZ) {
-				numMod[1] = j+1;
-				for(int k=0; k<3; k++) {
-					zMod[1][j+k+1] = zMod[1][zMod[1].length+k-3];
-					pMod[1][j+k+1] = pMod[1][pMod[1].length+k-3];
-				}
-				dTmp = Arrays.copyOf(zMod[1], numMod[1]+3);
-				zMod[1] = Arrays.copyOf(dTmp, numMod[1]+3);
-				dTmp = Arrays.copyOf(pMod[1], numMod[1]+3);
-				pMod[1] = Arrays.copyOf(dTmp, numMod[1]+3);
-				iTmp = Arrays.copyOf(indexMod[1], numMod[1]);
-				indexMod[1] = Arrays.copyOf(iTmp, numMod[1]);
-				return;
-			}
-		}
-		iTmp = null;
-		dTmp = null;
-	}
-	*/
 		
 	/**
 	 * Print the contents of the first header record to the console.

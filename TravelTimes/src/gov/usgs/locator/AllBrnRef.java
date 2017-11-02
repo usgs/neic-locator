@@ -13,21 +13,26 @@ package gov.usgs.locator;
  *
  */
 public class AllBrnRef {
-	final String modelName;									// Earth model name
-	ModDataRef pModel, sModel;				// Earth model data
-	BrnDataRef[] branches;						// Surface focus branch data
-	UpDataRef pUp, sUp;								// Up-going branch data
-	ModConvert cvt;
+	final String modelName;							// Earth model name
+	final ModDataRef pModel, sModel;		// Earth model data
+	final BrnDataRef[] branches;				// Surface focus branch data
+	final UpDataRef pUp, sUp;						// Up-going branch data
+	final ModConvert cvt;								// Model dependent conversions
+	final AuxTtRef auxtt;								// Model independent auxiliary data
 	
 	/**
 	 * Load all data from TauRead into more convenient Java classes.
 	 * 
 	 * @param in The TauRead data source
+	 * @param auxtt The auxiliary data source
 	 */
-	public AllBrnRef(ReadTau in) {
+	public AllBrnRef(ReadTau in, AuxTtRef auxtt) {
 		String[] segCode;
 		
 		this.modelName = in.modelName;
+		
+		// Remember the auxiliary data.
+		this.auxtt = auxtt;
 		
 		// Set up the conversion constants, etc.
 		cvt = new ModConvert(in);
@@ -51,7 +56,7 @@ public class AllBrnRef {
 		
 		// Load the branch data.
 		branches = new BrnDataRef[in.numBrn];
-		Diffracted diff = new Diffracted();
+		ExtraPhases diff = new ExtraPhases();
 		i = -1;
 		endSeg = 0;
 		// Loop over branches setting them up.
@@ -61,21 +66,12 @@ public class AllBrnRef {
 				endSeg = in.indexSeg[++i][1];
 			}
 			// Load the branch data.
-			branches[j] = new BrnDataRef(in, j, i, segCode[i], diff);
+			branches[j] = new BrnDataRef(in, j, i, segCode[i], diff, auxtt);
 		}
 		
 		// Set up the up-going branch data.
 		pUp = new UpDataRef(in, 'P');
 		sUp = new UpDataRef(in, 'S');
-	}
-	
-	/**
-	 * Test code for the spline basis functions.
-	 * 
-	 * @param iBrn Branch number to test
-	 */
-	protected void reCompute(int iBrn) {
-		branches[iBrn].reCompute();
 	}
 	
 	/**

@@ -192,7 +192,6 @@ public class Spline {
 	 * interpolated distance values will be in the second row.
 	 * This is a straight port of FORTRAN routine Fitspl.
 	 * 
-	 * @param p Normalized ray parameter grid
 	 * @param tau Normalized tau at each ray parameter grid point
 	 * @param xRange Normalized distance at each end of the ray 
 	 * parameter grid
@@ -201,13 +200,13 @@ public class Spline {
 	 * @param poly Scratch array dimensioned [3][p.length]
 	 * @param x Normalized, interpolated distance values returned
 	 */
-	public void tauSpline(double[] p, double[] tau, double[] xRange, 
+	public void tauSpline(double[] tau, double[] xRange, 
 			double[][] basis, double[][] poly, double[] x) {
 		int n;
 		double alr, gn;
 		double[] ap;
 		
-		n = p.length;
+		n = tau.length;
 		// Make sure we have a reasonable length branch.
 		if(n == 1) {
 			x[0] = xRange[0];
@@ -251,7 +250,7 @@ public class Spline {
 		alr = ap[1]/poly[1][n-1];
 		gn = (gn-poly[0][n-1]*alr)/(ap[2]-poly[2][n-1]*alr);
 		poly[0][n-1] = (poly[0][n-1]-gn*poly[2][n-1])/poly[1][n-1];
-		for(int j=n-2; j>=0; j++) {
+		for(int j=n-2; j>=0; j--) {
 			poly[0][j] = (poly[0][j]-poly[0][j+1]*poly[2][j])/poly[1][j];
 		}
 		
@@ -260,7 +259,13 @@ public class Spline {
 		for(int j=1; j<n-1; j++) {
 			x[j] = basis[2][j]*poly[0][j-1]+basis[3][j]*poly[0][j]+
 					basis[4][j]*poly[0][j+1];
-			x[n-1] = xRange[1];
 		}
+		x[n-1] = xRange[1];
+		
+/*	System.out.println("\nFitspl: tau x b a");
+		for(int j=0; j<n; j++) {
+			System.out.format("%13.6e %13.6e %13.6e %13.6e %13.6e\n", 
+					tau[j], x[j], poly[0][j], poly[1][j], poly[2][j]);
+		} */
 	}
 }

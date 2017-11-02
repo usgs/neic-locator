@@ -29,7 +29,6 @@ public class TauInt {
 	 * @param p Normalized ray parameter
 	 * @param start Starting model layer index
 	 * @param end Ending model layer index
-	 * @param x Normalized integrated distance
 	 * @return Normalized integrated tau
 	 * @throws Exception If tau or x is negative in any layer
 	 */
@@ -57,7 +56,6 @@ public class TauInt {
 	 * @param end Ending model layer index
 	 * @param pLast Last normalized slowness
 	 * @param zLast Last normalized depth
-	 * @param x Normalized integrated distance
 	 * @return Normalized integrated tau
 	 * @throws Exception If tau or x is negative in any layer
 	 */
@@ -91,7 +89,6 @@ public class TauInt {
 	 * @param zFirst First normalized depth
 	 * @param pLast Last normalized slowness
 	 * @param zLast Last normalized depth
-	 * @param x Normalized integrated distance
 	 * @return Normalized integrated tau
 	 * @throws Exception If tau or x is negative in any layer
 	 */
@@ -127,7 +124,6 @@ public class TauInt {
 	 * @param pBot Normalized slowness at the bottom of the layer
 	 * @param zTop Normalized depth at the top of the layer
 	 * @param zBot Normalized depth at the bottom of the layer
-	 * @param x Normalized distance (return)
 	 * @return Normalized tau
 	 * @throws Exception If tau or x is negative
 	 */
@@ -249,8 +245,8 @@ public class TauInt {
 			xLayer = -p*xInt/b2;				
 		}
 		tau = -(pBot2-pTop2+b*Math.log((pBot+pBot2)/(pTop+pTop2))-b2*xInt);
-		if(debug) System.out.println("tau xInt xLayer = "+(float)tau+" "+(float)xInt+
-				" "+(float)xLayer);
+		if(debug) System.out.println("tau xInt xLayer = "+(float)tau+" "+
+				(float)xInt+" "+(float)xLayer);
 		tauTest(p, pTop, pBot, zTop, zBot, tau);
 		return tau;
 	}
@@ -282,7 +278,6 @@ public class TauInt {
 	 * @param zTop Normalized depth at the top of the layer
 	 * @param zBot Normalized depth at the bottom of the layer
 	 * @param tau Normalized tau
-	 * @param x Normalized distance
 	 * @throws Exception If tau or x is negative
 	 */
 	private void tauTest(double p, double pTop, double pBot, double zTop, 

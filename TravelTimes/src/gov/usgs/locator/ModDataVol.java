@@ -11,10 +11,11 @@ package gov.usgs.locator;
  *
  */
 public class ModDataVol {
-	int iSource;								// Model index of the current source depth
+	int iSource;					// Model index of the current source depth
+	boolean onModelGrid;	// True if the source depth is exactly on a grid point.
 	double pFound, zFound, pMax = Double.NaN;
-	ModDataRef ref;
-	ModConvert cvt;
+	ModDataRef ref;				// Non-volatile model information
+	ModConvert cvt;				// Model dependent conversion factors
 
 	/**
 	 * Load data from the FORTRAN file reader for the Earth model for one 
@@ -50,11 +51,17 @@ public class ModDataVol {
 		zFound = z;
 		pMax = Double.NaN;
 		// If we're on a grid point, return that.
-		if(Math.abs(z-ref.zMod[iSource]) <= TauUtil.DTOL) pFound = ref.pMod[iSource];
+		if(Math.abs(z-ref.zMod[iSource]) <= TauUtil.DTOL) {
+			onModelGrid = true;
+			pFound = ref.pMod[iSource];
+		}
 		// Otherwise interpolate to find the correct slowness.
-		else pFound = ref.pMod[iSource-1]+(ref.pMod[iSource]-ref.pMod[iSource-1])*
-				(Math.exp(z-ref.zMod[iSource-1])-1d)/
-				(Math.exp(ref.zMod[iSource]-ref.zMod[iSource-1])-1d);
+		else {
+			pFound = ref.pMod[iSource-1]+(ref.pMod[iSource]-ref.pMod[iSource-1])*
+					(Math.exp(z-ref.zMod[iSource-1])-1d)/
+					(Math.exp(ref.zMod[iSource]-ref.zMod[iSource-1])-1d);
+			onModelGrid = false;
+		}
 		return pFound;
 	}
 	
@@ -89,11 +96,17 @@ public class ModDataVol {
 		}
 		pFound = p;
 		// If we're on a grid point, return that.
-		if(Math.abs(p-ref.pMod[iSource]) <= TauUtil.DTOL) zFound = ref.zMod[iSource];
+		if(Math.abs(p-ref.pMod[iSource]) <= TauUtil.DTOL) {
+			zFound = ref.zMod[iSource];
+			onModelGrid = true;
+		}
 		// Otherwise interpolate to find the correct slowness.
-		else zFound = ref.zMod[iSource-1]+Math.log(Math.max((p-ref.pMod[iSource-1])*
-				(Math.exp(ref.zMod[iSource]-ref.zMod[iSource-1])-1d)/
-				(ref.pMod[iSource]-ref.pMod[iSource-1])+1d, TauUtil.DMIN));
+		else {
+			zFound = ref.zMod[iSource-1]+Math.log(Math.max((p-ref.pMod[iSource-1])*
+					(Math.exp(ref.zMod[iSource]-ref.zMod[iSource-1])-1d)/
+					(ref.pMod[iSource]-ref.pMod[iSource-1])+1d, TauUtil.DMIN));
+			onModelGrid = false;
+		}
 		return zFound;
 	}
 	
@@ -114,27 +127,40 @@ public class ModDataVol {
 	}
 	
 	/**
+	 * Getter for the on a model grid point boolean.
+	 * 
+	 * @return True if the source is exactly on a model grid point.
+	 */
+	public boolean getOnGrid () {
+		return onModelGrid;
+	}
+	
+	/**
 	 * Print the result of the latest findP or findZ call.
+	 * 
+	 * @param nice If true, convert the model to SI units
 	 */
 	public void printFind(boolean nice) {
 		if(nice) {
 			if(pMax == Double.NaN) {
 				System.out.format("\nFind: type = %c  isource = %d  z = %5.1f  "+
-						"v = %4.1f\n", ref.typeMod, iSource, cvt.realZ(zFound), 
-						cvt.realV(pFound, zFound));
+						"v = %4.1f  onGrid = %b\n", ref.typeMod, iSource, cvt.realZ(zFound), 
+						cvt.realV(pFound, zFound), onModelGrid);
 			} else {
 				System.out.format("\nFind: type = %c  isource = %d  z = %5.1f  "+
-						"v = %4.1f  vMax = %4.1f\n", ref.typeMod, iSource, cvt.realZ(zFound), 
-						cvt.realV(pFound, zFound), cvt.realV(pMax, zFound));
+						"v = %4.1f  vMax = %4.1f  onGrid = %b\n", ref.typeMod, iSource, 
+						cvt.realZ(zFound), cvt.realV(pFound, zFound), cvt.realV(pMax, zFound), 
+						onModelGrid);
 			}
 		} else {
 			if(pMax == Double.NaN) {
 				System.out.format("\nFind: type = %c  isource = %d  z = %9.6f  "+
-						"p = %8.6f\n", ref.typeMod, iSource, zFound, pFound);
+						"p = %8.6f  onGrid = %b\n", ref.typeMod, iSource, zFound, pFound, 
+						onModelGrid);
 			} else {
 				System.out.format("\nFind: type = %c  isource = %d  z = %9.6f  "+
-						"p = %8.6f  pMax = %8.6f\n", ref.typeMod, iSource, zFound, pFound, 
-						pMax);
+						"p = %8.6f  pMax = %8.6f  onGrid = %b\n", ref.typeMod, iSource, 
+						zFound, pFound, pMax, onModelGrid);
 			}
 		}
 	}

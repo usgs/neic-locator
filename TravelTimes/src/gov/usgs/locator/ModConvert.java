@@ -1,7 +1,7 @@
 package gov.usgs.locator;
 
 /**
- * Unit conversion methods for the travel-time package Earth model.
+ * Earth model dependent unit conversions and constants.
  * 
  * @author Ray Buland
  *
@@ -12,11 +12,14 @@ public class ModConvert {
 	final double tNorm;						// Internal normalization constant for time.
 	final double vNorm;						// Internal normalization constant for velocity.
 	final double dTdDelta;				// Convert dT/dDelta to dimensional units.
+	final double deg2km;					// Convert degrees to kilometers.
 	final double zUpperMantle;		// Depth of the upper mantle in kilometers.
 	final double zMoho;						// Depth of the Moho in kilometers.
 	final double zConrad;					// Depth of the Conrad discontinuity in kilometers.
 	final double rSurface;				// Radius of the free surface of the Earth in kilometers.
 	final double zNewUp;					// Up-going branch replacement depth.
+	final double dTdDLg;					// dT/dDelta for Lg in seconds/degree.
+	final double dTdDLR;					// dT/dDelta for LR in seconds/degree.
 	
 	public ModConvert(ReadTau in) {
 		// Set up the normalization.
@@ -27,6 +30,9 @@ public class ModConvert {
 		vNorm = xNorm*pNorm;
 		dTdDelta = Math.toRadians(1d/(vNorm));
 		rSurface = in.rSurface;
+		deg2km = Math.PI*rSurface/180d;
+		dTdDLg = deg2km/TauUtil.LGGRPVEL;
+		dTdDLR = deg2km/TauUtil.LRGRPVEL;
 		// Compute some useful depths.
 		zUpperMantle = rSurface-in.rUpperMantle;
 		zMoho = rSurface-in.rMoho;

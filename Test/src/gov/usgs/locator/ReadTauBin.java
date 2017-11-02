@@ -23,7 +23,12 @@ public class ReadTauBin {
 	public static void main(String[] args) throws IOException {
 		ReadTau reader;
 		AllBrnRef ttData;
+		AuxTtRef auxtt;
 		
+		// Read in data common to all models.
+		auxtt = new AuxTtRef(true, false, true);
+		
+		// Read the model tau data.
 		reader = new ReadTau("ak135");
 		reader.readHeader();
 	//	reader.dumpGlobal();
@@ -36,8 +41,7 @@ public class ReadTauBin {
 	//	reader.dumpUp(80);
 		
 		// Test the new data classes.
-		cvt = new ModConvert(reader);
-		ttData = new AllBrnRef(reader);
+		ttData = new AllBrnRef(reader, auxtt);
 		ttData.dumpHead();
 	//	ttData.dumpMod('P', false);
 	//	ttData.dumpMod('S', false);
