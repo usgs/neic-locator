@@ -265,7 +265,8 @@ public class AllBrnVol {
 	 * @param useful If true, only print "useful" crustal phases
 	 */
 	public void dumpTable(boolean useful) {
-		System.out.println("");
+		System.out.println("\nPhase          pRange          xRange    "+
+				"pCaustic difLim    Flags");
 		for(int j=0; j<branches.length; j++) {
 			branches[j].forTable(useful);
 		}

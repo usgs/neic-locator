@@ -21,8 +21,8 @@ public class TtMain {
 		boolean noBackBrn = false;
 		boolean rstt = false;
 		// Simulate a simple travel time request.
-		double delta = 5d;
-		double elev = 1d;
+		double delta = 20d;
+		double elev = 0d;
 		boolean tectonic = false;
 		// Classes we will need.
 		ReadTau readTau = null;
@@ -32,7 +32,7 @@ public class TtMain {
 		TTime ttList;
 		
 		// Read in data common to all models.
-		auxtt = new AuxTtRef(false, false, true);
+		auxtt = new AuxTtRef(false, false, false);
 
 		// Initialize model storage if necessary.
 		if(modelData == null) {
@@ -70,8 +70,11 @@ public class TtMain {
 		// Set up a new session.
 		try {
 			allBrn.newSession(sourceDepth, phList);
-//		allBrn.dumpBrn(true, true, true);
+			
+			// A more comprehensive branch listing.
 //		allBrn.dumpBrn(false, false, true, true);
+			
+			// This provides a summary table of all phases--VERY USEFUL!
 			allBrn.dumpTable(true);
 			
 			// Get the travel times.

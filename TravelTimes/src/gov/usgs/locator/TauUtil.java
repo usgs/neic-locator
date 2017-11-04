@@ -193,7 +193,7 @@ public class TauUtil {
 								(Math.cos(FREQOBSERV*(tTimeI.tt-tTimeJ.tt))+1d), 
 								0d);
 					}
-				}
+				} else break;
 			}
 		}
 	}
