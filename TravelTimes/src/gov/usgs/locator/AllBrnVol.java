@@ -14,6 +14,14 @@ public class AllBrnVol {
 	double dSource;										// Dimensional source depth in kilometers
 	double zSource;										// Flat Earth source depth
 	double dTdDepth;									// Derivative of travel time with respect to depth
+	double eqLat;											// Geographical earthquake latitude in degrees
+	double eqLon;											// Earthquake longitude in degrees
+	double eqDepth;										// Earthquake depth in kilometers
+	double staLat;										// Geographical station latitude in degrees
+	double staLon;										// Station longitude in degrees
+	double staDelta;									// Source-receiver distance in degrees
+	double staAzim;										// Receiver azimuth at the source in degrees
+	boolean complex;									// True if this is a "complex" request
 	AllBrnRef ref;
 	ModConvert cvt;
 	int lastBrn = -1, upBrnP = -1, upBrnS = -1;
@@ -45,11 +53,44 @@ public class AllBrnVol {
 	 * Set up a new session.  Note that this just sets up the 
 	 * simple session parameters of use to the travel-time package.
 	 * 
+	 * @param latitude Source geographical latitude in degrees
+	 * @param longitude Source longitude in degrees
 	 * @param depth Source depth in kilometers
 	 * @param phList Array of phase use commands
 	 * @throws Exception If the depth is out of range
 	 */
+	public void newSession(double latitude, double longitude, double depth, 
+			String[] phList) throws Exception {
+		complex = true;
+		eqLat = latitude;
+		eqLon = longitude;
+		setSession(depth, phList);
+	}
+		
+		/**
+		 * Set up a new session.  Note that this just sets up the 
+		 * simple session parameters of use to the travel-time package.
+		 * 
+		 * @param depth Source depth in kilometers
+		 * @param phList Array of phase use commands
+		 * @throws Exception If the depth is out of range
+		 */
 	public void newSession(double depth, String[] phList) throws Exception {
+		complex = false;
+		eqLat = Double.NaN;
+		eqLon = Double.NaN;
+		setSession(depth, phList);
+	}
+	
+	/**
+	 * Set up a new session.  Note that this just sets up the 
+	 * simple session parameters of use to the travel-time package.
+	 * 
+	 * @param depth Source depth in kilometers
+	 * @param phList Array of phase use commands
+	 * @throws Exception If the depth is out of range
+	 */
+	private void setSession(double depth, String[] phList) throws Exception {
 		char tagBrn;
 		double xMin;
 		
@@ -64,7 +105,6 @@ public class AllBrnVol {
 					TauUtil.DMIN)), 0d);
 			dTdDepth = 1d/(cvt.pNorm*(1d-dSource*cvt.xNorm));
 		}
-//	System.out.println("\nzSource = "+(float)zSource+" dTdDepth = "+(float)dTdDepth);
 		
 		// Fake up the phase list commands for now.
 		for(int j=0; j<branches.length; j++) {
@@ -88,11 +128,68 @@ public class AllBrnVol {
 			branches[j].depthCorr(dTdDepth, xMin, tagBrn);
 		}
 	}
+		
+	/**
+	 * Get the arrival times from all branches for a "complex" 
+	 * request (i.e., including latitude and longitude).  This 
+	 * will include the ellipticity and bounce point corrections 
+	 * as well as the elevation correction.
+	 * 
+	 * @param latitude Receiver geographic latitude in degrees
+	 * @param longitude Receiver longitude in degrees
+	 * @param elev Station elevation in kilometers
+	 * @param delta Source receiver distance desired in degrees
+	 * @param azimuth Receiver azimuth at the source in degrees
+	 * @param useful If true, only provide "useful" crustal phases
+	 * @param tectonic If true, map Pb and Sb onto Pg and Sg
+	 * @param noBackBrn If true, suppress back branches
+	 * @param rstt If true, use RSTT crustal phases
+	 * @return An array list of travel times
+	 */
+	public TTime getTT(double latitude, double longitude, double elev, 
+			double delta, double azimuth, boolean useful, boolean tectonic, 
+			boolean noBackBrn, boolean rstt) {
+		
+		staLat = latitude;
+		staLon = longitude;
+		if(delta < 0d || delta == Double.NaN || azimuth < 0 || 
+				azimuth == Double.NaN) {
+			staDelta = TauUtil.delAz(eqLat, eqLon, staLat, staLon);
+			staAzim = TauUtil.azimuth;
+		} else {
+			staDelta = delta;
+			staAzim = azimuth;
+		}
+		return doTT(elev, useful, tectonic, noBackBrn, rstt);
+	}
+			
+	/**
+	 * Get the arrival times from all branches for a "simple" 
+	 * request (i.e., without latitude and longitude.  This will 
+	 * only include the elevation correction.
+	 * 
+	 * @param elev Station elevation in kilometers
+	 * @param delta Source receiver distance desired in degrees
+	 * @param useful If true, only provide "useful" crustal phases
+	 * @param tectonic If true, map Pb and Sb onto Pg and Sg
+	 * @param noBackBrn If true, suppress back branches
+	 * @param rstt If true, use RSTT crustal phases
+	 * @return An array list of travel times
+	 */
+	public TTime getTT(double elev, double delta, boolean useful, 
+			boolean tectonic, boolean noBackBrn, boolean rstt) {
+		
+		staLat = Double.NaN;
+		staLon = Double.NaN;
+		staDelta = delta;
+		staAzim = Double.NaN;
+		return doTT(elev, useful, tectonic, noBackBrn, rstt);
+	}
 	
 	/**
-	 * Get the arrival times from all branches.
+	 * Get the arrival times from all branches including all 
+	 * applicable travel-time corrections.
 	 * 
-	 * @param x Source receiver distance desired in degrees
 	 * @param elev Station elevation in kilometers
 	 * @param useful If true, only provide "useful" crustal phases
 	 * @param tectonic If true, map Pb and Sb onto Pg and Sg
@@ -100,8 +197,8 @@ public class AllBrnVol {
 	 * @param rstt If true, use RSTT crustal phases
 	 * @return An array list of travel times
 	 */
-	public TTime getTT(double x, double elev, boolean useful, 
-			boolean tectonic, boolean noBackBrn, boolean rstt) {
+	private TTime doTT(double elev, boolean useful, boolean tectonic, 
+			boolean noBackBrn, boolean rstt) {
 		int lastTT;
 		double delCorr;
 		double[] xs;
@@ -113,7 +210,7 @@ public class AllBrnVol {
 		// The desired distance might translate to up to three 
 		// different distances (as the phases wrap around the Earth).
 		xs = new double[3];
-		xs[0] = Math.abs(Math.toRadians(x))%(2d*Math.PI);
+		xs[0] = Math.abs(Math.toRadians(staDelta))%(2d*Math.PI);
 		if(xs[0] > Math.PI) xs[0] = 2d*Math.PI-xs[0];
 		xs[1] = 2d*Math.PI-xs[0];
 		xs[2] = xs[0]+2d*Math.PI;
@@ -147,6 +244,20 @@ public class AllBrnVol {
 							// This is the normal case.  Do various travel-time corrections.
 							tTime.tt = tTime.tt+branches[j].elevCorr(elev, tTime.dTdD, 
 									rstt);
+				//		double elevCorr = branches[j].elevCorr(elev, tTime.dTdD, 
+				//			rstt);
+							// If this was a complex request, do the ellipticity correction.
+							if(complex) {
+								tTime.tt = tTime.tt+branches[j].ellipCorr(eqLat, dSource, 
+									staDelta, staAzim);
+				//			double ellipCorr = branches[j].ellipCorr(eqLat, dSource, 
+				//				staDelta, staAzim);
+				//			System.out.format("%-8s elev = %6.4f ellip = %6.4f\n",tTime.phCode, 
+				//					elevCorr, ellipCorr);
+				//		} else {
+				//			System.out.println("phCode = "+tTime.phCode+" elev = "+
+				//					(float)elevCorr);
+							}
 							// Add auxiliary information.
 							try {
 								delCorr = upRay(tTime.phCode, tTime.dTdD);

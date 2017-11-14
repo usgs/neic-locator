@@ -29,7 +29,9 @@ public class BrnDataVol {
 	BrnDataRef ref;					// Link to non-volatile branch data
 	UpDataVol pUp, sUp;			// Up-going P and S data for correcting the depth
 	ModConvert cvt;					// Model specific conversions
+	TtFlags flags;						// Flags, etc. by phase code
 	TtStat ttStat;					// Local copy of the phase statistics
+	Ellip ellip;						// Local copy of the ellipticity correction
 	double tCorr, xSign = Double.NaN, zSign = Double.NaN, pSourceSq = Double.NaN, 
 			pEnd = Double.NaN;	// Some variables need to be remembered between calls 
 													// to the travel-time routine.
@@ -72,7 +74,9 @@ public class BrnDataVol {
 			throws Exception {
 		int i, len = 0;
 		double[][] basisTmp;
+		
 		Spline spline = new Spline();
+		flags = ref.auxtt.findFlags(phCode);
 		this.dTdDepth = dTdDepth;
 		
 		// Skip branches we aren't computing.
@@ -343,9 +347,15 @@ public class BrnDataVol {
 			tauPoly(tagBrn);
 			
 			// Now that we know what type of phase we have, select the right 
-			// statistics.
-			if(ref.isUpGoing) ttStat = ref.auxtt.findStats(phCode);
-			else ttStat = ref.ttStat;
+			// statistics and ellipticity correction.
+			if(ref.isUpGoing) {
+				ttStat = ref.auxtt.findStats(phCode);
+				ellip = ref.auxtt.findEllip(flags.phGroup+"up");
+			}
+			else {
+				ttStat = flags.ttStat;
+				ellip = flags.ellip;
+			}
 			
 		// Un-computed phases might as well not exist.
 		} else {
@@ -582,6 +592,7 @@ public class BrnDataVol {
 		boolean found = false;
 		double pTol, dps, dp, ps, del;
 		TTimeData tTime;
+		TtFlags addFlags;
 		
 		// Skip non-existent and useless phases (if requested).
 		if(!exists || (useful && ref.isUseless)) return;
@@ -687,7 +698,9 @@ public class BrnDataVol {
 			// See if we have an add-on phase.
 			if(ref.hasAddOn && found) {
 				del = Math.toDegrees(xs);
-				if(del >= ref.addStat.minDelta && del <= ref.addStat.maxDelta) {
+				addFlags = ref.auxtt.findFlags(ref.phAddOn);
+				if(del >= addFlags.ttStat.minDelta && del <= 
+						addFlags.ttStat.maxDelta) {
 					if(ref.phAddOn.equals("Lg")) {
 						// Make sure we have a valid depth.
 						if(dSource <= TauUtil.LGDEPMAX) {
@@ -725,6 +738,7 @@ public class BrnDataVol {
 			TTimeData tTime) {		
 		double del, spd, obs;
 		
+		flags = ref.auxtt.findFlags(phCode);
 		// Add the phase statistics.  First, convert distance to degrees
 		del = Math.toDegrees(xs);
 		// Apply the surface focus correction.
@@ -737,14 +751,14 @@ public class BrnDataVol {
 			del = del+delCorr;
 		
 		// No statistics for phase that wrap around the Earth.
-		if(del >= 360d) {
+		if(del >= 360d || flags.ttStat == null) {
 			spd = TauUtil.DEFSPREAD;
 			obs = TauUtil.DEFOBSERV;
 		} else {
 			// Wrap distances greater than 180 degrees.
 			if(del > 180d) del = 360d-del;
 			// Do the interpolation.
-			if(phCode.contains("bc")) {
+/*		if(phCode.contains("bc")) {
 				// We need separate statistics for the bc branches.
 				spd = Math.min(ref.auxtt.getSpread(ref.bcStat,del), TauUtil.DEFSPREAD);
 				obs = Math.max(ref.auxtt.getObserv(ref.bcStat,del), TauUtil.DEFOBSERV);
@@ -761,20 +775,18 @@ public class BrnDataVol {
 				// This is the normal case.
 				spd = Math.min(ref.auxtt.getSpread(ttStat,del), TauUtil.DEFSPREAD);
 				obs = Math.max(ref.auxtt.getObserv(ttStat,del), TauUtil.DEFOBSERV);
-			}
+			} */
+			// There is only the normal case now.
+			if(tTime.corrTt) tTime.tt += flags.ttStat.getBias(del);
+			spd = flags.ttStat.getSpread(del);
+			obs = flags.ttStat.getObserv(del);
 		}
+		// Add statistics.
 		tTime.addStats(spd, obs);
-		
-		// Add the flags.
-		if(tTime.corrTt) {
-			// An add-on phase has different flags.
-			tTime.addFlags(ref.phGroupAdd, ref.auxGroupAdd, ref.isRegional,
-					ref.isDepth, ref.canUseAdd, ref.dis);
-		} else {
-			// All other cases work the same.
-			tTime.addFlags(ref.phGroup, ref.auxGroup, ref.isRegional,
-					ref.isDepth, ref.canUse, ref.dis);
-		}
+		// Add flags.
+//	flags = ref.auxtt.phFlags.get(phCode);
+		tTime.addFlags(flags.phGroup, flags.auxGroup, flags.isRegional, flags.isDepth, 
+				flags.canUse, flags.dis);
 	}
 	
 	/**
@@ -830,7 +842,7 @@ public class BrnDataVol {
 	 */
 	public double elevCorr(double elev, double dTdD, boolean rstt) {
 		// We don't want any corrections if RSTT is used for regional phases.
-		if(rstt && ref.isRegional) return 0d;
+		if(rstt && ref.auxtt.phFlags.get(phCode).isRegional) return 0d;
 		
 		// Otherwise, the correction depends on the phase type at the station.
 		if(ref.typeSeg[2] == 'P') {
@@ -840,8 +852,27 @@ public class BrnDataVol {
 			return (elev/TauUtil.DEFVS)*Math.sqrt(Math.abs(1.-
 					Math.min(Math.pow(TauUtil.DEFVS*dTdD/cvt.deg2km,2d),1d)));
 			// The elevation correction doesn't make sense for surface waves 
-			// like R and Lg.
+			// like LR and Lg.
 		} else return 0d;
+	}
+	
+	/**
+	 * Compute the ellipticity correction for one phase.
+	 * 
+	 * @param eqLat Hypocenter geographic latitude in degrees
+	 * @param depth Hypocenter depth in kilometers
+	 * @param delta Source-receiver distance in degrees
+	 * @param azimuth Receiver azimuth from the source in degrees
+	 * @return Ellipticity correction in seconds
+	 */
+	public double ellipCorr(double eqLat, double depth, double delta, 
+			double azimuth) {
+		// Do the interpolation.
+		if(flags.ellip == null) {
+			return 0d;
+		} else {
+			return flags.ellip.getEllipCorr(eqLat, depth, delta, azimuth);
+		}
 	}
 	
 	/**
@@ -899,8 +930,8 @@ public class BrnDataVol {
 						"%6.2f - %6.2f\n", pCaustic, Math.toDegrees(xDiff[0]), 
 						Math.toDegrees(xDiff[1]));
 				else System.out.format("        pCaustic = %8.6f\n", pCaustic);
-				System.out.format("Flags: group = %s %s  flags = %b %b %b %b\n", ref.phGroup, 
-						ref.auxGroup, ref.isRegional, ref.isDepth, ref.canUse, ref.dis);
+		//	System.out.format("Flags: group = %s %s  flags = %b %b %b %b\n", ref.phGroup, 
+		//			ref.auxGroup, ref.isRegional, ref.isDepth, ref.canUse, ref.dis);
 				if(full) {
 					int n = pBrn.length;
 					if(all && poly != null) {
@@ -991,7 +1022,7 @@ public class BrnDataVol {
 	public void forTable(boolean useful) {
 		if(!exists || (useful && ref.isUseless)) return;
 		if(ref.isUpGoing) {
-			System.out.format("%2s up    %7.4f %7.4f %7.2f %7.2f %7.4f"+
+			System.out.format("%-2s up    %7.4f %7.4f %7.2f %7.2f %7.4f"+
 					"          %c %c %c %2d %d\n", phCode, pRange[0], pRange[1], 
 					Math.toDegrees(xRange[0]), Math.toDegrees(xRange[1]), pCaustic, 
 					ref.typeSeg[0], ref.typeSeg[1], ref.typeSeg[2], ref.signSeg, 
