@@ -28,19 +28,7 @@ public class BrnDataRef {
 	final double[] pBrn;					// Slowness grid for this branch
 	final double[] tauBrn;				// Tau for each grid point
 	final double[][] basis;				// Basis function coefficients for each grid point
-	final String phGroup;					// Phase group
-	final String auxGroup;				// Auxiliary phase group
-	final boolean isRegional;			// True if this is a regional phase
-	final boolean isDepth;				// True if this is a depth phase
-	final boolean canUse;					// True if this phase can be used for earthquake location
-	final boolean dis;						// True if disrespected (down weight) this phase
-	final String phGroupAdd;			// Phase group for an add-on phase
-	final String auxGroupAdd;			// Auxiliary group for an add-on phase
-	final boolean canUseAdd;			// Use flag for an add-on phase
 	final AuxTtRef auxtt;					// Auxiliary data
-	final TtStat ttStat, bcStat, diffStat, addStat;		// We potentially need four different 
-																// sets of statistics: base phase, bc branch, diffracted 
-	                              // branch, and add-on branch
 	
 	/**
 	 * Load data from the FORTRAN file reader for one branch.  The file 
@@ -59,15 +47,8 @@ public class BrnDataRef {
 		// Do phase code.
 		phCode = in.phCode[indexBrn];
 		
-		// Remember the auxiliary data and the branch statistics.
+		// Remember the auxiliary data and the branch statistics and ellipticity.
 		this.auxtt = auxtt;
-		ttStat = auxtt.findStats(phCode);
-		// If this is an ab branch we also need the statistics for the bc 
-		// branch (they're the same at this level).
-		if(phCode.contains("ab")) {
-			String tmpCode = TauUtil.phSeg(phCode)+"bc";
-			bcStat = auxtt.findStats(tmpCode);
-		} else bcStat = null;
 		
 		// Do segment summary information.
 		phSeg = segCode;
@@ -108,34 +89,31 @@ public class BrnDataRef {
 			pRange[j] = in.pBrn[indexBrn][j];
 			xRange[j] = in.xBrn[indexBrn][j];
 		}
-		
-		// Set up the parameters for any extra phases associated with this 
-		// phase.
+				
+		// Set up diffracted and add-on phases.
 		if(!isUpGoing) {
 			hasDiff = extra.hasDiff(phCode);
 			hasAddOn = extra.hasAddOn(phCode, xRange[1]);
-		}
-		else {
+		} else {
 			hasDiff = false;
 			hasAddOn = false;
 		}
+		
 		// Handle a diffracted branch.
 		if(hasDiff) {
 			phDiff = extra.getPhDiff();
 			xDiff = extra.getPhLim();
-			diffStat = auxtt.findStats(phDiff);
 		} else {
 			phDiff = "";
 			xDiff = 0d;
-			diffStat = null;
 		}
+		
 		// Handle an add-on phase.
 		if(hasAddOn) {
 			phAddOn = extra.getPhAddOn();
-			addStat = auxtt.findStats(phAddOn);
+			// Add-on flags can be different than the base phase.
 		} else {
 			phAddOn = "";
-			addStat = null;
 		}
 
 		// Set up the branch specification.
@@ -146,24 +124,6 @@ public class BrnDataRef {
 		basis = new double[5][];
 		for(int k=0; k<5; k++) {
 			basis[k] = Arrays.copyOfRange(in.basisSpec[k], start, end);
-		}
-		
-		// Add phase group and use flags.
-		phGroup = auxtt.findGroup(phCode);
-		auxGroup = auxtt.compGroup(phGroup);
-		isRegional = auxtt.isRegional(phCode);
-		isDepth = auxtt.isDepthPh(phCode);
-		canUse = auxtt.useGroup(phGroup);
-		dis = auxtt.isDisPh(phCode);
-		// Some of this stuff is different for an add-on phase.
-		if(hasAddOn) {
-			phGroupAdd = auxtt.findGroup(phAddOn);
-			auxGroupAdd = auxtt.compGroup(phGroupAdd);
-			canUseAdd = auxtt.useGroup(phGroupAdd);
-		} else {
-			phGroupAdd = null;
-			auxGroupAdd = null;
-			canUseAdd = false;
 		}
 	}
 	
@@ -212,8 +172,28 @@ public class BrnDataRef {
 		System.out.format("Branch: pRange = %8.6f - %8.6f  xRange = %6.2f - %6.2f\n", 
 				pRange[0], pRange[1], Math.toDegrees(xRange[0]), Math.toDegrees(xRange[1]));
 		if(hasDiff) System.out.format("        xDiff = %6.2f\n", Math.toDegrees(xDiff));
-		System.out.format("Flags: group = %s %s  flags = %b %b %b %b\n", phGroup, 
-				auxGroup, isRegional, isDepth, canUse, dis);
+//	System.out.format("Flags: group = %s %s  flags = %b %b %b %b\n", phGroup, 
+//			auxGroup, isRegional, isDepth, canUse, dis);
+//	if(hasAddOn) System.out.format("Add-on flags: group = %s %s  flags = %b %b\n", 
+//			phGroupAdd, auxGroupAdd, addBounce, canUseAdd);
+/*	System.out.print("Stats:");
+		if(ttStat != null) System.out.print(" "+ttStat.phCode);
+		else System.out.print(" null");
+		if(bcStat != null) System.out.print(" "+bcStat.phCode);
+		else System.out.print(" null");
+		if(diffStat != null) System.out.print(" "+diffStat.phCode);
+		else System.out.print(" null");
+		if(addStat != null) System.out.println(" "+addStat.phCode);
+		else System.out.println(" null");
+		System.out.format("Ellip:");
+		if(ellip != null) System.out.print(" "+ellip.phCode);
+		else System.out.print(" null");
+		if(bcEllip != null) System.out.print(" "+bcEllip.phCode);
+		else System.out.print(" null");
+		if(diffEllip != null) System.out.print(" "+diffEllip.phCode);
+		else System.out.print(" null");
+		if(addEllip != null) System.out.println(" "+addEllip.phCode);
+		else System.out.println(" null"); */
 		if(full) {
 			System.out.println("\n         p        tau                 "+
 					"basis function coefficients");
