@@ -89,6 +89,17 @@ public class TauUtil {
 	static final double FREQOBSERV = Math.PI/DTOBSERV;
 	
 	/**
+	 * The ellipticity factor needed to compute geocentric co-latitude.
+	 */
+	protected final static double ELLIPFAC = 0.993305521d;
+	
+	/**
+	 * Receiver azimuth relative to the source in degrees clockwise from 
+	 * north (available after calling delAz).
+	 */
+	public static double azimuth = Double.NaN;
+	
+	/**
 	 * Create a segment code by stripping a phase code of unnecessary 
 	 * frippery.
 	 * 
@@ -258,6 +269,123 @@ public class TauUtil {
 		for(int j=0; j<tTimes.size(); j++) {
 			if(tTimes.get(j).spread >= DEFSPREAD || tTimes.get(j).observ <= 
 					DEFOBSERV) tTimes.get(j).canUse = false;
+		}
+	}
+	
+	/**
+	 * Bilinear interpolation.  The indices are such that 
+	 * val[ind] < var <= val[ind+1].  The two dimensional grid of 
+	 * values to be interpolated has values val0 associated with 
+	 * it's first index and values val1 associated with it's second 
+	 * index.
+	 * 
+	 * @param var0 First variable
+	 * @param var1 Second variable
+	 * @param ind0 Lower index of the first value array
+	 * @param ind1 Lower index of the second value array
+	 * @param val0 Value array for the first grid index
+	 * @param val1 Value array for the second grid index
+	 * @param grid Two dimensional array of values to be interpolated
+	 * @return
+	 */
+	public static double biLinear(double var0, double var1, int ind0, 
+			int ind1, GenIndex val0, GenIndex val1, double[][] grid) {
+		// Interpolate the first variable at it's lower index.
+		double lin00 = grid[ind0][ind1]+
+				(grid[ind0+1][ind1]-grid[ind0][ind1])*
+				(var0-val0.getValue(ind0))/
+				(val0.getValue(ind0+1)-val0.getValue(ind0));
+		// Interpolate the first variable at it's upper index.
+		double lin01 = grid[ind0][ind1+1]+
+				(grid[ind0+1][ind1+1]-grid[ind0][ind1+1])*
+				(var0-val0.getValue(ind0))/
+				(val0.getValue(ind0+1)-val0.getValue(ind0));
+		// Interpolate the second variable.
+		return lin00+(lin01-lin00)*(var1-val1.getValue(ind1))/
+				(val1.getValue(ind1+1)-val1.getValue(ind1));
+	}
+	
+	/**
+	 * An historically significant subroutine from deep time (1962)!  This 
+	 * routine was written by Bob Engdahl in Fortran (actually in the days 
+	 * before subroutines) and beaten into it's current Fortran form by 
+	 * Ray Buland in the early 1980s.  It's optimized with respect to 
+	 * computing sines and cosines (probably still worthwhile) and it 
+	 * computes exactly what's needed--no more, no less.  This (much more 
+	 * horrible) alternate form to the delAz in LocUtil is much closer to 
+	 * Engdahl's original.  It is needed to avoid a build path cycle.
+	 * 
+	 * @param eqLat Geographic source latitude in degrees
+	 * @param eqLon Source longitude in degrees
+	 * @param staLat Geographic station latitude in degrees
+	 * @param staLon Station longitude in degrees
+	 * @return Distance (delta) in degrees
+	 */
+	public static double delAz(double eqLat, double eqLon, double staLat, 
+			double staLon) {
+		double coLat, eqSinLat, eqCosLat, eqSinLon, eqCosLon;
+		double staSinLat, staCosLat, staSinLon, staCosLon;
+		double cosdel, sindel, tm1, tm2;	// Use Bob Engdahl's variable names
+		
+		// Get the hypocenter geocentric co-latitude.
+		if(Math.abs(90d-eqLat) < TauUtil.DTOL) {
+			coLat = 0d;
+		} else if(Math.abs(90d+eqLat) < TauUtil.DTOL) {
+			coLat = 180d;
+		} else {
+			coLat = 90d-Math.toDegrees(Math.atan(ELLIPFAC*
+					Math.sin(Math.toRadians(eqLat))/
+					Math.cos(Math.toRadians(eqLat))));
+		}
+		// Hypocenter sines and cosines.
+		eqSinLat = Math.sin(Math.toRadians(coLat));
+		eqCosLat = Math.cos(Math.toRadians(coLat));
+		eqSinLon = Math.sin(Math.toRadians(eqLon));
+		eqCosLon = Math.cos(Math.toRadians(eqLon));
+		
+		// Get the station geocentric co-latitude.
+		if(Math.abs(90d-staLat) < TauUtil.DTOL) {
+			coLat = 0d;
+		} else if(Math.abs(90d+staLat) < TauUtil.DTOL) {
+			coLat = 180d;
+		} else {
+			coLat = 90d-Math.toDegrees(Math.atan(ELLIPFAC*
+					Math.sin(Math.toRadians(staLat))/
+					Math.cos(Math.toRadians(staLat))));
+		}
+		// Station sines and cosines.
+		staSinLat = Math.sin(Math.toRadians(coLat));
+		staCosLat = Math.cos(Math.toRadians(coLat));
+		staSinLon = Math.sin(Math.toRadians(staLon));
+		staCosLon = Math.cos(Math.toRadians(staLon));
+		
+		// South Pole:
+		if(staSinLat <= TauUtil.DTOL) {
+			azimuth = 180d;
+			return Math.toDegrees(Math.PI-Math.acos(eqCosLat));
+		}
+		
+		// Compute some intermediate variables.
+		cosdel = eqSinLat*staSinLat*(staCosLon*eqCosLon+
+				staSinLon*eqSinLon)+eqCosLat*staCosLat;
+		tm1 = staSinLat*(staSinLon*eqCosLon-staCosLon*eqSinLon);
+		tm2 = eqSinLat*staCosLat-eqCosLat*staSinLat*
+				(staCosLon*eqCosLon+staSinLon*eqSinLon);
+		sindel = Math.sqrt(Math.pow(tm1,2d)+Math.pow(tm2,2d));
+		
+		// Do the azimuth.
+		if(Math.abs(tm1) <= TauUtil.DTOL && Math.abs(tm2) <= TauUtil.DTOL) {
+			azimuth = 0d;		// North Pole.
+		} else {
+			azimuth = Math.toDegrees(Math.atan2(tm1,tm2));
+			if(azimuth < 0d) azimuth += 360;
+		}
+		
+		// Do delta.
+		if(sindel <= TauUtil.DTOL && Math.abs(cosdel) <= TauUtil.DTOL) {
+			return 0d;
+		} else {
+			return Math.toDegrees(Math.atan2(sindel,cosdel));
 		}
 	}
 }

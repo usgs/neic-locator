@@ -26,7 +26,7 @@ public class ReadTauBin {
 		AuxTtRef auxtt;
 		
 		// Read in data common to all models.
-		auxtt = new AuxTtRef(true, false, true);
+		auxtt = new AuxTtRef(false, false, false, false);
 		
 		// Read the model tau data.
 		reader = new ReadTau("ak135");
