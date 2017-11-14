@@ -132,5 +132,4 @@ public class SessionRequest {
 		// This is a plot request.
 		plotRequest = true;
 	}
-
 }

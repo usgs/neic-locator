@@ -263,7 +263,7 @@ public class UpDataVol {
 		if(full) {
 			System.out.println("          p        tau");
 			for(int k=0; k<tauUp.length; k++) {
-				System.out.format("%3d  %8.6f  %8.6f\n",k,pUp[k],tauUp[k]);
+				System.out.format("%3d  %8.6f %11.4e\n",k,pUp[k],tauUp[k]);
 			}
 	/*	if(brnLen > tauUp.length) {
 				System.out.format("%3d  %8.6f  %8.6f\n",brnLen-1,pUp[brnLen-1],
@@ -284,7 +284,7 @@ public class UpDataVol {
 		if(full) {
 			System.out.println("          p        tau");
 			for(int k=0; k<tauDec.length; k++) {
-				System.out.format("%3d  %8.6f  %8.6f\n",k,pDec[k],tauDec[k]);
+				System.out.format("%3d  %8.6f %11.4e\n",k,pDec[k],tauDec[k]);
 			}
 		}
 	}
