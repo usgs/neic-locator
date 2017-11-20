@@ -106,6 +106,15 @@ public class TTime {
 	}
 	
 	/**
+	 * Provide a way of removing an unwanted phase by index.
+	 * 
+	 * @param i Phase index
+	 */
+	public void remove(int i) {
+		tTimes.remove(i);
+	}
+	
+	/**
 	 * Print the travel-time data for all phases as a table.
 	 * 
 	 * @param depth Source depth in kilometers

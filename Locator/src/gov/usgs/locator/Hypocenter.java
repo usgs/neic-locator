@@ -85,7 +85,7 @@ public class Hypocenter {
 		this.longitude = longitude;
 		this.depth = depth;
 		// Update the sines and cosines.
-		coLat = LocUtil.geoLat(latitude);
+		coLat = TauUtil.geoCen(latitude);
 		sinLat = Math.sin(Math.toRadians(coLat));
 		cosLat = Math.cos(Math.toRadians(coLat));
 		sinLon = Math.sin(Math.toRadians(longitude));

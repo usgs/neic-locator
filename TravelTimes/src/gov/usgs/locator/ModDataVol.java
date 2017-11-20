@@ -141,7 +141,7 @@ public class ModDataVol {
 	 */
 	public void printFind(boolean nice) {
 		if(nice) {
-			if(pMax == Double.NaN) {
+			if(Double.isNaN(pMax)) {
 				System.out.format("\nFind: type = %c  isource = %d  z = %5.1f  "+
 						"v = %4.1f  onGrid = %b\n", ref.typeMod, iSource, cvt.realZ(zFound), 
 						cvt.realV(pFound, zFound), onModelGrid);
@@ -152,7 +152,7 @@ public class ModDataVol {
 						onModelGrid);
 			}
 		} else {
-			if(pMax == Double.NaN) {
+			if(Double.isNaN(pMax)) {
 				System.out.format("\nFind: type = %c  isource = %d  z = %9.6f  "+
 						"p = %8.6f  onGrid = %b\n", ref.typeMod, iSource, zFound, pFound, 
 						onModelGrid);

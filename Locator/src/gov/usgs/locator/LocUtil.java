@@ -10,10 +10,6 @@ import java.util.Date;
  *
  */
 public class LocUtil {
-	/**
-	 * The ellipticity factor needed to compute geocentric co-latitude.
-	 */
-	protected final static double ELLIPFAC = 0.993305521d;
 	
 	/**
 	 * Array for translating the authority flag to a value.
@@ -28,30 +24,13 @@ public class LocUtil {
 	public static double azimuth = Double.NaN;
 	
 	/**
-	 * Compute the geocentric co-latitude.
-	 * 
-	 * @param latitude Geographical latitude in degrees
-	 * @return Geocentric co-latitude in degrees
-	 */
-	public static double geoLat(double latitude) {
-		if(Math.abs(90d-latitude) < TauUtil.DTOL) {
-			return 0d;
-		} else if(Math.abs(90d+latitude) < TauUtil.DTOL) {
-			return 180d;
-		} else {
-			return 90d-Math.toDegrees(Math.atan(ELLIPFAC*
-					Math.sin(Math.toRadians(latitude))/
-					Math.cos(Math.toRadians(latitude))));
-		}
-	}
-	
-	/**
 	 * An historically significant subroutine from deep time (1962)!  This 
 	 * routine was written by Bob Engdahl in Fortran (actually in the days 
 	 * before subroutines) and beaten into it's current Fortran form by 
 	 * Ray Buland in the early 1980s.  It's optimized with respect to 
 	 * computing sines and cosines (probably still worthwhile) and it 
-	 * computes exactly what's needed--no more, no less.
+	 * computes exactly what's needed--no more, no less.  Note that the 
+	 * azimuth is returned in static variable azimuth.
 	 * 
 	 * @param hypo Hypocenter object
 	 * @param sta Station object

@@ -13,7 +13,6 @@ public class TtFlags {
 	final boolean isDepth;			// True if phase is depth sensitive
 	final boolean canUse;				// True if phase can be used in a location
 	final boolean dis;					// True if phase is to be down weighted
-	final boolean hasBounce;		// Phase bounces at the free surface
 	final TtStat ttStat;				// Phase statistics
 	final Ellip ellip;					// Ellipticity correction
 	
@@ -33,15 +32,14 @@ public class TtFlags {
 	 * @param ellip Ellipticity correction object
 	 */
 	public TtFlags(String phGroup, String auxGroup, boolean isRegional, 
-			boolean isDepth, boolean canUse, boolean dis, boolean hasBounce, 
-			TtStat ttStat, Ellip ellip) {
+			boolean isDepth, boolean canUse, boolean dis, TtStat ttStat, 
+			Ellip ellip) {
 		this.phGroup = phGroup;
 		this.auxGroup = auxGroup;
 		this.isRegional = isRegional;
 		this.isDepth = isDepth;
 		this.canUse = canUse;
 		this.dis = dis;
-		this.hasBounce = hasBounce;
 		this.ttStat = ttStat;
 		this.ellip = ellip;
 	}

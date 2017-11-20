@@ -36,7 +36,7 @@ public class Station {
 		this.longitude = longitude;
 		this.elevation = elevation;
 		// Set up the sines and cosines.
-		coLat = LocUtil.geoLat(latitude);
+		coLat = TauUtil.geoCen(latitude);
 		sinLat = Math.sin(Math.toRadians(coLat));
 		cosLat = Math.cos(Math.toRadians(coLat));
 		sinLon = Math.sin(Math.toRadians(longitude));
