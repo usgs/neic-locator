@@ -36,8 +36,9 @@ public class AuxTtRef {
 	// Ellipticity storage.
 	final TreeMap<String, Ellip> ellips;		// List of ellipticity corrections
 	// Flag storage by phase
-	final TreeMap<String, TtFlags> phFlags;		// Phase group information by phase
-	boolean hasBounce;			// True if the phase bounces from the free surface
+	final TreeMap<String, TtFlags> phFlags;	// Phase group information by phase
+	// Topography.
+	final Topography topoMap;									// Topography for bounce points
 	TtStat ttStat;					// Phase statistics
 	Ellip ellip;						// Ellipticity correction
 	// Set up the reader.
@@ -64,8 +65,6 @@ public class AuxTtRef {
 	public AuxTtRef(boolean printGrp, boolean printFlg, boolean printRaw, boolean printFit) 
 			throws IOException {
 		BufferedInputStream inGroup, inStats, inEllip;
-		TtStat ttStat;
-		Ellip ellip;
 		EllipDeps eDepth;
 		
 		// Open and read the phase groups file.
@@ -134,6 +133,9 @@ public class AuxTtRef {
 		// ellipticity correction by phase.
 		phFlags = new TreeMap<String, TtFlags>();
 		makePhFlags(printFlg);
+		
+		// Set up the topography data.
+		topoMap = new Topography();
 	}
 	
 	/**
@@ -498,7 +500,7 @@ public class AuxTtRef {
 				unTangle(phCode, phGroup);
 				phFlags.put(phCode, new TtFlags(phGroup, compGroup(phGroup), 
 						isRegional(phCode), isDepthPh(phCode), canUse(phCode), 
-						isDisPh(phCode), hasBounce, ttStat, ellip));
+						isDisPh(phCode), ttStat, ellip));
 			}
 		}
 		// Search the auxiliary phase groups for phases.
@@ -510,7 +512,7 @@ public class AuxTtRef {
 					unTangle(phCode, phGroup);
 					phFlags.put(phCode, new TtFlags(phGroup, compGroup(phGroup), 
 							isRegional(phCode), isDepthPh(phCode), canUse(phCode), 
-							isDisPh(phCode), hasBounce, ttStat, ellip));
+							isDisPh(phCode), ttStat, ellip));
 				}
 			}
 		}
@@ -520,11 +522,11 @@ public class AuxTtRef {
 			System.out.println("\n     Phase Flags:");
 			for(@SuppressWarnings("rawtypes") Map.Entry entry : map.entrySet()) {
 				flags = (TtFlags)entry.getValue();
-				System.out.format("%8s: %8s %8s  flags = %5b %5b %5b %5b %5b", 
+				System.out.format("%8s: %8s %8s  flags = %5b %5b %5b %5b", 
 						entry.getKey(), flags.phGroup, flags.auxGroup, flags.canUse, 
-						flags.isRegional, flags.isDepth, flags.dis, flags.hasBounce);
-				if(flags.ttStat == null) System.out.print(" stats = null    ");
-				else System.out.format(" stats = %-8s", flags.ttStat.phCode);
+						flags.isRegional, flags.isDepth, flags.dis);
+				if(flags.ttStat == null) System.out.print("   stats = null    ");
+				else System.out.format("   stats = %-8s", flags.ttStat.phCode);
 				if(flags.ellip == null) System.out.println(" ellip = null");
 				else System.out.format(" ellip = %s\n", flags.ellip.phCode);
 			}
@@ -532,31 +534,12 @@ public class AuxTtRef {
 	}
 	
 	/**
-	 * Do some fiddling to determine if the phase bounces from the 
-	 * free surface and to add the statistics and ellipticity 
-	 * correction.
+	 * Do some fiddling to add the statistics and ellipticity correction.
 	 * 
 	 * @param phCode Phase code
 	 * @param phGroup Group code
 	 */
 	private void unTangle(String phCode, String phGroup) {		
-		// See if the phase bounces at the free surface.
-		hasBounce = false;
-		if(phCode.charAt(0) == 'p' || phCode.charAt(0) == 's') {
-			hasBounce = true;
-		} else if(phCode.equals("pwP")) {
-			hasBounce = true;
-		} else if(phGroup.equals("P'P'") || phGroup.equals("S'S'")) {
-			hasBounce = true;
-		} else {
-			for(int j=0; j<phGroup.length()-1; j++) {
-				if((phGroup.charAt(j) == 'P' || phGroup.charAt(j) == 'S') && 
-						(phGroup.charAt(j+1) == 'P' || phGroup.charAt(j+1) == 'S')) {
-					hasBounce = true;
-					break;
-				}
-			}
-		}
 		// Get the travel-time statistics.
 		ttStat = findStats(phCode);
 		// The ellipticity is a little messier.

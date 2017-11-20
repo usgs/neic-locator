@@ -727,69 +727,6 @@ public class BrnDataVol {
 	}
 	
 	/**
-	 * Add the phase statistics and phase flags.
-	 * 
-	 * @param phCode Phase code
-	 * @param xs Source-receiver distance in radians
-	 * @param delCorr Surface focus correction in degrees
-	 * @param tTime Travel-time object to update
-	 */
-	protected void addAux(String phCode, double xs, double delCorr, 
-			TTimeData tTime) {		
-		double del, spd, obs;
-		
-		flags = ref.auxtt.findFlags(phCode);
-		// Add the phase statistics.  First, convert distance to degrees
-		del = Math.toDegrees(xs);
-		// Apply the surface focus correction.
-		if(phCode.charAt(0) == 'p' || phCode.charAt(0) == 's')
-			// For surface reflections, just subtract the up-going distance.
-			del = Math.max(del-delCorr, 0.01d);
-		// Is there a point to correcting surface waves to surface focus?
-		else if(phCode.charAt(0) != 'L') 
-			// For a down-going ray.
-			del = del+delCorr;
-		
-		// No statistics for phase that wrap around the Earth.
-		if(del >= 360d || flags.ttStat == null) {
-			spd = TauUtil.DEFSPREAD;
-			obs = TauUtil.DEFOBSERV;
-		} else {
-			// Wrap distances greater than 180 degrees.
-			if(del > 180d) del = 360d-del;
-			// Do the interpolation.
-/*		if(phCode.contains("bc")) {
-				// We need separate statistics for the bc branches.
-				spd = Math.min(ref.auxtt.getSpread(ref.bcStat,del), TauUtil.DEFSPREAD);
-				obs = Math.max(ref.auxtt.getObserv(ref.bcStat,del), TauUtil.DEFOBSERV);
-			} else if(phCode.contains("dif")) {
-				// And for the diffracted branches.
-				spd = Math.min(ref.auxtt.getSpread(ref.diffStat,del), TauUtil.DEFSPREAD);
-				obs = Math.max(ref.auxtt.getObserv(ref.diffStat,del), TauUtil.DEFOBSERV);
-			} else if(tTime.corrTt) {
-				// And for the add-on phases.
-				tTime.tt += ref.auxtt.getBias(ref.addStat, del);
-				spd = Math.min(ref.auxtt.getSpread(ref.addStat,del), TauUtil.DEFSPREAD);
-				obs = Math.max(ref.auxtt.getObserv(ref.addStat,del), TauUtil.DEFOBSERV);
-			} else {
-				// This is the normal case.
-				spd = Math.min(ref.auxtt.getSpread(ttStat,del), TauUtil.DEFSPREAD);
-				obs = Math.max(ref.auxtt.getObserv(ttStat,del), TauUtil.DEFOBSERV);
-			} */
-			// There is only the normal case now.
-			if(tTime.corrTt) tTime.tt += flags.ttStat.getBias(del);
-			spd = flags.ttStat.getSpread(del);
-			obs = flags.ttStat.getObserv(del);
-		}
-		// Add statistics.
-		tTime.addStats(spd, obs);
-		// Add flags.
-//	flags = ref.auxtt.phFlags.get(phCode);
-		tTime.addFlags(flags.phGroup, flags.auxGroup, flags.isRegional, flags.isDepth, 
-				flags.canUse, flags.dis);
-	}
-	
-	/**
 	 * Compute the surface focus source-receiver distance and travel time.  
 	 * Note that for up-going branches the calculation is from the source 
 	 * depth.
@@ -830,49 +767,6 @@ public class BrnDataVol {
 	 */
 	public double getTimeCorr() {
 		return tCorr;
-	}
-	
-	/**
-	 * Compute the elevation correction for one phase.
-	 * 
-	 * @param elev Elevation in kilometers
-	 * @param dTdD Ray parameter in seconds/degree
-	 * @param rstt True if RSTT is being used for crustal phases
-	 * @return Elevation correction in seconds
-	 */
-	public double elevCorr(double elev, double dTdD, boolean rstt) {
-		// We don't want any corrections if RSTT is used for regional phases.
-		if(rstt && ref.auxtt.phFlags.get(phCode).isRegional) return 0d;
-		
-		// Otherwise, the correction depends on the phase type at the station.
-		if(ref.typeSeg[2] == 'P') {
-			return (elev/TauUtil.DEFVP)*Math.sqrt(Math.abs(1.-
-					Math.min(Math.pow(TauUtil.DEFVP*dTdD/cvt.deg2km,2d),1d)));
-		} else if(ref.typeSeg[2] == 'S') {
-			return (elev/TauUtil.DEFVS)*Math.sqrt(Math.abs(1.-
-					Math.min(Math.pow(TauUtil.DEFVS*dTdD/cvt.deg2km,2d),1d)));
-			// The elevation correction doesn't make sense for surface waves 
-			// like LR and Lg.
-		} else return 0d;
-	}
-	
-	/**
-	 * Compute the ellipticity correction for one phase.
-	 * 
-	 * @param eqLat Hypocenter geographic latitude in degrees
-	 * @param depth Hypocenter depth in kilometers
-	 * @param delta Source-receiver distance in degrees
-	 * @param azimuth Receiver azimuth from the source in degrees
-	 * @return Ellipticity correction in seconds
-	 */
-	public double ellipCorr(double eqLat, double depth, double delta, 
-			double azimuth) {
-		// Do the interpolation.
-		if(flags.ellip == null) {
-			return 0d;
-		} else {
-			return flags.ellip.getEllipCorr(eqLat, depth, delta, azimuth);
-		}
 	}
 	
 	/**

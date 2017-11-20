@@ -10,94 +10,98 @@ import java.util.ArrayList;
  */
 public class TauUtil {
 	/**
-	 * Global tolerance value.
+	 * Global default shallow crustal P velocity in km/s (from ak135).
 	 */
-	static final double DTOL = 1e-9d;
+	public static final double DEFVP = 5.80d;
 	/**
-	 * Global minimum positive value.
+	 * Global default shallow crustal S velocity in km/s (from ak135).
 	 */
-	static final double DMIN = 1e-30d;
+	public static final double DEFVS = 3.46d;
 	/**
-	 * Global maximum positive value.
+	 * Global default water P velocity in km/s.
 	 */
-	static final double DMAX = 1e30d;
-	/**
-	 * Minimum distance in radians for an Sn branch to proxy for Lg.
-	 */
-	static final double SNDELMIN = 0.035d;
+	public static final double DEFVW = 1.50d;
 	/**
 	 * Lg group velocity in kilometers/second.
 	 */
-	static final double LGGRPVEL = 3.4d;
-	/**
-	 * Maximum depth in kilometers for which Lg will be added.
-	 */
-	static final double LGDEPMAX = 35d;
+	public static final double LGGRPVEL = 3.4d;
 	/**
 	 * LR group velocity in kilometers/second.
 	 */
-	static final double LRGRPVEL = 3.5d;
-	/**
-	 * Maximum depth in kilometers for which LR will be added.
-	 */
-	static final double LRDEPMAX = 55d;
-	/**
-	 * Maximum distance in radians for which LR will be added.
-	 */
-	static final double LRDELMAX = 0.698d;
+	public static final double LRGRPVEL = 3.5d;
 	/**
 	 * Global default travel-time statistical bias in seconds.
 	 */
-	static final double DEFBIAS = 0d;
+	public static final double DEFBIAS = 0d;
 	/**
 	 * Global default travel-time statistical spread in seconds.
 	 */
-	static final double DEFSPREAD = 12d;
+	public static final double DEFSPREAD = 12d;
 	/**
 	 * Global default travel-time statistical relative observability.
 	 */
-	static final double DEFOBSERV = 0d;
-	/**
-	 * Global default surface P velocity in km/s (from ak135).
-	 */
-	static final double DEFVP = 05.80d;
-	/**
-	 * Global default surface S velocity in km/s (from ak135).
-	 */
-	static final double DEFVS = 3.46d;
-	
-	/**
-	 * Minimum time in seconds that phases with the same name should 
-	 * be separated.
-	 */
-	static final double DTCHATTER = 0.005d;
-	
-	/**
-	 * Time interval following a phase where it's nearly impossible 
-	 * to pick another phase.
-	 */
-	static final double DTOBSERV = 3d;
-	
-	/**
-	 * Observability threshold to ensure observability doesn't go to zero.
-	 */
-	static final double MINOBSERV = 1d;
-	
-	/**
-	 * Frequency for which DTOBSERV is half a cycle.
-	 */
-	static final double FREQOBSERV = Math.PI/DTOBSERV;
-	
-	/**
-	 * The ellipticity factor needed to compute geocentric co-latitude.
-	 */
-	protected final static double ELLIPFAC = 0.993305521d;
-	
+	public static final double DEFOBSERV = 0d;
 	/**
 	 * Receiver azimuth relative to the source in degrees clockwise from 
 	 * north (available after calling delAz).
 	 */
 	public static double azimuth = Double.NaN;
+	/**
+	 * Longitude in degrees projected from an epicenter by a distance 
+	 * and azimuth.
+	 */
+	public static double projLon = Double.NaN;
+	
+	/**
+	 * Global tolerance value.
+	 */
+	protected static final double DTOL = 1e-9d;
+	/**
+	 * Global minimum positive value.
+	 */
+	protected static final double DMIN = 1e-30d;
+	/**
+	 * Global maximum positive value.
+	 */
+	protected static final double DMAX = 1e30d;
+	/**
+	 * Minimum distance in radians for an Sn branch to proxy for Lg.
+	 */
+	protected static final double SNDELMIN = 0.035d;
+	/**
+	 * Maximum depth in kilometers for which Lg will be added.
+	 */
+	protected static final double LGDEPMAX = 35d;
+	/**
+	 * Maximum depth in kilometers for which LR will be added.
+	 */
+	protected static final double LRDEPMAX = 55d;
+	/**
+	 * Maximum distance in radians for which LR will be added.
+	 */
+	protected static final double LRDELMAX = 0.698d;
+	/**
+	 * Minimum time in seconds that phases with the same name should 
+	 * be separated.
+	 */
+	protected static final double DTCHATTER = 0.005d;
+	/**
+	 * Time interval following a phase where it's nearly impossible 
+	 * to pick another phase.
+	 */
+	protected static final double DTOBSERV = 3d;
+	/**
+	 * Observability threshold to ensure observability doesn't go to zero.
+	 */
+	protected static final double MINOBSERV = 1d;
+	/**
+	 * Frequency for which DTOBSERV is half a cycle.
+	 */
+	protected static final double FREQOBSERV = Math.PI/DTOBSERV;
+	/**
+	 * The ellipticity factor needed to compute geocentric co-latitude.
+	 */
+	protected final static double ELLIPFAC = 0.993305521d;
 	
 	/**
 	 * Create a segment code by stripping a phase code of unnecessary 
@@ -273,38 +277,35 @@ public class TauUtil {
 	}
 	
 	/**
-	 * Bilinear interpolation.  The indices are such that 
-	 * val[ind] < var <= val[ind+1].  The two dimensional grid of 
-	 * values to be interpolated has values val0 associated with 
-	 * it's first index and values val1 associated with it's second 
-	 * index.
+	 * Compute the geocentric co-latitude.
 	 * 
-	 * @param var0 First variable
-	 * @param var1 Second variable
-	 * @param ind0 Lower index of the first value array
-	 * @param ind1 Lower index of the second value array
-	 * @param val0 Value array for the first grid index
-	 * @param val1 Value array for the second grid index
-	 * @param grid Two dimensional array of values to be interpolated
-	 * @return
+	 * @param latitude Geographical latitude in degrees
+	 * @return Geocentric co-latitude in degrees
 	 */
-	public static double biLinear(double var0, double var1, int ind0, 
-			int ind1, GenIndex val0, GenIndex val1, double[][] grid) {
-		// Interpolate the first variable at it's lower index.
-		double lin00 = grid[ind0][ind1]+
-				(grid[ind0+1][ind1]-grid[ind0][ind1])*
-				(var0-val0.getValue(ind0))/
-				(val0.getValue(ind0+1)-val0.getValue(ind0));
-		// Interpolate the first variable at it's upper index.
-		double lin01 = grid[ind0][ind1+1]+
-				(grid[ind0+1][ind1+1]-grid[ind0][ind1+1])*
-				(var0-val0.getValue(ind0))/
-				(val0.getValue(ind0+1)-val0.getValue(ind0));
-		// Interpolate the second variable.
-		return lin00+(lin01-lin00)*(var1-val1.getValue(ind1))/
-				(val1.getValue(ind1+1)-val1.getValue(ind1));
+	public static double geoCen(double latitude) {
+		if(Math.abs(90d-latitude) < TauUtil.DTOL) {
+			return 0d;
+		} else if(Math.abs(90d+latitude) < TauUtil.DTOL) {
+			return 180d;
+		} else {
+			return 90d-Math.toDegrees(Math.atan(ELLIPFAC*
+					Math.sin(Math.toRadians(latitude))/
+					Math.cos(Math.toRadians(latitude))));
+		}
 	}
 	
+	/**
+	 * Compute the geographic latitude.
+	 * 
+	 * @param coLat Geocentric co-latitude in degrees
+	 * @return Geographic latitude in degrees
+	 */
+	public static double geoLat(double coLat) {
+		return Math.toDegrees(Math.atan(Math.cos(Math.toRadians(coLat))/
+				(ELLIPFAC*Math.max(Math.sin(Math.toRadians(coLat)), 
+				TauUtil.DTOL))));
+	}
+
 	/**
 	 * An historically significant subroutine from deep time (1962)!  This 
 	 * routine was written by Bob Engdahl in Fortran (actually in the days 
@@ -313,7 +314,8 @@ public class TauUtil {
 	 * computing sines and cosines (probably still worthwhile) and it 
 	 * computes exactly what's needed--no more, no less.  This (much more 
 	 * horrible) alternate form to the delAz in LocUtil is much closer to 
-	 * Engdahl's original.  It is needed to avoid a build path cycle.
+	 * Engdahl's original.  It is needed to avoid a build path cycle.  Note 
+	 * that the azimuth is returned in static variable azimuth.
 	 * 
 	 * @param eqLat Geographic source latitude in degrees
 	 * @param eqLon Source longitude in degrees
@@ -328,15 +330,7 @@ public class TauUtil {
 		double cosdel, sindel, tm1, tm2;	// Use Bob Engdahl's variable names
 		
 		// Get the hypocenter geocentric co-latitude.
-		if(Math.abs(90d-eqLat) < TauUtil.DTOL) {
-			coLat = 0d;
-		} else if(Math.abs(90d+eqLat) < TauUtil.DTOL) {
-			coLat = 180d;
-		} else {
-			coLat = 90d-Math.toDegrees(Math.atan(ELLIPFAC*
-					Math.sin(Math.toRadians(eqLat))/
-					Math.cos(Math.toRadians(eqLat))));
-		}
+		coLat = geoCen(eqLat);
 		// Hypocenter sines and cosines.
 		eqSinLat = Math.sin(Math.toRadians(coLat));
 		eqCosLat = Math.cos(Math.toRadians(coLat));
@@ -344,15 +338,7 @@ public class TauUtil {
 		eqCosLon = Math.cos(Math.toRadians(eqLon));
 		
 		// Get the station geocentric co-latitude.
-		if(Math.abs(90d-staLat) < TauUtil.DTOL) {
-			coLat = 0d;
-		} else if(Math.abs(90d+staLat) < TauUtil.DTOL) {
-			coLat = 180d;
-		} else {
-			coLat = 90d-Math.toDegrees(Math.atan(ELLIPFAC*
-					Math.sin(Math.toRadians(staLat))/
-					Math.cos(Math.toRadians(staLat))));
-		}
+		coLat = geoCen(staLat);
 		// Station sines and cosines.
 		staSinLat = Math.sin(Math.toRadians(coLat));
 		staCosLat = Math.cos(Math.toRadians(coLat));
@@ -387,5 +373,133 @@ public class TauUtil {
 		} else {
 			return Math.toDegrees(Math.atan2(sindel,cosdel));
 		}
+	}
+	
+	/**
+	 * Project an epicenter using distance and azimuth.  Used in finding 
+	 * the bounce point for a surface reflected seismic phase.  Note that 
+	 * the projected longitude is returned in static variable projLon.
+	 * 
+	 * @param latitude Geographic epicenter latitude in degrees
+	 * @param longitude Epicenter longitude in degrees
+	 * @param delta Distance to project in degrees
+	 * @param azimuth Azimuth to project in degrees
+	 * @return Projected geographic latitude in degrees
+	 */
+	public static double projLat(double latitude, double longitude, 
+			double delta, double azimuth) {
+		double projLat, coLat, sinLat, cosLat, sinDel, cosDel, sinAzim, 
+			cosAzim, cTheta, sinNewLat;
+		
+		coLat = TauUtil.geoCen(latitude);
+		if(longitude < 0d) longitude += 360d;
+		
+		sinLat = Math.sin(Math.toRadians(coLat));
+		cosLat = Math.cos(Math.toRadians(coLat));
+		sinDel = Math.sin(Math.toRadians(delta));
+		cosDel = Math.cos(Math.toRadians(delta));
+		sinAzim = Math.sin(Math.toRadians(azimuth));
+		cosAzim = Math.cos(Math.toRadians(azimuth));
+		
+		cTheta = sinDel*sinLat*cosAzim+cosLat*cosDel;
+		projLat = Math.acos(cTheta);
+		sinNewLat = Math.sin(projLat);
+		if(coLat == 0d) {
+			projLon = azimuth;
+		} else if(projLat == 0d) {
+			projLon = 0d;
+		} else {
+			projLon = longitude+Math.toDegrees(Math.atan2(sinDel*
+					sinAzim/sinNewLat, (cosDel-cosLat*cTheta)/
+					(sinLat*sinNewLat)));
+		}
+		if(projLon > 360d) projLon -= 360d;
+		if(projLon > 180d) projLon -= 360d;
+		return geoLat(Math.toDegrees(projLat));
+	}
+	
+	/**
+	 * Elevation correction.
+	 * 
+	 * @param elev Elevation in kilometers
+	 * @param vel Velocity in kilometers/second
+	 * @param dTdD Ray parameter in seconds/kilometers
+	 * @return Elevation correction in seconds
+	 */
+	public static double topoTT(double elev, double vel, double dTdD) {
+		return (elev/vel)*Math.sqrt(Math.abs(1.-
+				Math.min(Math.pow(vel*dTdD,2d),1d)));
+	}
+	
+	/**
+	 * Bilinear interpolation.  The indices are such that 
+	 * val[ind] < var <= val[ind+1].  The two dimensional grid of 
+	 * values to be interpolated has values val0 associated with 
+	 * it's first index and values val1 associated with it's second 
+	 * index.
+	 * 
+	 * @param var0 First variable
+	 * @param var1 Second variable
+	 * @param ind0 Lower index of the first value array
+	 * @param ind1 Lower index of the second value array
+	 * @param val0 Value array for the first grid index
+	 * @param val1 Value array for the second grid index
+	 * @param grid Two dimensional array of values to be interpolated
+	 * @return
+	 */
+	public static double biLinear(double var0, double var1, 
+			GenIndex val0, GenIndex val1, double[][] grid) {
+		// Use the virtual arrays to get the interpolation indices.
+		int ind0 = val0.getIndex(var0);
+		int ind1 = val1.getIndex(var1);
+		// Interpolate the first variable at it's lower index.
+		double lin00 = grid[ind0][ind1]+
+				(grid[ind0+1][ind1]-grid[ind0][ind1])*
+				(var0-val0.getValue(ind0))/
+				(val0.getValue(ind0+1)-val0.getValue(ind0));
+		// Interpolate the first variable at it's upper index.
+		double lin01 = grid[ind0][ind1+1]+
+				(grid[ind0+1][ind1+1]-grid[ind0][ind1+1])*
+				(var0-val0.getValue(ind0))/
+				(val0.getValue(ind0+1)-val0.getValue(ind0));
+		// Interpolate the second variable.
+		return lin00+(lin01-lin00)*(var1-val1.getValue(ind1))/
+				(val1.getValue(ind1+1)-val1.getValue(ind1));
+	}
+	
+	/**
+	 * Bilinear interpolation.  The indices are such that 
+	 * val[ind] < var <= val[ind+1].  The two dimensional grid of 
+	 * values to be interpolated has values val0 associated with 
+	 * it's first index and values val1 associated with it's second 
+	 * index.
+	 * 
+	 * @param var0 First variable
+	 * @param var1 Second variable
+	 * @param ind0 Lower index of the first value array
+	 * @param ind1 Lower index of the second value array
+	 * @param val0 Value array for the first grid index
+	 * @param val1 Value array for the second grid index
+	 * @param grid Two dimensional array of values to be interpolated
+	 * @return
+	 */
+	public static double biLinear(double var0, double var1, 
+			GenIndex val0, GenIndex val1, short[][] grid) {
+		// Use the virtual arrays to get the interpolation indices.
+		int ind0 = val0.getIndex(var0);
+		int ind1 = val1.getIndex(var1);
+		// Interpolate the first variable at it's lower index.
+		double lin00 = (double)grid[ind0][ind1]+
+				((double)grid[ind0+1][ind1]-(double)grid[ind0][ind1])*
+				(var0-val0.getValue(ind0))/
+				(val0.getValue(ind0+1)-val0.getValue(ind0));
+		// Interpolate the first variable at it's upper index.
+		double lin01 = (double)grid[ind0][ind1+1]+
+				((double)grid[ind0+1][ind1+1]-(double)grid[ind0][ind1+1])*
+				(var0-val0.getValue(ind0))/
+				(val0.getValue(ind0+1)-val0.getValue(ind0));
+		// Interpolate the second variable.
+		return lin00+(lin01-lin00)*(var1-val1.getValue(ind1))/
+				(val1.getValue(ind1+1)-val1.getValue(ind1));
 	}
 }

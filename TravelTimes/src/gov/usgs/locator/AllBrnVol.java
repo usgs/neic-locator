@@ -24,6 +24,7 @@ public class AllBrnVol {
 	boolean complex;									// True if this is a "complex" request
 	AllBrnRef ref;
 	ModConvert cvt;
+	TtFlags flags;
 	int lastBrn = -1, upBrnP = -1, upBrnS = -1;
 	
 	/**
@@ -152,8 +153,8 @@ public class AllBrnVol {
 		
 		staLat = latitude;
 		staLon = longitude;
-		if(delta < 0d || delta == Double.NaN || azimuth < 0 || 
-				azimuth == Double.NaN) {
+		if(delta < 0d || Double.isNaN(delta) || azimuth < 0 || 
+				Double.isNaN(azimuth)) {
 			staDelta = TauUtil.delAz(eqLat, eqLon, staLat, staLon);
 			staAzim = TauUtil.azimuth;
 		} else {
@@ -199,9 +200,11 @@ public class AllBrnVol {
 	 */
 	private TTime doTT(double elev, boolean useful, boolean tectonic, 
 			boolean noBackBrn, boolean rstt) {
-		int lastTT;
-		double delCorr;
+		int lastTT, delTT = -1;
+		double delCorUp, delCorDn, retDelta = Double.NaN, 
+				retAzim = Double.NaN, reflCorr = Double.NaN;
 		double[] xs;
+		String tmpCode;
 		TTime ttList;
 		TTimeData tTime;
 		
@@ -225,6 +228,12 @@ public class AllBrnVol {
 		
 		// Set up the correction to surface focus.
 		findUpBrn();
+		// Set up distance and azimuth for retrograde phases.
+		if(complex) {
+			retDelta = 360d-staDelta;
+			retAzim = 180d+staAzim;
+			if(retAzim > 360d) retAzim -= 360d;
+		}
 		
 		// Go get the arrivals.  This is a little convoluted because 
 		// of the correction to surface focus needed for the statistics.
@@ -236,38 +245,73 @@ public class AllBrnVol {
 				if(ttList.size() > lastTT) {
 					for(int k=lastTT; k<ttList.size(); k++) {
 						tTime = ttList.get(k);
+						System.out.println(tTime);
+						flags = ref.auxtt.findFlags(tTime.phCode);
 						if(tTime.phCode.charAt(0) == 'L') {
 							// Travel-time corrections and correction to surface focus 
 							// don't make sense for surface waves.
-							delCorr = 0d;
+							delCorUp = 0d;
 						} else {
-							// This is the normal case.  Do various travel-time corrections.
-							tTime.tt = tTime.tt+branches[j].elevCorr(elev, tTime.dTdD, 
-									rstt);
-				//		double elevCorr = branches[j].elevCorr(elev, tTime.dTdD, 
-				//			rstt);
-							// If this was a complex request, do the ellipticity correction.
-							if(complex) {
-								tTime.tt = tTime.tt+branches[j].ellipCorr(eqLat, dSource, 
-									staDelta, staAzim);
-				//			double ellipCorr = branches[j].ellipCorr(eqLat, dSource, 
-				//				staDelta, staAzim);
-				//			System.out.format("%-8s elev = %6.4f ellip = %6.4f\n",tTime.phCode, 
-				//					elevCorr, ellipCorr);
-				//		} else {
-				//			System.out.println("phCode = "+tTime.phCode+" elev = "+
-				//					(float)elevCorr);
-							}
-							// Add auxiliary information.
+							// Get the correction to surface focus.
 							try {
-								delCorr = upRay(tTime.phCode, tTime.dTdD);
+								delCorUp = upRay(tTime.phCode, tTime.dTdD);
 							} catch (Exception e) {
 								// This should never happen.
 								e.printStackTrace();
-								delCorr = 0d;
+								delCorUp = 0d;
+							}
+							// This is the normal case.  Do various travel-time corrections.
+							tTime.tt += elevCorr(tTime.phCode, elev, tTime.dTdD, rstt);
+							// If this was a complex request, do the ellipticity and bounce 
+							// point corrections.
+							if(complex) {
+								// The ellipticity correction is straightforward.
+								tTime.tt += ellipCorr(eqLat, dSource, staDelta, staAzim);
+								
+								// The bounce point correction is not.  See if there is a bounce.
+								if(branches[j].ref.phRefl != null) {
+									// If so, we may need to do some preliminary work.
+									if(branches[j].ref.phRefl.equals("SP")) {
+										tmpCode = "S";
+									} else if(branches[j].ref.phRefl.equals("PS")) {
+										tmpCode = tTime.phCode.substring(0, 
+												tTime.phCode.indexOf('S')-1);
+									} else {
+										tmpCode = null;
+									}
+									// If we had an SP or PS, get the distance of the first part.
+									if(tmpCode != null) {
+										try {
+											delCorDn = oneRay(tmpCode, tTime.dTdD);
+										} catch (Exception e) {
+											// This should never happen.
+											e.printStackTrace();
+											delCorDn = 0.5d*staDelta;
+										}
+									} else {
+										delCorDn = Double.NaN;
+									}
+									// Finally, we can do the bounce point correction.
+									if(tTime.dTdD > 0d) {
+										reflCorr = reflCorr(tTime.phCode, branches[j].ref, eqLat, 
+												eqLon, staDelta, staAzim, tTime.dTdD, delCorUp, delCorDn);
+									} else {
+										reflCorr = reflCorr(tTime.phCode, branches[j].ref, eqLat, 
+												eqLon, retDelta, retAzim, tTime.dTdD, delCorUp, delCorDn);
+									}
+									if(!Double.isNaN(reflCorr)) tTime.tt += reflCorr;
+									else if(tTime.phCode.equals("pwP")) delTT = k;
+									else System.out.println("Bad travel-time correction for "+
+											tTime.phCode);
+								} 
 							}
 						}
-						branches[j].addAux(tTime.phCode, xs[i], delCorr, tTime);
+						// Add auxiliary information.
+						addAux(tTime.phCode, xs[i], delCorUp, tTime);
+					}
+					if(delTT >= 0) {
+						ttList.remove(delTT);
+						delTT = -1;
 					}
 					lastTT = ttList.size();
 				}
@@ -277,6 +321,184 @@ public class AllBrnVol {
 		// Sort the arrivals into increasing time order, filter, etc.
 		ttList.finish(tectonic, noBackBrn);
 		return ttList;
+	}
+	
+	/**
+	 * Compute the elevation correction for one phase.
+	 * 
+	 * @param phCode Phase code
+	 * @param elev Elevation in kilometers
+	 * @param dTdD Ray parameter in seconds/degree
+	 * @param rstt True if RSTT is being used for crustal phases
+	 * @return Elevation correction in seconds
+	 */
+	public double elevCorr(String phCode, double elev, double dTdD, 
+			boolean rstt) {
+		// We don't want any corrections if RSTT is used for regional phases.
+		if(rstt && ref.auxtt.phFlags.get(phCode).isRegional) return 0d;
+		
+		// Otherwise, the correction depends on the phase type at the station.
+		for(int j=phCode.length()-1; j>=0; j--) {
+			if(phCode.charAt(j) == 'P') {
+				return TauUtil.topoTT(elev, TauUtil.DEFVP, dTdD/cvt.deg2km);
+			} else if(phCode.charAt(j) == 'S') {
+				return TauUtil.topoTT(elev, TauUtil.DEFVS, dTdD/cvt.deg2km);
+			}
+		}
+		// The elevation correction doesn't make sense for surface waves 
+		// like LR and Lg.
+		return 0d;
+	}
+	
+	/**
+	 * Compute the ellipticity correction for one phase.
+	 * 
+	 * @param eqLat Hypocenter geographic latitude in degrees
+	 * @param depth Hypocenter depth in kilometers
+	 * @param delta Source-receiver distance in degrees
+	 * @param azimuth Receiver azimuth from the source in degrees
+	 * @return Ellipticity correction in seconds
+	 */
+	public double ellipCorr(double eqLat, double depth, double delta, 
+			double azimuth) {
+		// Do the interpolation.
+		if(flags.ellip == null) {
+			return 0d;
+		} else {
+			return flags.ellip.getEllipCorr(eqLat, depth, delta, azimuth);
+		}
+	}
+	
+	/**
+	 * Compute the bounce point correction due to the reflection 
+	 * occurring at some elevation other than zero.  This will provide a 
+	 * positive correction for bounces under mountains and a negative 
+	 * correction for bounces at the bottom of the ocean.  Note that 
+	 * pwP is a very special case as it will only exist if pP bounces 
+	 * at the bottom of the ocean.
+	 * 
+	 * @param phCode Phase code
+	 * @param brnRef Branch data reference object
+	 * @param eqLat Geographic source latitude in degrees
+	 * @param eqLon Source longitude in degrees
+	 * @param delta Source-receiver distance in degrees
+	 * @param azimuth Receiver azimuth from the source in degrees
+	 * @param dTdD Ray parameter in seconds per degree
+	 * @param delCorUp Source-bounce point distance in degrees for 
+	 * an up-going ray
+	 * @param delCorDn Source-bounce point distance in degrees for 
+	 * a down-going ray
+	 * @return Bounce point correction in seconds
+	 */
+	public double reflCorr(String phCode, BrnDataRef brnRef, double eqLat, 
+			double eqLon, double delta, double azimuth, double dTdD, 
+			double delCorUp, double delCorDn) {
+		double elev = 0d, refDelta, refLat, refLon;
+		
+		// Get the distance to the bounce point by type.
+		switch(brnRef.phRefl) {
+			// For pP etc., we just need to tract the initial up-going ray.
+			case "pP": case "sP": case "pS": case "sS":
+				refDelta = delCorUp;
+				break;
+			// For PP etc., we need to tract the initial down-going ray. 
+			case "PP": case "SS":
+				refDelta = 0.5d*(delta-delCorUp);
+				break;
+			// For converted phases, we need to track the initial down-going 
+			// ray
+			case "SP": case "PS":
+				refDelta = delCorDn;
+				break;
+			// Hopefully, this can never happen.
+			default:
+				System.out.println("Unknown bounce type!");
+				return Double.NaN;
+		}
+		
+		// Project the initial part of the ray to the bounce point.
+		refLat = TauUtil.projLat(eqLat, eqLon, refDelta, azimuth);
+		refLon = TauUtil.projLon;
+		// Get the elevation at that point.
+		elev = ref.auxtt.topoMap.getElev(refLat, refLon);
+		
+		// Do the correction.
+		switch(brnRef.convRefl) {
+			// Handle all reflecting P phases.
+			case "PP":
+				// pwP is a very special case.
+				if(phCode.equals("pwP")) {
+					if(elev <= -1.5d) {
+						/* Like pP, we need a negative correction for bouncing at the 
+						 * bottom of the ocean , but also a positive correction for 
+						 * the two way transit of the water layer.  The 4.67 seconds 
+						 * at the end compensates for the default delay of pwP behind 
+						 * pP. */
+						return 2d*(TauUtil.topoTT(elev, TauUtil.DEFVP, dTdD/cvt.deg2km)-
+								TauUtil.topoTT(elev, TauUtil.DEFVW, dTdD/cvt.deg2km))-4.67d;
+					} else {
+						// If we're not under water, there is no pwP.
+						return Double.NaN;
+					}
+				// This is the normal case.
+				} else {
+					return 2d*TauUtil.topoTT(elev, TauUtil.DEFVP, dTdD/cvt.deg2km);
+				}
+			// Handle all converted phases.
+			case "PS": case "SP":
+				return TauUtil.topoTT(elev, TauUtil.DEFVP, dTdD/cvt.deg2km)+
+					TauUtil.topoTT(elev, TauUtil.DEFVS, dTdD/cvt.deg2km);
+			// Handle all reflecting S phases.
+			case "SS":
+				return 2d*TauUtil.topoTT(elev, TauUtil.DEFVS, dTdD/cvt.deg2km);
+			// Again, this should never happen.
+			default:
+				System.out.println("Impossible phase conversion: "+brnRef.convRefl);
+				return Double.NaN;
+		}
+	}
+	
+	/**
+	 * Add the phase statistics and phase flags.
+	 * 
+	 * @param phCode Phase code
+	 * @param xs Source-receiver distance in radians
+	 * @param delCorUp Surface focus correction in degrees
+	 * @param tTime Travel-time object to update
+	 */
+	protected void addAux(String phCode, double xs, double delCorUp, 
+			TTimeData tTime) {		
+		double del, spd, obs;
+		
+		// Add the phase statistics.  First, convert distance to degrees
+		del = Math.toDegrees(xs);
+		// Apply the surface focus correction.
+		if(phCode.charAt(0) == 'p' || phCode.charAt(0) == 's')
+			// For surface reflections, just subtract the up-going distance.
+			del = Math.max(del-delCorUp, 0.01d);
+		// Is there a point to correcting surface waves to surface focus?
+		else if(phCode.charAt(0) != 'L') 
+			// For a down-going ray.
+			del = del+delCorUp;
+		
+		// No statistics for phase that wrap around the Earth.
+		if(del >= 360d || flags.ttStat == null) {
+			spd = TauUtil.DEFSPREAD;
+			obs = TauUtil.DEFOBSERV;
+		} else {
+			// Wrap distances greater than 180 degrees.
+			if(del > 180d) del = 360d-del;
+			// Do the interpolation.
+			if(tTime.corrTt) tTime.tt += flags.ttStat.getBias(del);
+			spd = flags.ttStat.getSpread(del);
+			obs = flags.ttStat.getObserv(del);
+		}
+		// Add statistics.
+		tTime.addStats(spd, obs);
+		// Add flags.
+//	flags = ref.auxtt.phFlags.get(phCode);
+		tTime.addFlags(flags.phGroup, flags.auxGroup, flags.isRegional, flags.isDepth, 
+				flags.canUse, flags.dis);
 	}
 	
 	/**

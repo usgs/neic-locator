@@ -15,6 +15,8 @@ public class BrnDataRef {
 	final String phSeg;						// Generic phase code for all branches in this segment
 	final String phDiff;					// Phase code of an associated diffracted phase
 	final String phAddOn;					// Phase code of an associated add-on phase
+	final String phRefl;					// Type of bounce point
+	final String convRefl;				// Reflection or conversion on reflection
 	final boolean isUpGoing;			// True if this is an up-going branch
 	final boolean hasDiff;				// True if this branch is also diffracted
 	final boolean hasAddOn;				// True if this branch has an associated add-on phase
@@ -115,6 +117,30 @@ public class BrnDataRef {
 		} else {
 			phAddOn = "";
 		}
+		
+		// Set up the type of surface reflection, if any.
+		if(signSeg > 0 && !isUpGoing) {
+			if(typeSeg[0] == 'P') {
+				if(typeSeg[1] == 'P') phRefl = "pP";
+				else phRefl = "pS";
+			} else {
+				if(typeSeg[1] == 'P') phRefl = "sP";
+				else phRefl = "sS";
+			}
+			convRefl = phRefl.toUpperCase();
+		} else if(countSeg > 1) {
+			if(typeSeg[1] == 'P') {
+				if(typeSeg[2] == 'P') phRefl = "PP";
+				else phRefl = "PS";
+			} else {
+				if(typeSeg[2] == 'P') phRefl = "SP";
+				else phRefl = "SS";
+			}
+			convRefl = phRefl.toUpperCase();
+		} else {
+			phRefl = null;
+			convRefl = null;
+		}
 
 		// Set up the branch specification.
 		int start = in.indexBrn[indexBrn][0]-1;
@@ -166,34 +192,15 @@ public class BrnDataRef {
 			if(hasAddOn) System.out.format("add-on = %s  ", phAddOn);
 			System.out.format("isUseless = %b\n", isUseless);
 			System.out.format("Segment: code = %s  type = %c, %c, %c  "+
-					"sign = %2d  count = %d\n", phSeg, typeSeg[0], typeSeg[1], typeSeg[2], 
+					"sign = %2d  count = %d", phSeg, typeSeg[0], typeSeg[1], typeSeg[2], 
 					signSeg, countSeg);
+			if(phRefl == null) System.out.println();
+			else System.out.println("  refl = "+phRefl+" "+convRefl);
 		}
 		System.out.format("Branch: pRange = %8.6f - %8.6f  xRange = %6.2f - %6.2f\n", 
 				pRange[0], pRange[1], Math.toDegrees(xRange[0]), Math.toDegrees(xRange[1]));
 		if(hasDiff) System.out.format("        xDiff = %6.2f\n", Math.toDegrees(xDiff));
-//	System.out.format("Flags: group = %s %s  flags = %b %b %b %b\n", phGroup, 
-//			auxGroup, isRegional, isDepth, canUse, dis);
-//	if(hasAddOn) System.out.format("Add-on flags: group = %s %s  flags = %b %b\n", 
-//			phGroupAdd, auxGroupAdd, addBounce, canUseAdd);
-/*	System.out.print("Stats:");
-		if(ttStat != null) System.out.print(" "+ttStat.phCode);
-		else System.out.print(" null");
-		if(bcStat != null) System.out.print(" "+bcStat.phCode);
-		else System.out.print(" null");
-		if(diffStat != null) System.out.print(" "+diffStat.phCode);
-		else System.out.print(" null");
-		if(addStat != null) System.out.println(" "+addStat.phCode);
-		else System.out.println(" null");
-		System.out.format("Ellip:");
-		if(ellip != null) System.out.print(" "+ellip.phCode);
-		else System.out.print(" null");
-		if(bcEllip != null) System.out.print(" "+bcEllip.phCode);
-		else System.out.print(" null");
-		if(diffEllip != null) System.out.print(" "+diffEllip.phCode);
-		else System.out.print(" null");
-		if(addEllip != null) System.out.println(" "+addEllip.phCode);
-		else System.out.println(" null"); */
+		
 		if(full) {
 			System.out.println("\n         p        tau                 "+
 					"basis function coefficients");

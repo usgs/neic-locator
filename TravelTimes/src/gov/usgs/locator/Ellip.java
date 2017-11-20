@@ -54,16 +54,13 @@ public class Ellip {
 		double sc0 = 0.25d*(1d+3d*Math.cos(2d*coLat));
 		double sc1 = Math.sqrt(3d)*Math.sin(2d*coLat)/2d;
 		double sc2 = Math.sqrt(3d)*Math.pow(Math.sin(coLat),2d)/2d;
-		// Use the virtual arrays to get the interpolation indices.
-		int indDel = delValue.getIndex(delta);
-		int indDep = depValue.getIndex(depth);
 		// Interpolate the tau functions.
-		double tau0 = TauUtil.biLinear(delta, depth, indDel, indDep, 
-				delValue, depValue, t0);
-		double tau1 = TauUtil.biLinear(delta, depth, indDel, indDep, 
-				delValue, depValue, t1);
-		double tau2 = TauUtil.biLinear(delta, depth, indDel, indDep, 
-				delValue, depValue, t2);
+		double tau0 = TauUtil.biLinear(delta, depth, delValue, 
+				depValue, t0);
+		double tau1 = TauUtil.biLinear(delta, depth, delValue, 
+				depValue, t1);
+		double tau2 = TauUtil.biLinear(delta, depth, delValue, 
+				depValue, t2);
 		// Compute the correction.
 		double ellipCorr = sc0*tau0+sc1*Math.cos(Math.toRadians(azim))*tau1+
 				sc2*Math.cos(2d*Math.toRadians(azim))*tau2;
