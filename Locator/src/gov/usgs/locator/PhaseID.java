@@ -48,6 +48,8 @@ public class PhaseID {
 				for(int j=0; j<event.allPicks.size(); j++) {
 					pick = event.allPicks.get(j);
 					sta = pick.station;
+					System.out.println("\n"+sta.staID.staCode+": "+(float)pick.delta+
+							" "+(float)pick.azimuth);
 					// Get the travel times.
 					ttList = allBrn.getTT(sta.latitude, sta.longitude, sta.elevation, 
 							pick.delta, pick.azimuth, true, false, false, false);

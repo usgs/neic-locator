@@ -32,7 +32,7 @@ public class TtMain {
 		TTime ttList;
 		
 		// Read in data common to all models.
-		auxtt = new AuxTtRef(false, true, false, false);
+		auxtt = new AuxTtRef(false, false, false, false);
 
 		// Initialize model storage if necessary.
 		if(modelData == null) {

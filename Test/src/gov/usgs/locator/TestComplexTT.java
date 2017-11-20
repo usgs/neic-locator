@@ -13,6 +13,7 @@ import java.io.IOException;
 public class TestComplexTT {
 	public static void main(String[] args) throws Exception {
 		String inFile = "../../../Documents/Work/Events/RayLocInput1000655616_3.txt";
+//	String inFile = "../../../Documents/Work/Events/RayLocInput1000672389_13.txt";
 		AuxTtRef auxtt;
 		ReadTau readTau;
 		AllBrnRef allRef;
@@ -21,7 +22,7 @@ public class TestComplexTT {
 		Event event;
 		
 		// Read in data common to all models.
-		auxtt = new AuxTtRef(false, true, false, false);
+		auxtt = new AuxTtRef(false, false, false, false);
 	
 		try {
 			// Read in ak135.
@@ -30,9 +31,10 @@ public class TestComplexTT {
 			readTau.readTable();
 			// Reorganize the reference data.
 			allRef = new AllBrnRef(readTau, auxtt);
+//		allRef.dumpBrn(false);
 			// Set up the (depth dependent) volatile part.
 			allBrn = new AllBrnVol(allRef);
-			allBrn.dumpTable(true);
+//		allBrn.dumpTable(true);
 			
 			// Set up the event.
 			event = new Event();
