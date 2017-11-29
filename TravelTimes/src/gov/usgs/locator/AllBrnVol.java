@@ -245,7 +245,6 @@ public class AllBrnVol {
 				if(ttList.size() > lastTT) {
 					for(int k=lastTT; k<ttList.size(); k++) {
 						tTime = ttList.get(k);
-						System.out.println(tTime);
 						flags = ref.auxtt.findFlags(tTime.phCode);
 						if(tTime.phCode.charAt(0) == 'L') {
 							// Travel-time corrections and correction to surface focus 
@@ -334,20 +333,22 @@ public class AllBrnVol {
 	 */
 	public double elevCorr(String phCode, double elev, double dTdD, 
 			boolean rstt) {
+		char type;
+		
 		// We don't want any corrections if RSTT is used for regional phases.
 		if(rstt && ref.auxtt.phFlags.get(phCode).isRegional) return 0d;
 		
 		// Otherwise, the correction depends on the phase type at the station.
-		for(int j=phCode.length()-1; j>=0; j--) {
-			if(phCode.charAt(j) == 'P') {
-				return TauUtil.topoTT(elev, TauUtil.DEFVP, dTdD/cvt.deg2km);
-			} else if(phCode.charAt(j) == 'S') {
-				return TauUtil.topoTT(elev, TauUtil.DEFVS, dTdD/cvt.deg2km);
-			}
+		type = TauUtil.arrivalType(phCode);
+		if(type == 'P') {
+			return TauUtil.topoCorr(elev, TauUtil.DEFVP, dTdD/cvt.deg2km);
+		} else if(type == 'S') {
+			return TauUtil.topoCorr(elev, TauUtil.DEFVS, dTdD/cvt.deg2km);
+		} else {
+			// The elevation correction doesn't make sense for surface waves 
+			// like LR and Lg.
+			return 0d;
 		}
-		// The elevation correction doesn't make sense for surface waves 
-		// like LR and Lg.
-		return 0d;
 	}
 	
 	/**
@@ -434,23 +435,23 @@ public class AllBrnVol {
 						 * the two way transit of the water layer.  The 4.67 seconds 
 						 * at the end compensates for the default delay of pwP behind 
 						 * pP. */
-						return 2d*(TauUtil.topoTT(elev, TauUtil.DEFVP, dTdD/cvt.deg2km)-
-								TauUtil.topoTT(elev, TauUtil.DEFVW, dTdD/cvt.deg2km))-4.67d;
+						return 2d*(TauUtil.topoCorr(elev, TauUtil.DEFVP, dTdD/cvt.deg2km)-
+								TauUtil.topoCorr(elev, TauUtil.DEFVW, dTdD/cvt.deg2km))-4.67d;
 					} else {
 						// If we're not under water, there is no pwP.
 						return Double.NaN;
 					}
 				// This is the normal case.
 				} else {
-					return 2d*TauUtil.topoTT(elev, TauUtil.DEFVP, dTdD/cvt.deg2km);
+					return 2d*TauUtil.topoCorr(elev, TauUtil.DEFVP, dTdD/cvt.deg2km);
 				}
 			// Handle all converted phases.
 			case "PS": case "SP":
-				return TauUtil.topoTT(elev, TauUtil.DEFVP, dTdD/cvt.deg2km)+
-					TauUtil.topoTT(elev, TauUtil.DEFVS, dTdD/cvt.deg2km);
+				return TauUtil.topoCorr(elev, TauUtil.DEFVP, dTdD/cvt.deg2km)+
+					TauUtil.topoCorr(elev, TauUtil.DEFVS, dTdD/cvt.deg2km);
 			// Handle all reflecting S phases.
 			case "SS":
-				return 2d*TauUtil.topoTT(elev, TauUtil.DEFVS, dTdD/cvt.deg2km);
+				return 2d*TauUtil.topoCorr(elev, TauUtil.DEFVS, dTdD/cvt.deg2km);
 			// Again, this should never happen.
 			default:
 				System.out.println("Impossible phase conversion: "+brnRef.convRefl);
