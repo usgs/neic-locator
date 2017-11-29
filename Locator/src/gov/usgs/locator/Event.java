@@ -23,8 +23,8 @@ public class Event {
 	int picksUsed;					// Number of picks used
 	Hypocenter hypo;
 	TreeMap<StationID, Station> stations;
-	ArrayList<Pick> allPicks;
-	ArrayList<Pick> usedPicks;
+	ArrayList<PickGroup> groups;
+	ArrayList<Pick> picks;
 	StationID maxID = new StationID("~", "", "");
 	
 	/**
@@ -32,28 +32,30 @@ public class Event {
 	 */
 	public Event() {
 		stations = new TreeMap<StationID, Station>();
-		allPicks = new ArrayList<Pick>();
-		usedPicks = new ArrayList<Pick>();
+		groups = new ArrayList<PickGroup>();
+		picks = new ArrayList<Pick>();
 	}
 	
 	/**
 	 * Read a Bulletin Hydra style event input file.
 	 * 
 	 * @param inFile File path
-	 * @param sort If true sort the picks into arrival time order
 	 * @return True if the read was successful
 	 * @throws IOException If the file open fails
 	 */
-	public boolean readHydra(String inFile, boolean sort) throws IOException {
+	public boolean readHydra(String inFile) throws IOException {
 		BufferedInputStream in;
 		Scanner scan;
 		char heldLoc, heldDep, analDep, rstt, noSvd, use;
 		int auth;
-		double origin, lat, lon, depth, bDep, bSe, elev, qual, arrival, aff;
-		String dbID, staCode, chaCode, netCode, locCode, curPh, obsPh;
+		double origin, lat, lon, depth, bDep, bSe, elev, qual, 
+			arrival, aff;
+		String dbID, staCode, chaCode, netCode, locCode, curPh, 
+			obsPh, lastSta = "";
 		StationID staID;
-		Station sta;
+		Station station;
 		Pick pick;
+		PickGroup group = null;
 		
 		// Set up the IO.
 		try {
@@ -74,9 +76,11 @@ public class Event {
 			rstt = scan.next().charAt(0);
 			noSvd = scan.next().charAt(0);
 			if(analDep == 'T') depth = bDep;
+			// Create the hypocenter.
 			hypo = new Hypocenter(origin, lat, lon, depth);
-			hypo.addFlags(LocUtil.getBoolean(heldLoc), LocUtil.getBoolean(heldDep), 
-					LocUtil.getBoolean(rstt), LocUtil.getBoolean(noSvd));
+			hypo.addFlags(LocUtil.getBoolean(heldLoc), 
+					LocUtil.getBoolean(heldDep), LocUtil.getBoolean(rstt), 
+					LocUtil.getBoolean(noSvd));
 			if(analDep == 'T') hypo.addBayes(bDep, bSe);
 			
 			// Get the pick information.
@@ -90,12 +94,10 @@ public class Event {
 				lat = scan.nextDouble();
 				lon = scan.nextDouble();
 				elev = scan.nextDouble();
-				// Create the station ID and station object.
+				// Create the station.
 				staID = new StationID(staCode, locCode, netCode);
-				sta = new Station(staID, lat, lon, elev);
-				// Remember this station.
-				stations.put(staID, sta);
-				// Get the arrival information.
+				station = new Station(staID, lat, lon, elev);
+				// Get the rest of the pick information.
 				qual = scan.nextDouble();
 				if(scan.hasNextDouble()) {
 					curPh = "";
@@ -108,23 +110,34 @@ public class Event {
 				obsPh = scan.next();
 				aff = scan.nextDouble();
 				// Create the pick.
-				pick = new Pick(sta, chaCode, arrival, LocUtil.getBoolean(use), 
+				pick = new Pick(station, chaCode, arrival, LocUtil.getBoolean(use), 
 						curPh);
-				// Remember this pick.
-				pick.addIdAids(dbID, qual, obsPh, LocUtil.getAuthCode(auth), aff);
-				allPicks.add(pick);
-				if(use == 'T') usedPicks.add(pick);
+				pick.addIdAids(dbID, qual, obsPh, LocUtil.getAuthCode(auth), 
+						aff);
+				picks.add(pick);
 			}
 			scan.close();
 			in.close();
-			// If requested sort the picks into arrival time order.
-			if(sort) {
-				allPicks.sort(new PickComp());
-				usedPicks.sort(new PickComp());
+			
+			// Sort the picks into "Hydra" input order.
+			picks.sort(new PickComp());
+			// Reorganize the picks into groups.
+			for(int j=0; j<picks.size(); j++) {
+				pick = picks.get(j);
+				if(!pick.station.staID.staID.equals(lastSta)) {
+					lastSta = pick.station.staID.staID;
+					// Remember this station.
+					stations.put(pick.station.staID, pick.station);
+					// Initialize the pick group.
+					group = new PickGroup(pick.station, pick);
+					groups.add(group);
+				} else {
+					group.add(pick);
+				}
 			}
 			// Do the initial delta-azimuth calculation.
-			for(int j=0; j<usedPicks.size(); j++) {
-				usedPicks.get(j).updatePick(hypo);
+			for(int j=0; j<groups.size(); j++) {
+				groups.get(j).update(hypo);
 			}
 			return true;
 		} catch (FileNotFoundException e) {
@@ -168,49 +181,32 @@ public class Event {
 	 * @param latitude Updated geographic latitude in degrees
 	 * @param longitude Updated longitude in degrees
 	 * @param depth Updated depth in kilometers
-	 * @param all If true, update all picks rather than used picks
 	 */
 	public void updateEvent(double originTime, double latitude, 
-			double longitude, double depth, boolean all) {
+			double longitude, double depth) {
 		// Update the hypocenter.
 		hypo.updateHypo(originTime, latitude, longitude, depth);
 		// Update the picks.
-		if(all) {
-			for(int j=0; j<allPicks.size(); j++) {
-				usedPicks.get(j).updatePick(hypo);
-			}
-		} else {
-			for(int j=0; j<usedPicks.size(); j++) {
-				usedPicks.get(j).updatePick(hypo);
-			}
+		for(int j=0; j<groups.size(); j++) {
+			groups.get(j).update(hypo);
 		}
 	}
 	
+	/**
+	 * Count the number of stations and picks.
+	 */
 	public void staStats() {
-		Station sta;
+		int picksUsedGrp;
 		
-		// Most of these are easy.
 		noStations = stations.size();
-		noPicks = allPicks.size();
-		picksUsed = usedPicks.size();
-		// The number of stations used is a little harder.  First clear 
-		// the used flag in all stations.
 		stationsUsed = 0;
-		if(stations.size() > 0) {
-			NavigableMap<StationID, Station> map = stations.headMap(maxID, true);
-			for(@SuppressWarnings("rawtypes") Map.Entry entry : map.entrySet()) {
-				sta = (Station)entry.getValue();
-				sta.used = false;
-			}
-			// Then reset the station used flag from the pick used flags.
-			for(int j=0; j<usedPicks.size(); j++) {
-				usedPicks.get(j).updateUsed();
-			}
-			// Finally, count the stations used.
-			for(@SuppressWarnings("rawtypes") Map.Entry entry : map.entrySet()) {
-				sta = (Station)entry.getValue();
-				if(sta.used) stationsUsed++;
-			}
+		noPicks = 0;
+		picksUsed = 0;
+		for(int j=0; j<groups.size(); j++) {
+			noPicks += groups.get(j).picks.size();
+			picksUsedGrp = groups.get(j).picksUsed();
+			picksUsed += picksUsedGrp;
+			if(picksUsedGrp > 0) stationsUsed++;
 		}
 	}
 	
@@ -239,8 +235,8 @@ public class Event {
 	public void printIn() {
 		hypo.printIn();
 		System.out.println();
-		for(int j=0; j<allPicks.size(); j++) {
-			allPicks.get(j).printIn();
+		for(int j=0; j<groups.size(); j++) {
+			groups.get(j).printIn();
 		}
 	}
 	
@@ -250,8 +246,24 @@ public class Event {
 	public void printHydra() {
 		hypo.printHydra(noStations, stationsUsed, noPicks, picksUsed);
 		System.out.println();
-		for(int j=0; j<allPicks.size(); j++) {
-			allPicks.get(j).printHydra();
+		for(int j=0; j<groups.size(); j++) {
+			groups.get(j).printHydra();
+		}
+	}
+	
+	/**
+	 * Print an NEIC style web output.
+	 */
+	public void printNEIC() {
+		// Sort the pick groups by distance.
+		groups.sort(new GroupComp());
+		// Print the hypocenter.
+		hypo.printNEIC(noStations, noPicks);
+		System.out.println("\n    Channel     Distance Azimuth Phase  "+
+				"   Arrival Time Status   Residual Weight");
+		// Print the picks.
+		for(int j=0; j<groups.size(); j++) {
+			groups.get(j).printNEIC();
 		}
 	}
 }
