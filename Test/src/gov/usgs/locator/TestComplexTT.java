@@ -14,6 +14,7 @@ public class TestComplexTT {
 	public static void main(String[] args) throws Exception {
 		String inFile = "../../../Documents/Work/Events/RayLocInput1000655616_3.txt";
 //	String inFile = "../../../Documents/Work/Events/RayLocInput1000672389_13.txt";
+		String[] phList = null;
 		AuxTtRef auxtt;
 		ReadTau readTau;
 		AllBrnRef allRef;
@@ -38,15 +39,21 @@ public class TestComplexTT {
 			
 			// Set up the event.
 			event = new Event();
-			if(event.readHydra(inFile, false)) {
+			if(event.readHydra(inFile)) {
 				event.printIn();
 			} else {
 				System.out.println("Event read failed");
 			}
 			
+			// Set the travel-times up for this event location.
+			allBrn.newSession(event.hypo.latitude, event.hypo.longitude, 
+					event.hypo.depth, phList);
+//		allBrn.dumpCorrUp('P', true);
+//		allBrn.dumpDecUp('P', true);
+			
 			// Use a skeleton PhaseID to test travel-time corrections.
 			phaseID = new PhaseID(event, allBrn);
-			phaseID.doID(false);
+			phaseID.doID(0.1d, 1.0d);
 			
 		} catch(IOException e) {
 			System.out.println("Unable to read Earth model ak135.");
