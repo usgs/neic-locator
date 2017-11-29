@@ -10,23 +10,29 @@ public class Pick implements Comparable<Pick> {
 	// Hydra specific:
 	String dbID;					// Hydra aid to database update
 	// Inputs:
-	Station station;			// Station information
+	Station station;			// Station
 	String chaCode;				// Channel code
 	double arrivalTime;		// Arrival time in seconds since the epoch
 	double quality;				// Pick quality (standard error) in seconds
-	boolean use;					// If true the phase may be used
+	boolean use;					// If true, the phase may be used
 	String obsCode;				// Original phase identification
-	String authority;			// Authority for the original phase identification
+	AuthorType authType;	// Author type for the original phase identification
 	double affinity;			// Higher numbers make it harder to re-identify the phase
 	// Input/Output:
 	String phCode;				// Current phase identification
 	// Outputs:
 	double residual;			// Observed-theoretical arrival time in seconds
-	double delta;					// Source-receiver distance in degrees
-	double azimuth;				// Receiver azimuth from the source in degrees
 	boolean used;					// True if the pick was used in the location
 	double weight;				// Pick weight
-	double importance;		// pick data importance
+	double importance;		// Pick data importance
+	// Internal use:
+	String idCode;				// Best code to use for phase identification
+	double tt;						// Travel-time
+	double fomStat;				// Statistical figure-of-merit
+	int mapStat;					// Travel-time index with the maximum fomStat
+	double fomAlt;				// Alternate figure-of-merit
+	boolean hide;					// If true, hide the phase from the identification logic
+	int mapAlt;						// Travel-time index with the maximum fomAlt
 	
 	/**
 	 * Create the pick with just enough information to be useful.
@@ -51,14 +57,20 @@ public class Pick implements Comparable<Pick> {
 		dbID = null;
 		quality = 0d;
 		obsCode = null;
-		authority = null;
+		authType = null;
 		affinity = 3d;
 		used = use;
 		residual = Double.NaN;
-		delta = Double.NaN;
-		azimuth = Double.NaN;
 		weight = Double.NaN;
 		importance = Double.NaN;
+		// Initialize internal variables too.
+		idCode = phCode;
+		tt = Double.NaN;
+		fomStat = 0d;
+		mapStat = -1;
+		fomAlt = TauUtil.DMAX;
+		mapAlt = -1;
+		hide = false;
 	}
 	
 	/**
@@ -71,12 +83,31 @@ public class Pick implements Comparable<Pick> {
 	 * @param affinity Higher numbers make it harder to re-identify the phase
 	 */
 	public void addIdAids(String dbID, double quality, String obsCode, 
-			String authority, double affinity) {
+			AuthorType authType, double affinity) {
 		this.dbID = dbID;
 		this.quality = quality;
 		this.obsCode = obsCode;
-		this.authority = authority;
-		this.affinity = affinity;
+		this.authType = authType;
+		this.affinity = authType.affinity(affinity);
+		// Use an enum for the author type.
+		switch(authType) {
+			case CONTRIB_HUMAN: case LOCAL_HUMAN:
+				idCode = obsCode;
+				break;
+			default:
+				idCode = phCode;
+				break;
+		}
+	}
+	
+	/**
+	 * Recompute the travel time for this pick when the hypocenter 
+	 * is updated.
+	 * 
+	 * @param hypo Hypocenter information
+	 */
+	public void updateTt(Hypocenter hypo) {
+		tt = arrivalTime-hypo.originTime;
 	}
 	
 	/**
@@ -88,6 +119,15 @@ public class Pick implements Comparable<Pick> {
 	public void updateID(String phCode, double weight) {
 		this.phCode = phCode;
 		this.weight = weight;
+		// The phase code used for phase identification only changes 
+		// for automatic picks.
+		switch(authType) {
+		case CONTRIB_HUMAN: case LOCAL_HUMAN:
+			break;
+		default:
+			idCode = phCode;
+			break;
+		}
 	}
 
 	/**
@@ -96,51 +136,9 @@ public class Pick implements Comparable<Pick> {
 	public void dontUse() {
 		used = false;
 	}
-	
-	/**
-	 * These parameters need to be updated each time the travel time is 
-	 * recomputed.
-	 * 
-	 * @param hypo Hypocenter object
-	 */
-	public void updatePick(Hypocenter hypo) {
-		delta = LocUtil.delAz(hypo, station);
-		azimuth = LocUtil.azimuth;
-	}
-	
-	/**
-	 * Update the station used flag for this pick.
-	 */
-	public void updateUsed() {
-		if(used) station.used = true;
-	}
-	
-	/**
-	 * Print out the input pick information in a format similar to 
-	 * the Hydra event input file.
-	 */
-	public void printIn() {
-		System.out.format("%10s %-5s %3s %2s %2s %8.4f %9.4f %5.2f %3.1f "+
-				"%-8s %12s %5b %-11s %-8s %3.1f\n", dbID, station.staID.staCode, 
-				chaCode, station.staID.netCode, station.staID.locCode, 
-				station.latitude, station.longitude, station.elevation, quality, 
-				phCode, LocUtil.getRayTime(arrivalTime), use, authority, obsCode, 
-				affinity);
-	}
-	
-	/**
-	 * Print the pick part of a Bulletin Hydra style output file.
-	 */
-	public void printHydra() {
-		System.out.format("%-10s %-5s %-3s %-2s %-2s %-8s%6.1f %5.1f %3.0f "+
-				"%1s %4.2f %6.4f\n", dbID, station.staID.staCode, chaCode, 
-				station.staID.netCode, station.staID.locCode, phCode, residual, 
-				delta, azimuth, LocUtil.getBoolChar(used), weight, importance);
-	}
 
 	/**
-	 * Apparently, implementing Comparable allows sorting of arrays, but not 
-	 * ArrayLists.
+	 * Sort picks by arrival time.
 	 */
 	@Override
 	public int compareTo(Pick pick) {
