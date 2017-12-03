@@ -52,7 +52,7 @@ public class TestComplexTT {
 //		allBrn.dumpDecUp('P', true);
 			
 			// Use a skeleton PhaseID to test travel-time corrections.
-			phaseID = new PhaseID(event, allBrn);
+			phaseID = new PhaseID(event, allBrn, auxtt);
 			phaseID.doID(0.1d, 1.0d);
 			
 		} catch(IOException e) {

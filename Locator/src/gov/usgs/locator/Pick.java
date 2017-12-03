@@ -31,7 +31,7 @@ public class Pick implements Comparable<Pick> {
 	double fomStat;				// Statistical figure-of-merit
 	int mapStat;					// Travel-time index with the maximum fomStat
 	double fomAlt;				// Alternate figure-of-merit
-	boolean hide;					// If true, hide the phase from the identification logic
+	boolean surfWave;			// If true, this phase can't be re-identified
 	int mapAlt;						// Travel-time index with the maximum fomAlt
 	
 	/**
@@ -70,7 +70,7 @@ public class Pick implements Comparable<Pick> {
 		mapStat = -1;
 		fomAlt = TauUtil.DMAX;
 		mapAlt = -1;
-		hide = false;
+		surfWave = false;
 	}
 	
 	/**

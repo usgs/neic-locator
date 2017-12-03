@@ -125,7 +125,7 @@ public class PickGroup {
 			switch(pick.authType) {
 				case CONTRIB_HUMAN: case LOCAL_HUMAN:
 					System.out.format("%-2s %-5s %-3s %-2s  %5.1f     %3.0f   %-8s %12s "+
-							" manual   %6.1f    %4.2f\n", station.staID.netCode, 
+							" manual    %6.1f    %4.2f\n", station.staID.netCode, 
 							station.staID.staCode, pick.chaCode, station.staID.locCode, 
 							delta, azimuth, pick.phCode, LocUtil.getNEICtime(pick.arrivalTime), 
 							pick.residual, pick.weight);

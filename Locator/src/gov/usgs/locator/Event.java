@@ -107,8 +107,20 @@ public class Event {
 				arrival = scan.nextDouble();
 				use = scan.next().charAt(0);
 				auth = scan.nextInt();
-				obsPh = scan.next();
-				aff = scan.nextDouble();
+				if(scan.hasNextInt() || !scan.hasNext()) {
+					obsPh = "";
+					aff = 0d;
+				} else if(scan.hasNext("\\d*\\.\\d*")) {
+					obsPh = "";
+					aff = scan.nextDouble();
+				} else {
+					obsPh = scan.next();
+					if(scan.hasNext("\\d*\\.\\d*")) {
+						aff = scan.nextDouble();
+					} else {
+						aff = 0d;
+					}
+				}
 				// Create the pick.
 				pick = new Pick(station, chaCode, arrival, LocUtil.getBoolean(use), 
 						curPh);
@@ -120,7 +132,7 @@ public class Event {
 			in.close();
 			
 			// Sort the picks into "Hydra" input order.
-			picks.sort(new PickComp());
+//		picks.sort(new PickComp());
 			// Reorganize the picks into groups.
 			for(int j=0; j<picks.size(); j++) {
 				pick = picks.get(j);
@@ -260,7 +272,7 @@ public class Event {
 		// Print the hypocenter.
 		hypo.printNEIC(noStations, noPicks);
 		System.out.println("\n    Channel     Distance Azimuth Phase  "+
-				"   Arrival Time Status   Residual Weight");
+				"   Arrival Time Status    Residual Weight");
 		// Print the picks.
 		for(int j=0; j<groups.size(); j++) {
 			groups.get(j).printNEIC();

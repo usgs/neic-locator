@@ -11,7 +11,7 @@ import java.io.IOException;
 public class LocMain {
 	public static void main(String[] args) throws Exception {
 		// Set up the earthquake file.
-		String inFile = "../../../Documents/Work/Events/RayLocInput1000655616_3.txt";
+		String inFile = "../../../Documents/Work/Events/RayLocInput1000010563_23.txt";
 		// Objects we'll need.
 		AuxTtRef auxtt;
 		ReadTau readTau;

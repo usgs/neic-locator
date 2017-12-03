@@ -42,6 +42,17 @@ public class TauUtil {
 	 */
 	public static final double DEFOBSERV = 0d;
 	/**
+	 * The association window for theoretical phases will be the 
+	 * association factor times the spread.
+	 */
+	public static final double ASSOCFACTOR = 7d;
+	/**
+	 * In any case, don't let the association window get smaller than 
+	 * the minimum window size no matter how well observed the phase 
+	 * is.  The larger window is needed when the location is poor.
+	 */
+	public static final double WINDOWMIN = 5d;
+	/**
 	 * Receiver azimuth relative to the source in degrees clockwise from 
 	 * north (available after calling delAz).
 	 */

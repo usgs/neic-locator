@@ -223,8 +223,9 @@ public class AuxTtRef {
 	 * @return Phase group name
 	 */
 	public String findGroup(String phase, boolean auto) {
+		priGroup = true;
 		if(phase.equals("")) return "all";
-		else if(auto && phase.equals("P")) return "Ploc";
+		else if(auto && phase.equals("P")) return "Reg";
 		else return findGroup(phase);
 	}
 	

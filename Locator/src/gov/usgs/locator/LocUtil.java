@@ -33,7 +33,7 @@ public class LocUtil {
 	 */
 	public static double azimuth = Double.NaN;
 	/**
-	 * Constants and variables needed by ttResModel.
+	 * Constants needed by ttResModel.
 	 */
 	private final static double ttResWidth = 1.001691d;								// Model spread
 	private final static double cauchyFraction = 0.45d;								// Fraction of Cauchy/Gaussian
@@ -42,6 +42,11 @@ public class LocUtil {
 	private final static double gaussWidth = 0.92d/ttResWidth;				// Gaussian spread
 	private final static double gaussNorm = (1d-cauchyFraction)/			// Gaussian normalization
 			Math.sqrt(2d*Math.PI);
+	/**
+	 * Constants needed by deltaCorr.
+	 */
+	private final static double DELCORRMIN = 20d;				// Minimum distance to boost the FoM
+	private final static double DELCORRFAC = 0.067d;		// Factor to boost the FoM
 	
 	/**
 	 * An historically significant subroutine from deep time (1962)!  This 
@@ -118,6 +123,24 @@ public class LocUtil {
 		// Return the result.
 		return (gaussNorm*Math.exp(-0.5d*Math.pow(gaussVar, 2d))/gaussSpread+
 				cauchyNorm/(cauchySpread*(1d+Math.pow(cauchyVar, 2d))))/ttResNorm;
+	}
+	
+	/**
+	 * Compute a crude correction to the figure-of-merit to make phase 
+	 * identifications at near distances more likely.  This is principally  
+	 * a problem for the closest station to a subduction event due to the 
+	 * complex structure.  It should only be applied to the first arrival 
+	 * in any pick group.
+	 * 
+	 * @param delta Distance in degrees
+	 * @return Correction to the phase association figure-of-merit
+	 */
+	public static double deltaCorr(double delta) {
+		if(delta < DELCORRMIN) {
+			return 1d+DELCORRFAC*(DELCORRMIN-delta);
+		} else {
+			return 1d;
+		}
 	}
 	
 	/**
