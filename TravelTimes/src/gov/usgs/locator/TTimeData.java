@@ -18,13 +18,14 @@ public class TTimeData implements Comparable<TTimeData> {
 													// ray parameter (degree-s)
 	double spread;					// Statistical spread (s)
 	double observ;					// Relative statistical observability
+	double window;					// Association window in seconds
 	String phGroup;					// Teleseismic phase group
 	String auxGroup;				// Auxiliary phase group
 	boolean isRegional;			// If true, phase is regional
 	boolean isDepth;				// If true, phase is depth sensitive
 	boolean canUse;					// If true, can use the phase for location
 	boolean dis;						// Disrespect (down weight) this phase
-	boolean corrTt;					// If true, correct the arrival time as well
+	boolean corrTt;					// If true, get the arrival time from the phase statistics
 	
 	/**
 	 * The constructor accepts basic travel time information.
@@ -55,6 +56,7 @@ public class TTimeData implements Comparable<TTimeData> {
 	public void addStats(double spread, double observ) {
 		this.spread = spread;
 		this.observ = observ;
+		window = Math.max(TauUtil.ASSOCFACTOR*spread, TauUtil.WINDOWMIN);
 	}
 	
 	/**

@@ -46,6 +46,7 @@ public class AuxTtRef {
 	final String ttStatsPath = "../../../Documents/Work/Models/ttstats.lis";
 	final String ellipPath = "../../../Documents/Work/Models/tau.table";
 	Scanner scan;
+	boolean priGroup = false;
 	int nDepth;
 	String nextCode;
 
@@ -194,6 +195,7 @@ public class AuxTtRef {
 			group = phGroups.get(j);
 			for(int k=0; k<group.phases.size(); k++) {
 				if(phase.equals(group.phases.get(k))) {
+					priGroup = true;
 					return group.groupName;
 				}
 			}
@@ -202,12 +204,39 @@ public class AuxTtRef {
 			if(group != null) {
 				for(int k=0; k<group.phases.size(); k++) {
 					if(phase.equals(group.phases.get(k))) {
+						priGroup = false;
 						return group.groupName;
 					}
 				}
 			}
 		}
 		return null;
+	}
+	
+	/**
+	 * Special version of findGroup that deals with real world 
+	 * problems like a blank phase code and automatic picks 
+	 * that are all identified as P.
+	 * 
+	 * @param phase Phase code
+	 * @param auto True if the pick was done automatically
+	 * @return Phase group name
+	 */
+	public String findGroup(String phase, boolean auto) {
+		priGroup = true;
+		if(phase.equals("")) return "all";
+		else if(auto && phase.equals("P")) return "Reg";
+		else return findGroup(phase);
+	}
+	
+	/**
+	 * The phase identification algorithm depends on knowing which 
+	 * set of phase groups was found.
+	 * 
+	 * @return True if the last phase group found was primary
+	 */
+	public boolean isPrimary() {
+		return priGroup;
 	}
 	
 	/**

@@ -18,7 +18,6 @@ public class Station {
 	double cosLat;				// Cosine of the geocentric co-latitude
 	double sinLon;				// Sine of the longitude
 	double cosLon;				// Cosine of the longitude
-	boolean used;					// Keep track of stations that have used picks
 
 	/**
 	 * Initialize the station and compute the sines and cosines.
@@ -41,8 +40,6 @@ public class Station {
 		cosLat = Math.cos(Math.toRadians(coLat));
 		sinLon = Math.sin(Math.toRadians(longitude));
 		cosLon = Math.cos(Math.toRadians(longitude));
-		// Initialize used.
-		used = false;
 	}
 	
 	/**
@@ -50,8 +47,8 @@ public class Station {
 	 */
 	@Override
 	public String toString() {
-		return String.format("%-5s %-2s %-2s %8.4f %9.4f %6.2f %b", 
+		return String.format("%-5s %-2s %-2s %8.4f %9.4f %6.2f", 
 				staID.staCode, staID.locCode, staID.netCode, latitude, 
-				longitude, elevation, used);
+				longitude, elevation);
 	}
 }

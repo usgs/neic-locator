@@ -156,4 +156,24 @@ public class Hypocenter {
 		System.out.format("%14s %14s %14s  %3.0f\n", errEllip[0], errEllip[1], 
 				errEllip[2], lestGap);
 	}
+	
+	/**
+	 * Print the hypocenter in a way similar to the NEIC web format.
+	 * 
+	 * @param noStations Number of stations associated
+	 * @param noPicks Number of picks associated
+	 */
+	public void printNEIC(int noStations, int noPicks) {
+		System.out.format("\nLocation:             %-7s %-8s ±%6.1f km\n", 
+				LocUtil.niceLat(latitude), LocUtil.niceLon(longitude), errh);
+		System.out.format("Depth:                %5.1f ±%6.1f km\n", depth, 
+				errz);
+		System.out.format("Origin Time:          %23s UTC\n", 
+				LocUtil.getNEICdate(originTime));
+		System.out.format("Number of Stations:     %4d\n", noStations);
+		System.out.format("Number of Phases:       %4d\n", noPicks);
+		System.out.format("Minimum Distance:     %6.1f\n", delMin);
+		System.out.format("Travel Time Residual:  %5.2f\n", seTime);
+		System.out.format("Azimuthal Gap:           %3.0f\n", azimGap);
+	}
 }

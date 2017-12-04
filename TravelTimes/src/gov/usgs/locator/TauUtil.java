@@ -42,6 +42,17 @@ public class TauUtil {
 	 */
 	public static final double DEFOBSERV = 0d;
 	/**
+	 * The association window for theoretical phases will be the 
+	 * association factor times the spread.
+	 */
+	public static final double ASSOCFACTOR = 7d;
+	/**
+	 * In any case, don't let the association window get smaller than 
+	 * the minimum window size no matter how well observed the phase 
+	 * is.  The larger window is needed when the location is poor.
+	 */
+	public static final double WINDOWMIN = 5d;
+	/**
 	 * Receiver azimuth relative to the source in degrees clockwise from 
 	 * north (available after calling delAz).
 	 */
@@ -160,6 +171,30 @@ public class TauUtil {
 		}
 	}
 
+	/**
+	 * Classify seismic phases according to their wave type at 
+	 * the receiver.
+	 * 
+	 * @param phCode Phase code
+	 * @return 'P' for a p-wave, 'S' for an s-wave, 'L' for an Lg, 
+	 * and 'R' for an LR.
+	 */
+	public static char arrivalType(String phCode) {
+		// Try the common cases first.
+		for(int j=phCode.length()-1; j>=0; j--) {
+			if(phCode.charAt(j) == 'P') {
+				return 'P';
+			} else if(phCode.charAt(j) == 'S') {
+				return 'S';
+			}
+		}
+		// Then do the special cases.
+		if(phCode.equals("Lg")) return 'L';
+		else if(phCode.equals("LR")) return 'R';
+		// This should never happen.
+		else return ' ';
+	}
+	
 	/**
 	 * By default, filter out phases of the same name that are so 
 	 * close in time as to be useless.  This is particularly useful 
@@ -426,7 +461,7 @@ public class TauUtil {
 	 * @param dTdD Ray parameter in seconds/kilometers
 	 * @return Elevation correction in seconds
 	 */
-	public static double topoTT(double elev, double vel, double dTdD) {
+	public static double topoCorr(double elev, double vel, double dTdD) {
 		return (elev/vel)*Math.sqrt(Math.abs(1.-
 				Math.min(Math.pow(vel*dTdD,2d),1d)));
 	}

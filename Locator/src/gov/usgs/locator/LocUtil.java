@@ -10,18 +10,43 @@ import java.util.Date;
  *
  */
 public class LocUtil {
-	
 	/**
-	 * Array for translating the authority flag to a value.
+	 * Factor to down weight undesirable phase identifications.
 	 */
-	public final static String[] authList = {"Auto_other", "Auto_local", 
-			"Human_other", "Human_local"};
-	
+	public static final double DOWNWEIGHT = 0.5d;
+	/**
+	 * Factor to down weight phases that don't match, but are 
+	 * in the same group.
+	 */
+	public static final double GROUPWEIGHT = 0.5d;
+	/**
+	 * Factor to down weight phases that don't even match in type.
+	 */
+	public static final double TYPEWEIGHT = 0.1d;
+	/**
+	 * Default trial affinity when the phases don't match.
+	 */
+	public static final double NULLAFFINITY = 1d;
 	/**
 	 * Receiver azimuth relative to the source in degrees clockwise from 
 	 * north (available after calling delAz).
 	 */
 	public static double azimuth = Double.NaN;
+	/**
+	 * Constants needed by ttResModel.
+	 */
+	private final static double ttResWidth = 1.001691d;								// Model spread
+	private final static double cauchyFraction = 0.45d;								// Fraction of Cauchy/Gaussian
+	private final static double cauchyWidth = 0.78d/ttResWidth;				// Cauchy spread
+	private final static double cauchyNorm = cauchyFraction/Math.PI;	// Cauchy normalization
+	private final static double gaussWidth = 0.92d/ttResWidth;				// Gaussian spread
+	private final static double gaussNorm = (1d-cauchyFraction)/			// Gaussian normalization
+			Math.sqrt(2d*Math.PI);
+	/**
+	 * Constants needed by deltaCorr.
+	 */
+	private final static double DELCORRMIN = 20d;				// Minimum distance to boost the FoM
+	private final static double DELCORRFAC = 0.067d;		// Factor to boost the FoM
 	
 	/**
 	 * An historically significant subroutine from deep time (1962)!  This 
@@ -70,6 +95,55 @@ public class LocUtil {
 	}
 	
 	/**
+	 * The canonical Buland statistical model for travel-time residuals 
+	 * is a linear combination of a Gaussian and a Cauchy distribution.  
+	 * In practice, the canonical model must be adapted for the median 
+	 * and spread of the phase of interest.  This method then calculates 
+	 * the value of the phase probability density function at the 
+	 * desired residual.
+	 * 
+	 * @param residual Travel-time residual in seconds
+	 * @param median Median probability density function time in seconds 
+	 * for the desired phase
+	 * @param spread Probability density function spread in seconds for 
+	 * the desired phase
+	 * @return Probability density function value for the desired residual
+	 */
+	public static double ttResModel(double residual, double median, 
+			double spread) {
+		double gaussSpread, gaussVar, cauchySpread, cauchyVar, ttResNorm;
+		
+		// Account for the current distribution median and spread.
+		gaussSpread = spread*gaussWidth;
+		gaussVar = (residual-median)/gaussSpread;
+		cauchySpread = spread*cauchyWidth;
+		cauchyVar = (residual-median)/cauchySpread;
+		// Calculate the overall normalization.
+		ttResNorm = gaussNorm/gaussSpread+cauchyNorm/cauchySpread;
+		// Return the result.
+		return (gaussNorm*Math.exp(-0.5d*Math.pow(gaussVar, 2d))/gaussSpread+
+				cauchyNorm/(cauchySpread*(1d+Math.pow(cauchyVar, 2d))))/ttResNorm;
+	}
+	
+	/**
+	 * Compute a crude correction to the figure-of-merit to make phase 
+	 * identifications at near distances more likely.  This is principally  
+	 * a problem for the closest station to a subduction event due to the 
+	 * complex structure.  It should only be applied to the first arrival 
+	 * in any pick group.
+	 * 
+	 * @param delta Distance in degrees
+	 * @return Correction to the phase association figure-of-merit
+	 */
+	public static double deltaCorr(double delta) {
+		if(delta < DELCORRMIN) {
+			return 1d+DELCORRFAC*(DELCORRMIN-delta);
+		} else {
+			return 1d;
+		}
+	}
+	
+	/**
 	 * Produce a time string from a Hydra time suitable for printing.  
 	 * Hydra uses doubles instead of longs, but (conveniently) the same 
 	 * epoch.  The string returned is valid to milliseconds and uses 
@@ -100,27 +174,80 @@ public class LocUtil {
 	}
 	
 	/**
-	 *  Get the numeric authority code from the string code.
-	 *  
-	 * @param auth Authority string
-	 * @return Authority number
+	 * Produce a time string from a Hydra time suitable for printing in 
+	 * the NEIC web bulletin style.
+	 * 
+	 * @param time Hydra date-time stamp
+	 * @return Time string
 	 */
-	public static int getNumAuth(String auth) {
-		for(int j=0; j<authList.length; j++) {
-			if(authList[j].equals(auth)) return ++j;
-		}
-		return 0;
+	public static String getNEICtime(double time) {
+		Calendar cal = Calendar.getInstance();
+		cal.setTime(new Date((long)(1000d*time)));
+		return String.format("%1$tH:%1$tM:%1$tS.%1$tL", cal).substring(0, 11);
 	}
 	
 	/**
-	 * Get the string authority code from the numeric code.
+	 * Produce a date-time string from a Hydra time suitable for printing 
+	 * in the NEIC web bulletin style.
 	 * 
-	 * @param auth Authority number
-	 * @return Authority string
+	 * @param time Hydra date-time stamp
+	 * @return Date-time string
 	 */
-	public static String getAuthCode(int auth) {
-		if(auth > 0 && auth <=4) return authList[auth-1];
-		else return null;
+	public static String getNEICdate(double time) {
+		Calendar cal = Calendar.getInstance();
+		cal.setTime(new Date((long)(1000d*time)));
+		return String.format("%1$tY-%1$tm-%1$td %1$tH:%1$tM:%1$tS.%1$tL", cal);
+	}
+	
+	/**
+	 * Format latitude for printing.
+	 * 
+	 * @param latitude Geographic latitude in degrees
+	 * @return Latitude string suitable for a bulletin
+	 */
+	public static String niceLat(double latitude) {
+		if(latitude >= 0) {
+			return String.format("%6.3f°N", latitude);
+		} else {
+			return String.format("%6.3f°S", -latitude);
+		}
+	}
+	
+	/**
+	 * Format longitude for printing.
+	 * 
+	 * @param longitude Longitude in degrees
+	 * @return Longitude string suitable for a bulletin
+	 */
+	public static String niceLon(double longitude) {
+		if(longitude >= 0) {
+			return String.format("%7.3f°E", longitude);
+		} else {
+			return String.format("%7.3f°W", -longitude);
+		}
+	}
+	
+	/**
+	 *  Get the numeric authority code from the enumerated types.
+	 *  
+	 * @param author AuthorType
+	 * @return Numeric authority code
+	 */
+	public static int getNumAuth(AuthorType author) {
+		return author.ordinal();
+	}
+	
+	/**
+	 * Get the AuthorType from the numeric code.
+	 * 
+	 * @param authCode Numeric authority code
+	 * @return AuthorType
+	 */
+	public static AuthorType getAuthCode(int authCode) {
+		for(AuthorType author : AuthorType.values()) {
+			if(author.ordinal() == authCode) return author;
+		}
+		return AuthorType.UNKNOWN;
 	}
 	
 	/**

@@ -122,7 +122,7 @@ public class TTime {
 	 */
 	public void print(double depth, double delta) {
 		System.out.println();
-		System.out.format("Depth = %5.1f  Delta = %5.1f\n", depth, delta);
+		System.out.format("Depth = %6.2f  Delta = %8.4f\n", depth, delta);
 		if(tTimes.size() > 0) {
 			for(int j=0; j<tTimes.size(); j++) {
 				System.out.format("%2d  %s", j, tTimes.get(j));
