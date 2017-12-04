@@ -1,0 +1,30 @@
+{
+  "name": "neic-traveltime",
+  "organization": "U.S. Geological Survey",
+  "description": "REPOSITORY_DESCRIPTION",
+  "status": "Beta",
+  "homepage": "https://github.com/usgs/neic-traveltime",
+  "downloadURL": "https://github.com/usgs/neic-traveltime/archive/master.zip",
+
+  "openSourceProject": 1,
+  "license": "https://github.com/usgs/neic-traveltime/blob/master/LICENSE.md",
+  "vcs": "git",
+  "repository": "https://github.com/usgs/neic-traveltime.git",
+
+  "tags": [
+    "earthquake",
+    "traveltimes",
+    "processing"
+  ],
+  "languages": [
+    "java"
+  ],
+
+  "contact": {
+    "name": "John Patton",
+    "email": "jpatton@usgs.gov"
+  },
+  "updated": {
+    "metadataLastUpdated": "2017-12-04"
+  }
+}
