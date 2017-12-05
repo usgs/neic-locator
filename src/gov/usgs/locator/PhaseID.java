@@ -105,7 +105,7 @@ public final class PhaseID {
               && (pick.authType == AuthorType.CONTRIB_HUMAN
               || pick.authType == AuthorType.LOCAL_HUMAN)) {
         for (int i = 0; i < ttList.size(); i++) {
-          if (ttList.get(i).phCode.equals(pick.idCode)) {
+          if (ttList.get(i).getPhCode().equals(pick.idCode)) {
             pick.mapStat = i;
             pick.surfWave = true;
             break;
@@ -194,14 +194,13 @@ public final class PhaseID {
    */
   private void permut(int pickBeg, int pickLen, int ttBeg, int ttLen) {
     // Set up some pointer arrays to work with internally.
-    Pick[] pickGrp = new Pick[pickLen];
+    Pick[] pickClust = new Pick[pickLen];
     for (int j = 0, i = pickBeg; j < pickLen; j++, i++) {
-      pickGrp[j]
-              = group.picks.get(i);
+      pickClust[j] = group.picks.get(i);
     }
-    TTimeData[] ttGrp = new TTimeData[ttLen];
+    TTimeData[] ttClust = new TTimeData[ttLen];
     for (int j = 0, i = ttBeg; j < ttLen; j++, i++) {
-      ttGrp[j] = ttList.get(i);
+      ttClust[j] = ttList.get(i);
     }
 
     System.out.format("\n Permut: %2d Picks, %2d TTs\n", pickLen, ttLen);
@@ -209,11 +208,11 @@ public final class PhaseID {
     if (ttLen >= pickLen) {
       // Generate the combinations.
       TTimeData[] ttPermut = new TTimeData[pickLen];
-      kPermutOfN(ttGrp, pickLen, 0, ttPermut, pickGrp);
+      kPermutOfN(ttClust, pickLen, 0, ttPermut, pickClust);
     } else {
       // Generate the combinations.
       Pick[] pickPermut = new Pick[ttLen];
-      kPermutOfN(pickGrp, ttLen, 0, pickPermut, ttGrp);
+      kPermutOfN(pickClust, ttLen, 0, pickPermut, ttClust);
     }
   }
 
@@ -229,15 +228,15 @@ public final class PhaseID {
    * @param beg The starting pointer of the permutation subset
    * @param ttPermut The result of the permutation
    */
-  private void kPermutOfN(TTimeData[] ttGrp, int len, int beg, TTimeData[] ttPermut,
-          Pick[] pickGrp) {
+  private void kPermutOfN(TTimeData[] ttClust, int len, int beg, TTimeData[] ttPermut,
+          Pick[] pickClust) {
     if (len == 0) {
-      setFoM(pickGrp, ttPermut);
+      setFoM(pickClust, ttPermut);
       return;
     }
-    for (int i = beg; i <= ttGrp.length - len; i++) {
-      ttPermut[ttPermut.length - len] = ttGrp[i];
-      kPermutOfN(ttGrp, len - 1, i + 1, ttPermut, pickGrp);
+    for (int i = beg; i <= ttClust.length - len; i++) {
+      ttPermut[ttPermut.length - len] = ttClust[i];
+      kPermutOfN(ttClust, len - 1, i + 1, ttPermut, pickClust);
     }
   }
 
@@ -253,15 +252,15 @@ public final class PhaseID {
    * @param beg The starting pointer of the permutation subset
    * @param pickPermut The result of the permutation
    */
-  private void kPermutOfN(Pick[] pickGrp, int len, int beg, Pick[] pickPermut,
-          TTimeData[] ttGrp) {
+  private void kPermutOfN(Pick[] pickClust, int len, int beg, Pick[] pickPermut,
+          TTimeData[] ttClust) {
     if (len == 0) {
-      setFoM(pickPermut, ttGrp);
+      setFoM(pickPermut, ttClust);
       return;
     }
-    for (int i = beg; i <= pickGrp.length - len; i++) {
-      pickPermut[pickPermut.length - len] = pickGrp[i];
-      kPermutOfN(pickGrp, len - 1, i + 1, pickPermut, ttGrp);
+    for (int i = beg; i <= pickClust.length - len; i++) {
+      pickPermut[pickPermut.length - len] = pickClust[i];
+      kPermutOfN(pickClust, len - 1, i + 1, pickPermut, ttClust);
     }
   }
 
@@ -272,15 +271,15 @@ public final class PhaseID {
    * @param pickGrp An array of picks to test
    * @param ttGrp An array of theoretical arrivals to test against
    */
-  private void setFoM(Pick[] pickGrp, TTimeData[] ttGrp) {
+  private void setFoM(Pick[] pickClust, TTimeData[] ttClust) {
     double prob, amp, aff;
 
-    for (int j = 0; j < ttGrp.length; j++) {
-      prob = LocUtil.ttResModel(pickGrp[j].tt - ttGrp[j].getTT(), 0d, ttGrp[j].getSpread());
-      amp = idAmplitude(pickGrp[j], ttGrp[j]);
-      aff = idAffinity(pickGrp[j], ttGrp[j]);
-      System.out.format("\t%8s %8s: %10.4e %10.4e %3.1f\n", pickGrp[j].idCode,
-              ttGrp[j].phCode, prob, amp, aff);
+    for (int j = 0; j < ttClust.length; j++) {
+      prob = LocUtil.ttResModel(pickClust[j].tt - ttClust[j].getTT(), 0d, ttClust[j].getSpread());
+      amp = idAmplitude(pickClust[j], ttClust[j]);
+      aff = idAffinity(pickClust[j], ttClust[j]);
+      System.out.format("\t%8s %8s: %10.4e %10.4e %3.1f\n", pickClust[j].idCode,
+              ttClust[j].getPhCode(), prob, amp, aff);
     }
   }
 
@@ -328,7 +327,7 @@ public final class PhaseID {
 
     // Do the group logic.  If the phase codes match drop through 
     // unless the phase might be generic.
-    if ((!pick.idCode.equals(tTime.phCode) || generic)
+    if ((!pick.idCode.equals(tTime.getPhCode()) || generic)
             && !phGroup.equals("all")) {
       // Handle primary groups differently for generic phase codes.
       if (generic && primary) {
@@ -352,7 +351,7 @@ public final class PhaseID {
           if ((pick.authType == AuthorType.CONTRIB_HUMAN
                   || pick.authType == AuthorType.LOCAL_HUMAN)
                   && TauUtil.arrivalType(phGroup)
-                  != TauUtil.arrivalType(tTime.phCode)) {
+                  != TauUtil.arrivalType(tTime.getPhCode())) {
             amp *= LocUtil.TYPEWEIGHT;
             System.out.print(" Type");
           }
@@ -376,7 +375,7 @@ public final class PhaseID {
           if ((pick.authType == AuthorType.CONTRIB_HUMAN
                   || pick.authType == AuthorType.LOCAL_HUMAN)
                   && TauUtil.arrivalType(phGroup)
-                  != TauUtil.arrivalType(tTime.phCode)) {
+                  != TauUtil.arrivalType(tTime.getPhCode())) {
             amp *= LocUtil.TYPEWEIGHT;
             System.out.print(" Type");
           }
@@ -385,13 +384,13 @@ public final class PhaseID {
     }
 
     // Account for the affinity.
-    if (pick.idCode.equals(tTime.phCode)) {
+    if (pick.idCode.equals(tTime.getPhCode())) {
       amp *= pick.affinity;
       System.out.print(" Aff");
     }
 
     // Make the existing identification harder to change.
-    if (pick.phCode.equals(tTime.phCode)) {
+    if (pick.phCode.equals(tTime.getPhCode())) {
       amp *= stickyWeight;
       System.out.print(" Sticky");
     }
@@ -406,47 +405,10 @@ public final class PhaseID {
    * @return The trial affinity.
    */
   private double idAffinity(Pick pick, TTimeData tTime) {
-    if (pick.idCode.equals(tTime.phCode)) {
+    if (pick.idCode.equals(tTime.getPhCode())) {
       return pick.affinity;
     } else {
       return LocUtil.NULLAFFINITY;
     }
-  }
-}
-
-/**
- * Helper class keeping track of the limits and contents of one cluster of theoretical and observed
- * phases. Clusters are defined by groups of theoretical phases that are isolated from each other in
- * time. Observed phases are then associated with clusters.
- *
- * @author Ray Buland
- *
- */
-class AssocCluster {
-
-  protected int ttBeg;			// Index of first theoretical phase in the cluster
-  protected int ttLen;			// Number of theoretical phase in the cluster
-  protected int pickBeg;		// Index of first pick in the cluster
-  protected int pickLen;		// Number of picks in the cluster
-  protected double winMin;	// Minimum travel time in the cluster
-  protected double winMax;	// Maximum travel time in the cluster
-
-  protected AssocCluster(int ttBeg, double winMin, double winMax) {
-    this.ttBeg = ttBeg;
-    this.winMin = winMin;
-    this.winMax = winMax;
-    ttLen = 1;
-    pickBeg = -1;
-    pickLen = 0;
-  }
-
-  protected void addPick(int pickBeg) {
-    this.pickBeg = pickBeg;
-    pickLen++;
-  }
-
-  protected void printCluster() {
-    System.out.format("TT: %2d %2d  Pick: %2d %2d  Win: %7.2f %7.2f\n",
-            ttBeg, ttLen, pickBeg, pickLen, winMin, winMax);
   }
 }
