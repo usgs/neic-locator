@@ -28,6 +28,43 @@ public class LocUtil {
 	 */
 	public static final double NULLAFFINITY = 1d;
 	/**
+	 * Minimum acceptable observability for an alternative phase 
+	 * identification.
+	 */
+	public static final double MINOBSERV = 1d;
+	/**
+	 * Association tolerance in seconds.
+	 */
+	public static final double ASSOCTOL = 60d;
+	/**
+	 * The maximum acceptable ratio of apparently misidentified first 
+	 * arrivals that are being used to total used stations.
+	 */
+	public static final double BADRATIO = 0.1d;
+	/**
+	 * If true suppress phases that are unlikely to be observed.
+	 */
+	public static final boolean USEFUL = true;
+	/**
+	 * If true, suppress back branches.
+	 */
+	public static final boolean NOBACKBRN = true;
+	/**
+	 * If true use the RSTT 2.5D model for local phases.
+	 */
+	public static boolean rstt = false;
+	/**
+	 * If false the event is in a craton with a well defined Conrad 
+	 * discontinuity and distinct Pb and Sb phases.  If true, the 
+	 * event is in a tectonic area where Pb and Sb are extensions 
+	 * of Pg and Sg respectively.
+	 */
+	public static boolean tectonic = false;
+	/**
+	 * 
+	 */
+	public static int deBugLevel = 0;
+	/**
 	 * Receiver azimuth relative to the source in degrees clockwise from 
 	 * north (available after calling delAz).
 	 */
@@ -47,6 +84,11 @@ public class LocUtil {
 	 */
 	private final static double DELCORRMIN = 20d;				// Minimum distance to boost the FoM
 	private final static double DELCORRFAC = 0.067d;		// Factor to boost the FoM
+	/**
+	 * Constants needed by the validLim.
+	 */
+	private final static double VALIDSLOPE = 2.27d;
+	private final static double VALIDOFFSET = 5d;
 	
 	/**
 	 * An historically significant subroutine from deep time (1962)!  This 
@@ -141,6 +183,18 @@ public class LocUtil {
 		} else {
 			return 1d;
 		}
+	}
+	
+	/**
+	 * To be a valid association, the travel-time residual must be smaller 
+	 * than the validity limit determined from the spread.  This is, of 
+	 * course, a purely empirical limit based on years of Hydra experience.
+	 * 
+	 * @param spread Statistical spread in seconds
+	 * @return Empirical validity limit
+	 */
+	public static double validLim(double spread) {
+		return VALIDSLOPE*(spread-1d)+ VALIDOFFSET;
 	}
 	
 	/**

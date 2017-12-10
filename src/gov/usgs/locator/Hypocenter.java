@@ -10,9 +10,10 @@ public class Hypocenter {
 	// Inputs:
 	boolean heldLoc;			// True if the hypocenter will be held constant
 	boolean heldDepth;		// True if the depth will be held constant
-	boolean analDepth;		// True if the Bayesian depth was set by an analyst
-	boolean rstt;					// True if regional phases will use the RSTT model
-	boolean noSvd;				// True to not use the de-correlation algorithm
+	boolean prefDepth;		// True if the Bayesian depth was set by an analyst
+	boolean cmndRstt;			// True if regional phases will use the RSTT model
+	boolean cmndCorr;			// True to use the de-correlation algorithm
+	boolean restart;			// True if the hypocenter has been moved externally
 	// Input/Outputs:
 	double originTime;		// Origin time in seconds since the epoch
 	double latitude;			// Geographic latitude in degrees
@@ -40,11 +41,14 @@ public class Hypocenter {
 	String quality;				// Summary event quality flags for the analysts
 	EllipAxis[] errEllip;	// Error ellipse
 	// Internal use:
-	double coLat;					// Geocentric co-latitude in degrees
-	double sinLat;				// Sine of the geocentric co-latitude
-	double cosLat;				// Cosine of the geocentric co-latitude
+	boolean rstt;					// True if RSTT is being used right now
+	boolean deCorr;				// True if the decorrelation is being used right now
+	double coLat;					// Geocentric colatitude in degrees
+	double sinLat;				// Sine of the geocentric colatitude
+	double cosLat;				// Cosine of the geocentric colatitude
 	double sinLon;				// Sine of the longitude
 	double cosLon;				// Cosine of the longitude
+	// Getters:
 	public double getLatitude() {return latitude;}
   public double getLongitude() {return longitude;}
   public double getDepth() {return depth;}
@@ -65,9 +69,14 @@ public class Hypocenter {
 		bayesSpread = Double.NaN;
 		heldLoc = false;
 		heldDepth = false;
-		analDepth = false;
+		prefDepth = false;
+		cmndRstt = false;
+		cmndCorr = true;
+		restart = false;
+		// RSTT and the decorrelation are both off for initial processing, no 
+		// matter what the commands say.
 		rstt = false;
-		noSvd = false;
+		deCorr = false;
 		errEllip = new EllipAxis[3];
 	}
 	
@@ -103,7 +112,8 @@ public class Hypocenter {
 	public void addBayes(double bayesDepth, double bayesSpread) {
 		this.bayesDepth = bayesDepth;
 		this.bayesSpread = bayesSpread;
-		analDepth = true;
+		prefDepth = true;
+		depth = bayesDepth;
 	}
 	
 	/**
@@ -125,12 +135,13 @@ public class Hypocenter {
 	 * @param rstt True if regional phases will use the RSTT model
 	 * @param noSvd True to not use the de-correlation algorithm
 	 */
-	public void addFlags(boolean heldLoc, boolean heldDepth, boolean rstt, 
-			boolean noSvd) {
+	public void addFlags(boolean heldLoc, boolean heldDepth, boolean cmndRstt, 
+			boolean cmndCorr, boolean restart) {
 		this.heldLoc = heldLoc;
 		this.heldDepth = heldDepth;
-		this.rstt = rstt;
-		this.noSvd = noSvd;
+		this.cmndRstt = cmndRstt;
+		this.cmndCorr = cmndCorr;
+		this.restart = restart;
 	}
 	
 	/**
@@ -140,8 +151,8 @@ public class Hypocenter {
 	public void printIn() {
 		System.out.format("\nHypo: %22s %8.4f %9.4f %6.2f %5b %5b %5b "+
 				"%5.1f %5.1f %5b %5b\n", LocUtil.getRayDate(originTime), latitude, 
-				longitude, depth, heldLoc, heldDepth, analDepth, bayesDepth, 
-				bayesSpread, rstt, noSvd);
+				longitude, depth, heldLoc, heldDepth, prefDepth, bayesDepth, 
+				bayesSpread, cmndRstt, cmndCorr);
 	}
 	
 	/**

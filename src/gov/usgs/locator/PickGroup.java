@@ -26,6 +26,8 @@ public class PickGroup {
 	double azimuth;				// Receiver azimuth from the source in degrees
 	// Picks:
 	ArrayList<Pick> picks;
+	// Internal use:
+	double fomMax;				// Maximum figure-of-merit
 
 	/**
 	 * Initialize the pick group with the station and the first pick.
@@ -66,6 +68,44 @@ public class PickGroup {
 	}
 	
 	/**
+	 * Update the phase identifications for all picks in this group.
+	 * 
+	 * @param reWeight If true, recompute the residual weights
+	 * @return True if any used pick in the group has changed 
+	 * significantly
+	 */
+	public boolean updateID(boolean reWeight) {
+		boolean changed = false;
+		
+		if(picks.get(0).updateID(true, reWeight)) changed = true;
+		for(int j=1; j<picks.size(); j++) {
+			if(picks.get(j).updateID(false, reWeight)) changed = true;
+		}
+		// Ensure the picks are still in time order.
+		picks.sort(null);
+		return changed;
+	}
+	
+	/**
+	 * Initialize the figure-of-merit variables.
+	 */
+	public void initFoM() {
+		fomMax = 0d;
+		for(int j=0; j<picks.size(); j++) {
+			picks.get(j).initFoM();
+		}
+	}
+	
+	/**
+	 * Get the number of picks in the group.
+	 * 
+	 * @return Number of picks in the group
+	 */
+	public int noPicks() {
+		return picks.size();
+	}
+	
+	/**
 	 * Count the number of picks in the group that are used 
 	 * in the location.
 	 * 
@@ -77,6 +117,16 @@ public class PickGroup {
 			if(picks.get(j).used) noUsed++;
 		}
 		return noUsed;
+	}
+	
+	/**
+	 * Get the jth pick in the group.
+	 * 
+	 * @param j Pick index
+	 * @return Return the pick with index j
+	 */
+	public Pick getPick(int j) {
+		return picks.get(j);
 	}
 	
 	/**
@@ -93,7 +143,7 @@ public class PickGroup {
 					station.staID.staCode, pick.chaCode, station.staID.netCode, 
 					station.staID.locCode, station.latitude, station.longitude, 
 					station.elevation, pick.quality, pick.phCode, 
-					LocUtil.getRayTime(pick.arrivalTime), pick.use, 
+					LocUtil.getRayTime(pick.arrivalTime), pick.cmndUse, 
 					pick.authType, pick.obsCode, pick.affinity);
 		}
 	}

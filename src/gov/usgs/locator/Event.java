@@ -9,6 +9,7 @@ import java.util.Map;
 import java.util.NavigableMap;
 import java.util.Scanner;
 import java.util.TreeMap;
+import java.util.regex.Pattern;
 
 /**
  * Keep all data for one seismic event (earthquake usually).
@@ -22,6 +23,7 @@ public class Event {
 	int noPicks;						// Number of picks associated
 	int picksUsed;					// Number of picks used
 	Hypocenter hypo;
+	ArrayList<HypoAudit> audit;
 	TreeMap<StationID, Station> stations;
 	ArrayList<PickGroup> groups;
 	ArrayList<Pick> picks;
@@ -31,6 +33,7 @@ public class Event {
 	 * Allocate some storage.
 	 */
 	public Event() {
+		audit = new ArrayList<HypoAudit>();
 		stations = new TreeMap<StationID, Station>();
 		groups = new ArrayList<PickGroup>();
 		picks = new ArrayList<Pick>();
@@ -46,7 +49,7 @@ public class Event {
 	public boolean readHydra(String inFile) throws IOException {
 		BufferedInputStream in;
 		Scanner scan;
-		char heldLoc, heldDep, analDep, rstt, noSvd, use;
+		char heldLoc, heldDep, prefDep, rstt, noSvd, restart, cmndUse;
 		int auth;
 		double origin, lat, lon, depth, bDep, bSe, elev, qual, 
 			arrival, aff;
@@ -56,6 +59,7 @@ public class Event {
 		Station station;
 		Pick pick;
 		PickGroup group = null;
+		Pattern affinity = Pattern.compile("\\d*\\.\\d*");
 		
 		// Set up the IO.
 		try {
@@ -70,18 +74,22 @@ public class Event {
 			// Get the analyst commands.
 			heldLoc = scan.next().charAt(0);
 			heldDep = scan.next().charAt(0);
-			analDep = scan.next().charAt(0);
+			prefDep = scan.next().charAt(0);
 			bDep = scan.nextDouble();
 			bSe = scan.nextDouble();
 			rstt = scan.next().charAt(0);
 			noSvd = scan.next().charAt(0);
-			if(analDep == 'T') depth = bDep;
+			if(scan.hasNextInt()) {
+				restart = 'F';
+			} else {
+				restart = scan.next().charAt(0);
+			}
 			// Create the hypocenter.
 			hypo = new Hypocenter(origin, lat, lon, depth);
 			hypo.addFlags(LocUtil.getBoolean(heldLoc), 
 					LocUtil.getBoolean(heldDep), LocUtil.getBoolean(rstt), 
-					LocUtil.getBoolean(noSvd));
-			if(analDep == 'T') hypo.addBayes(bDep, bSe);
+					LocUtil.getBoolean(noSvd), LocUtil.getBoolean(restart));
+			if(prefDep == 'T') hypo.addBayes(bDep, bSe);
 			
 			// Get the pick information.
 			while(scan.hasNext()) {
@@ -105,24 +113,24 @@ public class Event {
 					curPh = scan.next();
 				}
 				arrival = scan.nextDouble();
-				use = scan.next().charAt(0);
+				cmndUse = scan.next().charAt(0);
 				auth = scan.nextInt();
 				if(scan.hasNextInt() || !scan.hasNext()) {
 					obsPh = "";
 					aff = 0d;
-				} else if(scan.hasNext("\\d*\\.\\d*")) {
+				} else if(scan.hasNext(affinity)) {
 					obsPh = "";
 					aff = scan.nextDouble();
 				} else {
 					obsPh = scan.next();
-					if(scan.hasNext("\\d*\\.\\d*")) {
+					if(scan.hasNext(affinity)) {
 						aff = scan.nextDouble();
 					} else {
 						aff = 0d;
 					}
 				}
 				// Create the pick.
-				pick = new Pick(station, chaCode, arrival, LocUtil.getBoolean(use), 
+				pick = new Pick(station, chaCode, arrival, LocUtil.getBoolean(cmndUse), 
 						curPh);
 				pick.addIdAids(dbID, qual, obsPh, LocUtil.getAuthCode(auth), 
 						aff);
@@ -147,6 +155,8 @@ public class Event {
 					group.add(pick);
 				}
 			}
+			// Do the initial station/pick statistics.
+			staStats();
 			// Do the initial delta-azimuth calculation.
 			for(int j=0; j<groups.size(); j++) {
 				groups.get(j).update(hypo);
@@ -202,6 +212,20 @@ public class Event {
 		for(int j=0; j<groups.size(); j++) {
 			groups.get(j).update(hypo);
 		}
+	}
+	
+	/**
+	 * Add a hypocenter audit record.  These double as fall-back 
+	 * hypocenters in case the statistical dispersion increases.
+	 * 
+	 * @param stage Iteration stage
+	 * @param iteration Iteration in this stage
+	 * @param delH Tangential epicentral change since the last stage in 
+	 * kilometers
+	 * @param delZ Depth change since the last stage in kilometers
+	 */
+	public void addAudit(int stage, int iteration, double delH, double delZ) {
+		audit.add(new HypoAudit(hypo, stage, iteration, noPicks, delH, delZ));
 	}
 	
 	/**
