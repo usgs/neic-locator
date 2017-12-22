@@ -1,4 +1,6 @@
 package gov.usgs.locator;
+import java.util.ArrayList;
+
 import gov.usgs.traveltime.TTimeData;
 import gov.usgs.traveltime.TauUtil;
 /**
@@ -30,6 +32,7 @@ public class Pick implements Comparable<Pick> {
 	String idCode;				// Best code to use for phase identification
 	double tt;						// Travel-time
 	boolean auto;					// True if this is an automatic pick
+	// Phase identification use:
 	TTimeData mapStat;		// Theoretical arrival with the minimum fomStat
 	double fomStat;				// Statistical figure-of-merit
 	boolean forceStat;		// If true, force the association
@@ -123,9 +126,11 @@ public class Pick implements Comparable<Pick> {
 	 * @return True if a used phase has changed identification or is no 
 	 * longer used
 	 */
-	public boolean updateID(boolean first, boolean reWeight) {
+	public boolean updateID(boolean first, boolean reWeight, double azimuth, 
+			ArrayList<Wresidual> wResiduals) {
 		boolean changed = false;
 		String ttCode;
+		Wresidual wRes;
 		
 		if(mapStat != null) {
 			// We have an identification.  Set up some key variables.
@@ -141,9 +146,13 @@ public class Pick implements Comparable<Pick> {
 				residual = 0d;
 			}
 			// If this phase is still being used, set the weight.
-			if(used && mapStat.canUse() && fomStat <= 
-					LocUtil.validLim(mapStat.getSpread())) {
+			if((used && mapStat.canUse() && fomStat <= 
+					LocUtil.validLim(mapStat.getSpread())) || forceStat) {
 				if(reWeight) weight = 1d/Math.max(mapStat.getSpread(), 0.2d);
+				wRes = new Wresidual(false, wResiduals.size(), residual, weight);
+				wRes.addDeriv(LocUtil.dTdLat(mapStat.getDTdD(), azimuth), 
+						LocUtil.dTdLon(mapStat.getDTdD(), azimuth), mapStat.getDTdZ());
+				wResiduals.add(wRes);
 				if(!phCode.equals(ttCode)) changed = true;
 			} else {
 				// Otherwise, see if it was used before.

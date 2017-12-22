@@ -1,5 +1,7 @@
 package gov.usgs.locator;
 
+import java.util.ArrayList;
+
 import gov.usgs.traveltime.AllBrnVol;
 import gov.usgs.traveltime.TTime;
 import gov.usgs.traveltime.TTimeData;
@@ -18,6 +20,9 @@ import gov.usgs.traveltime.TTimeData;
 public class InitialID {
 	Event event;
 	AllBrnVol allBrn;
+	Hypocenter hypo;
+  ArrayList<Wresidual> wResiduals;
+  Restimator rEst;
 
 	/**
 	 * Remember the event and travel times.
@@ -28,6 +33,9 @@ public class InitialID {
 	public InitialID(Event event, AllBrnVol allBrn) {
 		this.event = event;
 		this.allBrn = allBrn;
+		hypo = event.hypo;
+		wResiduals = event.wResiduals;
+		rEst = event.rEst;
 	}
 	
 	/**
@@ -37,29 +45,35 @@ public class InitialID {
 	 * @return Count of automatic first arrivals that appear to be 
 	 * incorrectly identified
 	 */
-	public int survey() {
+	public void survey() {
 		int badPs = 0;
-		boolean found = false;
+		boolean found;
 		PickGroup group;
     Station station;
     Pick pick;
     String phCode;
 		TTime ttList;
     TTimeData tTime;
-
+    Wresidual wRes;
+    
+		// Reinitialize the weighted residual storage.
+		if(wResiduals.size() > 0) wResiduals.clear();
+		
     // Loop over picks in the group.
-    for (int j = 0; j < event.groups.size(); j++) {
+    System.out.println();
+    for (int j = 0; j < event.noStations(); j++) {
       group = event.groups.get(j);
       if (group.picksUsed() > 0) {
         // For the first pick in the group, get the travel times.
         station = group.station;
-        System.out.println("\n" + station + ":");
+    //   System.out.println("\nInitialID: " + station + ":");
         // Do the travel-time calculation.
         ttList = allBrn.getTT(station.latitude, station.longitude,
                 station.elevation, group.delta, group.azimuth, LocUtil.USEFUL,
                 LocUtil.tectonic, LocUtil.NOBACKBRN, LocUtil.rstt);
         // Print them.
-        ttList.print(event.hypo.depth, group.delta);
+    //   ttList.print(event.hypo.depth, group.delta);
+        tTime = ttList.get(0);
         
         /*
          * Based on a tentative ID, just compute residuals and weights so 
@@ -83,9 +97,12 @@ public class InitialID {
 	        			if(!phCode.equals(tTime.getPhCode())) badPs++;
 	        			pick.residual = pick.tt-tTime.getTT();
         				pick.weight = 1d/tTime.getSpread();
+        				if(!phCode.equals(tTime.getPhCode())) 
+        						System.out.format("InitialID: %-8s -> %-8s auto\n", phCode, 
+        						tTime.getPhCode());
 	        		} else {
-	        			int i;
-	        			for(i=0; i<ttList.size(); i++) {
+	        			found = false;
+	        			for(int i=0; i<ttList.size(); i++) {
 	  	        		tTime = ttList.get(i);
 	        				if(phCode.equals(tTime.getPhCode())) {
 	        					// Note that this is slightly different from the Fortran 
@@ -97,17 +114,19 @@ public class InitialID {
 	        				}
 	        			}
 	        			if(!found) {
-	  	        		tTime = ttList.get(i);
+	  	        		tTime = ttList.get(0);
 	        				pick.residual = pick.tt-tTime.getTT();
 	        				pick.weight = 1d/tTime.getSpread();
+	        				System.out.format("InitialID: %-8s -> %-8s human\n", phCode, 
+	        						tTime.getPhCode());
 	        			}
 	        		}
-	        		/*
-	        		 * Push the first arrival phase residuals and weights here.  The 
-	        		 * origin time correction will be computed below.
-	        		 */
-	        		System.out.format("InitialID push: %-8s %5.1f %5.1f\n", pick.phCode, 
-	        				pick.residual, pick.weight);
+	        		wRes = new Wresidual(false, wResiduals.size(), pick.residual, 
+	        				pick.weight);
+	        		wResiduals.add(wRes);
+	        		System.out.format("InitialID push: %-5s %-8s %5.2f %7.4f %5.2f %5.2f\n", 
+	        				pick.station.staID.staCode, pick.phCode, pick.residual, 
+	        				pick.weight, tTime.getTT(), tTime.getSpread());
 	        	}
 	        }
         }
@@ -118,23 +137,33 @@ public class InitialID {
   	 * by the survey method.  Adjusting the origin time to something reasonable 
   	 * ensures that succeeding phase identifications have a chance.
   	 */
-    /*
-     * Compute the origin time correction here.
-     */
-		return badPs;
+    double median = rEst.median();
+    System.out.format("Update origin: %f %f %f %d\n", hypo.originTime, median, 
+    		hypo.originTime+median, badPs);
+    hypo.originTime += median;
+    
+    // Based on the number of probably misidentified first arrivals:
+    System.out.println();
+		if(badPs < LocUtil.BADRATIO*event.stationsUsed) {
+			// Just make the obvious re-identifications (i.e., autos).
+			doIdEasy();
+		} else {
+			// Re-identify any first arrival that doesn't look right.
+			doIdHard();
+		}
 	}
 	
 	/**
 	 * if the event seems to be making sense (i.e., not too many misidentified first 
 	 * arrivals), we can go easy on the initial phase identification.
 	 */
-	public void doIdEasy() {
+	private void doIdEasy() {
 		PickGroup group;
 		Pick pick;
 		String phCode;
 		
 		// Loop over groups assessing automatic picks.
-    for (int j = 0; j < event.groups.size(); j++) {
+    for (int j = 0; j < event.noStations(); j++) {
       group = event.groups.get(j);
       if (group.picksUsed() > 0) {
       	pick = group.picks.get(0);
@@ -142,12 +171,20 @@ public class InitialID {
       	if(pick.auto && pick.used) {
       		phCode = pick.phCode;
       		if(!phCode.equals("Pg") && !phCode.equals("Pb") && !phCode.equals("Pn") && 
-      				!phCode.equals("P")) pick.used = false;
+      				!phCode.equals("P")) {
+      			pick.used = false;
+      			System.out.format("\tIdEasy: don't use %-5s %-8s\n", 
+      					group.station.staID.staCode, pick.phCode);
+      		}
       	}
       	// Don't use any secondary automatic phases.
-      	for(int i=1; i<group.picks.size(); i++) {
+      	for(int i=1; i<group.noPicks(); i++) {
       		pick = group.picks.get(i);
-      		if(pick.auto && pick.used) pick.used = false;
+      		if(pick.auto && pick.used) {
+      			pick.used = false;
+      			System.out.format("\tIdEasy: don't use %-5s %-8s\n", 
+      					group.station.staID.staCode, pick.phCode);
+      		}
       	}
       }
     }
@@ -157,7 +194,7 @@ public class InitialID {
 	 * If the event doesn't seem to be making sense (i.e., too many misidentified 
 	 * first arrivals), we need to be stricter about the initial phase identification.
 	 */
-	public void doIdHard() {
+	private void doIdHard() {
 		PickGroup group;
 		Station station;
 		Pick pick;
@@ -165,7 +202,7 @@ public class InitialID {
 		TTime ttList;
 		
 		// Loop over groups forcing automatic phases to conform.
-    for (int j = 0; j < event.groups.size(); j++) {
+    for (int j = 0; j < event.noStations(); j++) {
       group = event.groups.get(j);
       if (group.picksUsed() > 0) {
       	pick = group.picks.get(0);
@@ -180,23 +217,31 @@ public class InitialID {
         			!phCode.equals("Sn") && !phCode.equals("Lg")) {
         		// For the first pick in the group, get the travel times.
         		station = group.station;
-        		System.out.println("\n" + station + ":");
+        //	System.out.println("\n" + station + ":");
         		ttList = allBrn.getTT(station.latitude, station.longitude,
                 station.elevation, group.delta, group.azimuth, true,
                 false, false, false);
         		// Print them.
-        		ttList.print(event.hypo.depth, group.delta);
+        //	ttList.print(event.hypo.depth, group.delta);
         		// Set the phase code.  The travel time was already set in survey.
         		pick.phCode = ttList.get(0).getPhCode();
-        	// If it's a core phase or not a common misidentification, just don't use it.
+    				System.out.format("\tIdHard: %-5s %-8s -> %-8s auto\n", 
+    						group.station.staID.staCode, phCode, ttList.get(0).getPhCode());
+        	// If it's a core phase or not a common mis-identification, just don't use it.
         	} else {
         		pick.used = false;
+      			System.out.format("\tIdHard: don't use %-5s %-8s\n", 
+      					group.station.staID.staCode, pick.phCode);
         	}
         }
       	// Don't use any secondary automatic phases.
-      	for(int i=1; i<group.picks.size(); i++) {
+      	for(int i=1; i<group.noPicks(); i++) {
       		pick = group.picks.get(i);
-      		if(pick.auto && pick.used) pick.used = false;
+      		if(pick.auto && pick.used) {
+      			pick.used = false;
+      			System.out.format("\tIdHard: don't use %-5s %-8s\n", 
+      					group.station.staID.staCode, pick.phCode);
+      		}
       	}
       }
     }
@@ -212,9 +257,9 @@ public class InitialID {
 		Pick pick;
 		
 		// This simply resets no-used phases back to their initial input state.
-		for(int j=0; j<event.groups.size(); j++) {
+		for(int j=0; j<event.noStations(); j++) {
 			group = event.groups.get(j);
-			for(int i=0; i<group.picks.size(); i++) {
+			for(int i=0; i<group.noPicks(); i++) {
 				pick = group.picks.get(i);
 				if(!pick.used) pick.used = pick.cmndUse;
 			}
@@ -231,11 +276,11 @@ public class InitialID {
 		Pick pick;
 		
 		System.out.println("\n\tInitial phase identification:");
-		for(int j=0; j<event.groups.size(); j++) {
+		for(int j=0; j<event.noStations(); j++) {
 			group = event.groups.get(j);
       if (group.picksUsed() > 0) {
       	station = group.station;
-				for(int i=0; i<group.picks.size(); i++) {
+				for(int i=0; i<group.noPicks(); i++) {
 					pick = group.picks.get(i);
 					if(pick.used) System.out.format("%-5s %-8s %6.1f %6.1f %3.0f %5.2f\n", 
 							station.staID.staCode, pick.phCode, pick.residual, group.delta, 

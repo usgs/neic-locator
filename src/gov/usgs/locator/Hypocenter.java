@@ -41,13 +41,13 @@ public class Hypocenter {
 	String quality;				// Summary event quality flags for the analysts
 	EllipAxis[] errEllip;	// Error ellipse
 	// Internal use:
-	boolean rstt;					// True if RSTT is being used right now
-	boolean deCorr;				// True if the decorrelation is being used right now
 	double coLat;					// Geocentric colatitude in degrees
 	double sinLat;				// Sine of the geocentric colatitude
 	double cosLat;				// Cosine of the geocentric colatitude
 	double sinLon;				// Sine of the longitude
 	double cosLon;				// Cosine of the longitude
+	double depthRes;			// Bayesian depth residual in kilometers
+	double depthWeight;		// Bayesian depth weight
 	// Getters:
 	public double getLatitude() {return latitude;}
   public double getLongitude() {return longitude;}
@@ -75,9 +75,9 @@ public class Hypocenter {
 		restart = false;
 		// RSTT and the decorrelation are both off for initial processing, no 
 		// matter what the commands say.
-		rstt = false;
-		deCorr = false;
 		errEllip = new EllipAxis[3];
+		depthRes = Double.NaN;
+		depthWeight = Double.NaN;
 	}
 	
 	/**
@@ -101,6 +101,8 @@ public class Hypocenter {
 		cosLat = Math.cos(Math.toRadians(coLat));
 		sinLon = Math.sin(Math.toRadians(longitude));
 		cosLon = Math.cos(Math.toRadians(longitude));
+		// Update the Bayesian depth residual.
+		if(!Double.isNaN(bayesDepth)) depthRes = bayesDepth-depth;
 	}
 	
 	/**
@@ -114,6 +116,8 @@ public class Hypocenter {
 		this.bayesSpread = bayesSpread;
 		prefDepth = true;
 		depth = bayesDepth;
+		depthRes = 0d;
+		depthWeight = 1d/bayesSpread;
 	}
 	
 	/**
@@ -125,6 +129,8 @@ public class Hypocenter {
 	public void updateBayes(double bayesDepth, double bayesSpread) {
 		this.bayesDepth = bayesDepth;
 		this.bayesSpread = bayesSpread;
+		depthRes = bayesDepth-depth;
+		depthWeight = 1d/bayesSpread;
 	}
 	
 	/**
@@ -188,5 +194,11 @@ public class Hypocenter {
 		System.out.format("Minimum Distance:     %6.1f\n", delMin);
 		System.out.format("Travel Time Residual:  %5.2f\n", seTime);
 		System.out.format("Azimuthal Gap:           %3.0f\n", azimGap);
+	}
+	
+	@Override
+	public String toString() {
+		return String.format("%14.3f %8.4f %9.4f %6.2f", originTime, latitude, 
+				longitude, depth);
 	}
 }

@@ -4,6 +4,9 @@ package gov.usgs.locator;
 import gov.usgs.traveltime.TauUtil;
 import gov.usgs.traveltime.AuxTtRef;
 import gov.usgs.traveltime.TTime;
+
+import java.util.ArrayList;
+
 import gov.usgs.traveltime.AllBrnVol;
 import gov.usgs.traveltime.TTimeData;
 
@@ -13,10 +16,12 @@ import gov.usgs.traveltime.TTimeData;
  * @author Ray Buland
  *
  */
-public final class PhaseID {
+public class PhaseID {
   Event event;
   AllBrnVol allBrn;
   AuxTtRef auxtt;
+  Hypocenter hypo;
+  ArrayList<Wresidual> wResiduals;
   PickGroup group;
   Pick lastPick = null;
   TTime ttList;
@@ -36,6 +41,8 @@ public final class PhaseID {
     this.event = event;
     this.allBrn = allBrn;
     this.auxtt = auxtt;
+    hypo = event.hypo;
+    wResiduals = event.wResiduals;
   }
 
   /**
@@ -55,6 +62,7 @@ public final class PhaseID {
   		boolean reWeight) {
   	boolean changed;
     Station station;
+    Wresidual wRes;
 
     // Remember the figure-of-merit controls.
     this.otherWeight = otherWeight;
@@ -63,9 +71,12 @@ public final class PhaseID {
     // Initialize the changed flag.
     if(reWeight) changed = true;
     else changed = false;
+    
+		// Reinitialize the weighted residual storage.
+		if(wResiduals.size() > 0) wResiduals.clear();
 
     // Do the travel-time calculation.
-    for (int j = 0; j < event.groups.size(); j++) {
+    for (int j = 0; j < event.noStations(); j++) {
       group = event.groups.get(j);
       if (group.picksUsed() > 0) {
         // For the first pick in the group, get the travel times.
@@ -75,17 +86,25 @@ public final class PhaseID {
                 station.elevation, group.delta, group.azimuth, LocUtil.USEFUL,
                 LocUtil.tectonic, LocUtil.NOBACKBRN, LocUtil.rstt);
         // Print them.
-        ttList.print(event.hypo.depth, group.delta);
+    //   ttList.print(event.hypo.depth, group.delta);
         // If reID is true, do a full phase re-identification.
         if(reID) {
-        	if(reID()) changed = true;
+        	reID();
         }
         // Otherwise, try not to re-identify the phases.
         else {
-        	if(noReID(reWeight)) changed = true;
+        	noReID();
         }
       }
+      if(group.updateID(reWeight, wResiduals)) changed = true;
     }
+    // Add the Bayesian depth.
+    wRes = new Wresidual(true, wResiduals.size(), hypo.depthRes, 
+    		hypo.depthWeight);
+    wResiduals.add(wRes);
+    // Create a list of used picks that will be indexed by the weighted 
+    // residuals (before and after sorting).
+    event.makeUsedPicks();
     return changed;
   }
 
@@ -97,8 +116,7 @@ public final class PhaseID {
    * @param reWeight If true update the residual weights
 	 * @return True if any used pick in the group has changed significantly
    */
-  private boolean noReID(boolean reWeight) {
-  	boolean changed = false;
+  private void noReID() {
   	int m;
   	double resMin;
   	Pick pick;
@@ -153,7 +171,7 @@ public final class PhaseID {
         	} else {
         		if(pick.used) {
         			group.initFoM();
-        			if(reID()) changed = true;
+        			reID();
         		} else {
         			pick.mapStat = null;
         		}
@@ -161,7 +179,6 @@ public final class PhaseID {
       	}
       }
     }
-  	return changed;
   }
 
   /**
@@ -171,8 +188,7 @@ public final class PhaseID {
    * 
 	 * @return True if any used pick in the group has changed significantly
    */
-  private boolean reID() {
-  	boolean changed = false;
+  private void reID() {
     int ttBeg, ttLen, pickBeg, pickLen;
     double winMin, winMax;
     TTimeData tTime;
@@ -261,19 +277,42 @@ public final class PhaseID {
     group.getPick(0).fomAlt /= deltaCorr;
     
     // Print out the chosen associations.
+    printAssoc();
+    
+    // Finally, rationalize the two identification methods.
+    fomMerge();
+  }
+  
+  /**
+   * Print out the associations chosen.  This is messy because of possible 
+   * null pointers.
+   */
+  private void printAssoc() {
+  	Pick pick;
+  	
     if(LocUtil.deBugLevel > 1) {
     	for(int j=0; j<group.noPicks(); j++) {
     		pick = group.getPick(j);
-    		System.out.format("  Sel: %1d %-8s %-8s %5.2f %5.2f\n", j, 
-    				pick.mapStat.getPhCode(), pick.mapAlt.getPhCode(), pick.fomStat, 
-    				pick.fomAlt);
+    		if(pick.mapStat != null) {
+    			if(pick.mapAlt != null) {
+        		System.out.format("  Sel: %1d %-8s %-8s %5.2f %5.2f\n", j, 
+        				pick.mapStat.getPhCode(), pick.mapAlt.getPhCode(), pick.fomStat, 
+        				pick.fomAlt);
+    			} else {
+        		System.out.format("  Sel: %1d %-8s null     %5.2f %5.2f\n", j, 
+        				pick.mapStat.getPhCode(), pick.fomStat, pick.fomAlt);
+    			}
+    		} else {
+    			if(pick.mapAlt != null) {
+        		System.out.format("  Sel: %1d null     %-8s %5.2f %5.2f\n", j, 
+        				pick.mapAlt.getPhCode(), pick.fomStat, pick.fomAlt);
+    			} else {
+        		System.out.format("  Sel: %1d null     null     %5.2f %5.2f\n", j, 
+        				pick.fomStat, pick.fomAlt);
+    			}
+    		}
     	}
     }
-    
-    // Finally, do the identification.
-    fomMerge();
-    if(group.updateID(true)) changed = true;
-    return changed;
   }
   
   /**

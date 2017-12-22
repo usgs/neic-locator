@@ -27,8 +27,18 @@ public class Event {
 	TreeMap<StationID, Station> stations;
 	ArrayList<PickGroup> groups;
 	ArrayList<Pick> picks;
+	ArrayList<Pick> usedPicks = null;
+//	ArrayList<Pick> unusedPicks = null;
+	ArrayList<Wresidual> wResiduals = null;
+	Restimator rEst;
 	StationID maxID = new StationID("~", "", "");
+	// Getters:
 	public Hypocenter getHypo() {return hypo;}
+	public double getOriginTime() {return hypo.originTime;}
+	public double getLatitude() {return hypo.latitude;}
+	public double getLongitude() {return hypo.longitude;}
+	public double getDepth() {return hypo.depth;}
+	
 	/**
 	 * Allocate some storage.
 	 */
@@ -37,6 +47,8 @@ public class Event {
 		stations = new TreeMap<StationID, Station>();
 		groups = new ArrayList<PickGroup>();
 		picks = new ArrayList<Pick>();
+		wResiduals = new ArrayList<Wresidual>();
+		rEst = new Restimator(wResiduals);
 	}
 	
 	/**
@@ -169,32 +181,40 @@ public class Event {
 	}
 	
 	/**
-	 * Getter for origin time.
-	 * 
-	 * @return Origin time in seconds
+	 * Create a list of used picks.  This will correspond to the indices 
+	 * in the weighted residual list.
 	 */
-	public double getOriginTime() {return hypo.originTime;}
+	public void makeUsedPicks() {
+		// Initialize or reinitialize usedPicks.
+		if(usedPicks == null) usedPicks = new ArrayList<Pick>();
+		else usedPicks.clear();
+		// Populate the list.
+		for(int j=0; j<picks.size(); j++) {
+			if(picks.get(j).used) usedPicks.add(picks.get(j));
+		}
+	}
 	
 	/**
-	 * Getter for latitude.
-	 * 
-	 * @return Geographic latitude in degrees
+	 * Create a list of residuals and weights for used picks and 
+	 * the Bayesian depth condition.
 	 */
-	public double getLatitude() {return hypo.latitude;}
-	
-	/**
-	 * Getter for longitude.
-	 * 
-	 * @return Longitude in degrees
-	 */
-	public double getLongitude() {return hypo.longitude;}
-	
-	/**
-	 * Getter for depth.
-	 * 
-	 * @return Depth in kilometers
-	 */
-	public double getDepth() {return hypo.depth;}
+	public void makeWresiduals() {
+		Pick pick;
+		
+		// Reinitialize the weighted residual storage.
+		if(wResiduals.size() > 0) wResiduals.clear();
+		// Make up the used picks list.
+		makeUsedPicks();
+		
+		// Populate the weighted residual storage.
+		for(int j=0; j<usedPicks.size(); j++) {
+			pick = usedPicks.get(j);
+			wResiduals.add(new Wresidual(false, j, pick.residual, pick.weight));
+		}
+		// Add the Bayesian depth condition.
+		wResiduals.add(new Wresidual(true, wResiduals.size(), hypo.depthRes, 
+				hypo.depthWeight));
+	}
 	
 	/**
 	 * Update event parameters when the hypocenter changes.
@@ -226,6 +246,15 @@ public class Event {
 	 */
 	public void addAudit(int stage, int iteration, double delH, double delZ) {
 		audit.add(new HypoAudit(hypo, stage, iteration, noPicks, delH, delZ));
+	}
+	
+	/**
+	 * Get the number of stations.
+	 * 
+	 * @return Number of stations.
+	 */
+	public int noStations() {
+		return groups.size();
 	}
 	
 	/**
@@ -273,6 +302,13 @@ public class Event {
 		System.out.println();
 		for(int j=0; j<groups.size(); j++) {
 			groups.get(j).printIn();
+		}
+	}
+	
+	public void printArrivals(boolean first) {
+		System.out.println();
+		for(int j=0; j<groups.size(); j++) {
+			groups.get(j).printArrivals(first);
 		}
 	}
 	

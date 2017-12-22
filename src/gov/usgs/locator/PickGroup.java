@@ -71,15 +71,19 @@ public class PickGroup {
 	 * Update the phase identifications for all picks in this group.
 	 * 
 	 * @param reWeight If true, recompute the residual weights
+	 * @param wResiduals ArrayList of weighted residuals
 	 * @return True if any used pick in the group has changed 
 	 * significantly
 	 */
-	public boolean updateID(boolean reWeight) {
+	public boolean updateID(boolean reWeight, 
+			ArrayList<Wresidual> wResiduals) {
 		boolean changed = false;
 		
-		if(picks.get(0).updateID(true, reWeight)) changed = true;
+		if(picks.get(0).updateID(true, reWeight, azimuth, wResiduals)) 
+			changed = true;
 		for(int j=1; j<picks.size(); j++) {
-			if(picks.get(j).updateID(false, reWeight)) changed = true;
+			if(picks.get(j).updateID(false, reWeight, azimuth, wResiduals)) 
+				changed = true;
 		}
 		// Ensure the picks are still in time order.
 		picks.sort(null);
@@ -145,6 +149,21 @@ public class PickGroup {
 					station.elevation, pick.quality, pick.phCode, 
 					LocUtil.getRayTime(pick.arrivalTime), pick.cmndUse, 
 					pick.authType, pick.obsCode, pick.affinity);
+		}
+	}
+	
+	public void printArrivals(boolean first) {
+		Pick pick;
+		
+		pick = picks.get(0);
+		System.out.format("%-5s %-8s %-8s %7.2f %6.2f %3.0f\n", 
+				station.staID.staCode, pick.phCode, pick.obsCode, pick.tt, 
+				delta, azimuth);
+		if(!first) {
+			for(int j=1; j<picks.size(); j++) {
+				System.out.format("      %-8s %-8s %7.2f\n", pick.phCode, 
+						pick.obsCode, pick.tt);
+			}
 		}
 	}
 	

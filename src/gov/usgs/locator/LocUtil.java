@@ -11,6 +11,14 @@ import java.util.Date;
  */
 public class LocUtil {
 	/**
+	 * Minimum depth the Locator will allow.
+	 */
+	public static final double DEPTHMIN = 1d;
+	/**
+	 * Maximum depth the Locator will allow.
+	 */
+	public static final double DEPTHMAX = 700d;
+	/**
 	 * Factor to down weight undesirable phase identifications.
 	 */
 	public static final double DOWNWEIGHT = 0.5d;
@@ -42,6 +50,17 @@ public class LocUtil {
 	 */
 	public static final double BADRATIO = 0.1d;
 	/**
+	 * Conversion from degrees to kilometers (assumes the 
+	 * radius of the Earth model is 6371 kilometers).
+	 */
+	public static final double DEG2KM = 6371d*Math.PI/180d;
+	/**
+	 * Normalization to make the median absolute deviation (MAD, also 
+	 * referred to as the spread in the Locator) match the standard 
+	 * deviation for a Gaussian distribution.
+	 */
+	public static final double MADNORM = 1.482580d;
+	/**
 	 * If true suppress phases that are unlikely to be observed.
 	 */
 	public static final boolean USEFUL = true;
@@ -50,7 +69,13 @@ public class LocUtil {
 	 */
 	public static final boolean NOBACKBRN = true;
 	/**
-	 * If true use the RSTT 2.5D model for local phases.
+	 * True if the decorrelation algorithm is to be used.  Note that 
+	 * it is never used in the initial pass, hence the default.
+	 */
+	public static boolean deCorrelate = false;
+	/**
+	 * If true use the RSTT 2.5D model for local phases.  Note that 
+	 * it is never used in the initial pass, hence the default.
 	 */
 	public static boolean rstt = false;
 	/**
@@ -61,7 +86,13 @@ public class LocUtil {
 	 */
 	public static boolean tectonic = false;
 	/**
-	 * 
+	 * If true, compute a hypocenter.  If false, compute only an epicenter.  
+	 * If the depth is held, epicenter is always true, but it may also be 
+	 * true if there is insufficient data to compute a hypocenter.
+	 */
+	public static boolean epicenter = false;
+	/**
+	 * The higher the debug level, the more output you get.
 	 */
 	public static int deBugLevel = 0;
 	/**
@@ -134,6 +165,32 @@ public class LocUtil {
 		} else {
 			return Math.toDegrees(Math.atan2(sindel,cosdel));
 		}
+	}
+	
+	/**
+	 * Calculate the derivative of travel time with respect to latitude.
+	 * 
+	 * @param dTdD Derivative of travel time with respect to distance in 
+	 * seconds/degree
+	 * @param azimuth Azimuth of the receiver from the source in degrees
+	 * @return Derivative of travel time with respect to distance in 
+	 * seconds/kilometer
+	 */
+	public static double dTdLat(double dTdD, double azimuth) {
+		return DEG2KM*Math.cos(Math.toRadians(azimuth))*dTdD;
+	}
+	
+	/**
+	 * Calculate the derivative of travel time with respect to longitude.
+	 * 
+	 * @param dTdD Derivative of travel time with respect to distance in 
+	 * seconds/degree
+	 * @param azimuth Azimuth of the receiver from the source in degrees
+	 * @return Derivative of travel time with respect to distance in 
+	 * seconds/kilometer
+	 */
+	public static double dTdLon(double dTdD, double azimuth) {
+		return -DEG2KM*Math.sin(Math.toRadians(azimuth))*dTdD;
 	}
 	
 	/**

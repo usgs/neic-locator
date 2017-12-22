@@ -35,26 +35,24 @@ public class Locate {
 	 * Location driver.
 	 */
 	public void doLoc() {
-		int badPs;
-		
+		// Print out some event stuff for comparison.
+		System.out.println("\n"+event.hypo);
+		event.printArrivals(true);
 		// Set the travel-times up for this event location.
 		try {
 			// Set up a new session.
 			allBrn.newSession(event.hypo.latitude, event.hypo.longitude, 
 					event.hypo.depth, phList);
 			// Mimic the start of the location driver phase identification.
-			badPs = initialID.survey();
-			if(badPs < LocUtil.BADRATIO*event.stationsUsed) {
-				initialID.doIdEasy();
-			} else {
-				initialID.doIdHard();
-			}
+			initialID.survey();
 			
 			// Do the stage 1 phase identification (no reID, but re-weight).
 			phaseID.doID(0.01d,  5d, false, true);
 			
 			// Do a full stage 2 reID and re-weight.  Start by resetting the 
 			// use flags.
+			event.updateEvent(1217617571.841d, 50.1900d, -114.7276d, 1.00d);
+			System.out.println("\n"+event.hypo);
 			initialID.resetUseFlags();
 			initialID.printInitialID();
 			// Do the phase identification.
