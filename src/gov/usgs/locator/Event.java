@@ -22,6 +22,8 @@ public class Event {
 	int stationsUsed;				// Number of stations used
 	int noPicks;						// Number of picks associated
 	int picksUsed;					// Number of picks used
+	int dataUsed;						// Number of data used in the location
+	boolean changed;				// True if the phase identification has changed
 	Hypocenter hypo;
 	ArrayList<HypoAudit> audit;
 	TreeMap<StationID, Station> stations;
@@ -167,16 +169,27 @@ public class Event {
 					group.add(pick);
 				}
 			}
-			// Do the initial station/pick statistics.
-			staStats();
-			// Do the initial delta-azimuth calculation.
-			for(int j=0; j<groups.size(); j++) {
-				groups.get(j).update(hypo);
-			}
+			initEvent();
 			return true;
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
 			return false;
+		}
+	}
+	
+	/**
+	 * Initialize the changed flag, pick and station counts, and 
+	 * compute distances and azimuths.  This routine needs to be 
+	 * called for any new event, no matter how it's created.
+	 */
+	private void initEvent() {
+		// Initialize changed.
+		changed = false;
+		// Do the initial station/pick statistics.
+		staStats();
+		// Do the initial delta-azimuth calculation.
+		for(int j=0; j<groups.size(); j++) {
+			groups.get(j).update(hypo);
 		}
 	}
 	
@@ -192,6 +205,7 @@ public class Event {
 		for(int j=0; j<picks.size(); j++) {
 			if(picks.get(j).used) usedPicks.add(picks.get(j));
 		}
+		staStats();
 	}
 	
 	/**
@@ -240,12 +254,9 @@ public class Event {
 	 * 
 	 * @param stage Iteration stage
 	 * @param iteration Iteration in this stage
-	 * @param delH Tangential epicentral change since the last stage in 
-	 * kilometers
-	 * @param delZ Depth change since the last stage in kilometers
 	 */
-	public void addAudit(int stage, int iteration, double delH, double delZ) {
-		audit.add(new HypoAudit(hypo, stage, iteration, noPicks, delH, delZ));
+	public void addAudit(int stage, int iteration, LocStatus status) {
+		audit.add(new HypoAudit(hypo, stage, iteration, picksUsed, status));
 	}
 	
 	/**
@@ -273,6 +284,8 @@ public class Event {
 			picksUsed += picksUsedGrp;
 			if(picksUsedGrp > 0) stationsUsed++;
 		}
+		if(wResiduals == null) dataUsed = picksUsed;
+		else dataUsed = wResiduals.size();
 	}
 	
 	/**

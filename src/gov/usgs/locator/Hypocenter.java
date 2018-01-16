@@ -41,6 +41,7 @@ public class Hypocenter {
 	String quality;				// Summary event quality flags for the analysts
 	EllipAxis[] errEllip;	// Error ellipse
 	// Internal use:
+	int degOfFreedom;			// Degrees of freedom
 	double coLat;					// Geocentric colatitude in degrees
 	double sinLat;				// Sine of the geocentric colatitude
 	double cosLat;				// Cosine of the geocentric colatitude
@@ -48,10 +49,20 @@ public class Hypocenter {
 	double cosLon;				// Cosine of the longitude
 	double depthRes;			// Bayesian depth residual in kilometers
 	double depthWeight;		// Bayesian depth weight
+	// Iteration parameters:
+	int noDamp;						// Number of times step length damping has been applied
+	double chiSq;					// R-estimator dispersion or penalty value
+	double rms;						// R-estimator equivalent of the least squares RMS
+	double stepLen;				// Step length in kilometers
+	double delH;					// Horizontal (tangential) step length in kilometers
+	double delZ;					// Vertical (depth) step length in kilometers
+	double[] stepDir;			// Spatial local Cartesian step direction unit vector
 	// Getters:
+	public double getOrigin() { return originTime;}
 	public double getLatitude() {return latitude;}
   public double getLongitude() {return longitude;}
   public double getDepth() {return depth;}
+  
 	/**
 	 * Initializes a hypocenter with enough information to start a location pass.
 	 * 
@@ -63,6 +74,8 @@ public class Hypocenter {
 	public Hypocenter(double originTime, double latitude, double longitude, 
 			double depth) {
 		// Set up the hypocenter.
+		depth = Math.min(Math.max(depth, LocUtil.DEPTHMIN), 
+				LocUtil.DEPTHMAX);
 		updateHypo(originTime, latitude, longitude, depth);
 		// Set defaults for the rest.
 		bayesDepth = Double.NaN;
@@ -70,14 +83,17 @@ public class Hypocenter {
 		heldLoc = false;
 		heldDepth = false;
 		prefDepth = false;
-		cmndRstt = false;
-		cmndCorr = true;
-		restart = false;
 		// RSTT and the decorrelation are both off for initial processing, no 
 		// matter what the commands say.
+		cmndRstt = false;
+		cmndCorr = false;
+		restart = false;
 		errEllip = new EllipAxis[3];
 		depthRes = Double.NaN;
 		depthWeight = Double.NaN;
+		stepLen = 0d;
+		delH = 0d;
+		delZ = 0d;
 	}
 	
 	/**
@@ -97,12 +113,69 @@ public class Hypocenter {
 		this.depth = depth;
 		// Update the sines and cosines.
 		coLat = TauUtil.geoCen(latitude);
+		updateSines();
+		// Update the Bayesian depth residual.
+		if(!Double.isNaN(bayesDepth)) depthRes = bayesDepth-depth;
+	}
+	
+	/**
+	 * Move the hypocenter based on the linearized optimal step.
+	 * 
+	 * @param stepLen Step length in kilometers.
+	 */
+	public void updateHypo(double stepLen) {
+		// Save the convergence variable.
+		this.stepLen = stepLen;
+		// Compute the tangential step length for tracking purposes.
+		delH = Math.sqrt(Math.pow(stepLen*stepDir[0], 2d)+
+				Math.pow(stepLen*stepDir[1], 2d));
+		// Update the colatitude and longitude.
+		coLat += stepLen*stepDir[0]/LocUtil.DEG2KM;
+		longitude += stepLen*stepDir[1]/(LocUtil.DEG2KM*sinLat);
+		// Make sure the colatitude is legal.
+		if(coLat < 0d) {
+			coLat = Math.abs(coLat);
+			longitude += 180d;
+		} else if(coLat > 180d) {
+			coLat = 360d-coLat;
+			longitude += 180d;
+		}
+		// Make sure the longitude is legal.
+		if(longitude < 0d) {
+			longitude += 360d;
+		} else if(longitude > 360d) {
+			longitude -= 360d;
+		}
+		// Deal with depth separately.
+		if(!heldDepth) {
+			delZ = stepLen*stepDir[2];
+			depth += delZ;
+			depth = Math.min(Math.max(depth, LocUtil.DEPTHMIN), 
+					LocUtil.DEPTHMAX);
+		}
+		// Compute the geographic latitude.
+		latitude = TauUtil.geoLat(coLat);
+		// Update the sines and cosines.
+		updateSines();
+		// Update the Bayesian depth residual.
+		if(!Double.isNaN(bayesDepth)) depthRes = bayesDepth-depth;
+	}
+	
+	/**
+	 * Update the origin time.
+	 */
+	public void updateOrigin(double medianRes) {
+		originTime += medianRes;
+	}
+	
+	/**
+	 * Compute the sines and cosines of colatitude and longitude.
+	 */
+	private void updateSines() {
 		sinLat = Math.sin(Math.toRadians(coLat));
 		cosLat = Math.cos(Math.toRadians(coLat));
 		sinLon = Math.sin(Math.toRadians(longitude));
 		cosLon = Math.cos(Math.toRadians(longitude));
-		// Update the Bayesian depth residual.
-		if(!Double.isNaN(bayesDepth)) depthRes = bayesDepth-depth;
 	}
 	
 	/**
@@ -130,7 +203,8 @@ public class Hypocenter {
 		this.bayesDepth = bayesDepth;
 		this.bayesSpread = bayesSpread;
 		depthRes = bayesDepth-depth;
-		depthWeight = 1d/bayesSpread;
+		// The Bayesian spread is actually taken as a 90th percentile.
+		depthWeight = 3d/bayesSpread;
 	}
 	
 	/**
@@ -148,6 +222,22 @@ public class Hypocenter {
 		this.cmndRstt = cmndRstt;
 		this.cmndCorr = cmndCorr;
 		this.restart = restart;
+		if(heldLoc) degOfFreedom = 0;
+		else if(heldDepth) degOfFreedom = 2;
+		else degOfFreedom = 3;
+		if(degOfFreedom > 0) stepDir = new double[degOfFreedom];
+	}
+	
+	/**
+	 * Reset key hypocentral parameters to a backup for step length damping.
+	 * 
+	 * @param backup Hypocenter audit record
+	 */
+	public void resetHypo(HypoAudit backup) {
+		originTime = backup.originTime;
+		latitude = backup.latitude;
+		longitude = backup.longitude;
+		depth = backup.depth;
 	}
 	
 	/**

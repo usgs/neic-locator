@@ -19,8 +19,9 @@ import gov.usgs.traveltime.TTimeData;
  */
 public class InitialID {
 	Event event;
-	AllBrnVol allBrn;
 	Hypocenter hypo;
+	AllBrnVol allBrn;
+	PhaseID phaseID;
   ArrayList<Wresidual> wResiduals;
   Restimator rEst;
 
@@ -30,10 +31,11 @@ public class InitialID {
 	 * @param event Event information
 	 * @param allBrn Travel-time information
 	 */
-	public InitialID(Event event, AllBrnVol allBrn) {
+	public InitialID(Event event, AllBrnVol allBrn, PhaseID phaseID) {
 		this.event = event;
-		this.allBrn = allBrn;
 		hypo = event.hypo;
+		this.allBrn = allBrn;
+		this.phaseID = phaseID;
 		wResiduals = event.wResiduals;
 		rEst = event.rEst;
 	}
@@ -42,10 +44,9 @@ public class InitialID {
 	 * Do a tentative phase identification to see if the event is 
 	 * making sense.
 	 * 
-	 * @return Count of automatic first arrivals that appear to be 
-	 * incorrectly identified
+	 * @throws Exception On an illegal source depth
 	 */
-	public void survey() {
+	public void survey() throws Exception {
 		int badPs = 0;
 		boolean found;
 		PickGroup group;
@@ -55,9 +56,13 @@ public class InitialID {
 		TTime ttList;
     TTimeData tTime;
     Wresidual wRes;
-    
+		
 		// Reinitialize the weighted residual storage.
 		if(wResiduals.size() > 0) wResiduals.clear();
+		
+		// Set up a new travel-time session (i.e., new depth).
+		allBrn.newSession(hypo.latitude, hypo.longitude, hypo.depth, 
+				LocUtil.PHLIST);
 		
     // Loop over picks in the group.
     System.out.println();
@@ -142,6 +147,13 @@ public class InitialID {
     		hypo.originTime+median, badPs);
     hypo.originTime += median;
     
+		// On a restart, reidentify all phases to be consistent with the new hypocenter.  
+    // Note that we still needed the logic above to reset the origin time.
+		if(hypo.restart) {
+			phaseID.doID(0.1d, 1d, true, true);
+			return;
+		}
+		
     // Based on the number of probably misidentified first arrivals:
     System.out.println();
 		if(badPs < LocUtil.BADRATIO*event.stationsUsed) {

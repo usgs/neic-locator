@@ -13,14 +13,14 @@ public class Restimator {
 	int nLast = -1, medIndex1 = -1, medIndex2 = -1, length = -1, half = -1;
 	double median = 0d, spread = 0d;
 	double[] scores;
-	ArrayList<Wresidual> wRes;
+	ArrayList<Wresidual> wResiduals;
 	SortData[] sortData = null;
 	
 	/**
 	 * Remember the weighted residual storage.
 	 */
 	public Restimator(ArrayList<Wresidual> wResiduals) {
-		this.wRes = wResiduals;
+		this.wResiduals = wResiduals;
 	}
 	
 	/**
@@ -32,10 +32,10 @@ public class Restimator {
 	 */
 	public double median() {
 		// Make sure we have enough data to do something.
-		if(wRes.size() < 2) {
+		if(wResiduals.size() < 2) {
 			// If there's no data or only a depth constraint return zero.
-			if(wRes.size() == 0) return 0d;
-			else if(wRes.size() == 1 && wRes.get(0).isDepth) 
+			if(wResiduals.size() == 0) return 0d;
+			else if(wResiduals.size() == 1 && wResiduals.get(0).isDepth) 
 				return 0d;
 		}
 		/*
@@ -43,15 +43,15 @@ public class Restimator {
 		 * for pick residuals alone in the median and spread methods.  The 
 		 * extra space will be needed for computing the dispersion.
 		 */
-		if(sortData == null) sortData = new SortData[wRes.size()];
-		else if(sortData.length < wRes.size()) 
-			sortData = new SortData[wRes.size()];
+		if(sortData == null) sortData = new SortData[wResiduals.size()];
+		else if(sortData.length < wResiduals.size()) 
+			sortData = new SortData[wResiduals.size()];
 		
 		// Set up for the median.
 		length = 0;
-		for(int j=0; j<wRes.size(); j++) {
-			if(!wRes.get(j).isDepth) {
-				sortData[length] = new SortData(length, wRes.get(j).residual);
+		for(int j=0; j<wResiduals.size(); j++) {
+			if(!wResiduals.get(j).isDepth) {
+				sortData[length] = new SortData(length, wResiduals.get(j).residual);
 				length++;
 			}
 		}
@@ -83,7 +83,7 @@ public class Restimator {
 	 */
 	public double spread() {
 		// Trap insufficient data.
-		if(wRes.size() < 2) return 0d;
+		if(wResiduals.size() < 2) return 0d;
 		
 		// Set up for the spread.
 		for(int j=0; j<length; j++) {
@@ -104,6 +104,17 @@ public class Restimator {
 	}
 	
 	/**
+	 * Remove the median from the residuals.
+	 */
+	public void deMedianRes() {
+		for(int j=0; j<wResiduals.size(); j++) {
+			if(!wResiduals.get(j).isDepth) {
+				wResiduals.get(j).residual += median;
+			}
+		}
+	}
+	
+	/**
 	 * Remove the medians from each row of the design matrix.  Note that 
 	 * the positions of the median values corresponds to the positions 
 	 * for the residual, not their design values.  Obviously, the median 
@@ -111,25 +122,25 @@ public class Restimator {
 	 * 
 	 * @param d Design matrix
 	 */
-	public void deMedian() {
+	public void deMedianDesign() {
 		double[] dMed = new double[3];
 		
 		// Set up the medians.
 		if(length%2 == 0) {
 			for(int i=0; i<dMed.length; i++) {
-				dMed[i] = 0.5d*(wRes.get(medIndex1).deriv[i]+
-						wRes.get(medIndex2).deriv[i]);
+				dMed[i] = 0.5d*(wResiduals.get(medIndex1).deriv[i]+
+						wResiduals.get(medIndex2).deriv[i]);
 			}
 		} else {
 			for(int i=0; i<dMed.length; i++) {
-				dMed[i] = wRes.get(medIndex1).deriv[i];
+				dMed[i] = wResiduals.get(medIndex1).deriv[i];
 			}
 		}
 		// Remove the median values from the matrix.
-		for(int j=0; j<wRes.size(); j++) {
-			if(!wRes.get(j).isDepth) {
+		for(int j=0; j<wResiduals.size(); j++) {
+			if(!wResiduals.get(j).isDepth) {
 				for(int i=0; i<dMed.length; i++) {
-					wRes.get(j).deriv[i] -= dMed[i];
+					wResiduals.get(j).deriv[i] -= dMed[i];
 				}
 			}
 		}
@@ -144,32 +155,57 @@ public class Restimator {
 	 */
 	public double penalty(String tag) {
 		// Trap insufficient data.
-		if(wRes.size() < 2) return 0d;
+		if(wResiduals.size() < 2) return 0d;
 		
 		// Set up the penalty.
-		for(int j=0; j<wRes.size(); j++) {
+		for(int j=0; j<wResiduals.size(); j++) {
 			// This time keep the Bayesian depth constraint, but, of course, 
 			// don't remove the residual median.
-			if(!wRes.get(j).isDepth) {
-				sortData[j].value = (wRes.get(j).residual-median)*
-						wRes.get(j).weight;
+			if(!wResiduals.get(j).isDepth) {
+				sortData[j].value = (wResiduals.get(j).residual-median)*
+						wResiduals.get(j).weight;
 			} else {
-				sortData[j].value = wRes.get(j).residual*
-						wRes.get(j).weight;
+				sortData[j].value = wResiduals.get(j).residual*
+						wResiduals.get(j).weight;
 			}
 			sortData[j].index = j;
 		}
-		Arrays.sort(sortData, 0, wRes.size());
+		Arrays.sort(sortData, 0, wResiduals.size());
 		// Compute the penalty function.
 		double penalty = dispersion();
 		// Put the sorted indices back into R-estimator storage.
-		for(int j=0; j<wRes.size(); j++) {
-			wRes.get(j).sortIndex = sortData[j].index;
+		for(int j=0; j<wResiduals.size(); j++) {
+			wResiduals.get(j).sortIndex = sortData[j].index;
 		}
 		if(LocUtil.deBugLevel > 0 && !tag.equals("EL")) 
 			System.out.format("Lsrt: %s av sd chisq = ", tag, median, spread, 
 					penalty);
 		return penalty;
+	}
+	
+	public double[] steepest(int n) {
+		double[] stepDir;
+		Wresidual wResidual;
+		
+		// Interpolate the scores.
+		if(sortData.length != nLast) {
+			nLast = sortData.length;
+			makeScores(sortData.length);
+		}
+		// Initialize the step length.
+		stepDir = new double[n];
+		for(int j=0; j<n; j++) {
+			stepDir[j] = 0d;
+		}
+		// The step direction is the sum of weighted derivatives.  We have 
+		// to process the residuals in sort order for the scores to be right.
+		for(int j=0; j<sortData.length; j++) {
+			wResidual = wResiduals.get(sortData[j].index);
+			for(int i=0; i<n; i++) {
+				stepDir[i] += scores[j]*wResidual.weight*wResidual.deriv[i];
+			}
+		}
+		return LocUtil.unitVector(stepDir);
 	}
 	
 	/**

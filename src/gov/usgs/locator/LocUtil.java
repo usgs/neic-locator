@@ -11,6 +11,16 @@ import java.util.Date;
  */
 public class LocUtil {
 	/**
+	 * Maximum the epicenter can move and still be considered 
+	 * to be the same as the starting epicenter.
+	 */
+	public static final double DELTATOL = 3d;
+	/**
+	 * Maximum the depth can move and still be considered to 
+	 * be the same as the starting depth.
+	 */
+	public static final double DEPTHTOL = 5d;
+	/**
 	 * Minimum depth the Locator will allow.
 	 */
 	public static final double DEPTHMIN = 1d;
@@ -18,6 +28,10 @@ public class LocUtil {
 	 * Maximum depth the Locator will allow.
 	 */
 	public static final double DEPTHMAX = 700d;
+	/**
+	 * Default Bayesian depth standard error in kilometers.
+	 */
+	public static final double DEFDEPSE = 15d;
 	/**
 	 * Factor to down weight undesirable phase identifications.
 	 */
@@ -61,6 +75,38 @@ public class LocUtil {
 	 */
 	public static final double MADNORM = 1.482580d;
 	/**
+	 * Maximum number of iteration stages to attempt.
+	 */
+	public static int STAGELIM = 5;
+	/**
+	 * Start each iteration loop with this step length.
+	 */
+	public static final double INITSTEP = 50d;
+	/**
+	 * Maximum number of iterations for each stage.
+	 */
+	public static final int[] ITERLIM = {15, 20, 20, 20, 20};
+	/**
+	 * Convergence criteria in kilometers for each stage.
+	 */
+	public static final double[] CONVLIM = {1d, 0.1d, 0.1d, 0.1d, 0.1d};
+	/**
+	 * Maximum step length in kilometers to allow for each stage.
+	 */
+	public static final double[] STEPLIM = {200d, 50d, 20d, 20d, 20d};
+	/**
+	 * Step tolerance dividing "did not converge" from "unstable solution".
+	 */
+	public static final double STEPTOL = 20d;
+	/**
+	 * Chi-squared test for "nearly converged".
+	 */
+	public static final double ALMOST = 1.1d;
+	/**
+	 * The Locator always uses all phases (i.e., a null phase list).
+	 */
+	public static final String[] PHLIST = null;
+	/**
 	 * If true suppress phases that are unlikely to be observed.
 	 */
 	public static final boolean USEFUL = true;
@@ -101,6 +147,16 @@ public class LocUtil {
 	 */
 	public static double azimuth = Double.NaN;
 	/**
+	 * The jiggle value is a semi-random number used to make step length 
+	 * damping behave better in pathological cases.
+	 */
+	public static double dampVal = 0.45d;
+	/**
+	 * The jiggle limit is used to keep the jiggle value in a reasonable 
+	 * range.
+	 */
+	public static final double DAMPLIM = 0.58984375d+(dampVal-0.375d);
+	/**
 	 * Constants needed by ttResModel.
 	 */
 	private final static double ttResWidth = 1.001691d;								// Model spread
@@ -122,6 +178,7 @@ public class LocUtil {
 	private final static double VALIDOFFSET = 5d;
 	
 	/**
+	 * Compute the source-receiver distance and the receiver azimuth.  
 	 * An historically significant subroutine from deep time (1962)!  This 
 	 * routine was written by Bob Engdahl in Fortran (actually in the days 
 	 * before subroutines) and beaten into it's current Fortran form by 
@@ -164,6 +221,37 @@ public class LocUtil {
 			return 0d;
 		} else {
 			return Math.toDegrees(Math.atan2(sindel,cosdel));
+		}
+	}
+	
+	/**
+	 * Compute the epicentral distance between two hypocenters.
+	 * 
+	 * @param hypo Hypocenter information
+	 * @param audit Hypocenter audit information
+	 * @return Distance between hypocenters in kilometers
+	 */
+	public static double delStep(Hypocenter hypo, HypoAudit audit) {
+		double cosdel, sindel, tm1, tm2;	// Use Bob Engdahl's variable names
+		
+		// South Pole:
+		if(audit.sinLat <= TauUtil.DTOL) {
+			return DEG2KM*Math.toDegrees(Math.PI-Math.acos(hypo.cosLat));
+		}
+		
+		// Compute some intermediate variables.
+		cosdel = hypo.sinLat*audit.sinLat*(audit.cosLon*hypo.cosLon+
+				audit.sinLon*hypo.sinLon)+hypo.cosLat*audit.cosLat;
+		tm1 = audit.sinLat*(audit.sinLon*hypo.cosLon-audit.cosLon*hypo.sinLon);
+		tm2 = hypo.sinLat*audit.cosLat-hypo.cosLat*audit.sinLat*
+				(audit.cosLon*hypo.cosLon+audit.sinLon*hypo.sinLon);
+		sindel = Math.sqrt(Math.pow(tm1,2d)+Math.pow(tm2,2d));
+		
+		// Do delta.
+		if(sindel <= TauUtil.DTOL && Math.abs(cosdel) <= TauUtil.DTOL) {
+			return 0d;
+		} else {
+			return DEG2KM*Math.toDegrees(Math.atan2(sindel,cosdel));
 		}
 	}
 	
@@ -252,6 +340,64 @@ public class LocUtil {
 	 */
 	public static double validLim(double spread) {
 		return VALIDSLOPE*(spread-1d)+ VALIDOFFSET;
+	}
+	
+	/**
+	 * Sometimes you can jiggle a machine to jog it out of a rut.  In this 
+	 * case the damping factor is jiggled semi-randomly to avoid loops when 
+	 * step length damping is required.  Note that, the step length will be 
+	 * damped by multiplying it by the damping factor.
+	 * 
+	 * @return Updated damping factor
+	 */
+	public static double dampFactor() {
+		if(dampVal <= DAMPLIM) {
+			dampVal += 0.0390625d;
+		} else {
+			dampVal -= 0.21875d;
+		}
+		return dampVal;
+	}
+	
+	/**
+	 * Compare two hypocenters.
+	 * 
+	 * @param hypo Hypocenter information
+	 * @param audit Hypocenter audit information
+	 * @return True if the hypocenters are (nearly) the same
+	 */
+	public static boolean hypoCompare(Hypocenter hypo, HypoAudit audit) {
+		if(Math.abs(hypo.originTime-audit.originTime) <= 0.01d && 
+				Math.abs(hypo.latitude-audit.latitude) <= 0.0001d && 
+				Math.abs(hypo.longitude-audit.longitude) <= 0.0001d && 
+				Math.abs(hypo.depth-audit.depth) <= 0.01d) return true;
+		else return false;
+	}
+	
+	/**
+	 * Convert an arbitrary vector to a 2-norm unit vector.
+	 * 
+	 * @param vector Vector
+	 */
+	public static double[] unitVector(double[] vector) {
+		double sum = 0d;
+		
+		// Be sure we have a valid vector.
+		if(vector == null) return vector;
+		if(vector.length < 1) return vector;
+		
+		// Compute the 2-norm.
+		for(int j=0; j<vector.length; j++) {
+			sum =+ Math.pow(vector[j], 2d);
+		}
+		// Bail if the vector is all zeros.
+		if(sum == 0d) return vector;
+		// Remove the norm.
+		sum = Math.sqrt(sum);
+		for(int j=0; j<vector.length; j++) {
+			vector[j] /= sum;
+		}
+		return vector;
 	}
 	
 	/**

@@ -17,6 +17,7 @@ import gov.usgs.traveltime.TTimeData;
  *
  */
 public class PhaseID {
+	double lastDepth = Double.NaN;
   Event event;
   AllBrnVol allBrn;
   AuxTtRef auxtt;
@@ -35,12 +36,10 @@ public class PhaseID {
    *
    * @param event Event object
    * @param allBrn All branches travel-time object
-   * @param auxtt
    */
-  public PhaseID(Event event, AllBrnVol allBrn, AuxTtRef auxtt) {
+  public PhaseID(Event event, AllBrnVol allBrn) {
     this.event = event;
     this.allBrn = allBrn;
-    this.auxtt = auxtt;
     hypo = event.hypo;
     wResiduals = event.wResiduals;
   }
@@ -57,9 +56,10 @@ public class PhaseID {
    * try not to change identifications
    * @param reWeight If true, update the residual weights
 	 * @return True if any used pick in the group has changed significantly
+   * @throws Exception On an illegal source depth
    */
   public boolean doID(double otherWeight, double stickyWeight, boolean reID, 
-  		boolean reWeight) {
+  		boolean reWeight) throws Exception {
   	boolean changed;
     Station station;
     Wresidual wRes;
@@ -75,6 +75,15 @@ public class PhaseID {
 		// Reinitialize the weighted residual storage.
 		if(wResiduals.size() > 0) wResiduals.clear();
 
+		if(hypo.depth != lastDepth) {
+			// Set up a new travel-time session if the depth has changed.
+			allBrn.newSession(hypo.latitude, hypo.longitude, hypo.depth, 
+					LocUtil.PHLIST);
+		} else {
+			// Otherwise, just update the epicenter coordinates.
+			allBrn.newEpicenter(hypo.latitude, hypo.longitude);
+		}
+		
     // Do the travel-time calculation.
     for (int j = 0; j < event.noStations(); j++) {
       group = event.groups.get(j);
@@ -105,6 +114,7 @@ public class PhaseID {
     // Create a list of used picks that will be indexed by the weighted 
     // residuals (before and after sorting).
     event.makeUsedPicks();
+    event.staStats();
     return changed;
   }
 

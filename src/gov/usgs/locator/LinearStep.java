@@ -22,7 +22,7 @@ public class LinearStep {
 	ArrayList<Pick> picks;
 	ArrayList<Wresidual> wRes;
 	
-	public LinearStep(Event event, Restimator rEst, double[] stepDir) {
+	public LinearStep(Event event, Restimator rEst) {
 		this.event = event;
 		hypo = event.getHypo();
 		picks = event.usedPicks;
@@ -53,8 +53,6 @@ public class LinearStep {
 		RestResult testSample;
 		RestResult[] sample = new RestResult[3]; 
 		
-		// Remember the step direction for the dispersion estimate.
-		this.stepDir = stepDir;
 		// The trial vector has to be the same size.
 		trialVector = new double[stepDir.length];
 		
@@ -66,12 +64,12 @@ public class LinearStep {
 		sample[1] = estPenalty(stepLen);
 		
 		// Do some preliminary hunting to surround the minimum.
-		if(sample[0].penalty >= sample[1].penalty) {
+		if(sample[0].chiSq >= sample[1].chiSq) {
 			// If the trial step was too short:
 			stepLen = 2d*stepLen;
 			sample[2] = estPenalty(stepLen);
 			// Keep stepping until the penalty gets bigger.
-			while(sample[1].penalty >= sample[2].penalty) {
+			while(sample[1].chiSq >= sample[2].chiSq) {
 				// If we've gone too far, return what we've got.
 				if(sample[2].stepLen >= stepMax) {
 					trialStep(sample[2].stepLen);
@@ -92,12 +90,12 @@ public class LinearStep {
 				sample[1] = estPenalty(stepLen);
 				// See if we've converged.
 				if(sample[1].stepLen <= stepMin) {
-					if(sample[1].penalty < sample[0].penalty) 
+					if(sample[1].chiSq < sample[0].chiSq) 
 						throw new Exception();
 					trialStep(sample[0].stepLen);
 					return sample[0];
 				}
-			} while(sample[0].penalty < sample[1].penalty);
+			} while(sample[0].chiSq < sample[1].chiSq);
 		}
 		
 		// Now we can start homing in from both sides.
@@ -106,12 +104,12 @@ public class LinearStep {
 			// Try the lower half first.
 			stepLen = 0.5*(sample[0].stepLen+sample[1].stepLen);
 			testSample = estPenalty(stepLen);
-			if(testSample.penalty >= sample[1].penalty) {
+			if(testSample.chiSq >= sample[1].chiSq) {
 				// That didn't work, try the upper half.
 				sample[0] = testSample;
 				stepLen = 0.5*(sample[1].stepLen+sample[2].stepLen);
 				testSample = estPenalty(stepLen);
-				if(testSample.penalty >= sample[1].penalty) {
+				if(testSample.chiSq >= sample[1].chiSq) {
 					// The minimum's in the lower part of the upper half.
 					sample[2] = testSample;
 				} else {
@@ -126,8 +124,7 @@ public class LinearStep {
 			}
 		}
 		// Done.
-		if(sample[1].penalty < sample[0].penalty) 
-			throw new Exception();
+		if(sample[1].chiSq < sample[0].chiSq) throw new Exception();
 		trialStep(sample[0].stepLen);
 		return sample[0];
 	}

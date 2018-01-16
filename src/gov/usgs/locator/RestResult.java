@@ -10,7 +10,7 @@ public class RestResult {
 	double stepLen;			// Step length in kilometers
 	double median;			// Median residual in seconds
 	double spread;			// Residual spread in seconds
-	double penalty;			// Dispersion in seconds
+	double chiSq;				// Dispersion in seconds
 	
 	/**
 	 * Remember the results of the R-estimator algorithm.
@@ -25,6 +25,6 @@ public class RestResult {
 		this.stepLen = stepLen;
 		this.median = median;
 		this.spread = spread;
-		this.penalty = penalty;
+		this.chiSq = penalty;
 	}
 }
