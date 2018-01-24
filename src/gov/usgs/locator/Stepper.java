@@ -87,7 +87,7 @@ public class Stepper {
 	 */
 	private LocStatus setDir(double otherWeight, double stickyWeight, boolean reID, 
   		boolean reWeight) throws Exception {
-		double bayesDepth, bayesSpread, medianRes, chiSq;
+		double bayesDepth, bayesSpread, medianRes;
 		
 		// If we're re-weighting, reset the craton and zone statistics 
 		// as well.
@@ -99,11 +99,13 @@ public class Stepper {
 			} else {
 				LocUtil.tectonic = true;
 			}
+			System.out.println("\n\tTectonic = "+LocUtil.tectonic);
 			if(!hypo.prefDepth) {
 				// Update the Bayesian depth if it wasn't set by the analyst.
 				bayesDepth = zones.bayesDepth(hypo.latitude, hypo.longitude);
 				bayesSpread = zones.bayesSpread();
 				hypo.updateBayes(bayesDepth, bayesSpread);
+				System.out.format("\tBayes: %5.1f +/- %5.1f\n", bayesDepth, hypo.depthWeight);
 			}
 		}
 		
@@ -116,13 +118,24 @@ public class Stepper {
 		medianRes = rEst.median();
 		rEst.deMedianRes();
 		// Get the R-estimator dispersion.
-		chiSq = rEst.penalty("ST");
+		hypo.chiSq = rEst.penalty();
+		if(LocUtil.deBugLevel > 0) System.out.format("\nLsrt: ST av chisq = "+
+					"%8.4f %10.4f\n", medianRes, hypo.chiSq);
 		
+//	event.printWres(true);
 		// Demedian the design matrix.
 		rEst.deMedianDesign();
+//	event.printWres(true);
 		// Get the steepest descent direction.
 		hypo.stepDir = rEst.steepest(hypo.degOfFreedom);
-		result = new RestResult(0d, medianRes, 0d, chiSq);
+		if(LocUtil.deBugLevel > 0) {
+			System.out.print("Adder: b =");
+			for(int j=0; j<hypo.stepDir.length; j++) {
+				System.out.format(" %7.4f", hypo.stepDir[j]);
+			}
+			System.out.println();
+		}
+		result = new RestResult(0d, medianRes, 0d, hypo.chiSq);
 		
 		return LocStatus.SUCCESS;
 	}
@@ -142,7 +155,7 @@ public class Stepper {
 		LocStatus status = LocStatus.SUCCESS;
 		
 		// Save the current hypocenter as a reference for the step length damping.
-		lastHypo = new HypoAudit(hypo, 0, 0, event.picksUsed);
+		lastHypo = new HypoAudit(hypo, 0, 0, event.picksUsed, status);
 		
 		// Get the linearized step.
 		hypo.noDamp = 0;
@@ -161,13 +174,13 @@ public class Stepper {
 		}
 		
 		// Update the hypocenter.
-		hypo.updateHypo(result.stepLen);
+		event.updateHypo(result.stepLen, result.median);
 		// Reidentify phases and get the non-linear R-estimator parameters 
 		// for the new hypocenter.
 		if(setDir(0.01d, 5d, false, false) == LocStatus.INSUFFICIENT_DATA) {
 			return LocStatus.INSUFFICIENT_DATA;
 		}
-		hypo.updateOrigin(result.median);
+		event.updateOrigin(result.median);
 		// If the phase identification has changed, we have to start over.
 		if(event.changed) {
 			hypo.chiSq = result.chiSq;
@@ -216,13 +229,13 @@ public class Stepper {
 			hypo.resetHypo(lastHypo);
 			hypo.stepLen *= damp;
 			// Update the hypocenter.
-			hypo.updateHypo(result.stepLen);
+			event.updateHypo(result.stepLen, 0d);
 			// Reidentify phases and get the non-linear R-estimator parameters 
 			// for the new hypocenter.
 			if(setDir(0.01d, 5d, false, false) == LocStatus.INSUFFICIENT_DATA) {
 				return LocStatus.INSUFFICIENT_DATA;
 			}
-			hypo.updateOrigin(result.median);
+			event.updateOrigin(result.median);
 			// If the phase identification has changed, we have to start over.
 			if(event.changed) {
 				hypo.chiSq = result.chiSq;

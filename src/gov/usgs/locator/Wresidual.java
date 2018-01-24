@@ -1,5 +1,7 @@
 package gov.usgs.locator;
 
+import java.util.Arrays;
+
 /**
  * This weighted residuals storage combines the residuals and weights 
  * for picks and the Bayesian depth, while providing storage for the 
@@ -17,6 +19,7 @@ public class Wresidual {
 	double estResidual;	// Linearly estimated residual
 	double weight;			// Weight
 	double[] deriv;			// Spatial derivatives in kilometers
+	double[] deDeriv;		// Demedianed spatial derivatives in kilometers
 	
 	/**
 	 * Initialize the weighted residual with minimal information.
@@ -51,6 +54,21 @@ public class Wresidual {
 		deriv[0] = dTdLat;
 		deriv[1] = dTdLon;
 		deriv[2] = dTdDepth;
+		// Initialize the demedianed derivatives.
+		deDeriv = Arrays.copyOf(deriv, deriv.length);
+	}
+	
+	/**
+	 * Remove the median from the derivatives.  Note that this isn't the 
+	 * median of the derivatives, but the derivative corresponding to the 
+	 * median of the residuals.
+	 * 
+	 * @param medians Array of derivative medians
+	 */
+	public void deMedianDeriv(double[] medians) {
+		for(int j=0; j<medians.length; j++) {
+			deDeriv[j] = deriv[j]-medians[j];
+		}
 	}
 	
 	/**
@@ -73,5 +91,21 @@ public class Wresidual {
 	 */
 	public int getSortIndex() {
 		return sortIndex;
+	}
+	
+	/**
+	 * Print the contents of the weighted residuals.
+	 * 
+	 * @param full If true, print the derivatives as well
+	 */
+	public void printWres(boolean full) {
+		if(!full || deriv == null) {
+			System.out.format("\t%4d Res: %7.2f %7.2f Wt: %7.4f %b\n", sortIndex, 
+					residual, estResidual, weight, isDepth);
+		} else {
+			System.out.format("\t%4d Res: %7.2f %7.2f Wt: %7.4f deriv: %10.3e "+
+					"%10.3e %10.3e %b\n", sortIndex, residual, estResidual, weight, 
+					deriv[0], deriv[1], deriv[2], isDepth);
+		}
 	}
 }

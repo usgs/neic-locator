@@ -28,12 +28,13 @@ public class Locate {
 	 * @param event Event information
 	 * @param allBrn Travel-time information
 	 */
-	public Locate(Event event, AllBrnVol allBrn, AuxLocRef auxLoc) {
+	public Locate(Event event, AllBrnVol allBrn, AuxLocRef auxLoc, 
+			AuxTtRef auxTT) {
 		this.event = event;
 		hypo = event.hypo;
 		audit = event.audit;
 		this.allBrn = allBrn;
-		phaseID = new PhaseID(event, allBrn);
+		phaseID = new PhaseID(event, allBrn, auxTT);
 		initialID = new InitialID(event, allBrn, phaseID);
 		stepper = new Stepper(event, allBrn, phaseID, auxLoc);
 		close = new CloseOut();
@@ -74,7 +75,7 @@ public class Locate {
 			/*
 			 * Do the multistage iteration to refine the hypocenter.
 			 */
-			for(; stage < LocUtil.STAGELIM; stage++) {
+			for(stage = 0; stage < LocUtil.STAGELIM; stage++) {
 				iter = 0;		// Initialize for tracking purposes.
 				switch(stage) {
 					case 0:
@@ -105,6 +106,7 @@ public class Locate {
 					close.endStats(status);
 					return status;
 				}
+				hypo.stepLen = LocUtil.INITSTEP;
 				
 				// Iterate to convergence (or to the iteration limit).
 				step: for(iter = 0; iter < LocUtil.ITERLIM[stage]; iter++) {

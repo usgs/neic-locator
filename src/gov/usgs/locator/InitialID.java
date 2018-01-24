@@ -60,9 +60,17 @@ public class InitialID {
 		// Reinitialize the weighted residual storage.
 		if(wResiduals.size() > 0) wResiduals.clear();
 		
-		// Set up a new travel-time session (i.e., new depth).
-		allBrn.newSession(hypo.latitude, hypo.longitude, hypo.depth, 
-				LocUtil.PHLIST);
+		// This should always be the first new session, but just to be 
+		// on the safe side...
+		if(hypo.depth != hypo.ttDepth) {
+			// Set up a new travel-time session if the depth has changed.
+			allBrn.newSession(hypo.latitude, hypo.longitude, hypo.depth, 
+					LocUtil.PHLIST);
+			hypo.ttDepth = hypo.depth;
+		} else {
+			// Otherwise, just update the epicenter coordinates.
+			allBrn.newEpicenter(hypo.latitude, hypo.longitude);
+		}
 		
     // Loop over picks in the group.
     System.out.println();
@@ -71,13 +79,13 @@ public class InitialID {
       if (group.picksUsed() > 0) {
         // For the first pick in the group, get the travel times.
         station = group.station;
-    //   System.out.println("\nInitialID: " + station + ":");
+  //    System.out.println("\nInitialID: " + station + ":");
         // Do the travel-time calculation.
         ttList = allBrn.getTT(station.latitude, station.longitude,
                 station.elevation, group.delta, group.azimuth, LocUtil.USEFUL,
                 LocUtil.tectonic, LocUtil.NOBACKBRN, LocUtil.rstt);
         // Print them.
-    //   ttList.print(event.hypo.depth, group.delta);
+  //    ttList.print(event.hypo.depth, group.delta);
         tTime = ttList.get(0);
         
         /*
@@ -143,9 +151,9 @@ public class InitialID {
   	 * ensures that succeeding phase identifications have a chance.
   	 */
     double median = rEst.median();
-    System.out.format("Update origin: %f %f %f %d\n", hypo.originTime, median, 
+    System.out.format("\nUpdate origin: %f %f %f %d\n", hypo.originTime, median, 
     		hypo.originTime+median, badPs);
-    hypo.originTime += median;
+    event.updateOrigin(median);
     
 		// On a restart, reidentify all phases to be consistent with the new hypocenter.  
     // Note that we still needed the logic above to reset the origin time.
@@ -229,14 +237,14 @@ public class InitialID {
         			!phCode.equals("Sn") && !phCode.equals("Lg")) {
         		// For the first pick in the group, get the travel times.
         		station = group.station;
-        //	System.out.println("\n" + station + ":");
+    //  		System.out.println("\n" + station + ":");
         		ttList = allBrn.getTT(station.latitude, station.longitude,
                 station.elevation, group.delta, group.azimuth, true,
                 false, false, false);
         		// Print them.
-        //	ttList.print(event.hypo.depth, group.delta);
+    //  		ttList.print(event.hypo.depth, group.delta);
         		// Set the phase code.  The travel time was already set in survey.
-        		pick.phCode = ttList.get(0).getPhCode();
+        		pick.updateID(ttList.get(0).getPhCode());
     				System.out.format("\tIdHard: %-5s %-8s -> %-8s auto\n", 
     						group.station.staID.staCode, phCode, ttList.get(0).getPhCode());
         	// If it's a core phase or not a common mis-identification, just don't use it.

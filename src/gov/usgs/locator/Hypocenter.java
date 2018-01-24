@@ -57,6 +57,8 @@ public class Hypocenter {
 	double delH;					// Horizontal (tangential) step length in kilometers
 	double delZ;					// Vertical (depth) step length in kilometers
 	double[] stepDir;			// Spatial local Cartesian step direction unit vector
+	// Travel-time control:
+	double ttDepth;
 	// Getters:
 	public double getOrigin() { return originTime;}
 	public double getLatitude() {return latitude;}
@@ -94,6 +96,7 @@ public class Hypocenter {
 		stepLen = 0d;
 		delH = 0d;
 		delZ = 0d;
+		ttDepth = Double.NaN;
 	}
 	
 	/**
@@ -123,9 +126,11 @@ public class Hypocenter {
 	 * 
 	 * @param stepLen Step length in kilometers.
 	 */
-	public void updateHypo(double stepLen) {
+	public void updateHypo(double stepLen, double medianRes) {
 		// Save the convergence variable.
 		this.stepLen = stepLen;
+		// Update the origin time.
+		originTime += medianRes;
 		// Compute the tangential step length for tracking purposes.
 		delH = Math.sqrt(Math.pow(stepLen*stepDir[0], 2d)+
 				Math.pow(stepLen*stepDir[1], 2d));
@@ -141,9 +146,9 @@ public class Hypocenter {
 			longitude += 180d;
 		}
 		// Make sure the longitude is legal.
-		if(longitude < 0d) {
+		if(longitude < -180d) {
 			longitude += 360d;
-		} else if(longitude > 360d) {
+		} else if(longitude > 180d) {
 			longitude -= 360d;
 		}
 		// Deal with depth separately.
@@ -163,9 +168,11 @@ public class Hypocenter {
 	
 	/**
 	 * Update the origin time.
+	 * 
+	 * @param dT Shift in the origin time in seconds
 	 */
-	public void updateOrigin(double medianRes) {
-		originTime += medianRes;
+	public void updateOrigin(double dT) {
+		originTime += dT;
 	}
 	
 	/**
@@ -212,8 +219,10 @@ public class Hypocenter {
 	 * 
 	 * @param heldLoc True if the hypocenter will be held constant
 	 * @param heldDepth True if the depth will be held constant
-	 * @param rstt True if regional phases will use the RSTT model
-	 * @param noSvd True to not use the de-correlation algorithm
+	 * @param cmndRstt True if regional phases will use the RSTT model
+	 * @param cmndCorr True to use the decorrelation algorithm
+	 * @param restart True if the hypocenter has been moved outside of the 
+	 * Locator
 	 */
 	public void addFlags(boolean heldLoc, boolean heldDepth, boolean cmndRstt, 
 			boolean cmndCorr, boolean restart) {
@@ -229,7 +238,8 @@ public class Hypocenter {
 	}
 	
 	/**
-	 * Reset key hypocentral parameters to a backup for step length damping.
+	 * Reset key hypocentral parameters to a backup (used for step length 
+	 * damping).
 	 * 
 	 * @param backup Hypocenter audit record
 	 */
@@ -253,6 +263,11 @@ public class Hypocenter {
 	
 	/**
 	 * Print the hypocenter part of a Bulletin Hydra style output file.
+	 * 
+	 * @param noStations Number of stations
+	 * @param stationsUsed Number of stations used in by the Locator
+	 * @param noPicks Number of picks
+	 * @param picksUsed Number of picks used by the Locator
 	 */
 	public void printHydra(int noStations, int stationsUsed, int noPicks, 
 			int picksUsed) {

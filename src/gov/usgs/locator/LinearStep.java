@@ -27,6 +27,7 @@ public class LinearStep {
 		hypo = event.getHypo();
 		picks = event.usedPicks;
 		wRes = event.wResiduals;
+		this.rEst = rEst;
 	}
 	
 	/**
@@ -53,10 +54,13 @@ public class LinearStep {
 		RestResult testSample;
 		RestResult[] sample = new RestResult[3]; 
 		
+		if(LocUtil.deBugLevel > 0) System.out.println();
+		
 		// The trial vector has to be the same size.
 		trialVector = new double[stepDir.length];
 		
 		// Initialize the bisection.
+		this.stepDir = stepDir; 
 		initLen = startLen;
 		stepLen = startLen;
 		sample[0] = new RestResult(0d, 0d, 0d, curPenalty);
@@ -73,6 +77,9 @@ public class LinearStep {
 				// If we've gone too far, return what we've got.
 				if(sample[2].stepLen >= stepMax) {
 					trialStep(sample[2].stepLen);
+					if(LocUtil.deBugLevel > 0) System.out.format("Lintry: x dsp = "+
+							"%6.2f %9.4f %5.2f\n", sample[2].stepLen, sample[2].chiSq, 
+							sample[2].median);
 					return sample[2];
 				}
 				sample[0] = sample[1];
@@ -93,6 +100,9 @@ public class LinearStep {
 					if(sample[1].chiSq < sample[0].chiSq) 
 						throw new Exception();
 					trialStep(sample[0].stepLen);
+					if(LocUtil.deBugLevel > 0) System.out.format("Lintry: x dsp = "+
+							"%6.2f %9.4f %5.2f\n", sample[0].stepLen, sample[0].chiSq, 
+							sample[0].median);
 					return sample[0];
 				}
 			} while(sample[0].chiSq < sample[1].chiSq);
@@ -126,6 +136,9 @@ public class LinearStep {
 		// Done.
 		if(sample[1].chiSq < sample[0].chiSq) throw new Exception();
 		trialStep(sample[0].stepLen);
+		if(LocUtil.deBugLevel > 0) System.out.format("Lintry: x dsp = "+
+				"%6.2f %9.4f %5.2f\n", sample[0].stepLen, sample[0].chiSq, 
+				sample[0].median);
 		return sample[0];
 	}
 	
@@ -147,17 +160,17 @@ public class LinearStep {
 	 * @return The results of the R-estimator algorithm
 	 */
 	private RestResult estPenalty(double stepLen) {
-		double median;
+		double median, penalty;
 		
 		// Do the initial pass to demean the correlated residuals.
 		trialStep(stepLen);
+//	System.out.println("\nEstRes:");
 		for(int j=0; j<wRes.size(); j++) {
 			wRes.get(j).updateEst(trialVector);
+//		wRes.get(j).printWres(false);
 		}
-		median = rEst.median();
-		for(int j=0; j<wRes.size(); j++) {
-			wRes.get(j).estResidual -= median;
-		}
+		median = rEst.estMedian();
+		rEst.deMedianEstRes();
 		
 		// Run the projection algorithm here...
 		if(LocUtil.deCorrelate) {
@@ -165,7 +178,10 @@ public class LinearStep {
 			return null;
 		// ...unless we're not decorrelating.
 		} else {
-			return new RestResult(stepLen, median, 0d, rEst.penalty("EL"));
+			penalty = rEst.estPenalty();
+			if(LocUtil.deBugLevel > 0) System.out.format("Estlin: x dsp = "+
+					"%6.2f %9.4f %5.2f\n", stepLen, penalty, median);
+			return new RestResult(stepLen, median, 0d, penalty);
 		}
 	}
 	
@@ -184,11 +200,13 @@ public class LinearStep {
 		// Make sure the depth is OK.
 		if(!LocUtil.epicenter) {
 			// Trap air quakes.
-			if(hypo.depth+trialVector[3] < LocUtil.DEPTHMIN) 
-				trialVector[3] = LocUtil.DEPTHMIN-hypo.depth;
+			if(hypo.depth+trialVector[2] < LocUtil.DEPTHMIN) 
+				trialVector[2] = LocUtil.DEPTHMIN-hypo.depth;
 			// Trap lower mantle quakes.
-			else if(hypo.depth+trialVector[3] > LocUtil.DEPTHMAX) 
-				trialVector[3] = LocUtil.DEPTHMAX-hypo.depth;
+			else if(hypo.depth+trialVector[2] > LocUtil.DEPTHMAX) 
+				trialVector[2] = LocUtil.DEPTHMAX-hypo.depth;
 		}
+//	System.out.format("TrialStep = %7.2f %7.2f %7.2f\n", trialVector[0], 
+//			trialVector[1], trialVector[2]);
 	}
 }

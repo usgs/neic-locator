@@ -44,11 +44,9 @@ public class Pick implements Comparable<Pick> {
 	 * Create the pick with just enough information to be useful.
 	 * 
 	 * @param station Station ID
-	 * @param latitude Geographic latitude in degrees
-	 * @param longitude Longitude in degrees
-	 * @param elevation Elevation in kilometers
+	 * @param chaCode Channel code
 	 * @param arrivalTime Arrival time in seconds since the epoch
-	 * @param use If true, the pick may be used in a a location
+	 * @param cmndUse If true, the pick may be used in a a location
 	 * @param phCode Current locator or associator phase code
 	 */
 	public Pick(Station station, String chaCode, double arrivalTime, 
@@ -83,7 +81,8 @@ public class Pick implements Comparable<Pick> {
 	 * @param dbID Data base ID (convenience for Hydra)
 	 * @param quality Pick uncertainty in seconds (not currently used)
 	 * @param obsCode Original pick identification (associator or analyst)
-	 * @param authority Source of the original phase identification
+	 * @param authType Type (e.g., human or auto) of the original phase 
+	 * identification
 	 * @param affinity Higher numbers make it harder to re-identify the phase
 	 */
 	public void addIdAids(String dbID, double quality, String obsCode, 
@@ -106,6 +105,8 @@ public class Pick implements Comparable<Pick> {
 		}
     if ((idCode.equals("Lg") || idCode.equals("LR")) && !auto) 
     	surfWave = true;
+    System.out.format("%-5s: %-8s %-8s %s\n", station.staID.staCode, 
+    		phCode, idCode, authType);
 	}
 	
 	/**
@@ -119,10 +120,25 @@ public class Pick implements Comparable<Pick> {
 	}
 	
 	/**
-	 * When the phase is re-identified, these parameters need to change.
+	 * Update the phase code.  This abbreviated version is only used for 
+	 * the initial phase ID.
 	 * 
-	 * @param phCode Current phase code
-	 * @param weight Pick regression weight
+	 * @param phCode New phase code
+	 */
+	public void updateID(String phCode) {
+		this.phCode = phCode;
+		if(auto) idCode = phCode;
+	}
+	
+	/**
+	 * When the phase is re-identified, we need to update the phase code, 
+	 * residual, derivatives, and optionally the weight.
+	 * 
+	 * @param first True if this is the first phase in a group
+	 * @param reWeight True if weights are to be recomputed
+	 * @param azimuth Azimuth of the station from the source in degrees
+	 * @param wResiduals The weighted residual information used in 
+	 * the Rank-Sum routines is updated here
 	 * @return True if a used phase has changed identification or is no 
 	 * longer used
 	 */
@@ -146,8 +162,8 @@ public class Pick implements Comparable<Pick> {
 				residual = 0d;
 			}
 			// If this phase is still being used, set the weight.
-			if((used && mapStat.canUse() && fomStat <= 
-					LocUtil.validLim(mapStat.getSpread())) || forceStat) {
+			if(used && mapStat.canUse() && (fomStat <= 
+					LocUtil.validLim(mapStat.getSpread()) || forceStat)) {
 				if(reWeight) weight = 1d/Math.max(mapStat.getSpread(), 0.2d);
 				wRes = new Wresidual(false, wResiduals.size(), residual, weight);
 				wRes.addDeriv(LocUtil.dTdLat(mapStat.getDTdD(), azimuth), 
@@ -222,13 +238,6 @@ public class Pick implements Comparable<Pick> {
 	public void setFomAlt(TTimeData tTime, double fomAlt) {
 		mapAlt = tTime;
 		this.fomAlt = fomAlt;
-	}
-
-	/**
-	 * The used flag can only change from true to false. 
-	 */
-	public void dontUse() {
-		used = false;
 	}
 
 	/**

@@ -53,15 +53,38 @@ public class PickGroup {
 	}
 	
 	/**
+	 * Both the hypocenter and origin time have changed.  
+	 * Update the distance, azimuth, and travel times.
+	 * 
+	 * @param hypo Hypocenter information.
+	 */
+	public void updateEvent(Hypocenter hypo) {
+		// Distance and azimuth are group level parameters.
+		delta = LocUtil.delAz(hypo, station);
+		azimuth = LocUtil.azimuth;
+		// Update travel times.
+		for(int j=0; j<picks.size(); j++) {
+			picks.get(j).updateTt(hypo);
+		}
+	}
+	
+	/**
 	 * Update the pick group when the hypocenter is updated.
 	 * 
 	 * @param hypo Hypocenter information
 	 */
-	public void update(Hypocenter hypo) {
+	public void updateHypo(Hypocenter hypo) {
 		// Distance and azimuth are group level parameters.
 		delta = LocUtil.delAz(hypo, station);
 		azimuth = LocUtil.azimuth;
-		// Update travel time for each pick in the group.
+	}
+	
+	/**
+	 * Update the travel time for picks in the group.
+	 * 
+	 * @param hypo Hypocenter information
+	 */
+	public void updateOrigin(Hypocenter hypo) {
 		for(int j=0; j<picks.size(); j++) {
 			picks.get(j).updateTt(hypo);
 		}
@@ -152,6 +175,11 @@ public class PickGroup {
 		}
 	}
 	
+	/**
+	 * Print the picks in a group in a more user friendly manner.
+	 * 
+	 * @param first If true only print the first arrival in the group
+	 */
 	public void printArrivals(boolean first) {
 		Pick pick;
 		

@@ -21,8 +21,8 @@ public class AuxLocRef {
 	final Cratons cratons;			// Continental craton boundaries
 	final ZoneStats zoneStats;	// Earthquake statistics by geographic location
 	final String cratonsPath = "../../Documents/Work/Models/cratons.txt";
-	final String zoneKeyPath = "../../Documents/Work/Models/zonekey.dat";
-	final String zoneStatPath = "../../Documents/Work/Models/zonestt.dat";
+	final String zoneKeyPath = "../../Documents/Work/Models/zonkey.dat";
+	final String zoneStatPath = "../../Documents/Work/Models/zonstt.dat";
 	int noYears = -1;
 	Scanner scan;
 	
@@ -41,12 +41,13 @@ public class AuxLocRef {
 		// Open and read the cratons file.
 		inCratons = new BufferedInputStream(new FileInputStream(cratonsPath));
 		scan = new Scanner(inCratons);
+		cratons = new Cratons();
 		while(scan.hasNext()) {
 			readCraton();
 		}
-		cratons = new Cratons();
 		scan.close();
 		inCratons.close();
+//	cratons.printCratons();
 		
 		// Open and read the zone key file.
 		inZones = new RandomAccessFile(zoneKeyPath, "r");
@@ -106,8 +107,7 @@ public class AuxLocRef {
 		// Read the file.
 		length = (int)inZones.length();
 		byteArray = new byte[length];
-		int len = inZones.read(byteArray);
-		System.out.println("Keys: len = "+len+" "+length);
+		inZones.read(byteArray);
 		byteBuf = ByteBuffer.wrap(byteArray);
 		byteBuf.order(ByteOrder.LITTLE_ENDIAN);
 		intBuf = byteBuf.asIntBuffer();
@@ -115,8 +115,8 @@ public class AuxLocRef {
 		// Create the zoneKeys array.
 		zoneKeys = new int[360][180];
 		int k=0;
-		for(int j=0; j<360; j++) {
-			for(int i=0; i<180; i++) {
+		for(int i=0; i<180; i++) {
+			for(int j=0; j<360; j++) {
 				// Note that the key is off by 2 because of Fortran indexing and the 
 				// special first record in the statistics file.
 				zoneKeys[j][i] = intBuf.get(k++)-2;
@@ -134,7 +134,9 @@ public class AuxLocRef {
 	 * @throws IOException On any read error
 	 */
 	private ZoneStat[] readZoneStats(RandomAccessFile inZones) throws IOException {
+		@SuppressWarnings("unused")
 		int length, ndeg, dpmode;
+		@SuppressWarnings("unused")
 		float peryr, maxmag, minmag, pctfre, pctge;
 		double meanDepth, minDepth, maxDepth;
 		byte[] byteArray;
@@ -144,12 +146,11 @@ public class AuxLocRef {
 		// Read the file.
 		length = (int)inZones.length();
 		byteArray = new byte[length];
-		int len = inZones.read(byteArray);
-		System.out.println("Stats: len = "+len+" "+length);
+		inZones.read(byteArray);
 		byteBuf = ByteBuffer.wrap(byteArray);
 		byteBuf.order(ByteOrder.LITTLE_ENDIAN);
 		noYears = byteBuf.getInt();
-		System.out.println("ZoneStats years = "+noYears);
+//	System.out.println("ZoneStats years = "+noYears);
 		byteBuf.position(40);
 		
 		// Create the zoneStats array.
@@ -165,10 +166,12 @@ public class AuxLocRef {
 			meanDepth = byteBuf.getFloat();
 			dpmode = byteBuf.getInt();
 			pctge = byteBuf.getFloat();
-			System.out.format("\t%3d %4.1f %4.1f %4.1f %5.1f %5.1f %4.1f %5.1f %3d %4.1f\n", 
-					ndeg, peryr, maxmag, minmag, minDepth, maxDepth, pctfre, meanDepth, dpmode, 
-					pctge);
-			if(pctfre > 0.) stats[j] = new ZoneStat(meanDepth, minDepth, maxDepth);
+			if(pctfre > 0.) {
+				stats[j] = new ZoneStat(meanDepth, minDepth, maxDepth);
+	//		System.out.format("\t%3d %4.1f %4.1f %4.1f %5.1f %5.1f %4.1f %5.1f %3d %4.1f\n", 
+	//				ndeg, peryr, maxmag, minmag, minDepth, maxDepth, pctfre, meanDepth, dpmode, 
+	//				pctge);
+			}
 			else stats[j] = null;
 		}
 		return stats;

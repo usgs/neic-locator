@@ -19,9 +19,9 @@ import gov.usgs.traveltime.TTimeData;
 public class PhaseID {
 	double lastDepth = Double.NaN;
   Event event;
-  AllBrnVol allBrn;
-  AuxTtRef auxtt;
   Hypocenter hypo;
+  AllBrnVol allBrn;
+  AuxTtRef auxTT;
   ArrayList<Wresidual> wResiduals;
   PickGroup group;
   Pick lastPick = null;
@@ -37,10 +37,11 @@ public class PhaseID {
    * @param event Event object
    * @param allBrn All branches travel-time object
    */
-  public PhaseID(Event event, AllBrnVol allBrn) {
+  public PhaseID(Event event, AllBrnVol allBrn, AuxTtRef auxTT) {
     this.event = event;
-    this.allBrn = allBrn;
     hypo = event.hypo;
+    this.allBrn = allBrn;
+    this.auxTT = auxTT;
     wResiduals = event.wResiduals;
   }
 
@@ -63,6 +64,10 @@ public class PhaseID {
   	boolean changed;
     Station station;
     Wresidual wRes;
+    
+    if(LocUtil.deBugLevel > 0) System.out.format("\nCurr loc: %8.4f %9.4f "+
+    		"%6.2f %14.3f\n\n", hypo.latitude, hypo.longitude, hypo.depth, 
+    		hypo.originTime);
 
     // Remember the figure-of-merit controls.
     this.otherWeight = otherWeight;
@@ -75,10 +80,13 @@ public class PhaseID {
 		// Reinitialize the weighted residual storage.
 		if(wResiduals.size() > 0) wResiduals.clear();
 
-		if(hypo.depth != lastDepth) {
+		if(hypo.depth != hypo.ttDepth) {
 			// Set up a new travel-time session if the depth has changed.
+			System.out.format("\nNew depth: %6.2f -> %6.2f\n", hypo.ttDepth, 
+					hypo.depth);
 			allBrn.newSession(hypo.latitude, hypo.longitude, hypo.depth, 
 					LocUtil.PHLIST);
+			hypo.ttDepth = hypo.depth;
 		} else {
 			// Otherwise, just update the epicenter coordinates.
 			allBrn.newEpicenter(hypo.latitude, hypo.longitude);
@@ -90,12 +98,12 @@ public class PhaseID {
       if (group.picksUsed() > 0) {
         // For the first pick in the group, get the travel times.
         station = group.station;
-        System.out.println("\n" + station + ":");
+  //    System.out.println("\n" + station + ":");
         ttList = allBrn.getTT(station.latitude, station.longitude,
                 station.elevation, group.delta, group.azimuth, LocUtil.USEFUL,
                 LocUtil.tectonic, LocUtil.NOBACKBRN, LocUtil.rstt);
         // Print them.
-    //   ttList.print(event.hypo.depth, group.delta);
+  //    ttList.print(hypo.depth, group.delta);
         // If reID is true, do a full phase re-identification.
         if(reID) {
         	reID();
@@ -110,6 +118,7 @@ public class PhaseID {
     // Add the Bayesian depth.
     wRes = new Wresidual(true, wResiduals.size(), hypo.depthRes, 
     		hypo.depthWeight);
+    wRes.addDeriv(0d, 0d, 1d);	// The Bayesian depth derivatives are simple.
     wResiduals.add(wRes);
     // Create a list of used picks that will be indexed by the weighted 
     // residuals (before and after sorting).
@@ -157,9 +166,10 @@ public class PhaseID {
       		pick.mapStat = ttList.get(m);
       		pick.fomStat = resMin;
       		pick.forceStat = true;
+      		System.out.format("NoReID: got it %-8s %6.2f %2d\n", phCode, resMin, m);
       	// If the easy way doesn't work, we have to try harder.
       	} else {
-      		phGroup = auxtt.findGroup(pick.idCode, false);
+      		phGroup = auxTT.findGroup(phCode, false);
         	// If we have a non-blank phase code, find the phase of the same name 
         	// that is closest to the pick in time.
         	m = -1;
@@ -178,8 +188,12 @@ public class PhaseID {
         		pick.mapStat = ttList.get(m);
         		pick.fomStat = resMin;
         		pick.forceStat = true;
+        		System.out.format("NoReID: group %-8s -> %-8s %6.2f %2d\n", phCode, 
+        				ttList.get(m).getPhCode(), resMin, m);
         	} else {
         		if(pick.used) {
+        			System.out.println("NoReID: give up");
+        	    ttList.print(event.hypo.depth, group.delta);
         			group.initFoM();
         			reID();
         		} else {
@@ -583,13 +597,16 @@ public class PhaseID {
   private double idAmplitude(Pick pick, TTimeData tTime) {
     double amp;
 
+    System.out.println("Phcur, phobs, phtt = "+pick.phCode+" "+
+    		pick.idCode+" "+tTime.getPhCode());
     // Set up the observed pick phase group.
     if (pick != lastPick) {
       lastPick = pick;
-      phGroup = auxtt.findGroup(pick.idCode, (pick.authType
+      phGroup = auxTT.findGroup(pick.idCode, (pick.authType
               == AuthorType.CONTRIB_AUTO));
-      primary = auxtt.isPrimary();
-      if (pick.idCode.equals("Reg") || pick.idCode.equals(phGroup)) {
+      primary = auxTT.isPrimary();
+      if (pick.idCode.equals("Any") || pick.idCode.equals("Reg") || 
+      		pick.idCode.equals(phGroup)) {
         generic = true;
       } else {
         generic = false;
@@ -616,7 +633,7 @@ public class PhaseID {
     // Do the group logic.  If the phase codes match drop through 
     // unless the phase might be generic.
     if ((!pick.idCode.equals(tTime.getPhCode()) || generic)
-            && !phGroup.equals("all")) {
+            && !phGroup.equals("Any")) {
       // Handle primary groups differently for generic phase codes.
       if (generic && primary) {
         /*
@@ -630,17 +647,17 @@ public class PhaseID {
         		phGroup.equals(tTime.getAuxGroup()) || (phGroup.equals("Reg") && 
         		tTime.isRegional())) {
           amp *= LocUtil.GROUPWEIGHT;
-          System.out.print(" Group");
+          System.out.print(" Group1");
         } // Otherwise use the other (non-group) weighting.
         else {
           amp *= otherWeight;
-          System.out.print(" Other");
+          System.out.print(" Other1");
           // If we trust the phase identification and the arrival types 
           // of the phases don't match, make re-identifying even harder
           if (!pick.auto && TauUtil.arrivalType(phGroup)
                   != TauUtil.arrivalType(tTime.getPhCode())) {
             amp *= LocUtil.TYPEWEIGHT;
-            System.out.print(" Type");
+            System.out.print(" Type1");
           }
         }
       } else {
@@ -652,17 +669,17 @@ public class PhaseID {
          */
         if (phGroup.equals(tTime.getPhGroup())) {
           amp *= LocUtil.GROUPWEIGHT;
-          System.out.print(" Group");
+          System.out.print(" Group2");
         } // Otherwise use the other (non-group) weighting.
         else {
           amp *= otherWeight;
-          System.out.print(" Other");
+          System.out.print(" Other2");
           // If we trust the phase identification and the arrival types 
           // of the phases don't match, make re-identifying even harder
           if (!pick.auto && TauUtil.arrivalType(phGroup)
                   != TauUtil.arrivalType(tTime.getPhCode())) {
             amp *= LocUtil.TYPEWEIGHT;
-            System.out.print(" Type");
+            System.out.print(" Type2");
           }
         }
       }

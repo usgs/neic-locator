@@ -68,6 +68,7 @@ public class ZoneStats {
 		// Set up the zone key indices.  First we need colatitude and 
 		// longitude in the range of 0-360.
 		latitude = 90d-latitude;
+		if(longitude < 0d) longitude += 360d;
 		if(longitude == 0d) longitude = 360d;
 		// Bail on bad coordinates.
 		if(latitude > 180d || latitude < 0d || longitude > 360d || 

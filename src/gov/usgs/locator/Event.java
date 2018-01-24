@@ -189,7 +189,7 @@ public class Event {
 		staStats();
 		// Do the initial delta-azimuth calculation.
 		for(int j=0; j<groups.size(); j++) {
-			groups.get(j).update(hypo);
+			groups.get(j).updateEvent(hypo);
 		}
 	}
 	
@@ -244,7 +244,37 @@ public class Event {
 		hypo.updateHypo(originTime, latitude, longitude, depth);
 		// Update the picks.
 		for(int j=0; j<groups.size(); j++) {
-			groups.get(j).update(hypo);
+			groups.get(j).updateHypo(hypo);
+			groups.get(j).updateOrigin(hypo);
+		}
+	}
+	
+	/**
+	 * Update event parameters when the hypocenter changes based on a 
+	 * linearized step.  Note that in this case, the origin time 
+	 * doesn't change.
+	 * 
+	 * @param stepLen Step length in kilometers
+	 */
+	public void updateHypo(double stepLen, double medianRes) {
+		// Update the hypocenter.
+		hypo.updateHypo(stepLen, medianRes);
+		// Update the picks.
+		for(int j=0; j<groups.size(); j++) {
+			groups.get(j).updateHypo(hypo);
+		}
+	}
+	
+	/**
+	 * If we're just updating the origin time, we don't need to recompute 
+	 * distance and azimuth.
+	 * 
+	 * @param dT Shift in the origin time in seconds
+	 */
+	public void updateOrigin(double dT) {
+		hypo.updateOrigin(dT);
+		for(int j=0; j<groups.size(); j++) {
+			groups.get(j).updateOrigin(hypo);
 		}
 	}
 	
@@ -253,10 +283,11 @@ public class Event {
 	 * hypocenters in case the statistical dispersion increases.
 	 * 
 	 * @param stage Iteration stage
-	 * @param iteration Iteration in this stage
+	 * @param iter Iteration in this stage
+	 * @param status LocStatus at the point this audit was created
 	 */
-	public void addAudit(int stage, int iteration, LocStatus status) {
-		audit.add(new HypoAudit(hypo, stage, iteration, picksUsed, status));
+	public void addAudit(int stage, int iter, LocStatus status) {
+		audit.add(new HypoAudit(hypo, stage, iter, picksUsed, status));
 	}
 	
 	/**
@@ -318,6 +349,12 @@ public class Event {
 		}
 	}
 	
+	/**
+	 * Print the arrivals associated with this event in a nice format.
+	 * 
+	 * @param first If true only print the first arrival in each pick 
+	 * group
+	 */
 	public void printArrivals(boolean first) {
 		System.out.println();
 		for(int j=0; j<groups.size(); j++) {
@@ -333,6 +370,18 @@ public class Event {
 		System.out.println();
 		for(int j=0; j<groups.size(); j++) {
 			groups.get(j).printHydra();
+		}
+	}
+	
+	/**
+	 * Dump the weighted residual storage.
+	 * 
+	 * @param full If true, print the derivatives as well
+	 */
+	public void printWres(boolean full) {
+		System.out.println("\nwResiduals:");
+		for(int j=0; j<wResiduals.size(); j++) {
+			wResiduals.get(j).printWres(full);
 		}
 	}
 	

@@ -265,7 +265,7 @@ public class LocUtil {
 	 * seconds/kilometer
 	 */
 	public static double dTdLat(double dTdD, double azimuth) {
-		return DEG2KM*Math.cos(Math.toRadians(azimuth))*dTdD;
+		return Math.cos(Math.toRadians(azimuth))*dTdD/DEG2KM;
 	}
 	
 	/**
@@ -278,7 +278,7 @@ public class LocUtil {
 	 * seconds/kilometer
 	 */
 	public static double dTdLon(double dTdD, double azimuth) {
-		return -DEG2KM*Math.sin(Math.toRadians(azimuth))*dTdD;
+		return -Math.sin(Math.toRadians(azimuth))*dTdD/DEG2KM;
 	}
 	
 	/**
@@ -388,7 +388,7 @@ public class LocUtil {
 		
 		// Compute the 2-norm.
 		for(int j=0; j<vector.length; j++) {
-			sum =+ Math.pow(vector[j], 2d);
+			sum += Math.pow(vector[j], 2d);
 		}
 		// Bail if the vector is all zeros.
 		if(sum == 0d) return vector;

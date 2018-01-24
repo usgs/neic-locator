@@ -11,7 +11,7 @@ import java.util.Arrays;
  */
 public class Restimator {
 	int nLast = -1, medIndex1 = -1, medIndex2 = -1, length = -1, half = -1;
-	double median = 0d, spread = 0d;
+	double median = 0d, spread = 0d, estMedian = 0d;
 	double[] scores;
 	ArrayList<Wresidual> wResiduals;
 	SortData[] sortData = null;
@@ -24,10 +24,9 @@ public class Restimator {
 	}
 	
 	/**
-	 * Compute the median of travel-time residuals (excluding the 
-	 * Bayesian depth residual).
+	 * Compute the median of the travel-time residuals (excluding the 
+	 * Bayesian depth residual, of course).
 	 * 
-	 * @param indBayes Index of the Bayesian depth residual
 	 * @return Median of travel-time residuals
 	 */
 	public double median() {
@@ -109,9 +108,46 @@ public class Restimator {
 	public void deMedianRes() {
 		for(int j=0; j<wResiduals.size(); j++) {
 			if(!wResiduals.get(j).isDepth) {
-				wResiduals.get(j).residual += median;
+				wResiduals.get(j).residual -= median;
 			}
 		}
+		// Since we've already demedianed, we don't need to do it again 
+		// for the penalty function.
+		median = 0d;
+	}
+	
+	/**
+	 * Compute the R-estimator penalty function or dispersion.  Note that 
+	 * the median method must be invoked before penalty in order to 
+	 * compute the median and allocate the sort storage.
+	 * 
+	 * @param tag String printed as part of the debug output
+	 * @return the R-estimator penalty function
+	 */
+	public double penalty() {
+		// Trap insufficient data.
+		if(wResiduals.size() < 2) return 0d;
+		
+		// Set up the penalty.
+		for(int j=0; j<wResiduals.size(); j++) {
+			// This time keep the Bayesian depth constraint, but, of course, 
+			// don't remove the residual median.
+			if(!wResiduals.get(j).isDepth) {
+				sortData[j] = new SortData(j, (wResiduals.get(j).residual-median)*
+						wResiduals.get(j).weight);
+			} else {
+				sortData[j] = new SortData(j, wResiduals.get(j).residual*
+						wResiduals.get(j).weight);
+			}
+		}
+		Arrays.sort(sortData, 0, wResiduals.size());
+		// Compute the penalty function.
+		double penalty = dispersion();
+		// Put the sorted indices back into R-estimator storage.
+		for(int j=0; j<wResiduals.size(); j++) {
+			wResiduals.get(j).sortIndex = sortData[j].index;
+		}
+		return penalty;
 	}
 	
 	/**
@@ -139,50 +175,18 @@ public class Restimator {
 		// Remove the median values from the matrix.
 		for(int j=0; j<wResiduals.size(); j++) {
 			if(!wResiduals.get(j).isDepth) {
-				for(int i=0; i<dMed.length; i++) {
-					wResiduals.get(j).deriv[i] -= dMed[i];
-				}
+				wResiduals.get(j).deMedianDeriv(dMed);
 			}
 		}
 	}
 	
 	/**
-	 * Compute the R-estimator penalty function or dispersion.  Note that 
-	 * the median method must be invoked before penalty in order to 
-	 * compute the median and allocate the sort storage.
+	 * Compute the steepest descents direction.
 	 * 
-	 * @return the R-estimator penalty function
+	 * @param n Number of degrees of freedom (n = 2 for fixed depth, n=3 
+	 * for free depth)
+	 * @return The steepest descents direction unit vector
 	 */
-	public double penalty(String tag) {
-		// Trap insufficient data.
-		if(wResiduals.size() < 2) return 0d;
-		
-		// Set up the penalty.
-		for(int j=0; j<wResiduals.size(); j++) {
-			// This time keep the Bayesian depth constraint, but, of course, 
-			// don't remove the residual median.
-			if(!wResiduals.get(j).isDepth) {
-				sortData[j].value = (wResiduals.get(j).residual-median)*
-						wResiduals.get(j).weight;
-			} else {
-				sortData[j].value = wResiduals.get(j).residual*
-						wResiduals.get(j).weight;
-			}
-			sortData[j].index = j;
-		}
-		Arrays.sort(sortData, 0, wResiduals.size());
-		// Compute the penalty function.
-		double penalty = dispersion();
-		// Put the sorted indices back into R-estimator storage.
-		for(int j=0; j<wResiduals.size(); j++) {
-			wResiduals.get(j).sortIndex = sortData[j].index;
-		}
-		if(LocUtil.deBugLevel > 0 && !tag.equals("EL")) 
-			System.out.format("Lsrt: %s av sd chisq = ", tag, median, spread, 
-					penalty);
-		return penalty;
-	}
-	
 	public double[] steepest(int n) {
 		double[] stepDir;
 		Wresidual wResidual;
@@ -197,15 +201,109 @@ public class Restimator {
 		for(int j=0; j<n; j++) {
 			stepDir[j] = 0d;
 		}
-		// The step direction is the sum of weighted derivatives.  We have 
-		// to process the residuals in sort order for the scores to be right.
+		// The step direction is the sum of weighted, demedianed derivatives.  
+		// We have to process the residuals in sort order for the scores to 
+		// be right.
+//	System.out.println("\nAdder:");
 		for(int j=0; j<sortData.length; j++) {
 			wResidual = wResiduals.get(sortData[j].index);
+//		wResidual.printWres(true);
 			for(int i=0; i<n; i++) {
-				stepDir[i] += scores[j]*wResidual.weight*wResidual.deriv[i];
+				stepDir[i] += scores[j]*wResidual.weight*wResidual.deDeriv[i];
 			}
+//		System.out.format("\t\tStep: %8.4f %8.4f %8.4f\n", stepDir[0], 
+//				stepDir[1], stepDir[2]);
 		}
 		return LocUtil.unitVector(stepDir);
+	}
+	
+	/**
+	 * Compute the median of the linear estimates of the travel-time 
+	 * residuals (excluding the Bayesian depth residual).
+	 * 
+	 * @returnMedian of estimated travel-time residuals
+	 */
+	public double estMedian() {
+		// Make sure we have enough data to do something.
+		if(wResiduals.size() < 2) {
+			// If there's no data or only a depth constraint return zero.
+			if(wResiduals.size() == 0) return 0d;
+			else if(wResiduals.size() == 1 && wResiduals.get(0).isDepth) 
+				return 0d;
+		}
+		/*
+		 * Note that sortData is dimensioned at least one larger than needed 
+		 * for pick residuals alone in the median and spread methods.  The 
+		 * extra space will be needed for computing the dispersion.
+		 */
+		if(sortData == null) sortData = new SortData[wResiduals.size()];
+		else if(sortData.length < wResiduals.size()) 
+			sortData = new SortData[wResiduals.size()];
+		
+		// Set up for the median.
+		length = 0;
+		for(int j=0; j<wResiduals.size(); j++) {
+			if(!wResiduals.get(j).isDepth) {
+				sortData[length] = new SortData(length, wResiduals.get(j).estResidual);
+				length++;
+			}
+		}
+		// Sort the travel-time residuals and their indices.
+		Arrays.sort(sortData, 0, length);
+		
+		// Do the median.
+		half = length/2;
+		if(length%2 == 0) {
+			estMedian = 0.5d*(sortData[half-1].value+sortData[half].value);
+			return estMedian;
+		}
+		else {
+			estMedian = sortData[half].value;
+			return estMedian;
+		}
+	}
+	
+	/**
+	 * Remove the median from the estimated residuals.
+	 */
+	public void deMedianEstRes() {
+		for(int j=0; j<wResiduals.size(); j++) {
+			if(!wResiduals.get(j).isDepth) {
+				wResiduals.get(j).estResidual -= estMedian;
+			}
+		}
+		// Since we've already demedianed, we don't need to do it again 
+		// for the penalty function.
+		estMedian = 0d;
+	}
+	
+	/**
+	 * Compute the R-estimator penalty function or dispersion.  Note that 
+	 * the median method must be invoked before penalty in order to 
+	 * compute the median and allocate the sort storage.
+	 * 
+	 * @param tag String printed as part of the debug output
+	 * @return the R-estimator penalty function
+	 */
+	public double estPenalty() {
+		// Trap insufficient data.
+		if(wResiduals.size() < 2) return 0d;
+		
+		// Set up the penalty.
+		for(int j=0; j<wResiduals.size(); j++) {
+			// This time keep the Bayesian depth constraint, but, of course, 
+			// don't remove the residual median.
+			if(!wResiduals.get(j).isDepth) {
+				sortData[j] = new SortData(j, (wResiduals.get(j).estResidual-estMedian)*
+						wResiduals.get(j).weight);
+			} else {
+				sortData[j] = new SortData(j, wResiduals.get(j).estResidual*
+						wResiduals.get(j).weight);
+			}
+		}
+		Arrays.sort(sortData, 0, wResiduals.size());
+		// Compute the penalty function.
+		return dispersion();
 	}
 	
 	/**
@@ -222,7 +320,6 @@ public class Restimator {
 			nLast = sortData.length;
 			makeScores(sortData.length);
 		}
-		
 		// The dispersion is just a dot product.
 		for(int j=0; j<sortData.length; j++) {
 			disp += scores[j]*sortData[j].value;
@@ -269,7 +366,7 @@ public class Restimator {
 		// Do the interpolation
 		for(int j=0; j<nData; j++) {
 			p += dp;
-			while(p >scoreGenP[k]) {
+			while(p > scoreGenP[k]) {
 				k++;
 			}
 			scores[j] = (p-scoreGenP[k-1])*(scoreGenF[k]-scoreGenF[k-1])/
@@ -290,9 +387,14 @@ public class Restimator {
 		 * to be symmetric is a quick and dirty fix for this vexed problem.
 		 */
 		for(int j=0; j<nData/2; j++) {
-			scores[j] = 0.5d*(scores[j]+scores[nData+1-j]);
-			scores[nData+1-j] = scores[j];
+			scores[j] = 0.5d*(scores[j]-scores[nData-j-1]);
+			scores[nData-j-1] = -scores[j];
 		}
-		if(nData%2 > 0) scores[nData/2+1] = 0d;
+		if(nData%2 > 0) scores[nData/2] = 0d;
+		
+/*	System.out.println("\nScores:");
+		for(int j=0; j<nData; j++) {
+			System.out.format("\t%3d %6.4f\n", j, scores[j]);
+		} */
 	}
 }
