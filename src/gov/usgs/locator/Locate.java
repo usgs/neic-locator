@@ -45,6 +45,7 @@ public class Locate {
 	 */
 	public LocStatus doLoc() {
 		int stage = -1, iter = 0;		// Initialize for tracking purposes.
+		boolean bail;
 		LocStatus status;
 		
 		// Save the essentials of this event for comparison.
@@ -107,46 +108,47 @@ public class Locate {
 					return status;
 				}
 				hypo.stepLen = LocUtil.INITSTEP;
-				
+				bail = false;
 				// Iterate to convergence (or to the iteration limit).
-				step: for(iter = 0; iter < LocUtil.ITERLIM[stage]; iter++) {
+				for(iter = 0; iter < LocUtil.ITERLIM[stage]; iter++) {
 					stepper.makeStep(stage, iter);
 					switch(status) {
 					// Bail on insufficient data.
 					case INSUFFICIENT_DATA:
 						close.endStats(status);
 						return status;
-					// If the phase identifications have changed, start the 
-					//iteration over.
-					case PHASEID_CHANGED:
-						iter = -1;
-						break;
 					// If the damping failed, go to the next stage.
 					case NEARLY_CONVERGED:
 					case DID_NOT_CONVERGE:
 					case UNSTABLE_SOLUTION:
-						break step;
-					// Otherwise, keep on trucking!
+						bail = true;
+						break;
+					// Otherwise, keep on trucking!  (This includes phase 
+					// re-identification).
 					default:
 						break;
 					}
 					// Check for convergence.
-					if(hypo.stepLen <= LocUtil.CONVLIM[stage]) break;
+					if(hypo.stepLen <= LocUtil.CONVLIM[stage] || bail) break;
 				}
 				hypo.delH = LocUtil.delStep(hypo, audit.get(audit.size()-1));
 				hypo.delZ = Math.abs(hypo.depth-audit.get(audit.size()-1).depth);
 				hypo.stepLen = Math.sqrt(Math.pow(hypo.delH,2d)+
 						Math.pow(hypo.delZ,2d));
-				if(stage >= 1 && hypo.stepLen <= LocUtil.CONVLIM[stage]) {
+				if(stage > 0 && hypo.stepLen <= LocUtil.CONVLIM[stage]) {
 					hypo.delH = LocUtil.delStep(hypo, audit.get(0));
 					hypo.delZ = Math.abs(hypo.depth-audit.get(0).depth);
 					hypo.stepLen = Math.sqrt(Math.pow(hypo.delH,2d)+
 							Math.pow(hypo.delZ,2d));
 					event.addAudit(stage, iter, status);
+					System.out.println("Final wrapup:");
+					event.audit.get(audit.size()-1).printAudit();
 					status = close.endStats(status);
 					return status;
 				} else {
 					event.addAudit(stage, iter, status);
+					System.out.println("Stage wrapup:");
+					event.audit.get(audit.size()-1).printAudit();
 				}
 			}
 			return LocStatus.DID_NOT_CONVERGE;

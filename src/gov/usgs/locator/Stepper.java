@@ -87,7 +87,7 @@ public class Stepper {
 	 */
 	private LocStatus setDir(double otherWeight, double stickyWeight, boolean reID, 
   		boolean reWeight) throws Exception {
-		double bayesDepth, bayesSpread, medianRes;
+		double bayesDepth, bayesSpread, medianRes, chiSq;
 		
 		// If we're re-weighting, reset the craton and zone statistics 
 		// as well.
@@ -105,7 +105,7 @@ public class Stepper {
 				bayesDepth = zones.bayesDepth(hypo.latitude, hypo.longitude);
 				bayesSpread = zones.bayesSpread();
 				hypo.updateBayes(bayesDepth, bayesSpread);
-				System.out.format("\tBayes: %5.1f +/- %5.1f\n", bayesDepth, hypo.depthWeight);
+				System.out.format("\tBayes: %5.1f %5.1f\n", bayesDepth, hypo.depthWeight);
 			}
 		}
 		
@@ -118,9 +118,9 @@ public class Stepper {
 		medianRes = rEst.median();
 		rEst.deMedianRes();
 		// Get the R-estimator dispersion.
-		hypo.chiSq = rEst.penalty();
+		chiSq = rEst.penalty();
 		if(LocUtil.deBugLevel > 0) System.out.format("\nLsrt: ST av chisq = "+
-					"%8.4f %10.4f\n", medianRes, hypo.chiSq);
+					"%8.4f %10.4f\n", medianRes, chiSq);
 		
 //	event.printWres(true);
 		// Demedian the design matrix.
@@ -135,7 +135,7 @@ public class Stepper {
 			}
 			System.out.println();
 		}
-		result = new RestResult(0d, medianRes, 0d, hypo.chiSq);
+		result = new RestResult(0d, medianRes, 0d, chiSq);
 		
 		return LocStatus.SUCCESS;
 	}
@@ -174,6 +174,7 @@ public class Stepper {
 		}
 		
 		// Update the hypocenter.
+		hypo.medianRes = result.median;
 		event.updateHypo(result.stepLen, result.median);
 		// Reidentify phases and get the non-linear R-estimator parameters 
 		// for the new hypocenter.
@@ -228,8 +229,9 @@ public class Stepper {
 			hypo.noDamp++;
 			hypo.resetHypo(lastHypo);
 			hypo.stepLen *= damp;
+			hypo.medianRes *= damp;
 			// Update the hypocenter.
-			event.updateHypo(result.stepLen, 0d);
+			event.updateHypo(hypo.stepLen, hypo.medianRes);
 			// Reidentify phases and get the non-linear R-estimator parameters 
 			// for the new hypocenter.
 			if(setDir(0.01d, 5d, false, false) == LocStatus.INSUFFICIENT_DATA) {
@@ -263,13 +265,12 @@ public class Stepper {
 	private void logStep(String tag, int stage, int iter, LocStatus status) {
 		double rms;
 		
-		if(event.picksUsed > hypo.degOfFreedom) rms = hypo.chiSq/
-				(event.picksUsed-hypo.degOfFreedom);
+		if(event.picksUsed >= hypo.degOfFreedom) rms = hypo.chiSq/
+				(event.picksUsed-hypo.degOfFreedom+1);
 		else rms = 0d;
 		hypo.rms = rms;
 		System.out.format("%s: %1d %2d %5d %8.4f %8.4f %6.2f del= %5.1f %6.1f "+
-				"rms= %6.2f %3d %b\n", tag, stage, iter, event.picksUsed, hypo.latitude, 
-				hypo.longitude, hypo.depth, hypo.delH, hypo.delZ, rms, status.status(), 
-				event.changed);
+				"rms= %6.2f %3d\n", tag, stage, iter, event.picksUsed, hypo.latitude, 
+				hypo.longitude, hypo.depth, hypo.delH, hypo.delZ, rms, status.status());
 	}
 }

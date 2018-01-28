@@ -262,6 +262,7 @@ public class Event {
 		// Update the picks.
 		for(int j=0; j<groups.size(); j++) {
 			groups.get(j).updateHypo(hypo);
+			groups.get(j).updateOrigin(hypo);
 		}
 	}
 	

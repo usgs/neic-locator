@@ -97,20 +97,21 @@ public class LinearStep {
 				sample[1] = estPenalty(stepLen);
 				// See if we've converged.
 				if(sample[1].stepLen <= stepMin) {
-					if(sample[1].chiSq < sample[0].chiSq) 
-						throw new Exception();
-					trialStep(sample[0].stepLen);
+					if(sample[1].chiSq >= sample[0].chiSq) {
+						sample[1] = new RestResult(0d, 0d, 0d, curPenalty);
+					}
+					trialStep(sample[1].stepLen);
 					if(LocUtil.deBugLevel > 0) System.out.format("Lintry: x dsp = "+
-							"%6.2f %9.4f %5.2f\n", sample[0].stepLen, sample[0].chiSq, 
-							sample[0].median);
-					return sample[0];
+							"%6.2f %9.4f %5.2f\n", sample[1].stepLen, sample[1].chiSq, 
+							sample[1].median);
+					return sample[1];
 				}
 			} while(sample[0].chiSq < sample[1].chiSq);
 		}
 		
 		// Now we can start homing in from both sides.
-		while((sample[2].stepLen-sample[0].stepLen)/sample[1].stepLen <= 
-				0.15d || sample[2].stepLen-sample[0].stepLen <= stepMin) {
+		while((sample[2].stepLen-sample[0].stepLen)/sample[1].stepLen > 
+				0.15d && sample[2].stepLen-sample[0].stepLen > stepMin) {
 			// Try the lower half first.
 			stepLen = 0.5*(sample[0].stepLen+sample[1].stepLen);
 			testSample = estPenalty(stepLen);
@@ -134,12 +135,11 @@ public class LinearStep {
 			}
 		}
 		// Done.
-		if(sample[1].chiSq < sample[0].chiSq) throw new Exception();
-		trialStep(sample[0].stepLen);
+		trialStep(sample[1].stepLen);
 		if(LocUtil.deBugLevel > 0) System.out.format("Lintry: x dsp = "+
-				"%6.2f %9.4f %5.2f\n", sample[0].stepLen, sample[0].chiSq, 
-				sample[0].median);
-		return sample[0];
+				"%6.2f %9.4f %5.2f\n", sample[1].stepLen, sample[1].chiSq, 
+				sample[1].median);
+		return sample[1];
 	}
 	
 	/**

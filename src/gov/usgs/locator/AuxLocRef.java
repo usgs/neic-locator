@@ -166,7 +166,7 @@ public class AuxLocRef {
 			meanDepth = byteBuf.getFloat();
 			dpmode = byteBuf.getInt();
 			pctge = byteBuf.getFloat();
-			if(pctfre > 0.) {
+			if(pctfre > 0. && minDepth < 900d) {
 				stats[j] = new ZoneStat(meanDepth, minDepth, maxDepth);
 	//		System.out.format("\t%3d %4.1f %4.1f %4.1f %5.1f %5.1f %4.1f %5.1f %3d %4.1f\n", 
 	//				ndeg, peryr, maxmag, minmag, minDepth, maxDepth, pctfre, meanDepth, dpmode, 

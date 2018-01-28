@@ -116,9 +116,9 @@ public class PickGroup {
 	/**
 	 * Initialize the figure-of-merit variables.
 	 */
-	public void initFoM() {
+	public void initFoM(int pickBeg, int pickEnd) {
 		fomMax = 0d;
-		for(int j=0; j<picks.size(); j++) {
+		for(int j=pickBeg; j<pickEnd; j++) {
 			picks.get(j).initFoM();
 		}
 	}

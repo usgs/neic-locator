@@ -45,6 +45,6 @@ public class HypoAudit {
 		System.out.format("Audit: %1d %2d %4d %22s %8.4f %9.4f %6.2f "+
 				"del = %6.1f %6.1f %6.1f rms = %6.2f\n", stage, iteration, picksUsed, 
 				LocUtil.getRayDate(originTime), latitude, longitude, depth, 
-				stepLen, delH, delZ, rms);
+				delH, delZ, stepLen, rms);
 	}
 }

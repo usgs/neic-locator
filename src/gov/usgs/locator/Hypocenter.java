@@ -51,6 +51,7 @@ public class Hypocenter {
 	double depthWeight;		// Bayesian depth weight
 	// Iteration parameters:
 	int noDamp;						// Number of times step length damping has been applied
+	double medianRes;			// Linear estimate of the origin time shift in seconds
 	double chiSq;					// R-estimator dispersion or penalty value
 	double rms;						// R-estimator equivalent of the least squares RMS
 	double stepLen;				// Step length in kilometers
@@ -93,6 +94,7 @@ public class Hypocenter {
 		errEllip = new EllipAxis[3];
 		depthRes = Double.NaN;
 		depthWeight = Double.NaN;
+		medianRes = 0d;
 		stepLen = 0d;
 		delH = 0d;
 		delZ = 0d;
@@ -127,6 +129,8 @@ public class Hypocenter {
 	 * @param stepLen Step length in kilometers.
 	 */
 	public void updateHypo(double stepLen, double medianRes) {
+		double tmpDepth;
+		
 		// Save the convergence variable.
 		this.stepLen = stepLen;
 		// Update the origin time.
@@ -153,10 +157,10 @@ public class Hypocenter {
 		}
 		// Deal with depth separately.
 		if(!heldDepth) {
-			delZ = stepLen*stepDir[2];
-			depth += delZ;
-			depth = Math.min(Math.max(depth, LocUtil.DEPTHMIN), 
-					LocUtil.DEPTHMAX);
+			tmpDepth = Math.min(Math.max(depth+stepLen*stepDir[2], 
+					LocUtil.DEPTHMIN), LocUtil.DEPTHMAX);
+			delZ = tmpDepth-depth;
+			depth = tmpDepth;
 		}
 		// Compute the geographic latitude.
 		latitude = TauUtil.geoLat(coLat);

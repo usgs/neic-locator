@@ -144,15 +144,15 @@ public class Pick implements Comparable<Pick> {
 	 */
 	public boolean updateID(boolean first, boolean reWeight, double azimuth, 
 			ArrayList<Wresidual> wResiduals) {
-		boolean changed = false;
+		boolean changed = false, reID = false;
 		String ttCode;
 		Wresidual wRes;
 		
 		if(mapStat != null) {
 			// We have an identification.  Set up some key variables.
 			ttCode = mapStat.getPhCode();
-			if(!phCode.equals(ttCode)) 
-				System.out.format("=====> Phase re-ID: %-5s %-8s -> %-8s\n", 
+			if(!phCode.equals(ttCode)) reID = true;
+			if(reID) System.out.format("=====> Phase re-ID: %-5s %-8s -> %-8s\n", 
 						station.staID.staCode, phCode, ttCode);
 			phCode = ttCode;
 			if(auto) idCode = phCode;
@@ -169,7 +169,7 @@ public class Pick implements Comparable<Pick> {
 				wRes.addDeriv(LocUtil.dTdLat(mapStat.getDTdD(), azimuth), 
 						LocUtil.dTdLon(mapStat.getDTdD(), azimuth), mapStat.getDTdZ());
 				wResiduals.add(wRes);
-				if(!phCode.equals(ttCode)) changed = true;
+				if(reID) changed = true;
 			} else {
 				// Otherwise, see if it was used before.
 				if(used) {
@@ -186,8 +186,10 @@ public class Pick implements Comparable<Pick> {
 			
 		} else {
 			// We don't have an identification.
-			System.out.format("=====> Phase re-ID: %-5s %-8s -> null\n", 
-					station.staID.staCode, phCode);
+			if(!phCode.equals("")) {
+				System.out.format("=====> Phase re-ID: %-5s %-8s -> null\n", 
+						station.staID.staCode, phCode);
+			}
 			// See if it was used before.
 			if(used) {
 				System.out.format("=====> Phase no use set (no ID): %-5s %-8s\n", 
@@ -241,13 +243,13 @@ public class Pick implements Comparable<Pick> {
 	}
 
 	/**
-	 * Sort picks by arrival time.
+	 * Sort picks by travel time.
 	 */
 	@Override
 	public int compareTo(Pick pick) {
 		// Sort into arrival time order.
-		if(this.arrivalTime < pick.arrivalTime) return +1;
-		else if(this.arrivalTime == pick.arrivalTime) return 0;
-		else return -1;
+		if(this.tt < pick.tt) return -1;
+		else if(this.tt == pick.tt) return 0;
+		else return +1;
 	}
 }
