@@ -17,8 +17,10 @@ public class Craton {
 	 * Save the craton data.
 	 * 
 	 * @param region Region name
-	 * @param boundary Geographic latitude-longitude pairs forming the craton 
-	 * boundary
+	 * @param lats Geographic latitude points defining the boundary 
+	 * polygon of the craton 
+	 * @param lons Geographic longitude points defining the boundary 
+	 * polygon of the craton
 	 */
 	public Craton(String region, double[] lats, double[] lons) {
 		this.region = region;

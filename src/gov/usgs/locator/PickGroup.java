@@ -69,7 +69,8 @@ public class PickGroup {
 	}
 	
 	/**
-	 * Update the pick group when the hypocenter is updated.
+	 * Update the pick group when the hypocenter is updated, 
+	 * but not the origin time.
 	 * 
 	 * @param hypo Hypocenter information
 	 */
@@ -80,7 +81,8 @@ public class PickGroup {
 	}
 	
 	/**
-	 * Update the travel time for picks in the group.
+	 * Update the travel time for picks in the group when the 
+	 * origin time has changed.
 	 * 
 	 * @param hypo Hypocenter information
 	 */
@@ -108,8 +110,6 @@ public class PickGroup {
 			if(picks.get(j).updateID(false, reWeight, azimuth, wResiduals)) 
 				changed = true;
 		}
-		// Ensure the picks are still in time order.
-		picks.sort(null);
 		return changed;
 	}
 	

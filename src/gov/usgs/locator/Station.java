@@ -1,5 +1,7 @@
 package gov.usgs.locator;
+
 import gov.usgs.traveltime.TauUtil;
+
 /**
  * Keep all data for one seismic station here.
  * 

@@ -27,8 +27,10 @@ public class Cratons {
 	 * Add a new craton.
 	 * 
 	 * @param region Region name
-	 * @param boundary Geographical latitude-longitude points forming 
-	 * the boundary of the craton
+	 * @param lats Geographic latitude points defining the boundary 
+	 * polygon of the craton 
+	 * @param lons Geographic longitude points defining the boundary 
+	 * polygon of the craton
 	 */
 	public void add(String region, double[] lats, double[] lons) {
 		cratons.add(new Craton(region, lats, lons));

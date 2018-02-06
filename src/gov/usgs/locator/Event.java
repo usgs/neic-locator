@@ -5,11 +5,14 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Map;
 import java.util.NavigableMap;
 import java.util.Scanner;
 import java.util.TreeMap;
 import java.util.regex.Pattern;
+
+import gov.usgs.traveltime.TauUtil;
 
 /**
  * Keep all data for one seismic event (earthquake usually).
@@ -18,19 +21,42 @@ import java.util.regex.Pattern;
  *
  */
 public class Event {
-	int noStations;					// Number of stations associated
-	int stationsUsed;				// Number of stations used
-	int noPicks;						// Number of picks associated
-	int picksUsed;					// Number of picks used
-	int dataUsed;						// Number of data used in the location
-	boolean changed;				// True if the phase identification has changed
+	// Commands:
+	boolean heldLoc;			// True if the hypocenter will be held constant
+	boolean heldDepth;		// True if the depth will be held constant
+	boolean prefDepth;		// True if the Bayesian depth was set by an analyst
+	boolean cmndRstt;			// True if regional phases will use the RSTT model
+	boolean cmndCorr;			// True to use the de-correlation algorithm
+	boolean restart;			// True if the hypocenter has been moved externally
+	// Outputs:
+	int staAssoc;					// Number of stations associated
+	int staUsed;					// Number of stations used
+	int phAssoc;					// Number of phases associated
+	int phUsed;						// Number of phases used
+	double azimGap;				// Azimuthal gap in degrees
+	double lestGap;				// Robust (L-estimator) azimuthal gap in degrees
+	double delMin;				// Minimum station distance in degrees
+	String quality;				// Summary event quality flags for the analysts
+	// Statistics:
+	double seTime;				// Standard error in the origin time in seconds
+	double seLat;					// Standard error in latitude in kilometers
+	double seLon;					// Standard error in longitude in kilometers
+	double seDepth;				// Standard error in depth in kilometers
+	double seResid;				// Standard error of the residuals in seconds
+	double errH;					// Maximum horizontal projection of the error ellipsoid (km)
+	double errZ;					// Maximum vertical projection of the error ellipsoid (km)
+	double aveH;					// Equivalent radius of the error ellipse in kilometers
+	EllipAxis[] errEllip;	// Error ellipse
+	double bayesImport;		// Data importance of the Bayesian depth
+	//Internal use:
+	int locPhUsed;				// Number of local phases used
+	boolean changed;			// True if the phase identification has changed
+	// Other information needed:
 	Hypocenter hypo;
 	ArrayList<HypoAudit> audit;
 	TreeMap<StationID, Station> stations;
 	ArrayList<PickGroup> groups;
 	ArrayList<Pick> picks;
-	ArrayList<Pick> usedPicks = null;
-//	ArrayList<Pick> unusedPicks = null;
 	ArrayList<Wresidual> wResiduals = null;
 	Restimator rEst;
 	StationID maxID = new StationID("~", "", "");
@@ -45,25 +71,25 @@ public class Event {
 	 * Allocate some storage.
 	 */
 	public Event() {
-		audit = new ArrayList<HypoAudit>();
 		stations = new TreeMap<StationID, Station>();
 		groups = new ArrayList<PickGroup>();
 		picks = new ArrayList<Pick>();
+		audit = new ArrayList<HypoAudit>();
 		wResiduals = new ArrayList<Wresidual>();
 		rEst = new Restimator(wResiduals);
 	}
 	
 	/**
-	 * Read a Bulletin Hydra style event input file.
+	 * Read a Bulletin Hydra style event input file.  File open and 
+	 * read exceptions are trapped.
 	 * 
 	 * @param inFile File path
 	 * @return True if the read was successful
-	 * @throws IOException If the file open fails
 	 */
-	public boolean readHydra(String inFile) throws IOException {
+	public boolean readHydra(String inFile) {
 		BufferedInputStream in;
 		Scanner scan;
-		char heldLoc, heldDep, prefDep, rstt, noSvd, restart, cmndUse;
+		char held, heldDep, prefDep, rstt, noSvd, moved, cmndUse;
 		int auth;
 		double origin, lat, lon, depth, bDep, bSe, elev, qual, 
 			arrival, aff;
@@ -78,32 +104,41 @@ public class Event {
 		// Set up the IO.
 		try {
 			in = new BufferedInputStream(new FileInputStream(inFile));
-			scan = new Scanner(in);
-			
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+			return false;
+		}
+		scan = new Scanner(in);
+		try {
 			// Get the hypocenter information.
 			origin = scan.nextDouble();
 			lat = scan.nextDouble();
 			lon = scan.nextDouble();
 			depth = scan.nextDouble();
 			// Get the analyst commands.
-			heldLoc = scan.next().charAt(0);
+			held = scan.next().charAt(0);
 			heldDep = scan.next().charAt(0);
 			prefDep = scan.next().charAt(0);
 			bDep = scan.nextDouble();
 			bSe = scan.nextDouble();
 			rstt = scan.next().charAt(0);
 			noSvd = scan.next().charAt(0);
+			// Fiddle because the last flag is omitted in earlier data.
 			if(scan.hasNextInt()) {
-				restart = 'F';
+				moved = 'F';
 			} else {
-				restart = scan.next().charAt(0);
+				moved = scan.next().charAt(0);
 			}
 			// Create the hypocenter.
 			hypo = new Hypocenter(origin, lat, lon, depth);
-			hypo.addFlags(LocUtil.getBoolean(heldLoc), 
-					LocUtil.getBoolean(heldDep), LocUtil.getBoolean(rstt), 
-					LocUtil.getBoolean(noSvd), LocUtil.getBoolean(restart));
-			if(prefDep == 'T') hypo.addBayes(bDep, bSe);
+			// Deal with analyst commands.
+			heldLoc = LocUtil.getBoolean(held);
+			heldDepth = LocUtil.getBoolean(heldDep);
+			prefDepth = LocUtil.getBoolean(prefDep);
+			if(prefDepth) hypo.addBayes(bDep, bSe);
+			cmndRstt = LocUtil.getBoolean(rstt);
+			cmndCorr = !LocUtil.getBoolean(noSvd);	// True when noSvd is false
+			restart = LocUtil.getBoolean(moved);
 			
 			// Get the pick information.
 			while(scan.hasNext()) {
@@ -119,7 +154,9 @@ public class Event {
 				// Create the station.
 				staID = new StationID(staCode, locCode, netCode);
 				station = new Station(staID, lat, lon, elev);
-				// Get the rest of the pick information.
+				// Get the rest of the pick information.  Note that some 
+				// fiddling is required as some of the positional arguments 
+				// are sometimes omitted.
 				qual = scan.nextDouble();
 				if(scan.hasNextDouble()) {
 					curPh = "";
@@ -144,37 +181,38 @@ public class Event {
 					}
 				}
 				// Create the pick.
-				pick = new Pick(station, chaCode, arrival, LocUtil.getBoolean(cmndUse), 
-						curPh);
+				pick = new Pick(station, chaCode, arrival, 
+						LocUtil.getBoolean(cmndUse), curPh);
 				pick.addIdAids(dbID, qual, obsPh, LocUtil.getAuthCode(auth), 
 						aff);
 				picks.add(pick);
 			}
 			scan.close();
 			in.close();
-			
-			// Sort the picks into "Hydra" input order.
-//		picks.sort(new PickComp());
-			// Reorganize the picks into groups.
-			for(int j=0; j<picks.size(); j++) {
-				pick = picks.get(j);
-				if(!pick.station.staID.staID.equals(lastSta)) {
-					lastSta = pick.station.staID.staID;
-					// Remember this station.
-					stations.put(pick.station.staID, pick.station);
-					// Initialize the pick group.
-					group = new PickGroup(pick.station, pick);
-					groups.add(group);
-				} else {
-					group.add(pick);
-				}
-			}
-			initEvent();
-			return true;
-		} catch (FileNotFoundException e) {
+		} catch (IOException e) {
 			e.printStackTrace();
 			return false;
 		}
+			
+		// Sort the picks into "Hydra" input order.
+		picks.sort(new PickComp());
+		// Reorganize the picks into groups from the same station.
+		for(int j=0; j<picks.size(); j++) {
+			pick = picks.get(j);
+			if(!pick.station.staID.staID.equals(lastSta)) {
+				lastSta = pick.station.staID.staID;
+				// Remember this station.
+				stations.put(pick.station.staID, pick.station);
+				// Initialize the pick group.
+				group = new PickGroup(pick.station, pick);
+				groups.add(group);
+			} else {
+				group.add(pick);
+			}
+		}
+		// Take care of some event initialization.
+		initEvent();
+		return true;
 	}
 	
 	/**
@@ -183,51 +221,58 @@ public class Event {
 	 * called for any new event, no matter how it's created.
 	 */
 	private void initEvent() {
-		// Initialize changed.
+		/*
+		 * If the location is held, it can't be moved by the Locator, but 
+		 * errors will be computed as though it was free to provide a 
+		 * meaningful comparison with the NEIC location.  For this reason, 
+		 * it makes sense to have a held location with a held depth.  
+		 * Either way, a Bayesian depth is simulated, again for error 
+		 * estimation reasons.  The free depth spread assumes that the held 
+		 * location is from a crustal event located by a regional network.
+		 */
+		if(heldLoc) {
+			prefDepth = true;
+			hypo.bayesDepth = hypo.depth;
+			if(heldDepth) hypo.bayesSpread = LocUtil.HELDEPSE;
+			else hypo.bayesSpread = LocUtil.DEFDEPSE;
+		/*
+		 * Although a held depth will actually hold the depth, simulate a 
+		 * Bayesian depth for error computation reasons.
+		 */
+		} else if(heldDepth) {
+			prefDepth = true;
+			hypo.bayesDepth = hypo.depth;
+			hypo.bayesSpread = LocUtil.HELDEPSE;
+		}
+		/*
+		 * Treat analyst and simulated Bayesian depth commands the same.  
+		 * Set the starting depth to the Bayesian depth, but don't let 
+		 * the analysts get carried away and try to set the Bayesian 
+		 * spread smaller than the default for a held depth.
+		 */
+		if(prefDepth) {
+			if(hypo.bayesSpread > 0d) {
+				hypo.depth = hypo.bayesDepth;
+				hypo.bayesSpread = Math.max(hypo.bayesSpread, LocUtil.HELDEPSE);
+			} else {
+				prefDepth = false;		// Trap a bad command
+			}
+		}
+		// Initialize the solution degrees-of-freedom.
+		hypo.setDegrees(heldLoc, heldDepth);
+		// Initialize changed and the depth importance.
 		changed = false;
+		bayesImport = 0d;
+		// Allocate storage for the error ellipsoid.
+		if(heldLoc) errEllip = null;
+		else if(heldDepth) errEllip = new EllipAxis[2];
+		else errEllip = new EllipAxis[3];
 		// Do the initial station/pick statistics.
 		staStats();
 		// Do the initial delta-azimuth calculation.
 		for(int j=0; j<groups.size(); j++) {
 			groups.get(j).updateEvent(hypo);
 		}
-	}
-	
-	/**
-	 * Create a list of used picks.  This will correspond to the indices 
-	 * in the weighted residual list.
-	 */
-	public void makeUsedPicks() {
-		// Initialize or reinitialize usedPicks.
-		if(usedPicks == null) usedPicks = new ArrayList<Pick>();
-		else usedPicks.clear();
-		// Populate the list.
-		for(int j=0; j<picks.size(); j++) {
-			if(picks.get(j).used) usedPicks.add(picks.get(j));
-		}
-		staStats();
-	}
-	
-	/**
-	 * Create a list of residuals and weights for used picks and 
-	 * the Bayesian depth condition.
-	 */
-	public void makeWresiduals() {
-		Pick pick;
-		
-		// Reinitialize the weighted residual storage.
-		if(wResiduals.size() > 0) wResiduals.clear();
-		// Make up the used picks list.
-		makeUsedPicks();
-		
-		// Populate the weighted residual storage.
-		for(int j=0; j<usedPicks.size(); j++) {
-			pick = usedPicks.get(j);
-			wResiduals.add(new Wresidual(false, j, pick.residual, pick.weight));
-		}
-		// Add the Bayesian depth condition.
-		wResiduals.add(new Wresidual(true, wResiduals.size(), hypo.depthRes, 
-				hypo.depthWeight));
 	}
 	
 	/**
@@ -251,14 +296,14 @@ public class Event {
 	
 	/**
 	 * Update event parameters when the hypocenter changes based on a 
-	 * linearized step.  Note that in this case, the origin time 
-	 * doesn't change.
+	 * linearized step.
 	 * 
 	 * @param stepLen Step length in kilometers
+	 * @param dT Shift in the origin time in seconds
 	 */
-	public void updateHypo(double stepLen, double medianRes) {
+	public void updateHypo(double stepLen, double dT) {
 		// Update the hypocenter.
-		hypo.updateHypo(stepLen, medianRes);
+		hypo.updateHypo(stepLen, dT);
 		// Update the picks.
 		for(int j=0; j<groups.size(); j++) {
 			groups.get(j).updateHypo(hypo);
@@ -281,14 +326,14 @@ public class Event {
 	
 	/**
 	 * Add a hypocenter audit record.  These double as fall-back 
-	 * hypocenters in case the statistical dispersion increases.
+	 * hypocenters in case the solution gets worse.
 	 * 
 	 * @param stage Iteration stage
 	 * @param iter Iteration in this stage
 	 * @param status LocStatus at the point this audit was created
 	 */
 	public void addAudit(int stage, int iter, LocStatus status) {
-		audit.add(new HypoAudit(hypo, stage, iter, picksUsed, status));
+		audit.add(new HypoAudit(hypo, stage, iter, phUsed, status));
 	}
 	
 	/**
@@ -301,23 +346,177 @@ public class Event {
 	}
 	
 	/**
-	 * Count the number of stations and picks.
+	 * Count the number of stations and picks and find the 
+	 * distance to the closest station.
 	 */
 	public void staStats() {
 		int picksUsedGrp;
+		PickGroup group;
 		
-		noStations = stations.size();
-		stationsUsed = 0;
-		noPicks = 0;
-		picksUsed = 0;
+		staAssoc = stations.size();
+		staUsed = 0;
+		phAssoc = 0;
+		phUsed = 0;
+		locPhUsed = 0;
+		delMin = TauUtil.DMAX;
 		for(int j=0; j<groups.size(); j++) {
-			noPicks += groups.get(j).picks.size();
-			picksUsedGrp = groups.get(j).picksUsed();
-			picksUsed += picksUsedGrp;
-			if(picksUsedGrp > 0) stationsUsed++;
+			group = groups.get(j);
+			phAssoc += group.picks.size();
+			picksUsedGrp = group.picksUsed();
+			phUsed += picksUsedGrp;
+			if(group.delta <= LocUtil.DELTALOC) locPhUsed += 
+					picksUsedGrp;
+			if(picksUsedGrp > 0) staUsed++;
+			delMin = Math.min(delMin, group.delta);
 		}
-		if(wResiduals == null) dataUsed = picksUsed;
-		else dataUsed = wResiduals.size();
+	}
+	
+	/**
+	 * Compute the azimuthal gap and robust (L-estimator) azimuthal 
+	 * gap in degrees.
+	 */
+	public void azimuthGap() {
+		int i = 0;
+		double lastAzim;
+		double[] azimuths;
+		
+		// Trap a bad call.
+		if(staUsed == 0) {
+			azimGap = 360d;
+			lestGap = 360d;
+			return;
+		}
+		
+		// Collect and sort the azimuths.
+		azimuths = new double[staUsed];
+		for(int j=0; j<groups.size(); j++) {
+			if(groups.get(j).picksUsed() > 0) azimuths[i++] = 
+					groups.get(j).azimuth;
+		}
+		Arrays.sort(azimuths);
+		
+		// Do the azimuthal gap.
+		azimGap = 0d;
+		lastAzim = azimuths[azimuths.length-1]-360d;
+		for(int j=0; j<azimuths.length; j++) {
+			azimGap = Math.max(azimGap, azimuths[j]-lastAzim);
+			lastAzim = azimuths[j];
+		}
+		
+		// Do the robust azimuthal gap.
+		if(staUsed == 1) lestGap = 360d;
+		else {
+			lastAzim = azimuths[azimuths.length-2]-360d;
+			lestGap = azimuths[0]-lastAzim;
+			lastAzim = azimuths[azimuths.length-1]-360d;
+			for(int j=1; j<azimuths.length; j++) {
+				lestGap = Math.max(lestGap, azimuths[j]-lastAzim);
+				lastAzim = azimuths[j-1];
+			}
+		}
+	}
+	
+	/**
+	 * Set the traditional NEIC quality flags.  The summary flag uses 
+	 * the algorithm of Buland and Presgrave.  The secondary flags 
+	 * break down the quality by epicenter and depth.
+	 * 
+	 * @param status Event status
+	 */
+	public void setQualFlags(LocStatus status) {
+		char summary, epicenter, depth;
+		
+		// If there is insufficient data, the quality can only be "D".
+		if(status == LocStatus.INSUFFICIENT_DATA) {
+			quality = "D  ";
+		} else {
+			// If this is a GT5 event, the summary is done.
+			if(LocUtil.isGT5(locPhUsed, delMin, azimGap, lestGap)) {
+				summary = 'G';
+			// Otherwise, set the summary quality based on the errors.
+			} else {
+				if(aveH <= LocUtil.HQUALIM[0] && seDepth <= LocUtil.VQUALIM[0] && 
+						phUsed > LocUtil.NQUALIM[0]) summary = 'A';
+				else if(aveH <= LocUtil.HQUALIM[1] && seDepth <= LocUtil.VQUALIM[1] && 
+						phUsed > LocUtil.NQUALIM[1]) summary = 'B';
+				else if(aveH <= LocUtil.HQUALIM[2] && seDepth <= LocUtil.VQUALIM[2]) 
+					summary = 'C';
+				else summary = 'D';
+				// Revise the quality down if the error ellipse aspect ration is large.
+				if(summary == 'A' && errEllip[0].semiLen > LocUtil.AQUALIM[0]) 
+					summary = 'B';
+				if((summary == 'A' || summary == 'B') && errEllip[0].semiLen > 
+					LocUtil.AQUALIM[1]) summary = 'C';
+				if(errEllip[0].semiLen > LocUtil.AQUALIM[2]) summary = 'D';
+			}
+				
+			// Set the epicenter quality based on aveH.
+			epicenter = '?';
+			if(aveH <= LocUtil.HQUALIM[0] && phUsed > LocUtil.NQUALIM[0]) 
+				epicenter = ' ';
+			else if(aveH <= LocUtil.HQUALIM[1] && phUsed > LocUtil.NQUALIM[1]) 
+				epicenter = '*';
+			else if(aveH <= LocUtil.HQUALIM[2]) epicenter = '?';
+			else summary = '!';
+				
+			// Set the depth quality based on seDepth.
+			if(heldDepth) {
+				depth = 'G';
+			} else {
+				if(seDepth <= LocUtil.VQUALIM[0] && phUsed > LocUtil.NQUALIM[0]) 
+					depth = ' ';
+				else if(seDepth <= LocUtil.VQUALIM[1] && phUsed > LocUtil.NQUALIM[1]) 
+					depth = '*';
+				else if(seDepth <= LocUtil.VQUALIM[2]) depth = '?';
+				else depth = '!';
+			}
+			quality = ""+summary+epicenter+depth;
+		}
+	}
+	
+	/**
+	 * Compute the maximum tangential (horizontal) and vertical (depth) 
+	 * projections of the error ellipsoid in kilometers.  While not 
+	 * statistically valid, these measures are commonly used by the 
+	 * regional networks.
+	 */
+	public void sumErrors() {
+		errH = 0d;
+		errZ = 0d;
+		for(int j=0; j<errEllip.length; j++) {
+			errH = Math.max(errH, errEllip[j].tangentialProj());
+			if(!heldDepth) errZ = Math.max(errZ, errEllip[j].verticalProj());
+		}
+	}
+	
+	/**
+	 * Zero out most errors when no solution is possible.
+	 * 
+	 * @param all If true zero out everything
+	 */
+	public void zeroStats(boolean all) {
+		seTime = 0d;
+		seLat = 0d;
+		seLon = 0d;
+		seDepth = 0d;
+		errH = 0d;
+		errZ = 0d;
+		aveH = 0d;
+		for(int j=0; j<errEllip.length; j++) {
+			errEllip[j] = new EllipAxis(0d, 0d, 0d);
+		}
+		if(all) seResid = 0d;
+	}
+	
+	/**
+	 * Zero out all data importances (and weights) if the importances 
+	 * cannot be computed.
+	 */
+	public void zeroWeights() {
+		hypo.depthWeight = 0d;
+		for(int j=0; j<picks.size(); j++) {
+			picks.get(j).weight = 0d;
+		}
 	}
 	
 	/**
@@ -339,18 +538,6 @@ public class Event {
 	}
 	
 	/**
-	 * Print the input event information in a format similar to 
-	 * the Hydra event input file.
-	 */
-	public void printIn() {
-		hypo.printIn();
-		System.out.println();
-		for(int j=0; j<groups.size(); j++) {
-			groups.get(j).printIn();
-		}
-	}
-	
-	/**
 	 * Print the arrivals associated with this event in a nice format.
 	 * 
 	 * @param first If true only print the first arrival in each pick 
@@ -360,17 +547,6 @@ public class Event {
 		System.out.println();
 		for(int j=0; j<groups.size(); j++) {
 			groups.get(j).printArrivals(first);
-		}
-	}
-	
-	/**
-	 * Print a Bulletin Hydra style output file.
-	 */
-	public void printHydra() {
-		hypo.printHydra(noStations, stationsUsed, noPicks, picksUsed);
-		System.out.println();
-		for(int j=0; j<groups.size(); j++) {
-			groups.get(j).printHydra();
 		}
 	}
 	
@@ -387,15 +563,60 @@ public class Event {
 	}
 	
 	/**
+	 * Print the input event information in a format similar to 
+	 * the Hydra event input file.
+	 */
+	public void printIn() {
+		System.out.format("\n%22s %8.4f %9.4f %6.2f %5b %5b %5b "+
+				"%5.1f %5.1f %5b %5b\n", LocUtil.getRayDate(hypo.originTime), 
+				hypo.latitude, hypo.longitude, hypo.depth, heldLoc, heldDepth, 
+				prefDepth, hypo.bayesDepth, hypo.bayesSpread, cmndRstt, cmndCorr);
+		System.out.println();
+		for(int j=0; j<groups.size(); j++) {
+			groups.get(j).printIn();
+		}
+	}
+	
+	/**
+	 * Print a Bulletin Hydra style output file.
+	 */
+	public void printHydra() {
+		System.out.format("\n%14.3f %8.4f %9.4f %6.2f %4d %4d %4d %4d %3.0f "+
+				"%8.4f\n", hypo.originTime, hypo.latitude, hypo.longitude, 
+				hypo.depth, staAssoc, phAssoc, staUsed, phUsed, azimGap, delMin);
+		System.out.format("%6.2f %6.1f %6.1f %6.1f %6.2f %6.1f %6.1f %6.1f "+
+					"%3s %5.1f %5.1f %6.4f\n", seTime, seLat, seLon, seDepth, seResid, 
+					errH, errZ, aveH, quality, hypo.bayesDepth, hypo.bayesSpread, 
+					bayesImport);
+		System.out.format("%14s %14s %14s  %3.0f\n", errEllip[0], errEllip[1], 
+				errEllip[2], lestGap);
+		System.out.println();
+		for(int j=0; j<groups.size(); j++) {
+			groups.get(j).printHydra();
+		}
+	}
+	
+	/**
 	 * Print an NEIC style web output.
 	 */
 	public void printNEIC() {
-		// Sort the pick groups by distance.
-		groups.sort(new GroupComp());
 		// Print the hypocenter.
-		hypo.printNEIC(noStations, noPicks);
+		System.out.format("\nLocation:             %-7s %-8s ±%6.1f km\n", 
+				LocUtil.niceLat(hypo.latitude), LocUtil.niceLon(hypo.longitude), 
+				errH);
+		System.out.format("Depth:                %5.1f ±%6.1f km\n", 
+				hypo.depth, errZ);
+		System.out.format("Origin Time:          %23s UTC\n", 
+				LocUtil.getNEICdate(hypo.originTime));
+		System.out.format("Number of Stations:     %4d\n", staAssoc);
+		System.out.format("Number of Phases:       %4d\n", phAssoc);
+		System.out.format("Minimum Distance:     %6.1f\n", delMin);
+		System.out.format("Travel Time Residual:  %5.2f\n", seTime);
+		System.out.format("Azimuthal Gap:           %3.0f\n", azimGap);
 		System.out.println("\n    Channel     Distance Azimuth Phase  "+
 				"   Arrival Time Status    Residual Weight");
+		// Sort the pick groups by distance.
+		groups.sort(new GroupComp());
 		// Print the picks.
 		for(int j=0; j<groups.size(); j++) {
 			groups.get(j).printNEIC();

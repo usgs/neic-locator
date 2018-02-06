@@ -1,7 +1,6 @@
 package gov.usgs.locator;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 
 /**
  * Rank-sum estimator implementation for the NEIC Locator.
@@ -10,11 +9,10 @@ import java.util.Arrays;
  *
  */
 public class Restimator {
-	int nLast = -1, medIndex1 = -1, medIndex2 = -1, length = -1, half = -1;
-	double median = 0d, spread = 0d, estMedian = 0d;
+	int nLast = -1, length = -1, half = -1;
+	double median = 0d, estMedian = 0d;
 	double[] scores;
 	ArrayList<Wresidual> wResiduals;
-	SortData[] sortData = null;
 	
 	/**
 	 * Remember the weighted residual storage.
@@ -37,38 +35,24 @@ public class Restimator {
 			else if(wResiduals.size() == 1 && wResiduals.get(0).isDepth) 
 				return 0d;
 		}
-		/*
-		 * Note that sortData is dimensioned at least one larger than needed 
-		 * for pick residuals alone in the median and spread methods.  The 
-		 * extra space will be needed for computing the dispersion.
-		 */
-		if(sortData == null) sortData = new SortData[wResiduals.size()];
-		else if(sortData.length < wResiduals.size()) 
-			sortData = new SortData[wResiduals.size()];
 		
 		// Set up for the median.
-		length = 0;
 		for(int j=0; j<wResiduals.size(); j++) {
-			if(!wResiduals.get(j).isDepth) {
-				sortData[length] = new SortData(length, wResiduals.get(j).residual);
-				length++;
-			}
+				wResiduals.get(j).sortRes();
 		}
-		// Sort the travel-time residuals and their indices.
-		Arrays.sort(sortData, 0, length);
+		// Sort the travel-time residuals.
+		wResiduals.sort(null);
 		
 		// Do the median.
+		length = wResiduals.size()-1;
 		half = length/2;
 		if(length%2 == 0) {
-			median = 0.5d*(sortData[half-1].value+sortData[half].value);
-			medIndex1 = sortData[half-1].index;
-			medIndex2 = sortData[half].index;
+			median = 0.5d*(wResiduals.get(half-1).residual+
+					wResiduals.get(half).residual);
 			return median;
 		}
 		else {
-			median = sortData[half].value;
-			medIndex1 = sortData[half].index;
-			medIndex2 = -1;
+			median = wResiduals.get(half).residual;
 			return median;
 		}
 	}
@@ -76,7 +60,7 @@ public class Restimator {
 	/**
 	 * Compute the normalized median absolute deviation or spread of the 
 	 * travel-time residuals (excluding the Bayesian depth residual).  Note 
-	 * that the median method must be invoked before spread.
+	 * that the median is remembered from the median method.
 	 * 
 	 * @return The spread of the travel-time residuals
 	 */
@@ -86,30 +70,29 @@ public class Restimator {
 		
 		// Set up for the spread.
 		for(int j=0; j<length; j++) {
-			sortData[j].value = Math.abs(sortData[j].value-median);
+			wResiduals.get(j).sortSpread(median);
 		}
-		Arrays.sort(sortData, 0, length);
+		wResiduals.sort(null);
 		
 		// Do the median of the demeaned absolute residuals.
+		length = wResiduals.size()-1;
+		half = length/2;
 		if(length%2 == 0) {
-			spread = LocUtil.MADNORM*0.5d*(sortData[half-1].value+
-					sortData[half].value);
-			return spread;
+			return LocUtil.MADNORM*0.5d*(wResiduals.get(half-1).sortValue+
+					wResiduals.get(half).sortValue);
 		}
 		else {
-			spread = LocUtil.MADNORM*sortData[half].value;
-			return spread;
+			return LocUtil.MADNORM*wResiduals.get(half).sortValue;
 		}
 	}
 	
 	/**
-	 * Remove the median from the residuals.
+	 * Remove the median from the residuals.  Note that the median is 
+	 * remembered from the median method.
 	 */
 	public void deMedianRes() {
 		for(int j=0; j<wResiduals.size(); j++) {
-			if(!wResiduals.get(j).isDepth) {
-				wResiduals.get(j).residual -= median;
-			}
+			wResiduals.get(j).deMedianRes(median);
 		}
 		// Since we've already demedianed, we don't need to do it again 
 		// for the penalty function.
@@ -117,11 +100,38 @@ public class Restimator {
 	}
 	
 	/**
+	 * Remove the medians from each row of the design matrix.  Note that 
+	 * the positions of the median values corresponds to the positions 
+	 * for the residual, not their design values.  Obviously, the median 
+	 * method must be invoked before deMedianDesign to determine these 
+	 * positions and no other method that re-sorts the residuals (i.e., 
+	 * spread and penalty) may be invoked in between.
+	 */
+	public void deMedianDesign() {
+		double[] dMed = new double[3];
+		
+		// Set up the medians.
+		if(length%2 == 0) {
+			for(int i=0; i<dMed.length; i++) {
+				dMed[i] = 0.5d*(wResiduals.get(half-1).deriv[i]+
+						wResiduals.get(half).deriv[i]);
+			}
+		} else {
+			for(int i=0; i<dMed.length; i++) {
+				dMed[i] = wResiduals.get(half
+						).deriv[i];
+			}
+		}
+		// Remove the median values from the matrix.
+		for(int j=0; j<wResiduals.size(); j++) {
+			wResiduals.get(j).deMedianDeriv(dMed);
+		}
+	}
+	
+	/**
 	 * Compute the R-estimator penalty function or dispersion.  Note that 
-	 * the median method must be invoked before penalty in order to 
-	 * compute the median and allocate the sort storage.
+	 * the median is remembered from the median method.
 	 * 
-	 * @param tag String printed as part of the debug output
 	 * @return the R-estimator penalty function
 	 */
 	public double penalty() {
@@ -130,178 +140,9 @@ public class Restimator {
 		
 		// Set up the penalty.
 		for(int j=0; j<wResiduals.size(); j++) {
-			// This time keep the Bayesian depth constraint, but, of course, 
-			// don't remove the residual median.
-			if(!wResiduals.get(j).isDepth) {
-				sortData[j] = new SortData(j, (wResiduals.get(j).residual-median)*
-						wResiduals.get(j).weight);
-			} else {
-				sortData[j] = new SortData(j, wResiduals.get(j).residual*
-						wResiduals.get(j).weight);
-			}
+				wResiduals.get(j).sortDisp(median);
 		}
-		Arrays.sort(sortData, 0, wResiduals.size());
-		// Compute the penalty function.
-		double penalty = dispersion();
-		// Put the sorted indices back into R-estimator storage.
-		for(int j=0; j<wResiduals.size(); j++) {
-			wResiduals.get(j).sortIndex = sortData[j].index;
-		}
-		return penalty;
-	}
-	
-	/**
-	 * Remove the medians from each row of the design matrix.  Note that 
-	 * the positions of the median values corresponds to the positions 
-	 * for the residual, not their design values.  Obviously, the median 
-	 * method must be invoked before deMean to determine these positions.
-	 * 
-	 * @param d Design matrix
-	 */
-	public void deMedianDesign() {
-		double[] dMed = new double[3];
-		
-		// Set up the medians.
-		if(length%2 == 0) {
-			for(int i=0; i<dMed.length; i++) {
-				dMed[i] = 0.5d*(wResiduals.get(medIndex1).deriv[i]+
-						wResiduals.get(medIndex2).deriv[i]);
-			}
-		} else {
-			for(int i=0; i<dMed.length; i++) {
-				dMed[i] = wResiduals.get(medIndex1).deriv[i];
-			}
-		}
-		// Remove the median values from the matrix.
-		for(int j=0; j<wResiduals.size(); j++) {
-			if(!wResiduals.get(j).isDepth) {
-				wResiduals.get(j).deMedianDeriv(dMed);
-			}
-		}
-	}
-	
-	/**
-	 * Compute the steepest descents direction.
-	 * 
-	 * @param n Number of degrees of freedom (n = 2 for fixed depth, n=3 
-	 * for free depth)
-	 * @return The steepest descents direction unit vector
-	 */
-	public double[] steepest(int n) {
-		double[] stepDir;
-		Wresidual wResidual;
-		
-		// Interpolate the scores.
-		if(sortData.length != nLast) {
-			nLast = sortData.length;
-			makeScores(sortData.length);
-		}
-		// Initialize the step length.
-		stepDir = new double[n];
-		for(int j=0; j<n; j++) {
-			stepDir[j] = 0d;
-		}
-		// The step direction is the sum of weighted, demedianed derivatives.  
-		// We have to process the residuals in sort order for the scores to 
-		// be right.
-//	System.out.println("\nAdder:");
-		for(int j=0; j<sortData.length; j++) {
-			wResidual = wResiduals.get(sortData[j].index);
-//		wResidual.printWres(true);
-			for(int i=0; i<n; i++) {
-				stepDir[i] += scores[j]*wResidual.weight*wResidual.deDeriv[i];
-			}
-//		System.out.format("\t\tStep: %8.4f %8.4f %8.4f\n", stepDir[0], 
-//				stepDir[1], stepDir[2]);
-		}
-		return LocUtil.unitVector(stepDir);
-	}
-	
-	/**
-	 * Compute the median of the linear estimates of the travel-time 
-	 * residuals (excluding the Bayesian depth residual).
-	 * 
-	 * @returnMedian of estimated travel-time residuals
-	 */
-	public double estMedian() {
-		// Make sure we have enough data to do something.
-		if(wResiduals.size() < 2) {
-			// If there's no data or only a depth constraint return zero.
-			if(wResiduals.size() == 0) return 0d;
-			else if(wResiduals.size() == 1 && wResiduals.get(0).isDepth) 
-				return 0d;
-		}
-		/*
-		 * Note that sortData is dimensioned at least one larger than needed 
-		 * for pick residuals alone in the median and spread methods.  The 
-		 * extra space will be needed for computing the dispersion.
-		 */
-		if(sortData == null) sortData = new SortData[wResiduals.size()];
-		else if(sortData.length < wResiduals.size()) 
-			sortData = new SortData[wResiduals.size()];
-		
-		// Set up for the median.
-		length = 0;
-		for(int j=0; j<wResiduals.size(); j++) {
-			if(!wResiduals.get(j).isDepth) {
-				sortData[length] = new SortData(length, wResiduals.get(j).estResidual);
-				length++;
-			}
-		}
-		// Sort the travel-time residuals and their indices.
-		Arrays.sort(sortData, 0, length);
-		
-		// Do the median.
-		half = length/2;
-		if(length%2 == 0) {
-			estMedian = 0.5d*(sortData[half-1].value+sortData[half].value);
-			return estMedian;
-		}
-		else {
-			estMedian = sortData[half].value;
-			return estMedian;
-		}
-	}
-	
-	/**
-	 * Remove the median from the estimated residuals.
-	 */
-	public void deMedianEstRes() {
-		for(int j=0; j<wResiduals.size(); j++) {
-			if(!wResiduals.get(j).isDepth) {
-				wResiduals.get(j).estResidual -= estMedian;
-			}
-		}
-		// Since we've already demedianed, we don't need to do it again 
-		// for the penalty function.
-		estMedian = 0d;
-	}
-	
-	/**
-	 * Compute the R-estimator penalty function or dispersion.  Note that 
-	 * the median method must be invoked before penalty in order to 
-	 * compute the median and allocate the sort storage.
-	 * 
-	 * @param tag String printed as part of the debug output
-	 * @return the R-estimator penalty function
-	 */
-	public double estPenalty() {
-		// Trap insufficient data.
-		if(wResiduals.size() < 2) return 0d;
-		
-		// Set up the penalty.
-		for(int j=0; j<wResiduals.size(); j++) {
-			// This time keep the Bayesian depth constraint, but, of course, 
-			// don't remove the residual median.
-			if(!wResiduals.get(j).isDepth) {
-				sortData[j] = new SortData(j, (wResiduals.get(j).estResidual-estMedian)*
-						wResiduals.get(j).weight);
-			} else {
-				sortData[j] = new SortData(j, wResiduals.get(j).estResidual*
-						wResiduals.get(j).weight);
-			}
-		}
-		Arrays.sort(sortData, 0, wResiduals.size());
+		wResiduals.sort(null);
 		// Compute the penalty function.
 		return dispersion();
 	}
@@ -316,15 +157,115 @@ public class Restimator {
 		double disp = 0d;
 		
 		// Interpolate the scores.
-		if(sortData.length != nLast) {
-			nLast = sortData.length;
-			makeScores(sortData.length);
+		if(wResiduals.size() != nLast) {
+			nLast = wResiduals.size();
+			makeScores(nLast);
 		}
 		// The dispersion is just a dot product.
-		for(int j=0; j<sortData.length; j++) {
-			disp += scores[j]*sortData[j].value;
+		for(int j=0; j<nLast; j++) {
+			disp += scores[j]*wResiduals.get(j).sortValue;
 		}
 		return disp;
+	}
+	
+	/**
+	 * Compute the steepest descents direction.  This depends on the 
+	 * wResiduals sort order created the penalty method, so median and 
+	 * spread methods should not be invoked between.
+	 * 
+	 * @param n Number of degrees of freedom (n = 2 for fixed depth, n=3 
+	 * for free depth)
+	 * @return The steepest descents direction unit vector
+	 */
+	public double[] steepest(int n) {
+		double[] stepDir;
+		Wresidual wResidual;
+		
+		// Initialize the step length.
+		stepDir = new double[n];
+		for(int j=0; j<n; j++) {
+			stepDir[j] = 0d;
+		}
+		/*
+		 * The step direction is the sum of weighted, demedianed derivatives.  
+		 * We have to process the weighted residuals in sort order for the 
+		 * scores to get the right direction.
+		 */
+		for(int j=0; j<wResiduals.size(); j++) {
+			wResidual = wResiduals.get(j);
+			for(int i=0; i<n; i++) {
+				stepDir[i] += scores[j]*wResidual.weight*wResidual.deDeriv[i];
+			}
+		}
+		return LocUtil.unitVector(stepDir);
+	}
+	
+	/**
+	 * Compute the median of the linear estimates of the travel-time 
+	 * residuals (excluding the Bayesian depth residual).
+	 * 
+	 * @return Median of estimated travel-time residuals
+	 */
+	public double estMedian() {
+		// Make sure we have enough data to do something.
+		if(wResiduals.size() < 2) {
+			// If there's no data or only a depth constraint return zero.
+			if(wResiduals.size() == 0) return 0d;
+			else if(wResiduals.size() == 1 && wResiduals.get(0).isDepth) 
+				return 0d;
+		}
+		
+		// Set up for the median.
+		length = 0;
+		for(int j=0; j<wResiduals.size(); j++) {
+				wResiduals.get(j).sortEst();
+		}
+		// Sort the estimated travel-time residuals.
+		wResiduals.sort(null);
+		
+		// Do the median.
+		length = wResiduals.size()-1;
+		half = length/2;
+		if(length%2 == 0) {
+			estMedian = 0.5d*(wResiduals.get(half-1).estResidual+
+					wResiduals.get(half).estResidual);
+			return estMedian;
+		}
+		else {
+			estMedian = wResiduals.get(half).estResidual;
+			return estMedian;
+		}
+	}
+	
+	/**
+	 * Remove the median from the estimated residuals.
+	 */
+	public void deMedianEstRes() {
+		for(int j=0; j<wResiduals.size(); j++) {
+			wResiduals.get(j).deMedianEst(estMedian);
+		}
+		// Since we've already demedianed, we don't need to do it again 
+		// for the penalty function.
+		estMedian = 0d;
+	}
+	
+	/**
+	 * Compute the R-estimator penalty function or dispersion.  Note that 
+	 * the median is remembered from the estMedian method.
+	 * 
+	 * @return the R-estimator penalty function
+	 */
+	public double estPenalty() {
+		// Trap insufficient data.
+		if(wResiduals.size() < 2) return 0d;
+		
+		// Set up the penalty.
+		for(int j=0; j<wResiduals.size(); j++) {
+				wResiduals.get(j).sortEstDisp(estMedian);
+		}
+		wResiduals.sort(null);
+		// Compute the penalty function.
+		return dispersion();
 	}
 
 	/**
@@ -391,10 +332,5 @@ public class Restimator {
 			scores[nData-j-1] = -scores[j];
 		}
 		if(nData%2 > 0) scores[nData/2] = 0d;
-		
-/*	System.out.println("\nScores:");
-		for(int j=0; j<nData; j++) {
-			System.out.format("\t%3d %6.4f\n", j, scores[j]);
-		} */
 	}
 }

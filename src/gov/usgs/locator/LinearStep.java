@@ -19,15 +19,18 @@ public class LinearStep {
 	Event event;
 	Restimator rEst;
 	Hypocenter hypo;
-	ArrayList<Pick> picks;
 	ArrayList<Wresidual> wRes;
 	
-	public LinearStep(Event event, Restimator rEst) {
+	/**
+	 * Remember the event.
+	 * 
+	 * @param event Event information
+	 */
+	public LinearStep(Event event) {
 		this.event = event;
 		hypo = event.getHypo();
-		picks = event.usedPicks;
 		wRes = event.wResiduals;
-		this.rEst = rEst;
+		rEst = event.rEst;
 	}
 	
 	/**
@@ -43,6 +46,7 @@ public class LinearStep {
 	 * the current estimate is good enough
 	 * @param stepMax If the final step length is greater than the 
 	 * maximum, give up
+	 * @param curPenalty Current R-estimator dispersion
 	 * @return The step length in kilometers needed to reach the 
 	 * minimum dispersion
 	 * @throws Exception If the bisection doesn't make sense
@@ -56,7 +60,7 @@ public class LinearStep {
 		
 		if(LocUtil.deBugLevel > 0) System.out.println();
 		
-		// The trial vector has to be the same size.
+		// The trial vector has to be the same size as the step vector.
 		trialVector = new double[stepDir.length];
 		
 		// Initialize the bisection.
@@ -69,7 +73,7 @@ public class LinearStep {
 		
 		// Do some preliminary hunting to surround the minimum.
 		if(sample[0].chiSq >= sample[1].chiSq) {
-			// If the trial step was too short:
+			// If the trial step was too short, keep doubling it.
 			stepLen = 2d*stepLen;
 			sample[2] = estPenalty(stepLen);
 			// Keep stepping until the penalty gets bigger.
@@ -90,7 +94,7 @@ public class LinearStep {
 				sample[2] = estPenalty(stepLen);
 			}
 		} else {
-			// If trial step was too long.
+			// If trial step was too long, find a lower limit.
 			do {
 				sample[2] = sample[1];
 				stepLen = 0.5*(sample[0].stepLen+sample[2].stepLen);
@@ -102,7 +106,7 @@ public class LinearStep {
 					}
 					trialStep(sample[1].stepLen);
 					if(LocUtil.deBugLevel > 0) System.out.format("Lintry: x dsp = "+
-							"%6.2f %9.4f %5.2f\n", sample[1].stepLen, sample[1].chiSq, 
+							"%7.3f %9.4f %5.2f\n", sample[1].stepLen, sample[1].chiSq, 
 							sample[1].median);
 					return sample[1];
 				}
@@ -137,7 +141,7 @@ public class LinearStep {
 		// Done.
 		trialStep(sample[1].stepLen);
 		if(LocUtil.deBugLevel > 0) System.out.format("Lintry: x dsp = "+
-				"%6.2f %9.4f %5.2f\n", sample[1].stepLen, sample[1].chiSq, 
+				"%7.3f %9.4f %5.2f\n", sample[1].stepLen, sample[1].chiSq, 
 				sample[1].median);
 		return sample[1];
 	}
@@ -162,12 +166,10 @@ public class LinearStep {
 	private RestResult estPenalty(double stepLen) {
 		double median, penalty;
 		
-		// Do the initial pass to demean the correlated residuals.
+		// Do the initial pass to project and demean the correlated residuals.
 		trialStep(stepLen);
-//	System.out.println("\nEstRes:");
 		for(int j=0; j<wRes.size(); j++) {
 			wRes.get(j).updateEst(trialVector);
-//		wRes.get(j).printWres(false);
 		}
 		median = rEst.estMedian();
 		rEst.deMedianEstRes();
@@ -180,7 +182,7 @@ public class LinearStep {
 		} else {
 			penalty = rEst.estPenalty();
 			if(LocUtil.deBugLevel > 0) System.out.format("Estlin: x dsp = "+
-					"%6.2f %9.4f %5.2f\n", stepLen, penalty, median);
+					"%7.3f %9.4f %5.2f\n", stepLen, penalty, median);
 			return new RestResult(stepLen, median, 0d, penalty);
 		}
 	}
@@ -198,7 +200,7 @@ public class LinearStep {
 			trialVector[j] = stepLen*stepDir[j];
 		}
 		// Make sure the depth is OK.
-		if(!LocUtil.epicenter) {
+		if(hypo.degOfFreedom > 2) {
 			// Trap air quakes.
 			if(hypo.depth+trialVector[2] < LocUtil.DEPTHMIN) 
 				trialVector[2] = LocUtil.DEPTHMIN-hypo.depth;
@@ -206,7 +208,5 @@ public class LinearStep {
 			else if(hypo.depth+trialVector[2] > LocUtil.DEPTHMAX) 
 				trialVector[2] = LocUtil.DEPTHMAX-hypo.depth;
 		}
-//	System.out.format("TrialStep = %7.2f %7.2f %7.2f\n", trialVector[0], 
-//			trialVector[1], trialVector[2]);
 	}
 }

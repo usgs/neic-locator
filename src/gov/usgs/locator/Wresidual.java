@@ -2,6 +2,8 @@ package gov.usgs.locator;
 
 import java.util.Arrays;
 
+import gov.usgs.traveltime.TauUtil;
+
 /**
  * This weighted residuals storage combines the residuals and weights 
  * for picks and the Bayesian depth, while providing storage for the 
@@ -12,31 +14,33 @@ import java.util.Arrays;
  * @author Ray Buland
  *
  */
-public class Wresidual {
+public class Wresidual implements Comparable<Wresidual>{
 	boolean isDepth;		// True if this is the Bayesian depth residual
-	int sortIndex;			// Index of the sorted residual
 	double residual;		// Residual in seconds for picks or kilometers for depth
 	double estResidual;	// Linearly estimated residual
 	double weight;			// Weight
 	double[] deriv;			// Spatial derivatives in kilometers
 	double[] deDeriv;		// Demedianed spatial derivatives in kilometers
+	double sortValue;		// The value to sort on
+	Pick pick;					// Pointer to the pick the residuals were derived from
 	
 	/**
 	 * Initialize the weighted residual with minimal information.
 	 * 
-	 * @param isDepth True if this is the Bayesian depth residual
+	 * @param pick The pick associated with this data, if any
 	 * @param residual Residual in seconds for picks and in kilometers 
 	 * for depth
 	 * @param weight Weight
+	 * @param isDepth True if this is the Bayesian depth residual
 	 */
-	public Wresidual(boolean isDepth, int sortIndex, double residual, 
-			double weight) {
-		this.isDepth = isDepth;
-		this.sortIndex = sortIndex;
+	public Wresidual(Pick pick, double residual, double weight, boolean isDepth) {
+		this.pick = pick;
 		this.residual = residual;
 		this.weight = weight;
-		sortIndex = -1;
+		this.isDepth = isDepth;
 		deriv = null;
+		deDeriv = null;
+		sortValue = Double.NaN;
 	}
 	
 	/**
@@ -59,6 +63,15 @@ public class Wresidual {
 	}
 	
 	/**
+	 * Remove the median from the travel-time residuals.
+	 * 
+	 * @param median Median travel-time residual in seconds
+	 */
+	public void deMedianRes(double median) {
+		if(!isDepth) residual -= median;
+	}
+	
+	/**
 	 * Remove the median from the derivatives.  Note that this isn't the 
 	 * median of the derivatives, but the derivative corresponding to the 
 	 * median of the residuals.
@@ -66,16 +79,18 @@ public class Wresidual {
 	 * @param medians Array of derivative medians
 	 */
 	public void deMedianDeriv(double[] medians) {
-		for(int j=0; j<medians.length; j++) {
-			deDeriv[j] = deriv[j]-medians[j];
+		if(!isDepth) {
+			for(int j=0; j<medians.length; j++) {
+				deDeriv[j] = deriv[j]-medians[j];
+			}
 		}
 	}
 	
 	/**
 	 * Update the estimated residual given a trial step vector.
 	 * 
-	 * @param trialVector Distance and direction from the current hypocenter 
-	 * in kilometers
+	 * @param trialVector Distance and direction from the current 
+	 * hypocenter in kilometers
 	 */
 	public void updateEst(double[] trialVector) {
 		estResidual = residual;
@@ -85,12 +100,105 @@ public class Wresidual {
 	}
 	
 	/**
-	 * Get the index of the sorted residual.
+	 * Remove the median from the estimated travel-time residuals.
 	 * 
-	 * @return Sorted index.
+	 * @param median Median estimated travel-time residuals in seconds
 	 */
-	public int getSortIndex() {
-		return sortIndex;
+	public void deMedianEst(double median) {
+		if(!isDepth) estResidual -= median;
+	}
+	
+	/**
+	 * Set the sort value to sort by travel-time residual.  Note that 
+	 * the depth residual will be sorted to the end to keep it out of 
+	 * the way.
+	 */
+	public void sortRes() {
+		if(isDepth) sortValue = TauUtil.DMAX;
+		else sortValue = residual;
+	}
+	
+	/**
+	 * Set the sort value to sort by absolute demedianed travel-time 
+	 * residuals in order to compute the spread, a 1-norm measure of 
+	 * scatter.
+	 * 
+	 * @param median Median travel-time residual in seconds
+	 */
+	public void sortSpread(double median) {
+		if(isDepth) sortValue = TauUtil.DMAX;
+		else sortValue = Math.abs(residual-median);
+	}
+	
+	/**
+	 * Set the sort value to sort by the demedianed, weighted residuals 
+	 * in order to compute the R-estimator dispersion or penalty function.
+	 * 
+	 * @param median Median travel-time residual in seconds
+	 */
+	public void sortDisp(double median) {
+		if(isDepth) sortValue = residual*weight;
+		else sortValue = (residual-median)*weight;
+	}
+	
+	/**
+	 * Set the sort value to sort by the estimated travel-time residual.  
+	 * Note that the depth residual will be sorted to the end to keep it 
+	 * out of the way.
+	 */
+	public void sortEst() {
+		if(isDepth) sortValue = TauUtil.DMAX;
+		else sortValue = estResidual;
+	}
+	
+	/**
+	 * Set the sort value to sort by the demedianed, weighted, estimated 
+	 * residuals in order to compute the R-estimator dispersion or penalty 
+	 * function.
+	 * 
+	 * @param median Median estimated travel-time residual in seconds
+	 */
+	public void sortEstDisp(double median) {
+		if(isDepth) sortValue = estResidual*weight;
+		else sortValue = (estResidual-median)*weight;
+	}
+	
+	/**
+	 * Get the weighted derivatives for computing the "normal" matrix.
+	 * 
+	 * @param n Number of degrees of freedom
+	 * @return Weighted derivative vector
+	 */
+	public double[] getWderiv(int n) {
+		double c[] = new double[n];
+		for(int j=0; j<n; j++) {
+			c[j] = weight*deriv[j];
+		}
+		return c;
+	}
+	
+	/**
+	 * Get the weighted, demedianed derivatives for computing the 
+	 * projected "normal" matrix.
+	 * 
+	 * @param n Number of degrees of freedom
+	 * @return Weighted derivative vector
+	 */
+	public double[] getWdeDeriv(int n) {
+		double c[] = new double[n];
+		for(int j=0; j<n; j++) {
+			c[j] = weight*deDeriv[j];
+		}
+		return c;
+	}
+	
+	/**
+	 * Update the pick data importance.
+	 * 
+	 * @param importance Pick data importance
+	 */
+	public void updateImport(double importance) {
+		if(pick != null) pick.importance = importance;
 	}
 	
 	/**
@@ -100,12 +208,23 @@ public class Wresidual {
 	 */
 	public void printWres(boolean full) {
 		if(!full || deriv == null) {
-			System.out.format("\t%4d Res: %7.2f %7.2f Wt: %7.4f %b\n", sortIndex, 
-					residual, estResidual, weight, isDepth);
+			System.out.format("\tRes: %7.2f %7.2f Wt: %7.4f %b\n", residual, 
+					estResidual, weight, isDepth);
 		} else {
-			System.out.format("\t%4d Res: %7.2f %7.2f Wt: %7.4f deriv: %10.3e "+
-					"%10.3e %10.3e %b\n", sortIndex, residual, estResidual, weight, 
-					deriv[0], deriv[1], deriv[2], isDepth);
+			System.out.format("\tRes: %7.2f %7.2f Wt: %7.4f deriv: %10.3e "+
+					"%10.3e %10.3e %b\n", residual, estResidual, weight, deriv[0], 
+					deriv[1], deriv[2], isDepth);
 		}
+	}
+
+	/**
+	 * Sort so that the current sort values are in ascending order.
+	 */
+	@Override
+	public int compareTo(Wresidual wRes) {
+		// Sort into value order.
+		if(this.sortValue < wRes.sortValue) return -1;
+		else if(this.sortValue > wRes.sortValue) return +1;
+		else return 0;
 	}
 }

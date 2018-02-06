@@ -29,9 +29,17 @@ public class LocUtil {
 	 */
 	public static final double DEPTHMAX = 700d;
 	/**
-	 * Default Bayesian depth standard error in kilometers.
+	 * Default Bayesian depth standard error in kilometers for 
+	 * a free depth solution.  This assumes that if we don't have 
+	 * a good estimate for the Bayesian depth, the event is 
+	 * probably in the crust (i.e., 15 +/- 15 km).
 	 */
 	public static final double DEFDEPSE = 15d;
+	/**
+	 * Default Bayesian depth standard error in kilometers for a 
+	 * held depth solution.
+	 */
+	public static final double HELDEPSE = 3d;
 	/**
 	 * Factor to down weight undesirable phase identifications.
 	 */
@@ -53,7 +61,7 @@ public class LocUtil {
 	 * Minimum acceptable observability for an alternative phase 
 	 * identification.
 	 */
-	public static final double MINOBSERV = 1d;
+	public static final double OBSERVMIN = 1d;
 	/**
 	 * Association tolerance in seconds.
 	 */
@@ -69,15 +77,9 @@ public class LocUtil {
 	 */
 	public static final double DEG2KM = 6371d*Math.PI/180d;
 	/**
-	 * Normalization to make the median absolute deviation (MAD, also 
-	 * referred to as the spread in the Locator) match the standard 
-	 * deviation for a Gaussian distribution.
-	 */
-	public static final double MADNORM = 1.482580d;
-	/**
 	 * Maximum number of iteration stages to attempt.
 	 */
-	public static int STAGELIM = 5;
+	public static final int STAGELIM = 5;
 	/**
 	 * Start each iteration loop with this step length.
 	 */
@@ -103,6 +105,55 @@ public class LocUtil {
 	 */
 	public static final double ALMOST = 1.1d;
 	/**
+	 * The maximum distance from the epicenter in degrees considered local 
+	 * for the purposes of GT5.
+	 */
+	public static final double DELTALOC = 250/DEG2KM;
+	/**
+	 * Normalization to make the median absolute deviation (MAD, also 
+	 * referred to as the spread in the Locator) match the standard 
+	 * deviation for a Gaussian distribution.
+	 */
+	public static final double MADNORM = 1.482580d;
+	/**
+	 * Scale raw marginal confidence intervals to 90th percentiles.
+	 */
+	public static final double PERPT1D = 2.0285161d;
+	/**
+	 * Scale 2-D (i.e., epicenter) confidence intervals to 90th percentiles.
+	 */
+	public static final double PERPT2D = 2.6465147d;
+	/**
+	 * Scale 3-D (i.e., hypocenter) confidence intervals to 90th percentiles.
+	 */
+	public static final double PERPT3D = 3.0834703d;
+	/**
+	 * Tangential (horizontal) limits on aveH for quality levels.
+	 */
+	public static final double[] HQUALIM = {8.5d, 16d, 60d};
+	/**
+	 * Vertical (radial) limits on seDepth for quality levels.
+	 */
+	public static final double[] VQUALIM = {16d, 30d, 75d};
+	/**
+	 * Limits on the maximum semiLen for quality levels.
+	 */
+	public static final double[] AQUALIM = {42.5d, 80d, 300d};
+	/**
+	 * Limits on the number of phases used for quality levels.
+	 */
+	public static final int[] NQUALIM = {6, 2};
+	/**
+	 * Slope for compensating for the effective number of data if 
+	 * decorrelation is not used.
+	 */
+	public static final double EFFSLOPE = 0.309d;
+	/**
+	 * Offset for compensating for the effective number of data if 
+	 * decorrelation is not used.
+	 */
+	public static final double EFFOFFSET = 1.22d;
+	/**
 	 * The Locator always uses all phases (i.e., a null phase list).
 	 */
 	public static final String[] PHLIST = null;
@@ -114,6 +165,9 @@ public class LocUtil {
 	 * If true, suppress back branches.
 	 */
 	public static final boolean NOBACKBRN = true;
+	
+	// The following public variables may be set by the caller:
+	
 	/**
 	 * True if the decorrelation algorithm is to be used.  Note that 
 	 * it is never used in the initial pass, hence the default.
@@ -132,30 +186,21 @@ public class LocUtil {
 	 */
 	public static boolean tectonic = false;
 	/**
-	 * If true, compute a hypocenter.  If false, compute only an epicenter.  
-	 * If the depth is held, epicenter is always true, but it may also be 
-	 * true if there is insufficient data to compute a hypocenter.
-	 */
-	public static boolean epicenter = false;
-	/**
 	 * The higher the debug level, the more output you get.
 	 */
 	public static int deBugLevel = 0;
+	
+	// The following public variable is returned by delAz:
+	
 	/**
 	 * Receiver azimuth relative to the source in degrees clockwise from 
 	 * north (available after calling delAz).
 	 */
 	public static double azimuth = Double.NaN;
-	/**
-	 * The jiggle value is a semi-random number used to make step length 
-	 * damping behave better in pathological cases.
-	 */
-	public static double dampVal = 0.45d;
-	/**
-	 * The jiggle limit is used to keep the jiggle value in a reasonable 
-	 * range.
-	 */
-	public static final double DAMPLIM = 0.58984375d+(dampVal-0.375d);
+	
+	// The following are private constants and variables used by static 
+	// methods below:
+	
 	/**
 	 * Constants needed by ttResModel.
 	 */
@@ -169,13 +214,27 @@ public class LocUtil {
 	/**
 	 * Constants needed by deltaCorr.
 	 */
-	private final static double DELCORRMIN = 20d;				// Minimum distance to boost the FoM
-	private final static double DELCORRFAC = 0.067d;		// Factor to boost the FoM
+	private final static double delCorrMin = 20d;				// Minimum distance to boost the FoM
+	private final static double delCorrFac = 0.067d;		// Factor to boost the FoM
 	/**
 	 * Constants needed by the validLim.
 	 */
-	private final static double VALIDSLOPE = 2.27d;
-	private final static double VALIDOFFSET = 5d;
+	private final static double validSlope = 2.27d;			// Residual validity limit slope
+	private final static double validOffset = 5d;				// Residual validity limit offset
+	/**
+	 * Variables needed by dampFactor.
+	 */
+	private static double dampVal = 0.45d;							// Anti-loop jiggle
+	private static final double dampLim = 0.58984375d+(dampVal-0.375d);
+																											// Anti-loop jiggle limit
+	/**
+	 * Constants needed by isGT5.
+	 */
+	private static final int localMin = 10;							// Minimum number of used local phases
+	private static final double deltaNear = 30d/DEG2KM;	// Maximum distance to the nearest 
+																											// used station in degrees
+	private static final double azimGapMax = 110d;			// Maximum azimuthal gap in degrees
+	private static final double lestGapMax = 160d;			// Maximum robust azimuth gap in degrees
 	
 	/**
 	 * Compute the source-receiver distance and the receiver azimuth.  
@@ -261,7 +320,7 @@ public class LocUtil {
 	 * @param dTdD Derivative of travel time with respect to distance in 
 	 * seconds/degree
 	 * @param azimuth Azimuth of the receiver from the source in degrees
-	 * @return Derivative of travel time with respect to distance in 
+	 * @return Derivative of travel time with respect to latitude in 
 	 * seconds/kilometer
 	 */
 	public static double dTdLat(double dTdD, double azimuth) {
@@ -274,7 +333,7 @@ public class LocUtil {
 	 * @param dTdD Derivative of travel time with respect to distance in 
 	 * seconds/degree
 	 * @param azimuth Azimuth of the receiver from the source in degrees
-	 * @return Derivative of travel time with respect to distance in 
+	 * @return Derivative of travel time with respect to longitude in 
 	 * seconds/kilometer
 	 */
 	public static double dTdLon(double dTdD, double azimuth) {
@@ -323,8 +382,8 @@ public class LocUtil {
 	 * @return Correction to the phase association figure-of-merit
 	 */
 	public static double deltaCorr(double delta) {
-		if(delta < DELCORRMIN) {
-			return 1d+DELCORRFAC*(DELCORRMIN-delta);
+		if(delta < delCorrMin) {
+			return 1d+delCorrFac*(delCorrMin-delta);
 		} else {
 			return 1d;
 		}
@@ -339,24 +398,41 @@ public class LocUtil {
 	 * @return Empirical validity limit
 	 */
 	public static double validLim(double spread) {
-		return VALIDSLOPE*(spread-1d)+ VALIDOFFSET;
+		return validSlope*(spread-1d)+ validOffset;
 	}
 	
 	/**
 	 * Sometimes you can jiggle a machine to jog it out of a rut.  In this 
-	 * case the damping factor is jiggled semi-randomly to avoid loops when 
-	 * step length damping is required.  Note that, the step length will be 
-	 * damped by multiplying it by the damping factor.
+	 * case the damping factor is jiggled to avoid loops when step length 
+	 * damping is required.  Note that, the step length will be damped by 
+	 * multiplying it by the damping factor.
 	 * 
 	 * @return Updated damping factor
 	 */
 	public static double dampFactor() {
-		if(dampVal <= DAMPLIM) {
+		if(dampVal <= dampLim) {
 			dampVal += 0.0390625d;
 		} else {
 			dampVal -= 0.21875d;
 		}
 		return dampVal;
+	}
+	
+	/**
+	 * Test whether this event meets the criteria for the old "ground truth 
+	 * within 5 kilometers" (GT5) algorithm.
+	 * 
+	 * @param locPhUsed Number of local phases used
+	 * @param delMin Distance to the closest station used in degrees
+	 * @param azimGap Azimuthal gap in degrees
+	 * @param lestGap Robust azimuthal gap in degrees
+	 * @return True if this event qualifies as GT5
+	 */
+	public static boolean isGT5(int locPhUsed, double delMin, double azimGap, 
+			double lestGap) {
+		if(locPhUsed >= localMin && delMin <= deltaNear && azimGap < azimGapMax && 
+				lestGap < lestGapMax) return true;
+		else return false;
 	}
 	
 	/**
@@ -459,7 +535,7 @@ public class LocUtil {
 	/**
 	 * Format latitude for printing.
 	 * 
-	 * @param latitude Geographic latitude in degrees
+	 * @param latitude Signed geographic latitude in degrees
 	 * @return Latitude string suitable for a bulletin
 	 */
 	public static String niceLat(double latitude) {
@@ -473,7 +549,7 @@ public class LocUtil {
 	/**
 	 * Format longitude for printing.
 	 * 
-	 * @param longitude Longitude in degrees
+	 * @param longitude Signed longitude in degrees
 	 * @return Longitude string suitable for a bulletin
 	 */
 	public static String niceLon(double longitude) {
@@ -485,7 +561,8 @@ public class LocUtil {
 	}
 	
 	/**
-	 *  Get the numeric authority code from the enumerated types.
+	 *  Get the numeric authority code from the enumerated author 
+	 *  types.
 	 *  
 	 * @param author AuthorType
 	 * @return Numeric authority code

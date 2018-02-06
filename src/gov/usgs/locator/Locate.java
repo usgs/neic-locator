@@ -27,6 +27,8 @@ public class Locate {
 	 * 
 	 * @param event Event information
 	 * @param allBrn Travel-time information
+	 * @param auxLoc Auxiliary location information
+	 * @param auxTT Auxiliary travel-time information
 	 */
 	public Locate(Event event, AllBrnVol allBrn, AuxLocRef auxLoc, 
 			AuxTtRef auxTT) {
@@ -37,7 +39,7 @@ public class Locate {
 		phaseID = new PhaseID(event, allBrn, auxTT);
 		initialID = new InitialID(event, allBrn, phaseID);
 		stepper = new Stepper(event, allBrn, phaseID, auxLoc);
-		close = new CloseOut();
+		close = new CloseOut(event);
 	}
 	
 	/**
@@ -52,26 +54,25 @@ public class Locate {
 		event.addAudit(0, 0, LocStatus.INITIAL_HYPOCENTER);
 		
 		// Bail on insufficient data.
-		if(event.stationsUsed < 3) {
+		if(event.staUsed < 3) {
 			close.endStats(LocStatus.INSUFFICIENT_DATA);
 			return LocStatus.INSUFFICIENT_DATA;
 		}
 		
 		try {
 			// Handle a held solution.
-			if(hypo.heldLoc) {
+			if(event.heldLoc) {
 				// Allow RSTT if requested and reidentify and reweight phases.
-				LocUtil.rstt = hypo.cmndRstt;
+				LocUtil.rstt = event.cmndRstt;
 				stepper.setInitDir(0.1d, 1d, true, true);
 				close.endStats(LocStatus.HELD_HYPOCENTER);
 				return LocStatus.SUCCESS;
 			}
 			
-			// Print out some event stuff for comparison.
-			System.out.println("\n"+event.hypo);
-			event.printArrivals(true);
 			// Prepare the event for relocation.
 			initialID.survey();
+			// Print out the result.
+			if(LocUtil.deBugLevel > 0) initialID.printInitialID();
 			
 			/*
 			 * Do the multistage iteration to refine the hypocenter.
@@ -84,15 +85,12 @@ public class Locate {
 						status = stepper.setInitDir(0.01d,  5d, false, true);
 						break;
 					case 1:
-			//		event.updateEvent(1217617571.841d, 50.1900d, -114.7276d, 1.00d);
-			//		System.out.println("\n"+event.hypo);
 						// Unless this is a restart, allow phases initially removed.
-						if(!hypo.restart) {
+						if(!event.restart) {
 							initialID.resetUseFlags();
-							initialID.printInitialID();
 						}
 						// Allow RSTT and force decorrelation.
-						LocUtil.rstt = hypo.cmndRstt;
+			//		LocUtil.rstt = event.cmndRstt;
 			//		LocUtil.deCorrelate = true;
 						// Do a looser phase identification.
 						status = stepper.setInitDir(0.1d, 1.0d, true, true);
@@ -107,10 +105,12 @@ public class Locate {
 					close.endStats(status);
 					return status;
 				}
+				// Initialize for iteration zero.
 				hypo.stepLen = LocUtil.INITSTEP;
 				bail = false;
 				// Iterate to convergence (or to the iteration limit).
 				for(iter = 0; iter < LocUtil.ITERLIM[stage]; iter++) {
+					// Step.
 					stepper.makeStep(stage, iter);
 					switch(status) {
 					// Bail on insufficient data.
@@ -131,10 +131,13 @@ public class Locate {
 					// Check for convergence.
 					if(hypo.stepLen <= LocUtil.CONVLIM[stage] || bail) break;
 				}
+				// We're done with this stage.  Collect information for a stage 
+				// level audit instance.
 				hypo.delH = LocUtil.delStep(hypo, audit.get(audit.size()-1));
 				hypo.delZ = Math.abs(hypo.depth-audit.get(audit.size()-1).depth);
 				hypo.stepLen = Math.sqrt(Math.pow(hypo.delH,2d)+
 						Math.pow(hypo.delZ,2d));
+				// If we've converged, create a final location level audit.
 				if(stage > 0 && hypo.stepLen <= LocUtil.CONVLIM[stage]) {
 					hypo.delH = LocUtil.delStep(hypo, audit.get(0));
 					hypo.delZ = Math.abs(hypo.depth-audit.get(0).depth);
@@ -145,12 +148,14 @@ public class Locate {
 					event.audit.get(audit.size()-1).printAudit();
 					status = close.endStats(status);
 					return status;
+				// Otherwise, create the stage level audit.
 				} else {
 					event.addAudit(stage, iter, status);
 					System.out.println("Stage wrapup:");
 					event.audit.get(audit.size()-1).printAudit();
 				}
 			}
+			// If we go to full interations on the last stage, give up.
 			return LocStatus.DID_NOT_CONVERGE;
 			
 		} catch (Exception e) {

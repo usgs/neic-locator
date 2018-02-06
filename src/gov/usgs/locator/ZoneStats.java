@@ -109,7 +109,7 @@ public class ZoneStats {
 			// Trap other ugly errors.
 			if(minDepth >= maxDepth || meanDepth <= minDepth || 
 					meanDepth >= maxDepth) {
-				if(meanDepth < 400d) {
+				if(meanDepth < 400d) {		// There's nothing magic about 400 km.
 					minDepth = Math.max(meanDepth-0.5*LocUtil.DEFDEPSE, 
 							LocUtil.DEPTHMIN);
 					maxDepth = minDepth+LocUtil.DEFDEPSE;

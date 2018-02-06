@@ -60,8 +60,6 @@ public class AuxLocRef {
 		stats = readZoneStats(inZones);
 		zoneStats.addStats(noYears, stats);
 		inZones.close();
-		
-		// Set up the zone statistics.
 	}
 	
 	/**

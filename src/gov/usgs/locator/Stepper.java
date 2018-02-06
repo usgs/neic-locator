@@ -24,9 +24,10 @@ public class Stepper {
 	/**
 	 * Keep track of data needed.
 	 * 
-	 * @param allBrn Travel-time information
-	 * @param auxLoc Auxiliary locator information
 	 * @param event Event information
+	 * @param allBrn Travel-time information
+	 * @param phaseID Phase identification logic
+	 * @param auxLoc Auxiliary locator information
 	 */
 	public Stepper(Event event, AllBrnVol allBrn, PhaseID phaseID, 
 			AuxLocRef auxLoc) {
@@ -37,8 +38,8 @@ public class Stepper {
 		cratons = auxLoc.cratons;
 		zones = auxLoc.zoneStats;
 		this.phaseID = phaseID;
-		rEst = new Restimator(event.wResiduals);
-		linStep = new LinearStep(event, rEst);
+		rEst = event.rEst;
+		linStep = new LinearStep(event);
 	}
 	
 	/**
@@ -99,33 +100,33 @@ public class Stepper {
 			} else {
 				LocUtil.tectonic = true;
 			}
-			System.out.println("\n\tTectonic = "+LocUtil.tectonic);
-			if(!hypo.prefDepth) {
+			if(LocUtil.deBugLevel > 0) System.out.println("\n\tTectonic = "+
+					LocUtil.tectonic);
+			if(!event.prefDepth) {
 				// Update the Bayesian depth if it wasn't set by the analyst.
 				bayesDepth = zones.bayesDepth(hypo.latitude, hypo.longitude);
 				bayesSpread = zones.bayesSpread();
 				hypo.updateBayes(bayesDepth, bayesSpread);
-				System.out.format("\tBayes: %5.1f %5.1f\n", bayesDepth, hypo.depthWeight);
+				if(LocUtil.deBugLevel > 0) System.out.format("\tBayes: %5.1f %5.1f\n", 
+						bayesDepth, hypo.depthWeight);
 			}
 		}
 		
 		// Reidentify phases.
 		event.changed = phaseID.doID(otherWeight, stickyWeight, reID, reWeight);
 		// Bail on insufficient data.
-		if(event.dataUsed < 3) return LocStatus.INSUFFICIENT_DATA;
+		if(event.staUsed < 3) return LocStatus.INSUFFICIENT_DATA;
 		
 		// Demedian the residuals.
 		medianRes = rEst.median();
 		rEst.deMedianRes();
+		// Demedian the design matrix.
+		rEst.deMedianDesign();
 		// Get the R-estimator dispersion.
 		chiSq = rEst.penalty();
 		if(LocUtil.deBugLevel > 0) System.out.format("\nLsrt: ST av chisq = "+
 					"%8.4f %10.4f\n", medianRes, chiSq);
 		
-//	event.printWres(true);
-		// Demedian the design matrix.
-		rEst.deMedianDesign();
-//	event.printWres(true);
 		// Get the steepest descent direction.
 		hypo.stepDir = rEst.steepest(hypo.degOfFreedom);
 		if(LocUtil.deBugLevel > 0) {
@@ -155,7 +156,7 @@ public class Stepper {
 		LocStatus status = LocStatus.SUCCESS;
 		
 		// Save the current hypocenter as a reference for the step length damping.
-		lastHypo = new HypoAudit(hypo, 0, 0, event.picksUsed, status);
+		lastHypo = new HypoAudit(hypo, 0, 0, event.phUsed, status);
 		
 		// Get the linearized step.
 		hypo.noDamp = 0;
@@ -163,13 +164,13 @@ public class Stepper {
 		hypo.stepLen = Math.max(hypo.stepLen, 2d*LocUtil.CONVLIM[stage]);
 		result = linStep.stepLength(hypo.stepDir, hypo.stepLen, 
 				LocUtil.CONVLIM[stage], LocUtil.STEPLIM[stage], hypo.chiSq);
-		// This weird special case appears once in a blue moon.
+		// This weird special case appears once in a while.
 		if(result.chiSq >= hypo.chiSq && result.stepLen < 
 				LocUtil.CONVLIM[stage]) {
 			hypo.stepLen = result.stepLen;
 			hypo.delH = 0d;
 			hypo.delZ = 0d;
-			logStep("Bail", stage, iter, status);
+			logStep("Step", stage, iter, status);
 			return status;
 		}
 		
@@ -265,12 +266,13 @@ public class Stepper {
 	private void logStep(String tag, int stage, int iter, LocStatus status) {
 		double rms;
 		
-		if(event.picksUsed >= hypo.degOfFreedom) rms = hypo.chiSq/
-				(event.picksUsed-hypo.degOfFreedom+1);
+		if(event.phUsed >= hypo.degOfFreedom) rms = hypo.chiSq/
+				(event.phUsed-hypo.degOfFreedom+1);
 		else rms = 0d;
 		hypo.rms = rms;
-		System.out.format("%s: %1d %2d %5d %8.4f %8.4f %6.2f del= %5.1f %6.1f "+
-				"rms= %6.2f %3d\n", tag, stage, iter, event.picksUsed, hypo.latitude, 
-				hypo.longitude, hypo.depth, hypo.delH, hypo.delZ, rms, status.status());
+		if(LocUtil.deBugLevel > 0) System.out.format("\n%s: %1d %2d %5d %8.4f "+
+				"%8.4f %6.2f del= %5.1f %6.1f rms= %6.2f %s\n", tag, stage, iter, 
+				event.phUsed, hypo.latitude, hypo.longitude, hypo.depth, hypo.delH, 
+				hypo.delZ, rms, status);
 	}
 }

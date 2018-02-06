@@ -36,6 +36,7 @@ public class PhaseID {
    *
    * @param event Event object
    * @param allBrn All branches travel-time object
+   * @param auxTT Auxiliary travel-time information
    */
   public PhaseID(Event event, AllBrnVol allBrn, AuxTtRef auxTT) {
     this.event = event;
@@ -59,15 +60,13 @@ public class PhaseID {
 	 * @return True if any used pick in the group has changed significantly
    * @throws Exception On an illegal source depth
    */
-  public boolean doID(double otherWeight, double stickyWeight, boolean reID, 
+	public boolean doID(double otherWeight, double stickyWeight, boolean reID, 
   		boolean reWeight) throws Exception {
   	boolean changed;
     Station station;
     Wresidual wRes;
     
-    if(LocUtil.deBugLevel > 0) System.out.format("\nCurr loc: %8.4f %9.4f "+
-    		"%6.2f %14.3f\n\n", hypo.latitude, hypo.longitude, hypo.depth, 
-    		hypo.originTime);
+    if(LocUtil.deBugLevel > 0) System.out.println("\nCurr loc: "+hypo);
 
     // Remember the figure-of-merit controls.
     this.otherWeight = otherWeight;
@@ -82,8 +81,6 @@ public class PhaseID {
 
 		if(hypo.depth != hypo.ttDepth) {
 			// Set up a new travel-time session if the depth has changed.
-			System.out.format("New depth: %6.2f -> %6.2f\n\n", hypo.ttDepth, 
-					hypo.depth);
 			allBrn.newSession(hypo.latitude, hypo.longitude, hypo.depth, 
 					LocUtil.PHLIST);
 			hypo.ttDepth = hypo.depth;
@@ -98,9 +95,9 @@ public class PhaseID {
       if (group.picksUsed() > 0) {
         // For the first pick in the group, get the travel times.
         station = group.station;
-        System.out.format("PhaseID: %-5s %6.2f %6.2f %6.2f\n", 
-        		station.staID.staCode,group.picks.get(0).tt, group.delta,
-        		group.azimuth);
+        if(LocUtil.deBugLevel > 1) System.out.format("PhaseID: %-5s %6.2f "+
+        		"%6.2f %6.2f\n", station.staID.staCode,group.picks.get(0).tt, 
+        		group.delta, group.azimuth);
         ttList = allBrn.getTT(station.latitude, station.longitude,
                 station.elevation, group.delta, group.azimuth, LocUtil.USEFUL,
                 LocUtil.tectonic, LocUtil.NOBACKBRN, LocUtil.rstt);
@@ -118,15 +115,10 @@ public class PhaseID {
       if(group.updateID(reWeight, wResiduals)) changed = true;
     }
     // Add the Bayesian depth.
-    wRes = new Wresidual(true, wResiduals.size(), hypo.depthRes, 
-    		hypo.depthWeight);
+    wRes = new Wresidual(null, hypo.depthRes, hypo.depthWeight, true);
     wRes.addDeriv(0d, 0d, 1d);	// The Bayesian depth derivatives are simple.
     wResiduals.add(wRes);
-//	System.out.println("\nNew wResidual:");
-//	event.printWres(false);
-    // Create a list of used picks that will be indexed by the weighted 
-    // residuals (before and after sorting).
-    event.makeUsedPicks();
+    // Update the station statistics.
     event.staStats();
     return changed;
   }
@@ -135,9 +127,6 @@ public class PhaseID {
    * During the location iteration, we don't want to re-identify phases, but 
    * sometimes re-identification is thrust upon us (e.g., when the depth or 
    * distance changes and the former identification no longer exists).
-   * 
-   * @param reWeight If true update the residual weights
-	 * @return True if any used pick in the group has changed significantly
    */
   private void noReID() {
   	int m;
@@ -170,8 +159,9 @@ public class PhaseID {
       		pick.mapStat = ttList.get(m);
       		pick.fomStat = resMin;
       		pick.forceStat = true;
-      		System.out.format("NoReID: got it %-5s %-8s %6.2f %2d\n", 
-      				pick.station.staID.staCode, phCode, resMin, m);
+      		if(LocUtil.deBugLevel > 1) System.out.format("NoReID: got it "+
+      				"%-5s %-8s %6.2f %2d\n", pick.station.staID.staCode, phCode, 
+      				resMin, m);
       	// If the easy way doesn't work, we have to try harder.
       	} else {
       		phGroup = auxTT.findGroup(phCode, false);
@@ -193,12 +183,13 @@ public class PhaseID {
         		pick.mapStat = ttList.get(m);
         		pick.fomStat = resMin;
         		pick.forceStat = true;
-        		System.out.format("NoReID: group %-5s %-8s -> %-8s %6.2f %2d\n", 
-        				pick.station.staID.staCode, phCode, ttList.get(m).getPhCode(), 
-        				resMin, m);
+        		if(LocUtil.deBugLevel > 1) System.out.format("NoReID: group "+
+        				"%-5s %-8s -> %-8s %6.2f %2d\n", pick.station.staID.staCode, 
+        				phCode, ttList.get(m).getPhCode(), resMin, m);
         	} else {
         		if(pick.used) {
-        			System.out.println("NoReID: give up "+pick.station.staID.staCode);
+        			if(LocUtil.deBugLevel > 1) System.out.println("NoReID: give up "+
+        					pick.station.staID.staCode);
         			group.initFoM(j, j);
         			reID();
         		} else {
@@ -214,16 +205,12 @@ public class PhaseID {
    * This more sophisticated phase identification is used once we have a 
    * decent initial location.  Note that for a full phase re-identification 
    * the weights are always updated.
-   * 
-	 * @return True if any used pick in the group has changed significantly
    */
   private void reID() {
     int ttBeg, ttLen, pickBeg, pickLen;
     double winMin, winMax;
     TTimeData tTime;
     Pick pick;
-
-//   ttList.print(event.hypo.depth, group.delta);
 
     // Pre-identify surface waves identified by trusted sources.
     for (int j = 0; j < group.noPicks(); j++) {
@@ -242,7 +229,7 @@ public class PhaseID {
     // Split the theoretical phase into clusters (groups isolated in 
     // travel time).
     int i = 0;
-    System.out.println("\n\tClusters:");
+    if(LocUtil.deBugLevel > 1) System.out.println("\n\tClusters:");
     tTime = ttList.get(0);
     winMin = tTime.getTT() - tTime.getWindow();
     winMax = tTime.getTT() + tTime.getWindow();
@@ -280,8 +267,9 @@ public class PhaseID {
         // If this cluster has picks, do the identification.
         if (pickLen > 0) {
           // Print the current cluster.
-          System.out.format("TT: %2d %2d  Pick: %2d %2d  Win: %7.2f %7.2f\n",
-                  ttBeg, ttLen, pickBeg, pickLen, winMin, winMax);
+        	if(LocUtil.deBugLevel > 1) System.out.format("TT: %2d %2d"+
+        			"  Pick: %2d %2d  Win: %7.2f %7.2f\n", ttBeg, ttLen, 
+        			pickBeg, pickLen, winMin, winMax);
           // Initialize the figure-of-merit memory.
           group.initFoM(pickBeg, pickBeg+pickLen);
           // Do the identification.
@@ -292,7 +280,6 @@ public class PhaseID {
           break;
         }
         // Otherwise, set up the next cluster.
-        System.out.println("");
         winMin = tTime.getTT() - tTime.getWindow();
         winMax = tTime.getTT() + tTime.getWindow();
         ttBeg = j;
@@ -312,7 +299,7 @@ public class PhaseID {
     }
     
     // Print out the chosen associations.
-    printAssoc();
+    if(LocUtil.deBugLevel > 2) printAssoc();
     
     // Finally, rationalize the two identification methods.
     fomMerge();
@@ -325,28 +312,26 @@ public class PhaseID {
   private void printAssoc() {
   	Pick pick;
   	
-    if(LocUtil.deBugLevel > 1) {
-    	for(int j=0; j<group.noPicks(); j++) {
-    		pick = group.getPick(j);
-    		if(pick.mapStat != null) {
-    			if(pick.mapAlt != null) {
-        		System.out.format("  Sel: %1d %-8s %-8s %5.2f %5.2f\n", j, 
-        				pick.mapStat.getPhCode(), pick.mapAlt.getPhCode(), pick.fomStat, 
-        				pick.fomAlt);
-    			} else {
-        		System.out.format("  Sel: %1d %-8s null     %5.2f\n", j, 
-        				pick.mapStat.getPhCode(), pick.fomStat);
-    			}
-    		} else {
-    			if(pick.mapAlt != null) {
-        		System.out.format("  Sel: %1d null     %-8s       %5.2f\n", j, 
-        				pick.mapAlt.getPhCode(), pick.fomAlt);
-    			} else {
-        		System.out.format("  Sel: %1d null     null\n", j);
-    			}
-    		}
-    	}
-    }
+  	for(int j=0; j<group.noPicks(); j++) {
+  		pick = group.getPick(j);
+  		if(pick.mapStat != null) {
+  			if(pick.mapAlt != null) {
+      		System.out.format("  Sel: %1d %-8s %-8s %5.2f %5.2f\n", j, 
+      				pick.mapStat.getPhCode(), pick.mapAlt.getPhCode(), pick.fomStat, 
+      				pick.fomAlt);
+  			} else {
+      		System.out.format("  Sel: %1d %-8s null     %5.2f\n", j, 
+      				pick.mapStat.getPhCode(), pick.fomStat);
+  			}
+  		} else {
+  			if(pick.mapAlt != null) {
+      		System.out.format("  Sel: %1d null     %-8s       %5.2f\n", j, 
+      				pick.mapAlt.getPhCode(), pick.fomAlt);
+  			} else {
+      		System.out.format("  Sel: %1d null     null\n", j);
+  			}
+  		}
+  	}
   }
   
   /**
@@ -431,15 +416,17 @@ public class PhaseID {
   	
   	// We're not quite done.  Now we need to eliminate duplicate 
   	// identifications.
-  	for(int j=0; j<group.noPicks(); j++) {
+  	for(int j=0; j<group.noPicks()-1; j++) {
   		pick = group.getPick(j);
   		if(pick.mapStat != null) {
   			for(int i=j+1; i<group.noPicks(); i++) {
   				pick2 = group.getPick(i);
-  				if(pick == pick2) {
+  				if(pick.mapStat == pick2.mapStat) {
   					if(j == 0) {
   						pick2.mapStat = null;
   					} else {
+  						// The alternative figure-of-merits have to exist for this 
+  						// problem to occur.
   						if(pick.fomStat <= pick2.fomStat) {
   							pick2.mapStat = null;
   						} else {
@@ -447,6 +434,26 @@ public class PhaseID {
   							break;
   						}
   					}
+  				}
+  			}
+  		}
+  	}
+  	// Sometimes the arrival order of the picks and the order of the 
+  	// theoretical phases are at odds.  If we leave it, it can cause problems, 
+  	// so, just delete one of the identifications.
+  	pick2 = group.getPick(0);
+  	for(int j=1; j<group.noPicks(); j++) {
+  		pick = pick2;
+  		pick2 = group.getPick(j);
+  		if(pick.mapStat != null && pick2.mapStat != null) {
+  			if(pick.mapStat.getTT() > pick2.mapStat.getTT()) {
+  				if(pick.mapStat.getObserv() >= pick2.mapStat.getObserv()) {
+  					// Apparently, we don't care if Lg or LR are out of order.
+  					if(!pick2.mapStat.getPhCode().equals("Lg") && 
+  							!pick2.mapStat.getPhCode().equals("LR")) pick2.mapStat= null;
+  				} else {
+  					if(!pick.mapStat.getPhCode().equals("Lg") && 
+  							!pick.mapStat.getPhCode().equals("LR")) pick.mapStat= null;
   				}
   			}
   		}
@@ -463,10 +470,10 @@ public class PhaseID {
    *
    * @param pickBeg Index of the first phase within this phase group that will 
    * be part of this phase identification
-   * @param pickNo The number of picks to include in this phase identification
+   * @param pickLen The number of picks to include in this phase identification
    * @param ttBeg Index of the first theoretical arrival that will be part of 
    * this phase identification
-   * @param ttNo The number of theoretical arrivals to include in this phase 
+   * @param ttLen The number of theoretical arrivals to include in this phase 
    * identification
    */
   private void permut(int pickBeg, int pickLen, int ttBeg, int ttLen) {
@@ -480,7 +487,8 @@ public class PhaseID {
       ttClust[j] = ttList.get(i);
     }
 
-    System.out.format("\n Permut: %2d Picks, %2d TTs\n", pickLen, ttLen);
+    if(LocUtil.deBugLevel > 1) System.out.format("\n Permut: %2d Picks, "+
+    		"%2d TTs\n", pickLen, ttLen);
     // The algorithm depends on which group is the most numerous.
     if (ttLen >= pickLen) {
       // Generate the combinations.
@@ -501,10 +509,11 @@ public class PhaseID {
    * algorithm has been taken from StackOverflow. It was posted by user935714 
    * on 20 April 2016.
    *
-   * @param ttGrp An array of theoretical arrivals
+   * @param ttClust An array of theoretical arrivals
    * @param len The length of the permutation subset
    * @param beg The starting pointer of the permutation subset
    * @param ttPermut The result of the permutation
+   * @param pickClust An array of observed picks
    */
   private void kPermutOfN(TTimeData[] ttClust, int len, int beg, 
   		TTimeData[] ttPermut, Pick[] pickClust) {
@@ -526,13 +535,14 @@ public class PhaseID {
    * should be 0. This algorithm has been taken from StackOverflow. It was 
    * posted by user935714 on 20 April 2016.
    *
-   * @param pickGrp An array of observed picks
+   * @param pickClust An array of observed picks
    * @param len The length of the permutation subset
    * @param beg The starting pointer of the permutation subset
    * @param pickPermut The result of the permutation
+   * @param ttClust An array of theoretical arrivals
    */
   private void kPermutOfN(Pick[] pickClust, int len, int beg, 
-  		Pick[] pickPermut,TTimeData[] ttClust) {
+  		Pick[] pickPermut, TTimeData[] ttClust) {
     if (len == 0) {
       setFoM(pickPermut, ttClust);
       return;
@@ -548,8 +558,8 @@ public class PhaseID {
    * figure(s)-of-merit and save the best identification results in the picks 
    * for later processing.
    *
-   * @param pickGrp An array of picks to test
-   * @param ttGrp An array of theoretical arrivals to test against
+   * @param pickClust An array of picks to be identified
+   * @param ttClust An array of theoretical arrivals to test against
    */
   private void setFoM(Pick[] pickClust, TTimeData[] ttClust) {
     double prob, amp, res, cumFoM;
@@ -563,18 +573,19 @@ public class PhaseID {
 	      		ttClust[j].getSpread());
 	      amp = idAmplitude(pickClust[j], ttClust[j]);
 	      res = idResidual(pickClust[j], ttClust[j]);
-	      System.out.format("\t%8s %8s: %10.4e %10.4e\n", 
-	      		pickClust[j].idCode,ttClust[j].getPhCode(), prob, amp);
+	      if(LocUtil.deBugLevel > 1) System.out.format("\t%8s %8s: %10.4e "+
+	      		"%10.4e\n", pickClust[j].idCode,ttClust[j].getPhCode(), prob, amp);
 	      cumFoM *= amp*prob;
 	      // Set up the alternative criteria at the same time.  Note, the 
 	      // Fortran version omitted the affinity in this test.
-	      if(ttClust[j].getObserv() >= LocUtil.MINOBSERV && res < 
+	      if(ttClust[j].getObserv() >= LocUtil.OBSERVMIN && res < 
 	      		pickClust[j].fomAlt) {
 	      	// Make sure that the phase types match unless the pick is automatic.
 	      	if(pickClust[j].auto || TauUtil.arrivalType(pickClust[j].idCode)
               == TauUtil.arrivalType(ttClust[j].getPhCode())) {
 	      		pickClust[j].setFomAlt(ttClust[j], res);
-	  	      System.out.format("\t\tAlt: %4.2f\n", res);
+	      		if(LocUtil.deBugLevel > 1) System.out.format("\t\tAlt: %4.2f\n", 
+	      				res);
 	      	}
 	      }
     	}
@@ -582,7 +593,8 @@ public class PhaseID {
     
     // Make a second pass if this is the highest figure-of-merit yet.  Note, 
     // the Fortran version has greater than or equal to.
-    System.out.format("\tCum: %10.4e %10.4e\n", cumFoM, group.fomMax);
+    if(LocUtil.deBugLevel > 2) System.out.format("\tCum: %10.4e %10.4e\n", 
+    		cumFoM, group.fomMax);
     if(cumFoM > group.fomMax) {
     	group.fomMax = cumFoM;
 	    for (int j = 0; j < ttClust.length; j++) {
@@ -602,15 +614,13 @@ public class PhaseID {
    * if they have the same phase type. The sticky weight promotes stability by 
    * tending to keep the old identification all else being equal.
    *
-   * @param pick Pick object
-   * @param tTime Travel-time object
+   * @param pick Pick information for one pick
+   * @param tTime Arrival time information for one arrival
    * @return Observability modified by empirical weights
    */
   private double idAmplitude(Pick pick, TTimeData tTime) {
     double amp;
 
-  //  System.out.println("Phcur, phobs, phtt = "+pick.phCode+" "+
-  // 		pick.idCode+" "+tTime.getPhCode());
     // Set up the observed pick phase group.
     if (pick != lastPick) {
       lastPick = pick;
@@ -622,15 +632,17 @@ public class PhaseID {
       } else {
         generic = false;
       }
-      System.out.print("New " + phGroup);
-      if (primary) {
-        System.out.print(" Pri");
-      }
-      if (generic) {
-        System.out.print(" Gen");
+      if(LocUtil.deBugLevel > 2) {
+	      System.out.print("New " + phGroup);
+	      if (primary) {
+	        System.out.print(" Pri");
+	      }
+	      if (generic) {
+	        System.out.print(" Gen");
+	      }
       }
     } else {
-      System.out.print("Old");
+    	if(LocUtil.deBugLevel > 2) System.out.print("Old");
     }
 
     // initialize the amplitude.
@@ -638,7 +650,7 @@ public class PhaseID {
       amp = tTime.getObserv();
     } else {
       amp = LocUtil.DOWNWEIGHT * tTime.getObserv();
-      System.out.print(" Down");
+      if(LocUtil.deBugLevel > 2) System.out.print(" Down");
     }
 
     // Do the group logic.  If the phase codes match drop through 
@@ -658,17 +670,17 @@ public class PhaseID {
         		phGroup.equals(tTime.getAuxGroup()) || (phGroup.equals("Reg") && 
         		tTime.isRegional())) {
           amp *= LocUtil.GROUPWEIGHT;
-          System.out.print(" Group1");
+          if(LocUtil.deBugLevel > 2) System.out.print(" Group1");
         } // Otherwise use the other (non-group) weighting.
         else {
           amp *= otherWeight;
-          System.out.print(" Other1");
+          if(LocUtil.deBugLevel > 2) System.out.print(" Other1");
           // If we trust the phase identification and the arrival types 
           // of the phases don't match, make re-identifying even harder
           if (!pick.auto && TauUtil.arrivalType(phGroup)
                   != TauUtil.arrivalType(tTime.getPhCode())) {
             amp *= LocUtil.TYPEWEIGHT;
-            System.out.print(" Type1");
+            if(LocUtil.deBugLevel > 2) System.out.print(" Type1");
           }
         }
       } else {
@@ -680,17 +692,17 @@ public class PhaseID {
          */
         if (phGroup.equals(tTime.getPhGroup())) {
           amp *= LocUtil.GROUPWEIGHT;
-          System.out.print(" Group2");
+          if(LocUtil.deBugLevel > 2) System.out.print(" Group2");
         } // Otherwise use the other (non-group) weighting.
         else {
           amp *= otherWeight;
-          System.out.print(" Other2");
+          if(LocUtil.deBugLevel > 2) System.out.print(" Other2");
           // If we trust the phase identification and the arrival types 
           // of the phases don't match, make re-identifying even harder
           if (!pick.auto && TauUtil.arrivalType(phGroup)
                   != TauUtil.arrivalType(tTime.getPhCode())) {
             amp *= LocUtil.TYPEWEIGHT;
-            System.out.print(" Type2");
+            if(LocUtil.deBugLevel > 2) System.out.print(" Type2");
           }
         }
       }
@@ -699,24 +711,23 @@ public class PhaseID {
     // Account for the affinity.
     if (pick.idCode.equals(tTime.getPhCode())) {
       amp *= pick.affinity;
-      System.out.print(" Aff");
+      if(LocUtil.deBugLevel > 2) System.out.print(" Aff");
     }
 
     // Make the existing identification harder to change.
     if (pick.phCode.equals(tTime.getPhCode())) {
       amp *= stickyWeight;
-      System.out.print(" Sticky");
+      if(LocUtil.deBugLevel > 2) System.out.print(" Sticky");
     }
-    System.out.println("");
+    if(LocUtil.deBugLevel > 2) System.out.println("");
     return amp;
   }
 
   /**
-   * Get the trial affinity. This is the affinity if the observed and 
-   * theoretical phases match and unity otherwise.
+   * Get the affinity weighted travel-time residual.
    *
-   * @param pick Pick object
-   * @param tTime Travel-time object
+   * @param pick Pick information for one pick
+   * @param tTime Arrival time information for one phase
    * @return The affinity weighted residual
    */
   private double idResidual(Pick pick, TTimeData tTime) {

@@ -43,10 +43,10 @@ public class Pick implements Comparable<Pick> {
 	/**
 	 * Create the pick with just enough information to be useful.
 	 * 
-	 * @param station Station ID
+	 * @param station Station information
 	 * @param chaCode Channel code
 	 * @param arrivalTime Arrival time in seconds since the epoch
-	 * @param cmndUse If true, the pick may be used in a a location
+	 * @param cmndUse If true, an analyst wants the pick to be used
 	 * @param phCode Current locator or associator phase code
 	 */
 	public Pick(Station station, String chaCode, double arrivalTime, 
@@ -65,8 +65,8 @@ public class Pick implements Comparable<Pick> {
 		affinity = 3d;
 		used = cmndUse;
 		residual = Double.NaN;
-		weight = Double.NaN;
-		importance = Double.NaN;
+		weight = 0d;
+		importance = 0d;
 		// Initialize internal variables too.
 		idCode = phCode;
 		tt = Double.NaN;
@@ -105,8 +105,6 @@ public class Pick implements Comparable<Pick> {
 		}
     if ((idCode.equals("Lg") || idCode.equals("LR")) && !auto) 
     	surfWave = true;
-    System.out.format("%-5s: %-8s %-8s %s\n", station.staID.staCode, 
-    		phCode, idCode, authType);
 	}
 	
 	/**
@@ -152,8 +150,8 @@ public class Pick implements Comparable<Pick> {
 			// We have an identification.  Set up some key variables.
 			ttCode = mapStat.getPhCode();
 			if(!phCode.equals(ttCode)) reID = true;
-			if(reID) System.out.format("=====> Phase re-ID: %-5s %-8s -> %-8s\n", 
-						station.staID.staCode, phCode, ttCode);
+			if(LocUtil.deBugLevel > 0 && reID) System.out.format("=====> Phase "+
+					"re-ID: %-5s %-8s -> %-8s\n", station.staID.staCode, phCode, ttCode);
 			phCode = ttCode;
 			if(auto) idCode = phCode;
 			if(!phCode.equals("LR")) {
@@ -161,11 +159,12 @@ public class Pick implements Comparable<Pick> {
 			} else {
 				residual = 0d;
 			}
-			// If this phase is still being used, set the weight.
+			// If this phase is still being used, set it for processing.
 			if(used && mapStat.canUse() && (fomStat <= 
 					LocUtil.validLim(mapStat.getSpread()) || forceStat)) {
 				if(reWeight) weight = 1d/Math.max(mapStat.getSpread(), 0.2d);
-				wRes = new Wresidual(false, wResiduals.size(), residual, weight);
+				// Add it to weighted residual storage.
+				wRes = new Wresidual(this, residual, weight, false);
 				wRes.addDeriv(LocUtil.dTdLat(mapStat.getDTdD(), azimuth), 
 						LocUtil.dTdLon(mapStat.getDTdD(), azimuth), mapStat.getDTdZ());
 				wResiduals.add(wRes);
@@ -173,9 +172,9 @@ public class Pick implements Comparable<Pick> {
 			} else {
 				// Otherwise, see if it was used before.
 				if(used) {
-					System.out.format("=====> Phase no use set (wt): %-5s %-8s %5b "+
-							"%5.2f\n", station.staID.staCode, phCode, mapStat.canUse(), 
-							mapStat.getSpread());
+					if(LocUtil.deBugLevel > 0) System.out.format("=====> Phase no "+
+							"use set (wt): %-5s %-8s %5b %5.2f\n", station.staID.staCode, 
+							phCode, mapStat.canUse(), mapStat.getSpread());
 					used = false;
 				  // Prevents initially identified first arrivals from coming back.
 					if(first) cmndUse = false; 
@@ -186,14 +185,14 @@ public class Pick implements Comparable<Pick> {
 			
 		} else {
 			// We don't have an identification.
-			if(!phCode.equals("")) {
+			if(LocUtil.deBugLevel > 0 && !phCode.equals("")) {
 				System.out.format("=====> Phase re-ID: %-5s %-8s -> null\n", 
 						station.staID.staCode, phCode);
 			}
 			// See if it was used before.
 			if(used) {
-				System.out.format("=====> Phase no use set (no ID): %-5s %-8s\n", 
-						station.staID.staCode, phCode);
+				if(LocUtil.deBugLevel > 0) System.out.format("=====> Phase no "+
+						"use set (no ID): %-5s %-8s\n", station.staID.staCode, phCode);
 				used = false;
 			  // Prevents initially identified first arrivals from coming back.
 				if(first) cmndUse = false; 
@@ -204,8 +203,9 @@ public class Pick implements Comparable<Pick> {
 			residual = 0d;
 			weight = 0d;
 		}
-		System.out.format("  IDphas: %-5s %-8s %6.2f %7.4f %b\n", 
-				station.staID.staCode, phCode, residual, weight, used);
+		if(LocUtil.deBugLevel > 1) System.out.format("  IDphas: %-5s %-8s "+
+				"%6.2f %7.4f %b\n", station.staID.staCode, phCode, residual, weight, 
+				used);
 		return changed;
 	}
 	
