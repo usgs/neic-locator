@@ -16,10 +16,11 @@ public class Stepper {
 	Cratons cratons;
 	ZoneStats zones;
 	PhaseID phaseID;
-	Restimator rEst;
+	Restimator rEstRaw, rEstProj;
 	LinearStep linStep;
 	RestResult result;
 	HypoAudit lastHypo;
+	DeCorr deCorr;
 
 	/**
 	 * Keep track of data needed.
@@ -38,8 +39,10 @@ public class Stepper {
 		cratons = auxLoc.cratons;
 		zones = auxLoc.zoneStats;
 		this.phaseID = phaseID;
-		rEst = event.rEst;
+		rEstRaw = event.rEstRaw;
+		rEstProj = event.rEstProj;
 		linStep = new LinearStep(event);
+		deCorr = event.deCorr;
 	}
 	
 	/**
@@ -88,7 +91,7 @@ public class Stepper {
 	 */
 	private LocStatus setDir(double otherWeight, double stickyWeight, boolean reID, 
   		boolean reWeight) throws Exception {
-		double bayesDepth, bayesSpread, medianRes, chiSq;
+		double bayesDepth, bayesSpread, medianRes, medianProj, chiSq;
 		
 		// If we're re-weighting, reset the craton and zone statistics 
 		// as well.
@@ -117,18 +120,39 @@ public class Stepper {
 		// Bail on insufficient data.
 		if(event.staUsed < 3) return LocStatus.INSUFFICIENT_DATA;
 		
-		// Demedian the residuals.
-		medianRes = rEst.median();
-		rEst.deMedianRes();
-		// Demedian the design matrix.
-		rEst.deMedianDesign();
-		// Get the R-estimator dispersion.
-		chiSq = rEst.penalty();
-		if(LocUtil.deBugLevel > 0) System.out.format("\nLsrt: ST av chisq = "+
-					"%8.4f %10.4f\n", medianRes, chiSq);
+		if(LocUtil.deCorrelate) {
+			// Demedian the raw residuals.
+			medianRes = rEstRaw.median();
+			rEstRaw.deMedianRes();
+			if(LocUtil.deBugLevel > 0) System.out.format("\nLsrt: EL av = "+
+					"%8.4f\n", medianRes);
+			// Decorrelate the raw data.
+			if(event.changed) deCorr.deCorr();
+			deCorr.project();
+			// Get the median of the projected data.
+			medianProj = rEstProj.median();
+			// Demedian the projected design matrix.
+			rEstProj.deMedianDesign();
+			// Get the R-estimator dispersion of the projected data.
+			chiSq = rEstProj.penalty();
+			if(LocUtil.deBugLevel > 0) System.out.format("Lsrt: ST av chisq"+
+					" = %8.4f %10.4f\n", medianProj, chiSq);
+			// Get the steepest descent direction.
+			hypo.stepDir = rEstProj.steepest(hypo.degOfFreedom);
+		} else {
+			// Demedian the raw residuals.
+			medianRes = rEstRaw.median();
+			rEstRaw.deMedianRes();
+			// Demedian the raw design matrix.
+			rEstRaw.deMedianDesign();
+			// Get the R-estimator dispersion of the raw data.
+			chiSq = rEstRaw.penalty();
+			if(LocUtil.deBugLevel > 0) System.out.format("\nLsrt: ST av chisq"+
+					" = %8.4f %10.4f\n", medianRes, chiSq);
+			// Get the steepest descent direction.
+			hypo.stepDir = rEstRaw.steepest(hypo.degOfFreedom);
+		}
 		
-		// Get the steepest descent direction.
-		hypo.stepDir = rEst.steepest(hypo.degOfFreedom);
 		if(LocUtil.deBugLevel > 0) {
 			System.out.print("Adder: b =");
 			for(int j=0; j<hypo.stepDir.length; j++) {
@@ -264,15 +288,16 @@ public class Stepper {
 	 * @param status Stepper status
 	 */
 	private void logStep(String tag, int stage, int iter, LocStatus status) {
-		double rms;
+		int used;
 		
-		if(event.phUsed >= hypo.degOfFreedom) rms = hypo.chiSq/
-				(event.phUsed-hypo.degOfFreedom+1);
-		else rms = 0d;
-		hypo.rms = rms;
+		if(LocUtil.deCorrelate) used = event.vPhUsed;
+		else used = event.phUsed;
+		if(used >= hypo.degOfFreedom) hypo.rms = hypo.chiSq/
+				(used-hypo.degOfFreedom+1);
+		else hypo.rms = 0d;
 		if(LocUtil.deBugLevel > 0) System.out.format("\n%s: %1d %2d %5d %8.4f "+
 				"%8.4f %6.2f del= %5.1f %6.1f rms= %6.2f %s\n", tag, stage, iter, 
-				event.phUsed, hypo.latitude, hypo.longitude, hypo.depth, hypo.delH, 
-				hypo.delZ, rms, status);
+				used, hypo.latitude, hypo.longitude, hypo.depth, hypo.delH, 
+				hypo.delZ, hypo.rms, status);
 	}
 }

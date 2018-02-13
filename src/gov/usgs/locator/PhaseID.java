@@ -43,7 +43,7 @@ public class PhaseID {
     hypo = event.hypo;
     this.allBrn = allBrn;
     this.auxTT = auxTT;
-    wResiduals = event.wResiduals;
+    wResiduals = event.wResRaw;
   }
 
   /**
@@ -92,32 +92,32 @@ public class PhaseID {
     // Do the travel-time calculation.
     for (int j = 0; j < event.noStations(); j++) {
       group = event.groups.get(j);
-      if (group.picksUsed() > 0) {
-        // For the first pick in the group, get the travel times.
-        station = group.station;
-        if(LocUtil.deBugLevel > 1) System.out.format("PhaseID: %-5s %6.2f "+
-        		"%6.2f %6.2f\n", station.staID.staCode,group.picks.get(0).tt, 
-        		group.delta, group.azimuth);
-        ttList = allBrn.getTT(station.latitude, station.longitude,
-                station.elevation, group.delta, group.azimuth, LocUtil.USEFUL,
-                LocUtil.tectonic, LocUtil.NOBACKBRN, LocUtil.rstt);
-        // Print them.
-    //  ttList.print(hypo.depth, group.delta);
-        // If reID is true, do a full phase re-identification.
-        if(reID) {
-        	reID();
-        }
-        // Otherwise, try not to re-identify the phases.
-        else {
-        	noReID();
-        }
+      // For the first pick in the group, get the travel times.
+      station = group.station;
+      if(LocUtil.deBugLevel > 1) System.out.format("PhaseID: %-5s %6.2f "+
+      		"%6.2f %6.2f\n", station.staID.staCode,group.picks.get(0).tt, 
+      		group.delta, group.azimuth);
+      ttList = allBrn.getTT(station.latitude, station.longitude,
+              station.elevation, group.delta, group.azimuth, LocUtil.USEFUL,
+              LocUtil.tectonic, LocUtil.NOBACKBRN, LocUtil.rstt);
+      // Print them.
+  //  ttList.print(hypo.depth, group.delta);
+      // If reID is true, do a full phase re-identification.
+      if(reID) {
+      	reID();
       }
-      if(group.updateID(reWeight, wResiduals)) changed = true;
+      // Otherwise, try not to re-identify the phases.
+      else {
+      	noReID();
+      }
+    if(group.updateID(reWeight, wResiduals)) changed = true;
     }
     // Add the Bayesian depth.
     wRes = new Wresidual(null, hypo.depthRes, hypo.depthWeight, true);
     wRes.addDeriv(0d, 0d, 1d);	// The Bayesian depth derivatives are simple.
     wResiduals.add(wRes);
+    // Save a copy of wResiduals in the original order.
+    event.saveWres();
     // Update the station statistics.
     event.staStats();
     return changed;

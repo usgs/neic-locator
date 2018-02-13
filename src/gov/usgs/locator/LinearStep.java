@@ -17,9 +17,10 @@ import java.util.ArrayList;
 public class LinearStep {
 	double[] stepDir, trialVector;
 	Event event;
-	Restimator rEst;
 	Hypocenter hypo;
-	ArrayList<Wresidual> wRes;
+	ArrayList<Wresidual> wResRaw, wResOrg;
+	Restimator rEstRaw, rEstProj;
+	DeCorr deCorr;
 	
 	/**
 	 * Remember the event.
@@ -29,8 +30,10 @@ public class LinearStep {
 	public LinearStep(Event event) {
 		this.event = event;
 		hypo = event.getHypo();
-		wRes = event.wResiduals;
-		rEst = event.rEst;
+		wResRaw = event.wResRaw;
+		rEstRaw = event.rEstRaw;
+		rEstProj = event.rEstProj;
+		deCorr = event.deCorr;
 	}
 	
 	/**
@@ -59,6 +62,7 @@ public class LinearStep {
 		RestResult[] sample = new RestResult[3]; 
 		
 		if(LocUtil.deBugLevel > 0) System.out.println();
+		wResOrg = event.wResOrg;
 		
 		// The trial vector has to be the same size as the step vector.
 		trialVector = new double[stepDir.length];
@@ -164,26 +168,31 @@ public class LinearStep {
 	 * @return The results of the R-estimator algorithm
 	 */
 	private RestResult estPenalty(double stepLen) {
-		double median, penalty;
+		double median, dispRaw, dispProj;
 		
 		// Do the initial pass to project and demean the correlated residuals.
 		trialStep(stepLen);
-		for(int j=0; j<wRes.size(); j++) {
-			wRes.get(j).updateEst(trialVector);
+		for(int j=0; j<wResRaw.size(); j++) {
+			wResRaw.get(j).updateEst(trialVector);
 		}
-		median = rEst.estMedian();
-		rEst.deMedianEstRes();
+		median = rEstRaw.estMedian();
+		rEstRaw.deMedianEstRes();
+		dispRaw = rEstRaw.estPenalty();
 		
-		// Run the projection algorithm here...
+		// Finish up.
 		if(LocUtil.deCorrelate) {
-			System.out.println("The decorrelation is not yet implemented.");
-			return null;
-		// ...unless we're not decorrelating.
-		} else {
-			penalty = rEst.estPenalty();
+			// If we're decorrelating, we have more to do.
+			deCorr.estProject();
+			rEstProj.estMedian();
+			dispProj = rEstProj.estPenalty();
 			if(LocUtil.deBugLevel > 0) System.out.format("Estlin: x dsp = "+
-					"%7.3f %9.4f %5.2f\n", stepLen, penalty, median);
-			return new RestResult(stepLen, median, 0d, penalty);
+					"%7.3f %9.4f %9.4f %5.2f\n", stepLen, dispProj, dispRaw, median);
+			return new RestResult(stepLen, median, 0d, dispProj);
+		} else {
+			// Otherwise, we're pretty much done.
+			if(LocUtil.deBugLevel > 0) System.out.format("Estlin: x dsp = "+
+					"%7.3f %9.4f %5.2f\n", stepLen, dispRaw, median);
+			return new RestResult(stepLen, median, 0d, dispRaw);
 		}
 	}
 	

@@ -40,6 +40,8 @@ public class Locate {
 		initialID = new InitialID(event, allBrn, phaseID);
 		stepper = new Stepper(event, allBrn, phaseID, auxLoc);
 		close = new CloseOut(event);
+		LocUtil.deCorrelate = false;
+		LocUtil.rstt = false;
 	}
 	
 	/**
@@ -91,7 +93,7 @@ public class Locate {
 						}
 						// Allow RSTT and force decorrelation.
 			//		LocUtil.rstt = event.cmndRstt;
-			//		LocUtil.deCorrelate = true;
+						LocUtil.deCorrelate = true;
 						// Do a looser phase identification.
 						status = stepper.setInitDir(0.1d, 1.0d, true, true);
 						break;

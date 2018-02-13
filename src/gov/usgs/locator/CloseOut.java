@@ -18,7 +18,8 @@ public class CloseOut {
 	double comp;
 	Event event;
 	Hypocenter hypo;
-	ArrayList<Wresidual> wResiduals;
+	ArrayList<Wresidual> wResRaw;
+	ArrayList<Wresidual> wResProj;
 	Restimator rEst;
 	
 	/**
@@ -29,8 +30,9 @@ public class CloseOut {
 	public CloseOut(Event event) {
 		this.event = event;
 		hypo = event.hypo;
-		wResiduals = event.wResiduals;
-		rEst = event.rEst;
+		wResRaw = event.wResRaw;
+		wResProj = event.wResProj;
+		rEst = event.rEstRaw;
 	}
 
 	/**
@@ -92,11 +94,24 @@ public class CloseOut {
 			}
 		}
 		// Construct the lower half of the "normal" matrix.
-		for(int k=0; k<wResiduals.size(); k++) {
-			c = wResiduals.get(k).getWdeDeriv(n);
-			for(int i=0; i<n; i++) {
-				for(int j=0; j<n; j++) {
-					a[i][j] += c[i]*c[j];
+		if(LocUtil.deCorrelate) {
+			// If we're decorrelating, use the projected data.
+			for(int k=0; k<wResProj.size(); k++) {
+				c = wResProj.get(k).getWdeDeriv(n);
+				for(int i=0; i<n; i++) {
+					for(int j=0; j<n; j++) {
+						a[i][j] += c[i]*c[j];
+					}
+				}
+			}
+		} else {
+			// Otherwise, use the raw pick data.
+			for(int k=0; k<wResRaw.size(); k++) {
+				c = wResRaw.get(k).getWdeDeriv(n);
+				for(int i=0; i<n; i++) {
+					for(int j=0; j<n; j++) {
+						a[i][j] += c[i]*c[j];
+					}
 				}
 			}
 		}
@@ -106,16 +121,16 @@ public class CloseOut {
 				a[i][j] = a[j][i];
 			}
 		}
-		if(LocUtil.deBugLevel > 1) printMatrix(a, "Projected Matrix");
+		if(LocUtil.deBugLevel > 1) LocUtil.printMatrix(a, "Projected Matrix");
 		
 		// Set up the matrix computations.
 		matrix = new Matrix(a);
 		try {
 			// Compute the inverse (the correlation matrix).
 			inverse = matrix.inverse();
-			// Get the inverse matrix back to compute data importances.
+			// Get the inverse matrix back to compute errors.
 			a = inverse.getArray();
-			if(LocUtil.deBugLevel > 1) printMatrix(a, "Correlation Matrix");
+			if(LocUtil.deBugLevel > 1) LocUtil.printMatrix(a, "Correlation Matrix");
 		} catch(RuntimeException e) {
 			// Oops!  The matrix is singular.
 			System.out.println("\n***** Projected normal matrix is singular!*****\n");
@@ -131,8 +146,6 @@ public class CloseOut {
 		if(!event.heldDepth) event.seDepth = perPt*
 				Math.sqrt(Math.max(a[2][2], 0d));
 		else event.seDepth = 0d;
-//	System.out.format("\nConfidence: %5.2f %6.2f %6.2f %6.2f\n", 
-//			event.seTime, event.seLat, event.seLon, event.seDepth);
 		
 		try {
 			// Do the error ellipsoid.
@@ -158,8 +171,8 @@ public class CloseOut {
 			}
 		}
 		// Construct the lower half of the "normal" matrix.
-		for(int k=0; k<wResiduals.size(); k++) {
-			c = wResiduals.get(k).getWderiv(n);
+		for(int k=0; k<wResRaw.size(); k++) {
+			c = wResRaw.get(k).getWderiv(n);
 			for(int i=0; i<n; i++) {
 				for(int j=0; j<n; j++) {
 					a[i][j] += c[i]*c[j];
@@ -172,7 +185,7 @@ public class CloseOut {
 				a[i][j] = a[j][i];
 			}
 		}
-		if(LocUtil.deBugLevel > 1) printMatrix(a, "Normal Matrix");
+		if(LocUtil.deBugLevel > 1) LocUtil.printMatrix(a, "Normal Matrix");
 		
 		// Set up the matrix computations.
 		matrix = new Matrix(a);
@@ -181,7 +194,7 @@ public class CloseOut {
 			inverse = matrix.inverse();
 			// Get the inverse matrix back to compute data importances.
 			a = inverse.getArray();
-			if(LocUtil.deBugLevel > 1) printMatrix(a, "Correlation Matrix");
+			if(LocUtil.deBugLevel > 1) LocUtil.printMatrix(a, "Correlation Matrix");
 		} catch(RuntimeException e) {
 			// Oops!  The matrix is singular.
 			System.out.println("\n***** Pick normal matrix is singular!*****\n");
@@ -208,7 +221,7 @@ public class CloseOut {
 	 */
 	private void errElp(Matrix inverse) {
 		double semiLen, azimuth, plunge, perPt, sgn;
-		double[] v;
+		double[] e;
 		double[][] u;
 		EllipAxis[] ellip = event.errEllip;
 		Matrix subInverse;
@@ -217,11 +230,9 @@ public class CloseOut {
 		// Do the eigenvalue/vector decomposition.
 		eigen = inverse.eig();
 		// Get the eigenvalues.
-		v = eigen.getRealEigenvalues();
-//	System.out.format("\nV: %10.3e %10.3e %10.3e\n", v[0], v[1], v[2]);
+		e = eigen.getRealEigenvalues();
 		// Get the eigenvectors.
 		u = eigen.getV().getArray();
-//	printMatrix(u, "Eigenvectors");
 		
 		// Mash the eigenvalues/vectors into something more useful.
 		if(event.heldDepth) {
@@ -229,7 +240,7 @@ public class CloseOut {
 			perPt = LocUtil.PERPT2D/comp;
 			for(int j=0; j<2; j++) {
 				// Do the axis half length.
-				semiLen = perPt*Math.sqrt(Math.max(v[j], 0d));
+				semiLen = perPt*Math.sqrt(Math.max(e[j], 0d));
 				// Do the azimuth.
 				if(Math.abs(u[0][j])+Math.abs(u[1][j]) > TauUtil.DTOL) 
 					azimuth = Math.toDegrees(Math.atan2(u[1][j], -u[0][j]));
@@ -248,7 +259,7 @@ public class CloseOut {
 			perPt = LocUtil.PERPT3D/comp;
 			for(int j=0; j<3; j++) {
 				// Do the axis half length.
-				semiLen = perPt*Math.sqrt(Math.max(v[j], 0d));
+				semiLen = perPt*Math.sqrt(Math.max(e[j], 0d));
 				// Do the azimuth.
 				sgn = Math.signum(u[2][j]);
 				if(Math.abs(u[0][j])+Math.abs(u[1][j]) > TauUtil.DTOL) 
@@ -266,9 +277,9 @@ public class CloseOut {
 			subInverse = inverse.getMatrix(0, 1, 0, 1);
 			// Do the eigenvalues again.
 			eigen = subInverse.eig();
-			v = eigen.getRealEigenvalues();
+			e = eigen.getRealEigenvalues();
 			// Finally, get the equivalent radius of the error ellipse.
-			event.aveH = LocUtil.PERPT1D*Math.sqrt(Math.sqrt(Math.max(v[0]*v[1], 
+			event.aveH = LocUtil.PERPT1D*Math.sqrt(Math.sqrt(Math.max(e[0]*e[1], 
 					0d)))/comp;
 		}
 		// Sort the error ellipsoid axis by semiLen.
@@ -292,9 +303,9 @@ public class CloseOut {
 		s = new double[n];
 		// The data importances are just the inner product of the derivative 
 		// vector with the correlation matrix.
-		for(int k=0; k<wResiduals.size(); k++) {
-			if(!wResiduals.get(k).isDepth) {
-				c = wResiduals.get(k).getWderiv(n);
+		for(int k=0; k<wResRaw.size(); k++) {
+			if(!wResRaw.get(k).isDepth) {
+				c = wResRaw.get(k).getWderiv(n);
 				for(int i=0; i<n; i++) {
 					s[i] = 0d;
 					for(int j=0; j<n; j++) {
@@ -306,7 +317,7 @@ public class CloseOut {
 					sum += c[j]*s[j];
 				}
 				sumImport += sum;
-				wResiduals.get(k).updateImport(sum);
+				wResRaw.get(k).updateImport(sum);
 			}
 		}
 		// Do the Bayesian depth data important separately.
@@ -314,22 +325,5 @@ public class CloseOut {
 				Math.pow(hypo.depthWeight, 2d);
 		if(LocUtil.deBugLevel >0) System.out.format("Normeq: qsum qsum+ "+
 				"= %4.2f %4.2f\n", sumImport, sumImport+event.bayesImport);
-	}
-	
-	/**
-	 * Print a matrix for debugging purposes.
-	 * 
-	 * @param a Matrix to print
-	 * @param label Label to print as a header
-	 */
-	private void printMatrix(double[][] a, String label) {
-		System.out.println("\n"+label+":");
-		for(int i=0; i<a.length; i++) {
-			System.out.print("\t");
-			for(int j=0; j<a[i].length; j++) {
-				System.out.format(" %10.3e", a[i][j]);
-			}
-			System.out.println();
-		}
 	}
 }

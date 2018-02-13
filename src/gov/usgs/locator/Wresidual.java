@@ -21,6 +21,7 @@ public class Wresidual implements Comparable<Wresidual>{
 	double weight;			// Weight
 	double[] deriv;			// Spatial derivatives in kilometers
 	double[] deDeriv;		// Demedianed spatial derivatives in kilometers
+	double dNorm;				// 2-norm of the horizontal derivatives in kilometers
 	double sortValue;		// The value to sort on
 	Pick pick;					// Pointer to the pick the residuals were derived from
 	
@@ -38,8 +39,10 @@ public class Wresidual implements Comparable<Wresidual>{
 		this.residual = residual;
 		this.weight = weight;
 		this.isDepth = isDepth;
+		estResidual = 0d;
 		deriv = null;
 		deDeriv = null;
+		dNorm = Double.NaN;
 		sortValue = Double.NaN;
 	}
 	
@@ -164,6 +167,63 @@ public class Wresidual implements Comparable<Wresidual>{
 	}
 	
 	/**
+	 * Contribute to projecting the original weighted residuals.
+	 * 
+	 * @param wRes Projected weighted residual
+	 * @param u Eigenvector element
+	 */
+	public void proj(Wresidual wRes, double v) {
+		residual += v*wRes.residual;
+		for(int j=0; j<deriv.length; j++) {
+			deriv[j] += v*wRes.deriv[j];
+		}
+	}
+	
+	/**
+	 * Contribute to projecting the estimated weighted residuals.
+	 * 
+	 * @param wRes Projected weighted residual
+	 * @param u Eigenvector element
+	 */
+	public void estProj(Wresidual wRes, double v) {
+		estResidual += v*wRes.estResidual;
+	}
+	
+	/**
+	 * If the eigenvector is backwards change the sign of the 
+	 * residual and it's derivatives.
+	 */
+	public void changeSign() {
+		residual = -residual;
+		for(int j=0; j<deriv.length; j++) {
+			deriv[j] = -deriv[j];
+		}
+	}
+	
+	/**
+	 * Get the 2-norm of the horizontal derivatives.
+	 * 
+	 * @return The 2-norm of the horizontal derivatives in kilometers
+	 */
+	public double derivNorm() {
+		if(Double.isNaN(dNorm)) dNorm = Math.sqrt(Math.pow(deriv[0],2d)+
+				Math.pow(deriv[1],2d));
+		return dNorm;
+	}
+	
+	/**
+	 * Get the correlation between these horizontal derivatives and 
+	 * another set of horizontal derivatives.
+	 * 
+	 * @param wRes Weighted residual information to correlate against
+	 * @return Correlation between the horizontal derivatives of two picks
+	 */
+	public double derivCorr(Wresidual wRes) {
+		return (deriv[0]*wRes.deriv[0]+deriv[1]*wRes.deriv[1])/
+				(derivNorm()*wRes.derivNorm());
+	}
+	
+	/**
 	 * Get the weighted derivatives for computing the "normal" matrix.
 	 * 
 	 * @param n Number of degrees of freedom
@@ -208,10 +268,10 @@ public class Wresidual implements Comparable<Wresidual>{
 	 */
 	public void printWres(boolean full) {
 		if(!full || deriv == null) {
-			System.out.format("\tRes: %7.2f %7.2f Wt: %7.4f %b\n", residual, 
+			System.out.format("res: %7.2f %7.2f wt: %7.4f %b\n", residual, 
 					estResidual, weight, isDepth);
 		} else {
-			System.out.format("\tRes: %7.2f %7.2f Wt: %7.4f deriv: %10.3e "+
+			System.out.format("res: %7.2f %7.2f wt: %7.4f deriv: %10.3e "+
 					"%10.3e %10.3e %b\n", residual, estResidual, weight, deriv[0], 
 					deriv[1], deriv[2], isDepth);
 		}

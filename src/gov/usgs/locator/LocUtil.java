@@ -154,6 +154,20 @@ public class LocUtil {
 	 */
 	public static final double EFFOFFSET = 1.22d;
 	/**
+	 * The maximum number of picks to decorrelate.
+	 */
+	public static final int MAXCORR = 450;
+	/**
+	 * When decorrelating, keep the largest eigenvalues adding up 
+	 * to at least 95%.
+	 */
+	public static final double EVLIM = 0.95d;
+	/**
+	 * When decorrelating, don't eliminate eigenvalues larger than 
+	 * 1% the size of the largest eigenvalue.
+	 */
+	public static final double EVTHRESH = 0.01d;
+	/**
 	 * The Locator always uses all phases (i.e., a null phase list).
 	 */
 	public static final String[] PHLIST = null;
@@ -202,6 +216,12 @@ public class LocUtil {
 	// methods below:
 	
 	/**
+	 * Constants needed by covariance.
+	 */
+	private final static double covOffset = 15d;				// Covariance delta offset
+	private final static double covConst = 37.5d;				// Covariance constant
+	private final static double covPow = 0.4d;					// Covariance power
+	/**
 	 * Constants needed by ttResModel.
 	 */
 	private final static double ttResWidth = 1.001691d;								// Model spread
@@ -235,6 +255,10 @@ public class LocUtil {
 																											// used station in degrees
 	private static final double azimGapMax = 110d;			// Maximum azimuthal gap in degrees
 	private static final double lestGapMax = 160d;			// Maximum robust azimuth gap in degrees
+	/*
+	 * Variable needed by timer.
+	 */
+	private static long sysTime;
 	
 	/**
 	 * Compute the source-receiver distance and the receiver azimuth.  
@@ -253,7 +277,7 @@ public class LocUtil {
 	public static double delAz(Hypocenter hypo, Station sta) {
 		double cosdel, sindel, tm1, tm2;	// Use Bob Engdahl's variable names
 		
-		// South Pole:
+		// South Pole (only tests the station because the South Pole is aseismic).
 		if(sta.sinLat <= TauUtil.DTOL) {
 			azimuth = 180d;
 			return Math.toDegrees(Math.PI-Math.acos(hypo.cosLat));
@@ -293,11 +317,6 @@ public class LocUtil {
 	public static double delStep(Hypocenter hypo, HypoAudit audit) {
 		double cosdel, sindel, tm1, tm2;	// Use Bob Engdahl's variable names
 		
-		// South Pole:
-		if(audit.sinLat <= TauUtil.DTOL) {
-			return DEG2KM*Math.toDegrees(Math.PI-Math.acos(hypo.cosLat));
-		}
-		
 		// Compute some intermediate variables.
 		cosdel = hypo.sinLat*audit.sinLat*(audit.cosLon*hypo.cosLon+
 				audit.sinLon*hypo.sinLon)+hypo.cosLat*audit.cosLat;
@@ -312,6 +331,57 @@ public class LocUtil {
 		} else {
 			return DEG2KM*Math.toDegrees(Math.atan2(sindel,cosdel));
 		}
+	}
+	
+	/**
+	 * Compute the empirical covariance between two picks.  The covariance 
+	 * form was developed by Bondar and McLauglin (BSSA, vol. 99, pp 172-193).  
+	 * The constants were fit by Buland based on first arriving data from 
+	 * four years of Chicxulub data.
+	 * 
+	 * @param pick1 Information for the first pick
+	 * @param pick2 Information for the second pick
+	 * @return Covariance between pick1 and pick2
+	 */
+	public static double covariance(Pick pick1, Pick pick2) {
+		double cosdel, sindel, tm1, tm2, delta;	// Use Bob Engdahl's variable names
+		Station sta1, sta2;
+		
+		// Do the autocorrelation.
+		if(pick1 == pick2) {
+			return 1d/(pick1.weight*pick2.weight);
+		}
+		
+		// Assume the correlation between different phases is zero.
+		if(!pick1.phCode.equals(pick2.phCode)) return 0d;
+		
+		// Otherwise, we have to compute it.
+		sta1 = pick1.station;
+		sta2 = pick2.station;
+		// South Pole.
+		if(sta1.sinLat <= TauUtil.DTOL) {
+			delta = Math.toDegrees(Math.PI-Math.acos(sta2.cosLat));
+		} else if(sta2.sinLat <= TauUtil.DTOL) {
+			delta = Math.toDegrees(Math.PI-Math.acos(sta1.cosLat));
+		} else {
+			// Compute some intermediate variables.
+			cosdel = sta1.sinLat*sta2.sinLat*(sta2.cosLon*sta1.cosLon+
+					sta2.sinLon*sta1.sinLon)+sta1.cosLat*sta2.cosLat;
+			tm1 = sta2.sinLat*(sta2.sinLon*sta1.cosLon-sta2.cosLon*sta1.sinLon);
+			tm2 = sta1.sinLat*sta2.cosLat-sta1.cosLat*sta2.sinLat*
+					(sta2.cosLon*sta1.cosLon+sta2.sinLon*sta1.sinLon);
+			sindel = Math.sqrt(Math.pow(tm1,2d)+Math.pow(tm2,2d));
+			// Do delta.
+			if(sindel <= TauUtil.DTOL && Math.abs(cosdel) <= TauUtil.DTOL) {
+				delta = 0d;
+			} else {
+				delta = Math.toDegrees(Math.atan2(sindel,cosdel));
+			}
+		}
+		// Do covariance.
+		double cov = (1d-Math.pow(delta/(Math.abs(delta-covOffset)+covConst),covPow))/
+				(pick1.weight*pick2.weight);
+		return cov;
 	}
 	
 	/**
@@ -604,5 +674,67 @@ public class LocUtil {
 	public static char getBoolChar(boolean log) {
 		if(log) return 'T';
 		else return 'F';
+	}
+	
+	/**
+	 * Print a vector for debugging purposes.
+	 * 
+	 * @param a Vector to print
+	 * @param label Label to print as a header
+	 */
+	public static void printMatrix(double[] a, String label) {
+		int count;
+		
+		System.out.println("\n\t\t"+label+":");
+		count = 0;
+		for(int j=0; j<a.length; j++) {
+			if(count > 8) {
+				System.out.print("\n\t");
+				count = 0;
+			}
+			System.out.format(" %10.3e", a[j]);
+			count++;
+		}
+		System.out.println();
+	}
+	
+	/**
+	 * Print a matrix for debugging purposes.
+	 * 
+	 * @param a Matrix to print
+	 * @param label Label to print as a header
+	 */
+	public static void printMatrix(double[][] a, String label) {
+		int count;
+		
+		System.out.println("\n\t\t"+label+":");
+		for(int i=0; i<a.length; i++) {
+			count = 0;
+			for(int j=0; j<a[i].length; j++) {
+				if(count > 8) {
+					System.out.print("\n\t");
+					count = 0;
+				}
+				System.out.format(" %10.3e", a[i][j]);
+				count++;
+			}
+			System.out.println();
+		}
+	}
+	/**
+	 * Set a system timer in milliseconds.
+	 */
+	public static void timer() {
+		sysTime = System.currentTimeMillis();
+	}
+	
+	/**
+	 * End the timer and print out the result in seconds.
+	 * 
+	 * @param label String used to identify the timer
+	 */
+	public static void timer(String label) {
+		System.out.println(""+label+" time: "+
+				0.001*(System.currentTimeMillis()-sysTime));
 	}
 }

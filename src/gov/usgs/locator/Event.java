@@ -26,13 +26,14 @@ public class Event {
 	boolean heldDepth;		// True if the depth will be held constant
 	boolean prefDepth;		// True if the Bayesian depth was set by an analyst
 	boolean cmndRstt;			// True if regional phases will use the RSTT model
-	boolean cmndCorr;			// True to use the de-correlation algorithm
+	boolean cmndCorr;			// True to use the decorrelation algorithm
 	boolean restart;			// True if the hypocenter has been moved externally
 	// Outputs:
 	int staAssoc;					// Number of stations associated
 	int staUsed;					// Number of stations used
 	int phAssoc;					// Number of phases associated
 	int phUsed;						// Number of phases used
+	int vPhUsed;					// Virtual (projected) phases used
 	double azimGap;				// Azimuthal gap in degrees
 	double lestGap;				// Robust (L-estimator) azimuthal gap in degrees
 	double delMin;				// Minimum station distance in degrees
@@ -57,8 +58,12 @@ public class Event {
 	TreeMap<StationID, Station> stations;
 	ArrayList<PickGroup> groups;
 	ArrayList<Pick> picks;
-	ArrayList<Wresidual> wResiduals = null;
-	Restimator rEst;
+	ArrayList<Wresidual> wResRaw = null;
+	ArrayList<Wresidual> wResOrg = null;
+	ArrayList<Wresidual> wResProj = null;
+	Restimator rEstRaw;
+	Restimator rEstProj;
+	DeCorr deCorr;
 	StationID maxID = new StationID("~", "", "");
 	// Getters:
 	public Hypocenter getHypo() {return hypo;}
@@ -75,8 +80,8 @@ public class Event {
 		groups = new ArrayList<PickGroup>();
 		picks = new ArrayList<Pick>();
 		audit = new ArrayList<HypoAudit>();
-		wResiduals = new ArrayList<Wresidual>();
-		rEst = new Restimator(wResiduals);
+		wResRaw = new ArrayList<Wresidual>();
+		rEstRaw = new Restimator(wResRaw);
 	}
 	
 	/**
@@ -194,8 +199,8 @@ public class Event {
 			return false;
 		}
 			
-		// Sort the picks into "Hydra" input order.
-		picks.sort(new PickComp());
+		// Sort the picks into "Hydra" input order. *** Not yet--this old event is in a different order! ***
+//	picks.sort(new PickComp());
 		// Reorganize the picks into groups from the same station.
 		for(int j=0; j<picks.size(); j++) {
 			pick = picks.get(j);
@@ -258,6 +263,12 @@ public class Event {
 				prefDepth = false;		// Trap a bad command
 			}
 		}
+		// If we're decorrelating, instantiate some more classes.
+		if(cmndCorr) {
+			wResProj = new ArrayList<Wresidual>();
+			rEstProj = new Restimator(wResProj);
+			deCorr = new DeCorr(this);
+		}
 		// Initialize the solution degrees-of-freedom.
 		hypo.setDegrees(heldLoc, heldDepth);
 		// Initialize changed and the depth importance.
@@ -269,6 +280,7 @@ public class Event {
 		else errEllip = new EllipAxis[3];
 		// Do the initial station/pick statistics.
 		staStats();
+		vPhUsed = 0;
 		// Do the initial delta-azimuth calculation.
 		for(int j=0; j<groups.size(); j++) {
 			groups.get(j).updateEvent(hypo);
@@ -333,7 +345,20 @@ public class Event {
 	 * @param status LocStatus at the point this audit was created
 	 */
 	public void addAudit(int stage, int iter, LocStatus status) {
-		audit.add(new HypoAudit(hypo, stage, iter, phUsed, status));
+		if(LocUtil.deCorrelate) {
+			audit.add(new HypoAudit(hypo, stage, iter, vPhUsed, status));
+		} else {
+			audit.add(new HypoAudit(hypo, stage, iter, phUsed, status));
+		}
+	}
+	
+	/**
+	 * Make a shallow copy of wResiduals so that the original order 
+	 * is preserved for the decorrelation projection.
+	 */
+	@SuppressWarnings("unchecked")
+	public void saveWres() {
+		if(cmndCorr) wResOrg = (ArrayList<Wresidual>) wResRaw.clone();
 	}
 	
 	/**
@@ -555,10 +580,25 @@ public class Event {
 	 * 
 	 * @param full If true, print the derivatives as well
 	 */
-	public void printWres(boolean full) {
-		System.out.println("\nwResiduals:");
-		for(int j=0; j<wResiduals.size(); j++) {
-			wResiduals.get(j).printWres(full);
+	public void printWres(String type, boolean full) {
+		if(type.equals("Raw")) {
+			System.out.println("\nwResRaw:");
+			for(int j=0; j<wResRaw.size(); j++) {
+				System.out.format("%4d ", j);
+				wResRaw.get(j).printWres(full);
+			}
+		} else if(type.equals("Proj")) {
+			System.out.println("\nwResProj:");
+			for(int j=0; j<wResProj.size(); j++) {
+				System.out.format("%4d ", j);
+				wResProj.get(j).printWres(full);
+			}
+		} else {
+			System.out.println("\nwResOrg:");
+			for(int j=0; j<wResOrg.size(); j++) {
+				System.out.format("%4d ", j);
+				wResOrg.get(j).printWres(full);
+			}
 		}
 	}
 	

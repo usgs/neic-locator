@@ -37,8 +37,8 @@ public class InitialID {
 		hypo = event.hypo;
 		this.allBrn = allBrn;
 		this.phaseID = phaseID;
-		wResiduals = event.wResiduals;
-		rEst = event.rEst;
+		wResiduals = event.wResRaw;
+		rEst = event.rEstRaw;
 	}
 	
 	/**

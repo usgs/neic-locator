@@ -118,8 +118,7 @@ public class Restimator {
 			}
 		} else {
 			for(int i=0; i<dMed.length; i++) {
-				dMed[i] = wResiduals.get(half
-						).deriv[i];
+				dMed[i] = wResiduals.get(half).deriv[i];
 			}
 		}
 		// Remove the median values from the matrix.
@@ -162,8 +161,11 @@ public class Restimator {
 			makeScores(nLast);
 		}
 		// The dispersion is just a dot product.
+//	if(LocUtil.deCorrelate) System.out.println();
 		for(int j=0; j<nLast; j++) {
 			disp += scores[j]*wResiduals.get(j).sortValue;
+//		if(LocUtil.deCorrelate) System.out.format("Disp: %3d %7.3f %7.3f %7.3f\n", j, 
+//				scores[j], wResiduals.get(j).sortValue, disp);
 		}
 		return disp;
 	}
