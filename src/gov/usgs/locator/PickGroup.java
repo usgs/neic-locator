@@ -114,7 +114,13 @@ public class PickGroup {
 	}
 	
 	/**
-	 * Initialize the figure-of-merit variables.
+	 * Initialize the figure-of-merit variables for all picks in the 
+	 * group.
+	 * 
+	 * @param pickBeg Index of the first pick in the group to be 
+	 * initialized
+	 * @param pickEnd Index of the last pick in the group to be 
+	 * initialized
 	 */
 	public void initFoM(int pickBeg, int pickEnd) {
 		fomMax = 0d;
@@ -203,7 +209,7 @@ public class PickGroup {
 		
 		for(int j=0; j<picks.size(); j++) {
 			pick = picks.get(j);
-			System.out.format("%-10s %-5s %-3s %-2s %-2s %-8s%6.1f %5.1f "+
+			System.out.format("%10d %-5s %-3s %-2s %-2s %-8s%6.1f %5.1f "+
 					"%3.0f %1s %4.2f %6.4f\n", pick.dbID, station.staID.staCode, 
 					pick.chaCode, station.staID.netCode, station.staID.locCode, 
 					pick.phCode, pick.residual, delta, azimuth, 

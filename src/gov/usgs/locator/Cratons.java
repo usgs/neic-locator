@@ -51,7 +51,7 @@ public class Cratons {
 	}
 	
 	/**
-	 * Dump the data for all cratons.
+	 * Print the data for all cratons.
 	 */
 	public void printCratons() {
 		for(int j=0; j<cratons.size(); j++) {

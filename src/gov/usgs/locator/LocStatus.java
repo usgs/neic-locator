@@ -17,12 +17,13 @@ public enum LocStatus {
 	DID_NOT_CONVERGE (13),		// Unable to improve, but not close to converging
 	NEARLY_CONVERGED (14),		// Unable to improve, but close to converging
 	PHASEID_CHANGED (15),			// Phase identification has changed
-	BAD_DEPTH (16),						// Depth out of range
-	ELLIPSOID_FAILED (17),		// Failure in computing the error ellipsoid
+	FULL_ITERATIONS (16),			// Stage went to full iterations
+	BAD_DEPTH (17),						// Depth out of range
+	ELLIPSOID_FAILED (18),		// Failure in computing the error ellipsoid
 	// Exit conditions:
 	SUCESSFUL_LOCATION (0),		// Normal completion
 	DID_NOT_MOVE (2),					// Normal completion, but didn't change location
-	NO_ERRORS_COMPUTED (3),		// Normal completion, but error computation failed
+	ERRORS_NOT_COMPUTED (3),	// Normal completion, but error computation failed
 	UNKNOWN_STATUS (4),				// Just in case...
 	LOCATION_FAILED (101),		// Location failed (singular or insufficient data)
 	BAD_EVENT_INPUT (110),		// Bad read (or other input) on the event data

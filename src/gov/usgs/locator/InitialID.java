@@ -24,6 +24,7 @@ public class InitialID {
 	PhaseID phaseID;
   ArrayList<Wresidual> wResiduals;
   Restimator rEst;
+  Stepper stepper;
 
 	/**
 	 * Remember the event and travel times.
@@ -31,14 +32,17 @@ public class InitialID {
 	 * @param event Event information
 	 * @param allBrn Travel-time information
 	 * @param phaseID Phase identification logic
+	 * @param stepper R-estimator driver logic
 	 */
-	public InitialID(Event event, AllBrnVol allBrn, PhaseID phaseID) {
+	public InitialID(Event event, AllBrnVol allBrn, PhaseID phaseID, 
+			Stepper stepper) {
 		this.event = event;
 		hypo = event.hypo;
 		this.allBrn = allBrn;
 		this.phaseID = phaseID;
 		wResiduals = event.wResRaw;
 		rEst = event.rEstRaw;
+		this.stepper = stepper;
 	}
 	
 	/**
@@ -56,7 +60,6 @@ public class InitialID {
     String phCode;
 		TTime ttList;
     TTimeData tTime;
-    Wresidual wRes;
 		
 		// Reinitialize the weighted residual storage.
 		if(wResiduals.size() > 0) wResiduals.clear();
@@ -136,8 +139,8 @@ public class InitialID {
 	        						"%-8s -> %-8s human\n", phCode, tTime.getPhCode());
 	        			}
 	        		}
-	        		wRes = new Wresidual(pick, pick.residual, pick.weight, false);
-	        		wResiduals.add(wRes);
+	        		wResiduals.add(new Wresidual(pick, pick.residual, pick.weight, false, 
+	        				0d, 0d, 0d));
 	        		if(LocUtil.deBugLevel > 1) System.out.format("InitialID push: "+
 	        				"%-5s %-8s %5.2f %7.4f %5.2f %5.2f\n", pick.station.staID.staCode, 
 	        				pick.phCode, pick.residual, pick.weight, tTime.getTT(), 
@@ -148,7 +151,8 @@ public class InitialID {
       }
     }
     // Add in the Bayesian depth because the R-estimator code expects it.
-    wResiduals.add(new Wresidual(null, hypo.depthRes, hypo.depthWeight, true));
+    wResiduals.add(new Wresidual(null, hypo.depthRes, hypo.depthWeight, true, 
+    		0d, 0d, 0d));
   	/*
   	 * Update the hypocenter origin time based on the residuals and weights pushed 
   	 * by the survey method.  Adjusting the origin time to something reasonable 
@@ -162,6 +166,7 @@ public class InitialID {
 		// On a restart, reidentify all phases to be consistent with the new hypocenter.  
     // Note that we still needed the logic above to reset the origin time.
 		if(event.restart) {
+			stepper.setEnviron();
 			phaseID.doID(0.1d, 1d, true, true);
 			event.staStats();
 			return;

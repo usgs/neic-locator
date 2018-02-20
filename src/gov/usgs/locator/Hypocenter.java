@@ -69,7 +69,8 @@ public class Hypocenter {
 	}
 	
 	/**
-	 * Set an analyst requested Bayesian depth.
+	 * Set an analyst requested Bayesian depth.  Note that this forces 
+	 * the event starting depth to the Bayesian depth.
 	 * 
 	 * @param bayesDepth Bayesian depth in kilometers
 	 * @param bayesSpread Uncertainty of the Bayesian depth in kilometers
@@ -80,7 +81,7 @@ public class Hypocenter {
 		this.bayesSpread = bayesSpread;
 		depth = bayesDepth;
 		depthRes = 0d;
-		depthWeight = 1d/bayesSpread;
+		depthWeight = 3d/bayesSpread;
 	}
 	
 	/**
@@ -90,8 +91,7 @@ public class Hypocenter {
 	 * @param heldDepth True if the depth will be held constant
 	 */
 	public void setDegrees(boolean heldLoc, boolean heldDepth) {
-		if(heldLoc) degOfFreedom = 0;
-		else if(heldDepth) degOfFreedom = 2;
+		if(heldDepth) degOfFreedom = 2;
 		else degOfFreedom = 3;
 		if(degOfFreedom > 0) stepDir = new double[degOfFreedom];
 	}
@@ -152,7 +152,7 @@ public class Hypocenter {
 			longitude -= 360d;
 		}
 		// Deal with depth separately.
-		if(degOfFreedom > 0) {
+		if(degOfFreedom > 2) {
 			tmpDepth = Math.min(Math.max(depth+stepLen*stepDir[2], 
 					LocUtil.DEPTHMIN), LocUtil.DEPTHMAX);
 			delZ = tmpDepth-depth;

@@ -56,7 +56,7 @@ public class Craton {
 	}
 	
 	/**
-	 * Dump the data for this craton.
+	 * Print the data for this craton.
 	 */
 	public void printCraton() {
 		System.out.println("\n"+region);

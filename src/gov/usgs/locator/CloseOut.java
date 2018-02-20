@@ -15,6 +15,7 @@ import gov.usgs.traveltime.TauUtil;
  *
  */
 public class CloseOut {
+	int n;
 	double comp;
 	Event event;
 	Hypocenter hypo;
@@ -45,7 +46,6 @@ public class CloseOut {
 	 * @return Event status after the close out
 	 */
 	public LocStatus endStats(LocStatus status) {
-		int n;
 		double perPt;
 		double[] c;
 		double[][] a;
@@ -65,13 +65,9 @@ public class CloseOut {
 		// Get the residual spread.
 		event.seResid = rEst.spread();
 		
-		// Get the number of degrees of freedom.
-		n = hypo.degOfFreedom;
-		if(n == 0) {
-			// If the event is held, fake the degrees of freedom.
-			if(event.heldDepth) n = 2;
-			else n = 3;
-		}
+		// Force the number of degrees of freedom pretending everything 
+		// was always free.
+		n = 3;
 		
 		/* 
 		 * Compensate for the effective number of data.  This is needed to 
@@ -143,9 +139,7 @@ public class CloseOut {
 		event.seTime = perPt*event.seResid;
 		event.seLat = perPt*Math.sqrt(Math.max(a[0][0], 0d));
 		event.seLon = perPt*Math.sqrt(Math.max(a[1][1], 0d));
-		if(!event.heldDepth) event.seDepth = perPt*
-				Math.sqrt(Math.max(a[2][2], 0d));
-		else event.seDepth = 0d;
+		event.seDepth = perPt*Math.sqrt(Math.max(a[2][2], 0d));
 		
 		try {
 			// Do the error ellipsoid.
@@ -235,7 +229,7 @@ public class CloseOut {
 		u = eigen.getV().getArray();
 		
 		// Mash the eigenvalues/vectors into something more useful.
-		if(event.heldDepth) {
+		if(n < 3) {
 			// If the depth is held, do the error ellipse.
 			perPt = LocUtil.PERPT2D/comp;
 			for(int j=0; j<2; j++) {
@@ -294,11 +288,9 @@ public class CloseOut {
 	 * @param a The correlation matrix
 	 */
 	private void importance(double[][] a) {
-		int n;
 		double sum, sumImport;
 		double[] c, s;
 		
-		n = a.length;
 		sumImport = 0d;
 		s = new double[n];
 		// The data importances are just the inner product of the derivative 
@@ -321,8 +313,7 @@ public class CloseOut {
 			}
 		}
 		// Do the Bayesian depth data important separately.
-		if(!event.heldDepth) event.bayesImport = a[2][2]*
-				Math.pow(hypo.depthWeight, 2d);
+		event.bayesImport = a[2][2]*Math.pow(hypo.depthWeight, 2d);
 		if(LocUtil.deBugLevel >0) System.out.format("Normeq: qsum qsum+ "+
 				"= %4.2f %4.2f\n", sumImport, sumImport+event.bayesImport);
 	}

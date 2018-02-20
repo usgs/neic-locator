@@ -38,6 +38,7 @@ public class Event {
 	double lestGap;				// Robust (L-estimator) azimuthal gap in degrees
 	double delMin;				// Minimum station distance in degrees
 	String quality;				// Summary event quality flags for the analysts
+	int exitCode;					// Exit code
 	// Statistics:
 	double seTime;				// Standard error in the origin time in seconds
 	double seLat;					// Standard error in latitude in kilometers
@@ -52,6 +53,8 @@ public class Event {
 	//Internal use:
 	int locPhUsed;				// Number of local phases used
 	boolean changed;			// True if the phase identification has changed
+	double bayesDepth;		// Temporary copy of the Bayesian depth
+	double bayesSpread;		// Temporary copy of the Bayesian spread
 	// Other information needed:
 	Hypocenter hypo;
 	ArrayList<HypoAudit> audit;
@@ -85,6 +88,51 @@ public class Event {
 	}
 	
 	/**
+	 * JSON input.  If a LocInput object is populated from the JSON 
+	 * input, it will be unpacked here for the relocation.
+	 * 
+	 * @param in Location input information
+	 */
+	public void serverIn(LocInput in) {
+		Station station;
+		StationID staID;
+		PickInput pickIn;
+		Pick pick;
+		
+		// Create the hypocenter.
+		hypo = new Hypocenter(LocUtil.toHydraTime(in.originTime), in.sourceLat, 
+				in.sourceLon, in.sourceDepth);
+		// Get the analyst commands.
+		heldLoc = in.heldLoc;
+		heldDepth = in.heldDepth;
+		prefDepth = in.useBayes;
+		if(prefDepth) {
+			bayesDepth = in.bayesDepth;
+			bayesSpread = in.bayesSpread;
+		}
+		cmndRstt = in.useRstt;
+		cmndCorr = !in.noSvd;		// True when noSvd is false
+		restart = in.newLoc;
+		
+		// Do the pick data.
+		for(int j=0; j<in.picks.size(); j++) {
+			pickIn = in.picks.get(j);
+			// Create the station.
+			staID = new StationID(pickIn.stationCode, pickIn.locationCode, 
+					pickIn.networkCode);
+			station = new Station(staID);
+			pick = new Pick(station, pickIn.componentCode, 
+					LocUtil.toHydraTime(pickIn.pickTime), pickIn.usePick, pickIn.locatorPhase);
+			pick.addIdAids(pickIn.source, pickIn.pickID, pickIn.pickQuality, 
+					pickIn.originalPhase, LocUtil.getAuthCode(pickIn.authorType), 
+					pickIn.pickAffinity);
+			picks.add(pick);
+		}
+		// Take care of some event initialization.
+		initEvent();
+	}
+	
+	/**
 	 * Read a Bulletin Hydra style event input file.  File open and 
 	 * read exceptions are trapped.
 	 * 
@@ -95,15 +143,13 @@ public class Event {
 		BufferedInputStream in;
 		Scanner scan;
 		char held, heldDep, prefDep, rstt, noSvd, moved, cmndUse;
-		int auth;
+		int dbID, auth;
 		double origin, lat, lon, depth, bDep, bSe, elev, qual, 
 			arrival, aff;
-		String dbID, staCode, chaCode, netCode, locCode, curPh, 
-			obsPh, lastSta = "";
+		String staCode, chaCode, netCode, locCode, curPh, obsPh;
 		StationID staID;
 		Station station;
 		Pick pick;
-		PickGroup group = null;
 		Pattern affinity = Pattern.compile("\\d*\\.\\d*");
 		
 		// Set up the IO.
@@ -140,7 +186,12 @@ public class Event {
 			heldLoc = LocUtil.getBoolean(held);
 			heldDepth = LocUtil.getBoolean(heldDep);
 			prefDepth = LocUtil.getBoolean(prefDep);
-			if(prefDepth) hypo.addBayes(bDep, bSe);
+			if(prefDepth) {
+				if(prefDepth) {
+					bayesDepth = bDep;
+					bayesSpread = bSe;
+				}
+			}
 			cmndRstt = LocUtil.getBoolean(rstt);
 			cmndCorr = !LocUtil.getBoolean(noSvd);	// True when noSvd is false
 			restart = LocUtil.getBoolean(moved);
@@ -148,7 +199,7 @@ public class Event {
 			// Get the pick information.
 			while(scan.hasNext()) {
 				// Get the station information.
-				dbID = scan.next();
+				dbID = scan.nextInt();
 				staCode = scan.next();
 				chaCode = scan.next();
 				netCode = scan.next();
@@ -188,7 +239,7 @@ public class Event {
 				// Create the pick.
 				pick = new Pick(station, chaCode, arrival, 
 						LocUtil.getBoolean(cmndUse), curPh);
-				pick.addIdAids(dbID, qual, obsPh, LocUtil.getAuthCode(auth), 
+				pick.addIdAids(" ", dbID, qual, obsPh, LocUtil.getAuthCode(auth), 
 						aff);
 				picks.add(pick);
 			}
@@ -198,9 +249,67 @@ public class Event {
 			e.printStackTrace();
 			return false;
 		}
-			
-		// Sort the picks into "Hydra" input order. *** Not yet--this old event is in a different order! ***
-//	picks.sort(new PickComp());
+		// Take care of some event initialization.
+		initEvent();
+		return true;
+	}
+	
+	/**
+	 * Initialize the commands, changed flag, pick and station counts, 
+	 * etc., and compute distances and azimuths.  This routine needs to be 
+	 * called for any new event, no matter how it's created.
+	 */
+	private void initEvent() {
+		String lastSta = "";
+		Pick pick;
+		PickGroup group = null;
+		
+		/*
+		 * If the location is held, it can't be moved by the Locator, but 
+		 * errors will be computed as though it was free to provide a 
+		 * meaningful comparison with the NEIC location.  For this reason, 
+		 * it makes sense to have a held location with a held depth.  
+		 * Either way, a Bayesian depth is simulated, again for error 
+		 * estimation reasons.  The free depth spread assumes that the held 
+		 * location is from a crustal event located by a regional network.
+		 */
+		if(heldLoc) {
+			prefDepth = true;
+			bayesDepth = hypo.depth;
+			if(heldDepth) bayesSpread = LocUtil.HELDEPSE;
+			else bayesSpread = LocUtil.DEFDEPSE;
+		/*
+		 * Although a held depth will actually hold the depth, simulate a 
+		 * Bayesian depth for error computation reasons.
+		 */
+		} else if(heldDepth) {
+			prefDepth = true;
+			bayesDepth = hypo.depth;
+			bayesSpread = LocUtil.HELDEPSE;
+		}
+		/*
+		 * Treat analyst and simulated Bayesian depth commands the same.  
+		 * Set the starting depth to the Bayesian depth, but don't let 
+		 * the analysts get carried away and try to set the Bayesian 
+		 * spread smaller than the default for a held depth.
+		 */
+		if(prefDepth) {
+			if(bayesSpread > 0d) {
+				bayesSpread = Math.max(bayesSpread, LocUtil.HELDEPSE);
+				hypo.addBayes(bayesDepth, bayesSpread);
+			} else {
+				prefDepth = false;		// Trap a bad command
+			}
+		}
+		// If we're decorrelating, instantiate some more classes.
+		if(cmndCorr) {
+			wResProj = new ArrayList<Wresidual>();
+			rEstProj = new Restimator(wResProj);
+			deCorr = new DeCorr(this);
+		}
+		
+		// Sort the picks into "Hydra" input order.
+		picks.sort(new PickComp());
 		// Reorganize the picks into groups from the same station.
 		for(int j=0; j<picks.size(); j++) {
 			pick = picks.get(j);
@@ -215,69 +324,14 @@ public class Event {
 				group.add(pick);
 			}
 		}
-		// Take care of some event initialization.
-		initEvent();
-		return true;
-	}
-	
-	/**
-	 * Initialize the changed flag, pick and station counts, and 
-	 * compute distances and azimuths.  This routine needs to be 
-	 * called for any new event, no matter how it's created.
-	 */
-	private void initEvent() {
-		/*
-		 * If the location is held, it can't be moved by the Locator, but 
-		 * errors will be computed as though it was free to provide a 
-		 * meaningful comparison with the NEIC location.  For this reason, 
-		 * it makes sense to have a held location with a held depth.  
-		 * Either way, a Bayesian depth is simulated, again for error 
-		 * estimation reasons.  The free depth spread assumes that the held 
-		 * location is from a crustal event located by a regional network.
-		 */
-		if(heldLoc) {
-			prefDepth = true;
-			hypo.bayesDepth = hypo.depth;
-			if(heldDepth) hypo.bayesSpread = LocUtil.HELDEPSE;
-			else hypo.bayesSpread = LocUtil.DEFDEPSE;
-		/*
-		 * Although a held depth will actually hold the depth, simulate a 
-		 * Bayesian depth for error computation reasons.
-		 */
-		} else if(heldDepth) {
-			prefDepth = true;
-			hypo.bayesDepth = hypo.depth;
-			hypo.bayesSpread = LocUtil.HELDEPSE;
-		}
-		/*
-		 * Treat analyst and simulated Bayesian depth commands the same.  
-		 * Set the starting depth to the Bayesian depth, but don't let 
-		 * the analysts get carried away and try to set the Bayesian 
-		 * spread smaller than the default for a held depth.
-		 */
-		if(prefDepth) {
-			if(hypo.bayesSpread > 0d) {
-				hypo.depth = hypo.bayesDepth;
-				hypo.bayesSpread = Math.max(hypo.bayesSpread, LocUtil.HELDEPSE);
-			} else {
-				prefDepth = false;		// Trap a bad command
-			}
-		}
-		// If we're decorrelating, instantiate some more classes.
-		if(cmndCorr) {
-			wResProj = new ArrayList<Wresidual>();
-			rEstProj = new Restimator(wResProj);
-			deCorr = new DeCorr(this);
-		}
+		
 		// Initialize the solution degrees-of-freedom.
 		hypo.setDegrees(heldLoc, heldDepth);
 		// Initialize changed and the depth importance.
 		changed = false;
 		bayesImport = 0d;
 		// Allocate storage for the error ellipsoid.
-		if(heldLoc) errEllip = null;
-		else if(heldDepth) errEllip = new EllipAxis[2];
-		else errEllip = new EllipAxis[3];
+		errEllip = new EllipAxis[3];
 		// Do the initial station/pick statistics.
 		staStats();
 		vPhUsed = 0;
@@ -362,6 +416,15 @@ public class Event {
 	}
 	
 	/**
+	 * Reset all the triage flags when triage needs to be repeated.
+	 */
+	public void resetTriage() {
+		for(int j=0; j<picks.size(); j++) {
+			picks.get(j).isTriage = false;
+		}
+	}
+	
+	/**
 	 * Get the number of stations.
 	 * 
 	 * @return Number of stations.
@@ -391,8 +454,10 @@ public class Event {
 			phUsed += picksUsedGrp;
 			if(group.delta <= LocUtil.DELTALOC) locPhUsed += 
 					picksUsedGrp;
-			if(picksUsedGrp > 0) staUsed++;
-			delMin = Math.min(delMin, group.delta);
+			if(picksUsedGrp > 0) {
+				staUsed++;
+				delMin = Math.min(delMin, group.delta);
+			}
 		}
 	}
 	
@@ -510,7 +575,7 @@ public class Event {
 		errZ = 0d;
 		for(int j=0; j<errEllip.length; j++) {
 			errH = Math.max(errH, errEllip[j].tangentialProj());
-			if(!heldDepth) errZ = Math.max(errZ, errEllip[j].verticalProj());
+			errZ = Math.max(errZ, errEllip[j].verticalProj());
 		}
 	}
 	
@@ -545,6 +610,63 @@ public class Event {
 	}
 	
 	/**
+	 * Set the location exit status from the more detailed internal 
+	 * status flag.
+	 * 
+	 * @param status Final status from locator
+	 */
+	public void setExitCode(LocStatus status) {
+		// Set the exit status.
+		switch(status) {
+			case SUCCESS:
+			case NEARLY_CONVERGED:
+			case DID_NOT_CONVERGE:
+			case UNSTABLE_SOLUTION:
+				if(hypo.delH > LocUtil.DELTATOL || hypo.delZ > LocUtil.DEPTHTOL) 
+					exitCode = LocStatus.SUCESSFUL_LOCATION.status();
+				else exitCode = LocStatus.DID_NOT_MOVE.status();
+			case SINGULAR_MATRIX:
+			case ELLIPSOID_FAILED:
+				exitCode = LocStatus.ERRORS_NOT_COMPUTED.status();
+			case INSUFFICIENT_DATA:
+			case BAD_DEPTH:
+				exitCode = LocStatus.LOCATION_FAILED.status();
+			default:
+				exitCode = LocStatus.UNKNOWN_STATUS.status();
+		}
+	}
+	
+	/**
+	 * JSON output.  Populate a LocOutput object for the JSON 
+	 * output, it will be packed here after the relocation.
+	 * 
+	 * @return out Location output information
+	 */
+	public LocOutput serverOut() {
+		LocOutput out;
+		PickGroup group;
+		Pick pick;
+		StationID staID;
+		
+		out = new LocOutput(LocUtil.toJavaTime(hypo.originTime), hypo.latitude, 
+				hypo.longitude, hypo.depth, staAssoc, phAssoc, staUsed, phUsed, 
+				azimGap, lestGap, delMin, quality);
+		out.addErrors(seTime, seLat, seLon, seDepth, seResid, errH, errZ, aveH, 
+				hypo.bayesDepth, hypo.bayesSpread, bayesImport, errEllip, exitCode);
+		for(int i=0; i<groups.size(); i++) {
+			group = groups.get(i);
+			for(int j=0; j<group.picks.size(); j++) {
+				pick = picks.get(j);
+				staID = pick.station.staID;
+				out.addPick(pick.source, pick.dbID, staID.staCode, pick.chaCode, 
+						staID.netCode, staID.locCode, pick.phCode, pick.residual, 
+						group.delta, group.azimuth, pick.weight, pick.importance, pick.used, "");
+			}
+		}
+		return out;
+	}
+	
+	/**
 	 * Print a station list.
 	 */
 	public void stationList() {
@@ -576,8 +698,11 @@ public class Event {
 	}
 	
 	/**
-	 * Dump the weighted residual storage.
+	 * Print weighted residual storage.
 	 * 
+	 * @param type String identifying the weighted residual storage desired 
+	 * ("Raw" for the sorted picks, "Proj" for the projected picks, and 
+	 * "Org" for the unsorted picks)
 	 * @param full If true, print the derivatives as well
 	 */
 	public void printWres(String type, boolean full) {
@@ -599,6 +724,15 @@ public class Event {
 				System.out.format("%4d ", j);
 				wResOrg.get(j).printWres(full);
 			}
+		}
+	}
+	
+	/**
+	 * Print all the audit records.
+	 */
+	public void printAudit() {
+		for(int j=0; j<audit.size(); j++) {
+			audit.get(j).printAudit();
 		}
 	}
 	
@@ -628,9 +762,8 @@ public class Event {
 					"%3s %5.1f %5.1f %6.4f\n", seTime, seLat, seLon, seDepth, seResid, 
 					errH, errZ, aveH, quality, hypo.bayesDepth, hypo.bayesSpread, 
 					bayesImport);
-		System.out.format("%14s %14s %14s  %3.0f\n", errEllip[0], errEllip[1], 
-				errEllip[2], lestGap);
-		System.out.println();
+			System.out.format("%14s %14s %14s  %3.0f\n", errEllip[0], errEllip[1], 
+					errEllip[2], lestGap);
 		for(int j=0; j<groups.size(); j++) {
 			groups.get(j).printHydra();
 		}

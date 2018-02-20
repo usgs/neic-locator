@@ -91,29 +91,10 @@ public class Stepper {
 	 */
 	private LocStatus setDir(double otherWeight, double stickyWeight, boolean reID, 
   		boolean reWeight) throws Exception {
-		double bayesDepth, bayesSpread, medianRes, medianProj, chiSq;
+		double medianRes, medianProj, chiSq;
 		
-		// If we're re-weighting, reset the craton and zone statistics 
-		// as well.
-		if(reWeight) {
-			// Set the tectonic flag.  Note that everything outside cratons 
-			// is considered tectonic.
-			if(auxLoc.cratons.isCraton(hypo.latitude, hypo.longitude)) {
-				LocUtil.tectonic = false;
-			} else {
-				LocUtil.tectonic = true;
-			}
-			if(LocUtil.deBugLevel > 0) System.out.println("\n\tTectonic = "+
-					LocUtil.tectonic);
-			if(!event.prefDepth) {
-				// Update the Bayesian depth if it wasn't set by the analyst.
-				bayesDepth = zones.bayesDepth(hypo.latitude, hypo.longitude);
-				bayesSpread = zones.bayesSpread();
-				hypo.updateBayes(bayesDepth, bayesSpread);
-				if(LocUtil.deBugLevel > 0) System.out.format("\tBayes: %5.1f %5.1f\n", 
-						bayesDepth, hypo.depthWeight);
-			}
-		}
+		// Set the location environment.
+		if(reWeight) setEnviron();
 		
 		// Reidentify phases.
 		event.changed = phaseID.doID(otherWeight, stickyWeight, reID, reWeight);
@@ -124,7 +105,7 @@ public class Stepper {
 			// Demedian the raw residuals.
 			medianRes = rEstRaw.median();
 			rEstRaw.deMedianRes();
-			if(LocUtil.deBugLevel > 0) System.out.format("\nLsrt: EL av = "+
+			if(LocUtil.deBugLevel > 0) System.out.format("Lsrt: EL av = "+
 					"%8.4f\n", medianRes);
 			// Decorrelate the raw data.
 			if(event.changed) deCorr.deCorr();
@@ -147,7 +128,7 @@ public class Stepper {
 			rEstRaw.deMedianDesign();
 			// Get the R-estimator dispersion of the raw data.
 			chiSq = rEstRaw.penalty();
-			if(LocUtil.deBugLevel > 0) System.out.format("\nLsrt: ST av chisq"+
+			if(LocUtil.deBugLevel > 0) System.out.format("Lsrt: ST av chisq"+
 					" = %8.4f %10.4f\n", medianRes, chiSq);
 			// Get the steepest descent direction.
 			hypo.stepDir = rEstRaw.steepest(hypo.degOfFreedom);
@@ -274,6 +255,32 @@ public class Stepper {
 		} while(result.chiSq >= hypo.chiSq);
 		
 		return status;
+	}
+	
+	/**
+	 * Set the location environment by determining if the location is in 
+	 * a craton or tectonic area and setting the Bayesian depth.
+	 */
+	protected void setEnviron() {
+		double bayesDepth, bayesSpread;
+		
+		// Set the tectonic flag.  Note that everything outside cratons 
+		// is considered tectonic.
+		if(auxLoc.cratons.isCraton(hypo.latitude, hypo.longitude)) {
+			LocUtil.tectonic = false;
+		} else {
+			LocUtil.tectonic = true;
+		}
+		if(LocUtil.deBugLevel > 0) System.out.println("\n\tTectonic = "+
+				LocUtil.tectonic);
+		if(!event.prefDepth) {
+			// Update the Bayesian depth if it wasn't set by the analyst.
+			bayesDepth = zones.bayesDepth(hypo.latitude, hypo.longitude);
+			bayesSpread = zones.bayesSpread();
+			hypo.updateBayes(bayesDepth, bayesSpread);
+		}
+		if(LocUtil.deBugLevel > 0) System.out.format("\tBayes: %5.1f %5.3f %b\n", 
+				hypo.bayesDepth, hypo.depthWeight, event.prefDepth);
 	}
 	
 	/**

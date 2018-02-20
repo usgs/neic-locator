@@ -42,8 +42,7 @@ public class LinearStep {
 	 * linear estimates of the travel-time residuals.  This 
 	 * algorithm is a messy bisection.
 	 * 
-	 * @param stepDir Spatial steepest descents direction in 
-	 * kilometers
+	 * @param stepDir Spatial steepest descents direction unit vector
 	 * @param startLen Starting step length in kilometers
 	 * @param stepMin If the step length is less than the minimum 
 	 * the current estimate is good enough

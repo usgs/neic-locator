@@ -22,6 +22,26 @@ public class Station {
 	double cosLon;				// Cosine of the longitude
 
 	/**
+	 * Initialize the station and compute the sines and cosines.  This 
+	 * version will eventually get the station information from the 
+	 * station database.
+	 * 
+	 * @param staID Station designation
+	 */
+	public Station(StationID staID) {
+		// Remember the station ID.
+		this.staID = staID;
+		// Get latitude, longitude and elevation from the master.  Dummy 
+		// up for now.
+		latitude = Double.NaN;
+		longitude = Double.NaN;
+		elevation = Double.NaN;
+		// Set up the sines and cosines.
+		coLat = TauUtil.geoCen(latitude);
+		updateSines();
+	}
+	
+	/**
 	 * Initialize the station and compute the sines and cosines.
 	 * 
 	 * @param staID Station designation
@@ -38,6 +58,13 @@ public class Station {
 		this.elevation = elevation;
 		// Set up the sines and cosines.
 		coLat = TauUtil.geoCen(latitude);
+		updateSines();
+	}
+	
+	/**
+	 * Compute the sines and cosines of colatitude and longitude.
+	 */
+	private void updateSines() {
 		sinLat = Math.sin(Math.toRadians(coLat));
 		cosLat = Math.cos(Math.toRadians(coLat));
 		sinLon = Math.sin(Math.toRadians(longitude));

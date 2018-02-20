@@ -17,7 +17,6 @@ public class DeCorr {
 	int n;								// Number of data
 	int n1;								// Number of pick data
 	int m;								// number of projected data
-	double zSum;					// Sum of the vertical derivatives
 	double[] e;						// Eigenvalues
 	double[] w;						// Projected weights
 	double[][] cov;				// Covariance matrix
@@ -26,6 +25,7 @@ public class DeCorr {
 	ArrayList<Wresidual> wResOrg;
 	ArrayList<Wresidual> wResProj;
 	ArrayList<Wresidual> wResProjOrg;
+	Matrix covFin;
 
 	/**
 	 * Remember the event.
@@ -44,7 +44,7 @@ public class DeCorr {
 		// We can't remember the original sort of the raw residuals 
 		// because it keeps changing when cloned.
 		wResOrg = event.wResOrg;
-		event.printWres("Org", true);
+		if(LocUtil.deBugLevel > 1) event.printWres("Org", true);
 		// We'll use the dimension of the picks a lot!
 		n = wResOrg.size();
 		n1 = n-1;
@@ -52,7 +52,7 @@ public class DeCorr {
 		makeCov();
 		// If the matrix is too big, get rid of the most correlated 
 		// data.
-		if(wResOrg.size() > LocUtil.MAXCORR) triage();
+		triage();
 		// Do the eigenvalue problem.
 		doEigen();
 	}
@@ -65,12 +65,16 @@ public class DeCorr {
 	public void project() {
 		Wresidual wRes;
 		
-		// Project the pick data.
+		// Get rid of triaged picks.
 		wResOrg = event.wResOrg;
+		for(int j=wResOrg.size()-2; j>=0; j--) {
+			if(wResOrg.get(j).pick.isTriage) wResOrg.remove(j);
+		}
+		
+		// Project the pick data.
 		if(wResProj.size() > 0) wResProj.clear();
 		for(int i=m; i<n1; i++) {
-			wRes = new Wresidual(null, 0d, w[i-m], false);
-			wRes.addDeriv(0d, 0d, 0d);
+			wRes = new Wresidual(null, 0d, w[i-m], false, 0d, 0d, 0d);
 			for(int j=0; j<n1; j++) {
 				wRes.proj(wResOrg.get(j), v[j][i]);
 			}
@@ -95,6 +99,7 @@ public class DeCorr {
 		// Because the weighted residuals get sorted, we need a copy in 
 		// the original order to project the estimated residuals.
 		wResProjOrg = (ArrayList<Wresidual>)wResProj.clone();
+		if(LocUtil.deBugLevel > 2) event.printWres("Proj", true);
 	}
 	
 	/**
@@ -137,11 +142,6 @@ public class DeCorr {
 				cov[j][i] = cov[i][j];
 			}
 		}
-		// This is a convenient place to sum the vertical derivatives.
-		zSum = 0d;
-		for(int j=0; j<n; j++) {
-			zSum += wResOrg.get(j).deriv[2];
-		}
 	}
 	
 	/**
@@ -149,28 +149,117 @@ public class DeCorr {
 	 * is a reasonable size.
 	 */
 	private void triage() {
+		int k,l;
+		int[] keep;
+		double sum;
+		Matrix covRaw;
 		
+		if(wResOrg.size() > LocUtil.MAXCORR) {
+			if(LocUtil.deBugLevel > 2) LocUtil.printMatrix(cov, 
+					"Raw Covariance Matrix");
+			// Reset all the triage flags.
+			event.resetTriage();
+			// We need to eliminate the most correlated data.  Create a list 
+			// to help out.
+			ArrayList<CorrSum> corrSums = new ArrayList<CorrSum>();
+			// Populate the list.
+			for(int i=0; i<cov.length; i++) {
+				sum = 0d;
+				for(int j=0; j<cov.length; j++) {
+					if(i != j) sum += cov[i][j];	// Don't include the autocorrelation
+				}
+				corrSums.add(new CorrSum(i, sum));
+			}
+			// Sort on the correlation sums.
+			corrSums.sort(null);
+			
+			// Eliminate the biggest correlation sums.
+			for(int i=corrSums.size()-1; i>=LocUtil.MAXCORR; i--) {
+				if(LocUtil.deBugLevel > 2) {
+					System.out.println("\nF:");
+					for(int j=0; j<corrSums.size(); j++) {
+						System.out.println("\t"+corrSums.get(j));
+					}
+				}
+				if(LocUtil.deBugLevel > 0) System.out.format(
+						"\tTriage: eliminate %3d %s\n", i, corrSums.get(i));
+				k = corrSums.get(i).row;
+				corrSums.remove(i);
+				// Now compensate the sums for the row and column eliminated.
+				for(int j=0; j<corrSums.size(); j++) {
+					l = corrSums.get(j).row;
+					if(k != l) corrSums.get(j).decSum(cov[l][k]);
+				}
+				// And re-sort.
+				corrSums.sort(null);
+			}
+			// Sort the correlation sums back into order.
+			for(int j=0; j<corrSums.size(); j++) {
+				corrSums.get(j).rowSort();
+			}
+			corrSums.sort(null);
+			
+			// Finally remove the most highly correlated rows and columns.
+			keep = new int[corrSums.size()];
+			for(int j=0; j<keep.length; j++) {
+				keep[j] = corrSums.get(j).row;
+			}
+	//	LocUtil.printMatrix(keep, "Keep rows");
+			// Use the JAMA Matrix to eliminate the most correlated rows and 
+			// columns.
+			covRaw = new Matrix(cov);
+			covFin = covRaw.getMatrix(keep, keep);
+			covRaw = null;
+			cov = covFin.getArray();
+			if(LocUtil.deBugLevel > 2) LocUtil.printMatrix(cov, 
+					"Final Covariance Matrix");
+			
+			// We're not quite done.  We need to eliminate the same picks 
+			// from the weighted residuals.  And make sure they don't come 
+			// back.
+			k = keep.length-1;
+			for(int j=wResOrg.size()-2; j>=0; j--) {
+				if(j != keep[k]) {
+					wResOrg.get(j).pick.isTriage = true;
+					wResOrg.remove(j);
+				}
+				else {
+					k--;
+				}
+			}
+			n = wResOrg.size();
+			n1 = n-1;
+			if(LocUtil.deBugLevel > 1) event.printWres("Org", true);
+		} else {
+			// We're OK.  Just create the correlation matrix in a form 
+			// suitable for extracting the eigenvalues.
+			covFin = new Matrix(cov);
+		}
+		// We're done with the covariance matrix.
+		cov = null;
 	}
 	
 	/**
-	 * Get the eigenvalues and eigenvectors of the covariance matrix.
+	 * Get the eigenvalues and eigenvectors of the covariance matrix.  
+	 * Note that using the JAMA package computes all eigenvectors every 
+	 * time.  This is less efficient than the Fortran Linpak routines 
+	 * that allowed the computation of only the eigenvectors 
+	 * corresponding to eigenvalues being kept.
 	 */
 	private void doEigen() {
 		double evSum, evMax, evLim, evThresh;
-		Matrix matrix;
 		EigenvalueDecomposition eig;
 		
 		// Do the eigenvalue problem (and time it).
-		matrix = new Matrix(cov);
 		if(LocUtil.deBugLevel > 0) LocUtil.timer();
-		eig = matrix.eig();
+		eig = covFin.eig();
 		if(LocUtil.deBugLevel > 0) LocUtil.timer("Eigenvalue");
 		e = eig.getRealEigenvalues();
 		if(LocUtil.deBugLevel > 0) LocUtil.printMatrix(e, "Eigenvalues");
 		v = eig.getV().getArray();
 		// We don't need the covariance matrix any more.
-		cov = null;
-		matrix = null;
+		covFin = null;
+		eig = null;
 		
 		// Work out the eigenvalue elimination.
 		evSum = 0d;
@@ -215,25 +304,23 @@ public class DeCorr {
 	 * @return True if the sign is OK
 	 */
 	private boolean eigenSign(int i, Wresidual wRes) {
-		double corr, corrMax = -1d, corrMin = 1d;
+		double corr, corrMax = -1d, corrMin = 1d, zSum = 0d;
 		
 		for(int j=0; j<n1; j++) {
 			if(Math.abs(v[j][i]) > TauUtil.DTOL) {
 				corr = wResOrg.get(j).derivCorr(wRes);
 				corrMax = Math.max(corrMax, corr);
 				corrMin = Math.min(corrMin, corr);
+				zSum += wResOrg.get(j).deriv[2];
 			}
 		}
 		
 		// For a one sided station distribution, the minimum and maximum can 
 		// have the same sign.
 		if(corrMax*corrMin >= 0d) {
-			// If the maximum is bigger than the minimum, we're probably OK.
-			if(Math.abs(corrMax) > Math.abs(corrMin)) {
-				return true;
-			} else {
-				return false;
-			}
+			// If the depth derivatives agree, we're probably OK.
+			if(zSum*wRes.deriv[2] >= 0d) return true;
+			else return false;
 		}
 		
 		// Otherwise, see if the azimuth needs to be flipped 180 degrees.

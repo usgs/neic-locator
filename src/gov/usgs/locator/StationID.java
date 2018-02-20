@@ -29,22 +29,22 @@ public class StationID implements Comparable<StationID>{
 	}
 	
 	/**
+	 * Make a printable string to represent the station.
+	 */
+	@Override
+	public String toString () {
+		return staID;
+	}
+	
+	/**
 	 * Make station IDs sortable into a sensible order.
 	 * 
-	 * @param arrival An travel-time data object.
+	 * @param id Another station ID
 	 * @return +1, 0, or -1 if arrival is later, the same time 
 	 * or earlier
 	 */
 	@Override
 	public int compareTo(StationID id) {
 		return this.staID.compareTo(id.staID);
-	}
-	
-	/**
-	 * Make a printable string to represent the station.
-	 */
-	@Override
-	public String toString () {
-		return staID;
 	}
 }

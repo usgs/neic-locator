@@ -154,9 +154,11 @@ public class LocUtil {
 	 */
 	public static final double EFFOFFSET = 1.22d;
 	/**
-	 * The maximum number of picks to decorrelate.
+	 * The maximum number of picks to decorrelate.  Note that the 
+	 * magic number in the Fortran version was 450, but that 
+	 * included the Bayesian depth, which is excluded here.
 	 */
-	public static final int MAXCORR = 450;
+	public static final int MAXCORR = 449;
 	/**
 	 * When decorrelating, keep the largest eigenvalues adding up 
 	 * to at least 95%.
@@ -334,6 +336,21 @@ public class LocUtil {
 	}
 	
 	/**
+	 * Compare two hypocenters.
+	 * 
+	 * @param hypo Hypocenter information
+	 * @param audit Hypocenter audit information
+	 * @return True if the hypocenters are (nearly) the same
+	 */
+	public static boolean hypoCompare(Hypocenter hypo, HypoAudit audit) {
+		if(Math.abs(hypo.originTime-audit.originTime) <= 0.01d && 
+				Math.abs(hypo.latitude-audit.latitude) <= 0.0001d && 
+				Math.abs(hypo.longitude-audit.longitude) <= 0.0001d && 
+				Math.abs(hypo.depth-audit.depth) <= 0.01d) return true;
+		else return false;
+	}
+	
+	/**
 	 * Compute the empirical covariance between two picks.  The covariance 
 	 * form was developed by Bondar and McLauglin (BSSA, vol. 99, pp 172-193).  
 	 * The constants were fit by Buland based on first arriving data from 
@@ -420,7 +437,7 @@ public class LocUtil {
 	 * 
 	 * @param residual Travel-time residual in seconds
 	 * @param median Median probability density function time in seconds 
-	 * for the desired phase
+	 * relative to the theoretical travel time (usually zero)
 	 * @param spread Probability density function spread in seconds for 
 	 * the desired phase
 	 * @return Probability density function value for the desired residual
@@ -506,24 +523,10 @@ public class LocUtil {
 	}
 	
 	/**
-	 * Compare two hypocenters.
-	 * 
-	 * @param hypo Hypocenter information
-	 * @param audit Hypocenter audit information
-	 * @return True if the hypocenters are (nearly) the same
-	 */
-	public static boolean hypoCompare(Hypocenter hypo, HypoAudit audit) {
-		if(Math.abs(hypo.originTime-audit.originTime) <= 0.01d && 
-				Math.abs(hypo.latitude-audit.latitude) <= 0.0001d && 
-				Math.abs(hypo.longitude-audit.longitude) <= 0.0001d && 
-				Math.abs(hypo.depth-audit.depth) <= 0.01d) return true;
-		else return false;
-	}
-	
-	/**
-	 * Convert an arbitrary vector to a 2-norm unit vector.
+	 * Normalize an arbitrary vector to a 2-norm unit vector.
 	 * 
 	 * @param vector Vector
+	 * @return Unit vector
 	 */
 	public static double[] unitVector(double[] vector) {
 		double sum = 0d;
@@ -547,6 +550,30 @@ public class LocUtil {
 	}
 	
 	/**
+	 * Convert from Java standard time in milliseconds since the 
+	 * epoch as a long to Hydra time in seconds since the epoch as 
+	 * a double.
+	 * 
+	 * @param time Java standard time
+	 * @return Hydra standard time
+	 */
+	public static double toHydraTime(long time) {
+		return 0.001d*time;
+	}
+	
+	/**
+	 * Convert from Hydra time in seconds since the epoch as 
+	 * a double to Java standard time in milliseconds since the 
+	 * epoch as a long.
+	 * 
+	 * @param time Hydra standard time
+	 * @return Java standard time
+	 */
+	public static long toJavaTime(double time) {
+		return (long)(1000d*time);
+	}
+	
+	/**
 	 * Produce a time string from a Hydra time suitable for printing.  
 	 * Hydra uses doubles instead of longs, but (conveniently) the same 
 	 * epoch.  The string returned is valid to milliseconds and uses 
@@ -557,7 +584,7 @@ public class LocUtil {
 	 */
 	public static String getRayTime(double time) {
 		Calendar cal = Calendar.getInstance();
-		cal.setTime(new Date((long)(1000d*time)));
+		cal.setTime(new Date(toJavaTime(time)));
 		return String.format("%1$tH:%1$tM:%1$tS.%1$tL", cal);
 	}
 	
@@ -572,7 +599,7 @@ public class LocUtil {
 	 */
 	public static String getRayDate(double time) {
 		Calendar cal = Calendar.getInstance();
-		cal.setTime(new Date((long)(1000d*time)));
+		cal.setTime(new Date(toJavaTime(time)));
 		return String.format("%1$td-%1$tb-%1$ty %1$tH:%1$tM:%1$tS.%1$tL", cal);
 	}
 	
@@ -585,7 +612,7 @@ public class LocUtil {
 	 */
 	public static String getNEICtime(double time) {
 		Calendar cal = Calendar.getInstance();
-		cal.setTime(new Date((long)(1000d*time)));
+		cal.setTime(new Date(toJavaTime(time)));
 		return String.format("%1$tH:%1$tM:%1$tS.%1$tL", cal).substring(0, 11);
 	}
 	
@@ -598,7 +625,7 @@ public class LocUtil {
 	 */
 	public static String getNEICdate(double time) {
 		Calendar cal = Calendar.getInstance();
-		cal.setTime(new Date((long)(1000d*time)));
+		cal.setTime(new Date(toJavaTime(time)));
 		return String.format("%1$tY-%1$tm-%1$td %1$tH:%1$tM:%1$tS.%1$tL", cal);
 	}
 	
@@ -693,6 +720,28 @@ public class LocUtil {
 				count = 0;
 			}
 			System.out.format(" %10.3e", a[j]);
+			count++;
+		}
+		System.out.println();
+	}
+	
+	/**
+	 * Print a vector for debugging purposes.
+	 * 
+	 * @param a Vector to print
+	 * @param label Label to print as a header
+	 */
+	public static void printMatrix(int[] a, String label) {
+		int count;
+		
+		System.out.println("\n\t\t"+label+":");
+		count = 0;
+		for(int j=0; j<a.length; j++) {
+			if(count > 17) {
+				System.out.print("\n\t");
+				count = 0;
+			}
+			System.out.format(" %4d", a[j]);
 			count++;
 		}
 		System.out.println();

@@ -16,6 +16,8 @@ public class Restimator {
 	
 	/**
 	 * Remember the weighted residual storage.
+	 * 
+	 * @param wResiduals residual storage
 	 */
 	public Restimator(ArrayList<Wresidual> wResiduals) {
 		this.wResiduals = wResiduals;
@@ -69,7 +71,7 @@ public class Restimator {
 		if(wResiduals.size() < 2) return 0d;
 		
 		// Set up for the spread.
-		for(int j=0; j<length; j++) {
+		for(int j=0; j<wResiduals.size(); j++) {
 			wResiduals.get(j).sortSpread(median);
 		}
 		wResiduals.sort(null);
@@ -131,7 +133,7 @@ public class Restimator {
 	 * Compute the R-estimator penalty function or dispersion.  Note that 
 	 * the median is remembered from the median method.
 	 * 
-	 * @return the R-estimator penalty function
+	 * @return the R-estimator dispersion
 	 */
 	public double penalty() {
 		// Trap insufficient data.
@@ -161,11 +163,8 @@ public class Restimator {
 			makeScores(nLast);
 		}
 		// The dispersion is just a dot product.
-//	if(LocUtil.deCorrelate) System.out.println();
 		for(int j=0; j<nLast; j++) {
 			disp += scores[j]*wResiduals.get(j).sortValue;
-//		if(LocUtil.deCorrelate) System.out.format("Disp: %3d %7.3f %7.3f %7.3f\n", j, 
-//				scores[j], wResiduals.get(j).sortValue, disp);
 		}
 		return disp;
 	}
@@ -255,7 +254,7 @@ public class Restimator {
 	 * Compute the R-estimator penalty function or dispersion.  Note that 
 	 * the median is remembered from the estMedian method.
 	 * 
-	 * @return the R-estimator penalty function
+	 * @return the R-estimator dispersion for the estimated residuals
 	 */
 	public double estPenalty() {
 		// Trap insufficient data.

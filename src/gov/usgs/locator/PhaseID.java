@@ -1,6 +1,5 @@
 package gov.usgs.locator;
 
-//import java.util.ArrayList;
 import gov.usgs.traveltime.TauUtil;
 import gov.usgs.traveltime.AuxTtRef;
 import gov.usgs.traveltime.TTime;
@@ -64,9 +63,8 @@ public class PhaseID {
   		boolean reWeight) throws Exception {
   	boolean changed;
     Station station;
-    Wresidual wRes;
     
-    if(LocUtil.deBugLevel > 0) System.out.println("\nCurr loc: "+hypo);
+    if(LocUtil.deBugLevel > 0) System.out.println("\nCurr loc: "+hypo+"\n");
 
     // Remember the figure-of-merit controls.
     this.otherWeight = otherWeight;
@@ -113,9 +111,8 @@ public class PhaseID {
     if(group.updateID(reWeight, wResiduals)) changed = true;
     }
     // Add the Bayesian depth.
-    wRes = new Wresidual(null, hypo.depthRes, hypo.depthWeight, true);
-    wRes.addDeriv(0d, 0d, 1d);	// The Bayesian depth derivatives are simple.
-    wResiduals.add(wRes);
+    wResiduals.add(new Wresidual(null, hypo.depthRes, hypo.depthWeight, true, 
+    		0d, 0d, 1d));
     // Save a copy of wResiduals in the original order.
     event.saveWres();
     // Update the station statistics.
@@ -287,6 +284,16 @@ public class PhaseID {
         pickBeg = -1;
         pickLen = 0;
       }
+    }
+    
+    // Handle the special case where no observed pick falls close to 
+    // a theoretical arrival.
+    if(pickBeg < 0) {
+    	if(LocUtil.deBugLevel > 1) 
+    		System.out.println("No possible association for "+
+    				group.station.staID.staCode);
+    	group.initFoM(0, group.picks.size());
+    	return;
     }
 
     // Apply the distance correction to the first arriving phase.

@@ -1,8 +1,10 @@
 package gov.usgs.locator;
+
 import java.util.ArrayList;
 
 import gov.usgs.traveltime.TTimeData;
 import gov.usgs.traveltime.TauUtil;
+
 /**
  * Keep all the data for one pick together.
  * 
@@ -11,8 +13,9 @@ import gov.usgs.traveltime.TauUtil;
  */
 public class Pick implements Comparable<Pick> {
 	// Hydra specific:
-	String dbID;					// Hydra aid to database update
+	int dbID;							// Hydra aid to database update
 	// Inputs:
+	String source;				// Requester ID
 	Station station;			// Station
 	String chaCode;				// Channel code
 	double arrivalTime;		// Arrival time in seconds since the epoch
@@ -32,6 +35,7 @@ public class Pick implements Comparable<Pick> {
 	String idCode;				// Best code to use for phase identification
 	double tt;						// Travel-time
 	boolean auto;					// True if this is an automatic pick
+	boolean isTriage;			// True if this pick was eliminated by the triage method
 	// Phase identification use:
 	TTimeData mapStat;		// Theoretical arrival with the minimum fomStat
 	double fomStat;				// Statistical figure-of-merit
@@ -39,6 +43,8 @@ public class Pick implements Comparable<Pick> {
 	TTimeData mapAlt;			// Theoretical arrival with the minimum fomAlt
 	double fomAlt;				// Alternate figure-of-merit
 	boolean surfWave;			// If true, this phase can't be re-identified
+	// A reusable weighted residual object:
+	Wresidual wRes;
 	
 	/**
 	 * Create the pick with just enough information to be useful.
@@ -58,7 +64,7 @@ public class Pick implements Comparable<Pick> {
 		this.cmndUse = cmndUse;
 		this.phCode = phCode;
 		// Set defaults.
-		dbID = null;
+		dbID = 0;
 		quality = 0d;
 		obsCode = null;
 		authType = null;
@@ -72,12 +78,16 @@ public class Pick implements Comparable<Pick> {
 		tt = Double.NaN;
 		auto = true;
 		surfWave = false;
+		isTriage = false;
 		initFoM();
+		// Create an empty weighted residual.
+		wRes = new Wresidual();
 	}
 	
 	/**
 	 * Additional information to help in phase association or location.
 	 * 
+	 * @param source User created string identifying the server user
 	 * @param dbID Data base ID (convenience for Hydra)
 	 * @param quality Pick uncertainty in seconds (not currently used)
 	 * @param obsCode Original pick identification (associator or analyst)
@@ -85,8 +95,9 @@ public class Pick implements Comparable<Pick> {
 	 * identification
 	 * @param affinity Higher numbers make it harder to re-identify the phase
 	 */
-	public void addIdAids(String dbID, double quality, String obsCode, 
+	public void addIdAids(String source, int dbID, double quality, String obsCode, 
 			AuthorType authType, double affinity) {
+		this.source = source;
 		this.dbID = dbID;
 		this.quality = quality;
 		this.obsCode = obsCode;
@@ -144,7 +155,6 @@ public class Pick implements Comparable<Pick> {
 			ArrayList<Wresidual> wResiduals) {
 		boolean changed = false, reID = false;
 		String ttCode;
-		Wresidual wRes;
 		
 		if(mapStat != null) {
 			// We have an identification.  Set up some key variables.
@@ -164,8 +174,8 @@ public class Pick implements Comparable<Pick> {
 					LocUtil.validLim(mapStat.getSpread()) || forceStat)) {
 				if(reWeight) weight = 1d/Math.max(mapStat.getSpread(), 0.2d);
 				// Add it to weighted residual storage.
-				wRes = new Wresidual(this, residual, weight, false);
-				wRes.addDeriv(LocUtil.dTdLat(mapStat.getDTdD(), azimuth), 
+				wRes.reInit(this, residual, weight, false, 
+						LocUtil.dTdLat(mapStat.getDTdD(), azimuth), 
 						LocUtil.dTdLon(mapStat.getDTdD(), azimuth), mapStat.getDTdZ());
 				wResiduals.add(wRes);
 				if(reID) changed = true;
@@ -240,6 +250,15 @@ public class Pick implements Comparable<Pick> {
 	public void setFomAlt(TTimeData tTime, double fomAlt) {
 		mapAlt = tTime;
 		this.fomAlt = fomAlt;
+	}
+	
+	/**
+	 * A convenient string identifying this pick.
+	 */
+	@Override
+	public String toString() {
+		return String.format("%-5s %-8s %6.2f %b", station.staID.staCode, 
+				phCode, residual, used);
 	}
 
 	/**

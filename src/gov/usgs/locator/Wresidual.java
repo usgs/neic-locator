@@ -26,29 +26,22 @@ public class Wresidual implements Comparable<Wresidual>{
 	Pick pick;					// Pointer to the pick the residuals were derived from
 	
 	/**
-	 * Initialize the weighted residual with minimal information.
+	 * Create the object with no initial information.
+	 */
+	public Wresidual() {
+		estResidual = 0d;
+		dNorm = Double.NaN;
+		sortValue = Double.NaN;
+	}
+	
+	/**
+	 * Initialize the weighted residual.
 	 * 
 	 * @param pick The pick associated with this data, if any
 	 * @param residual Residual in seconds for picks and in kilometers 
 	 * for depth
 	 * @param weight Weight
 	 * @param isDepth True if this is the Bayesian depth residual
-	 */
-	public Wresidual(Pick pick, double residual, double weight, boolean isDepth) {
-		this.pick = pick;
-		this.residual = residual;
-		this.weight = weight;
-		this.isDepth = isDepth;
-		estResidual = 0d;
-		deriv = null;
-		deDeriv = null;
-		dNorm = Double.NaN;
-		sortValue = Double.NaN;
-	}
-	
-	/**
-	 * Add the spatial derivatives to the weighted residual.
-	 * 
 	 * @param dTdLat Derivative of travel time with respect to latitude 
 	 * in seconds/kilometers
 	 * @param dTdLon Derivative of travel time with respect to longitude 
@@ -56,13 +49,53 @@ public class Wresidual implements Comparable<Wresidual>{
 	 * @param dTdDepth Derivative of travel time with respect to depth 
 	 * in seconds/kilometers
 	 */
-	public void addDeriv(double dTdLat, double dTdLon, double dTdDepth) {
+	public Wresidual(Pick pick, double residual, double weight, boolean isDepth, 
+			double dTdLat, double dTdLon, double dTdDepth) {
+		this.pick = pick;
+		this.residual = residual;
+		this.weight = weight;
+		this.isDepth = isDepth;
 		deriv = new double[3];
 		deriv[0] = dTdLat;
 		deriv[1] = dTdLon;
 		deriv[2] = dTdDepth;
 		// Initialize the demedianed derivatives.
 		deDeriv = Arrays.copyOf(deriv, deriv.length);
+		estResidual = 0d;
+		dNorm = Double.NaN;
+		sortValue = Double.NaN;
+	}
+	
+	/**
+	 * Re-initialize the weighted residual.
+	 * 
+	 * @param pick The pick associated with this data, if any
+	 * @param residual Residual in seconds for picks and in kilometers 
+	 * for depth
+	 * @param weight Weight
+	 * @param isDepth True if this is the Bayesian depth residual
+	 * @param dTdLat Derivative of travel time with respect to latitude 
+	 * in seconds/kilometers
+	 * @param dTdLon Derivative of travel time with respect to longitude 
+	 * in seconds/kilometers
+	 * @param dTdDepth Derivative of travel time with respect to depth 
+	 * in seconds/kilometers
+	 */
+	public void reInit(Pick pick, double residual, double weight, boolean isDepth, 
+			double dTdLat, double dTdLon, double dTdDepth) {
+		this.pick = pick;
+		this.residual = residual;
+		this.weight = weight;
+		this.isDepth = isDepth;
+		deriv = new double[3];
+		deriv[0] = dTdLat;
+		deriv[1] = dTdLon;
+		deriv[2] = dTdDepth;
+		// Initialize the demedianed derivatives.
+		deDeriv = Arrays.copyOf(deriv, deriv.length);
+		estResidual = 0d;
+		dNorm = Double.NaN;
+		sortValue = Double.NaN;
 	}
 	
 	/**
@@ -124,7 +157,8 @@ public class Wresidual implements Comparable<Wresidual>{
 	/**
 	 * Set the sort value to sort by absolute demedianed travel-time 
 	 * residuals in order to compute the spread, a 1-norm measure of 
-	 * scatter.
+	 * scatter.  Note that the depth residual will be sorted to the end 
+	 * to keep it out of the way.
 	 * 
 	 * @param median Median travel-time residual in seconds
 	 */
@@ -170,7 +204,7 @@ public class Wresidual implements Comparable<Wresidual>{
 	 * Contribute to projecting the original weighted residuals.
 	 * 
 	 * @param wRes Projected weighted residual
-	 * @param u Eigenvector element
+	 * @param v Eigenvector element
 	 */
 	public void proj(Wresidual wRes, double v) {
 		residual += v*wRes.residual;
@@ -183,7 +217,7 @@ public class Wresidual implements Comparable<Wresidual>{
 	 * Contribute to projecting the estimated weighted residuals.
 	 * 
 	 * @param wRes Projected weighted residual
-	 * @param u Eigenvector element
+	 * @param v Eigenvector element
 	 */
 	public void estProj(Wresidual wRes, double v) {
 		estResidual += v*wRes.estResidual;

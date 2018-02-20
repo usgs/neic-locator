@@ -37,8 +37,8 @@ public class Locate {
 		audit = event.audit;
 		this.allBrn = allBrn;
 		phaseID = new PhaseID(event, allBrn, auxTT);
-		initialID = new InitialID(event, allBrn, phaseID);
 		stepper = new Stepper(event, allBrn, phaseID, auxLoc);
+		initialID = new InitialID(event, allBrn, phaseID, stepper);
 		close = new CloseOut(event);
 		LocUtil.deCorrelate = false;
 		LocUtil.rstt = false;
@@ -46,6 +46,8 @@ public class Locate {
 	
 	/**
 	 * Location driver.
+	 * 
+	 * @return Final location status
 	 */
 	public LocStatus doLoc() {
 		int stage = -1, iter = 0;		// Initialize for tracking purposes.
@@ -65,6 +67,7 @@ public class Locate {
 			// Handle a held solution.
 			if(event.heldLoc) {
 				// Allow RSTT if requested and reidentify and reweight phases.
+				LocUtil.deCorrelate = event.cmndCorr;
 				LocUtil.rstt = event.cmndRstt;
 				stepper.setInitDir(0.1d, 1d, true, true);
 				close.endStats(LocStatus.HELD_HYPOCENTER);
@@ -73,14 +76,12 @@ public class Locate {
 			
 			// Prepare the event for relocation.
 			initialID.survey();
-			// Print out the result.
 			if(LocUtil.deBugLevel > 0) initialID.printInitialID();
 			
 			/*
 			 * Do the multistage iteration to refine the hypocenter.
 			 */
 			for(stage = 0; stage < LocUtil.STAGELIM; stage++) {
-				iter = 0;		// Initialize for tracking purposes.
 				switch(stage) {
 					case 0:
 						// Do the stage 0 phase identification (no reID, but re-weight).
@@ -92,7 +93,7 @@ public class Locate {
 							initialID.resetUseFlags();
 						}
 						// Allow RSTT and force decorrelation.
-			//		LocUtil.rstt = event.cmndRstt;
+						LocUtil.rstt = event.cmndRstt;
 						LocUtil.deCorrelate = true;
 						// Do a looser phase identification.
 						status = stepper.setInitDir(0.1d, 1.0d, true, true);
@@ -135,10 +136,12 @@ public class Locate {
 				}
 				// We're done with this stage.  Collect information for a stage 
 				// level audit instance.
+				if(iter >= LocUtil.ITERLIM[stage]) status = LocStatus.FULL_ITERATIONS;
 				hypo.delH = LocUtil.delStep(hypo, audit.get(audit.size()-1));
 				hypo.delZ = Math.abs(hypo.depth-audit.get(audit.size()-1).depth);
 				hypo.stepLen = Math.sqrt(Math.pow(hypo.delH,2d)+
 						Math.pow(hypo.delZ,2d));
+				
 				// If we've converged, create a final location level audit.
 				if(stage > 0 && hypo.stepLen <= LocUtil.CONVLIM[stage]) {
 					hypo.delH = LocUtil.delStep(hypo, audit.get(0));
@@ -146,15 +149,13 @@ public class Locate {
 					hypo.stepLen = Math.sqrt(Math.pow(hypo.delH,2d)+
 							Math.pow(hypo.delZ,2d));
 					event.addAudit(stage, iter, status);
-					System.out.println("Final wrapup:");
-					event.audit.get(audit.size()-1).printAudit();
+					System.out.println("\nFinal wrapup:");
+					event.printAudit();
 					status = close.endStats(status);
 					return status;
 				// Otherwise, create the stage level audit.
 				} else {
 					event.addAudit(stage, iter, status);
-					System.out.println("Stage wrapup:");
-					event.audit.get(audit.size()-1).printAudit();
 				}
 			}
 			// If we go to full interations on the last stage, give up.
