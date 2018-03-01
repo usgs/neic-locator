@@ -26,6 +26,8 @@ public class PickGroup {
 	double azimuth;				// Receiver azimuth from the source in degrees
 	// Picks:
 	ArrayList<Pick> picks;
+	// Internal use:
+	double fomMax;				// Maximum figure-of-merit
 
 	/**
 	 * Initialize the pick group with the station and the first pick.
@@ -51,18 +53,89 @@ public class PickGroup {
 	}
 	
 	/**
-	 * Update the pick group when the hypocenter is updated.
+	 * Both the hypocenter and origin time have changed.  
+	 * Update the distance, azimuth, and travel times.
 	 * 
-	 * @param hypo Hypocenter information
+	 * @param hypo Hypocenter information.
 	 */
-	public void update(Hypocenter hypo) {
+	public void updateEvent(Hypocenter hypo) {
 		// Distance and azimuth are group level parameters.
 		delta = LocUtil.delAz(hypo, station);
 		azimuth = LocUtil.azimuth;
-		// Update travel time for each pick in the group.
+		// Update travel times.
 		for(int j=0; j<picks.size(); j++) {
 			picks.get(j).updateTt(hypo);
 		}
+	}
+	
+	/**
+	 * Update the pick group when the hypocenter is updated, 
+	 * but not the origin time.
+	 * 
+	 * @param hypo Hypocenter information
+	 */
+	public void updateHypo(Hypocenter hypo) {
+		// Distance and azimuth are group level parameters.
+		delta = LocUtil.delAz(hypo, station);
+		azimuth = LocUtil.azimuth;
+	}
+	
+	/**
+	 * Update the travel time for picks in the group when the 
+	 * origin time has changed.
+	 * 
+	 * @param hypo Hypocenter information
+	 */
+	public void updateOrigin(Hypocenter hypo) {
+		for(int j=0; j<picks.size(); j++) {
+			picks.get(j).updateTt(hypo);
+		}
+	}
+	
+	/**
+	 * Update the phase identifications for all picks in this group.
+	 * 
+	 * @param reWeight If true, recompute the residual weights
+	 * @param wResiduals ArrayList of weighted residuals
+	 * @return True if any used pick in the group has changed 
+	 * significantly
+	 */
+	public boolean updateID(boolean reWeight, 
+			ArrayList<Wresidual> wResiduals) {
+		boolean changed = false;
+		
+		if(picks.get(0).updateID(true, reWeight, azimuth, wResiduals)) 
+			changed = true;
+		for(int j=1; j<picks.size(); j++) {
+			if(picks.get(j).updateID(false, reWeight, azimuth, wResiduals)) 
+				changed = true;
+		}
+		return changed;
+	}
+	
+	/**
+	 * Initialize the figure-of-merit variables for all picks in the 
+	 * group.
+	 * 
+	 * @param pickBeg Index of the first pick in the group to be 
+	 * initialized
+	 * @param pickEnd Index of the last pick in the group to be 
+	 * initialized
+	 */
+	public void initFoM(int pickBeg, int pickEnd) {
+		fomMax = 0d;
+		for(int j=pickBeg; j<pickEnd; j++) {
+			picks.get(j).initFoM();
+		}
+	}
+	
+	/**
+	 * Get the number of picks in the group.
+	 * 
+	 * @return Number of picks in the group
+	 */
+	public int noPicks() {
+		return picks.size();
 	}
 	
 	/**
@@ -80,6 +153,16 @@ public class PickGroup {
 	}
 	
 	/**
+	 * Get the jth pick in the group.
+	 * 
+	 * @param j Pick index
+	 * @return Return the pick with index j
+	 */
+	public Pick getPick(int j) {
+		return picks.get(j);
+	}
+	
+	/**
 	 * Print out the input pick information in a format similar to 
 	 * the Hydra event input file.
 	 */
@@ -93,8 +176,28 @@ public class PickGroup {
 					station.staID.staCode, pick.chaCode, station.staID.netCode, 
 					station.staID.locCode, station.latitude, station.longitude, 
 					station.elevation, pick.quality, pick.phCode, 
-					LocUtil.getRayTime(pick.arrivalTime), pick.use, 
+					LocUtil.getRayTime(pick.arrivalTime), pick.cmndUse, 
 					pick.authType, pick.obsCode, pick.affinity);
+		}
+	}
+	
+	/**
+	 * Print the picks in a group in a more user friendly manner.
+	 * 
+	 * @param first If true only print the first arrival in the group
+	 */
+	public void printArrivals(boolean first) {
+		Pick pick;
+		
+		pick = picks.get(0);
+		System.out.format("%-5s %-8s %-8s %7.2f %6.2f %3.0f\n", 
+				station.staID.staCode, pick.phCode, pick.obsCode, pick.tt, 
+				delta, azimuth);
+		if(!first) {
+			for(int j=1; j<picks.size(); j++) {
+				System.out.format("      %-8s %-8s %7.2f\n", pick.phCode, 
+						pick.obsCode, pick.tt);
+			}
 		}
 	}
 	
@@ -106,7 +209,7 @@ public class PickGroup {
 		
 		for(int j=0; j<picks.size(); j++) {
 			pick = picks.get(j);
-			System.out.format("%-10s %-5s %-3s %-2s %-2s %-8s%6.1f %5.1f "+
+			System.out.format("%10d %-5s %-3s %-2s %-2s %-8s%6.1f %5.1f "+
 					"%3.0f %1s %4.2f %6.4f\n", pick.dbID, station.staID.staCode, 
 					pick.chaCode, station.staID.netCode, station.staID.locCode, 
 					pick.phCode, pick.residual, delta, azimuth, 

@@ -1,25 +1,22 @@
-package gov.usgs.locator.test;
+package gov.usgs.locator;
 
 import java.io.IOException;
-import gov.usgs.traveltime.AuxTtRef;
-import gov.usgs.traveltime.ReadTau;
-import gov.usgs.traveltime.AllBrnRef;
-import gov.usgs.traveltime.AllBrnVol;
-import gov.usgs.locator.Event;
-import gov.usgs.locator.Locate;
+
+import gov.usgs.traveltime.*;
 
 /**
- * Test driver for the Locator.
+ * Test driver for the locator.
  * 
  * @author Ray Buland
  *
  */
 public class LocMain {
-	public static void main(String[] args) throws Exception {
+
+	public static void main(String[] args) {
 		// Set up the earthquake file.
 		String inFile = "../../../Documents/Work/Events/RayLocInput1000010563_23.txt";
 		// Objects we'll need.
-		AuxTtRef auxtt;
+		AuxTtRef auxtt = null;
 		ReadTau readTau;
 		AllBrnRef allRef;
 		AllBrnVol allBrn;
@@ -27,7 +24,13 @@ public class LocMain {
 		Locate loc;
 
 		// Read in data common to all models.
-		auxtt = new AuxTtRef(false, false, false, false);
+		try {
+			auxtt = new AuxTtRef(false, false, false, false);
+		} catch (IOException e1) {
+			System.out.println("Unable to read auxiliary data.");
+			e1.printStackTrace();
+			System.exit(1);
+		}
 	
 		try {
 			// Read in ak135.
@@ -41,13 +44,15 @@ public class LocMain {
 			allBrn = new AllBrnVol(allRef);
 //		allBrn.dumpTable(true);
 			
+			// Set the debug level.
+			LocUtil.deBugLevel = 2;
 			// Set up the event.
 			event = new Event();
 			if(event.readHydra(inFile)) {
 				event.printIn();
 			} else {
 				System.out.println("Unable to read event.");
-				System.exit(1);;
+				System.exit(3);;
 			}
 			
 			loc = new Locate(event, allBrn, auxtt);
@@ -55,7 +60,7 @@ public class LocMain {
 			
 		} catch(IOException e) {
 			System.out.println("Unable to read Earth model ak135.");
-			System.exit(1);
+			System.exit(2);
 		}
 		
 		// Print the event.

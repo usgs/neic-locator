@@ -11,6 +11,36 @@ import java.util.Date;
  */
 public class LocUtil {
 	/**
+	 * Maximum the epicenter can move and still be considered 
+	 * to be the same as the starting epicenter.
+	 */
+	public static final double DELTATOL = 3d;
+	/**
+	 * Maximum the depth can move and still be considered to 
+	 * be the same as the starting depth.
+	 */
+	public static final double DEPTHTOL = 5d;
+	/**
+	 * Minimum depth the Locator will allow.
+	 */
+	public static final double DEPTHMIN = 1d;
+	/**
+	 * Maximum depth the Locator will allow.
+	 */
+	public static final double DEPTHMAX = 700d;
+	/**
+	 * Default Bayesian depth standard error in kilometers for 
+	 * a free depth solution.  This assumes that if we don't have 
+	 * a good estimate for the Bayesian depth, the event is 
+	 * probably in the crust (i.e., 15 +/- 15 km).
+	 */
+	public static final double DEFDEPSE = 15d;
+	/**
+	 * Default Bayesian depth standard error in kilometers for a 
+	 * held depth solution.
+	 */
+	public static final double HELDEPSE = 3d;
+	/**
 	 * Factor to down weight undesirable phase identifications.
 	 */
 	public static final double DOWNWEIGHT = 0.5d;
@@ -28,10 +58,171 @@ public class LocUtil {
 	 */
 	public static final double NULLAFFINITY = 1d;
 	/**
+	 * Minimum acceptable observability for an alternative phase 
+	 * identification.
+	 */
+	public static final double OBSERVMIN = 1d;
+	/**
+	 * Association tolerance in seconds.
+	 */
+	public static final double ASSOCTOL = 60d;
+	/**
+	 * The maximum acceptable ratio of apparently misidentified first 
+	 * arrivals that are being used to total used stations.
+	 */
+	public static final double BADRATIO = 0.1d;
+	/**
+	 * Conversion from degrees to kilometers (assumes the 
+	 * radius of the Earth model is 6371 kilometers).
+	 */
+	public static final double DEG2KM = 6371d*Math.PI/180d;
+	/**
+	 * Maximum number of iteration stages to attempt.
+	 */
+	public static final int STAGELIM = 5;
+	/**
+	 * Start each iteration loop with this step length.
+	 */
+	public static final double INITSTEP = 50d;
+	/**
+	 * Maximum number of iterations for each stage.
+	 */
+	public static final int[] ITERLIM = {15, 20, 20, 20, 20};
+	/**
+	 * Convergence criteria in kilometers for each stage.
+	 */
+	public static final double[] CONVLIM = {1d, 0.1d, 0.1d, 0.1d, 0.1d};
+	/**
+	 * Maximum step length in kilometers to allow for each stage.
+	 */
+	public static final double[] STEPLIM = {200d, 50d, 20d, 20d, 20d};
+	/**
+	 * Step tolerance dividing "did not converge" from "unstable solution".
+	 */
+	public static final double STEPTOL = 20d;
+	/**
+	 * Chi-squared test for "nearly converged".
+	 */
+	public static final double ALMOST = 1.1d;
+	/**
+	 * The maximum distance from the epicenter in degrees considered local 
+	 * for the purposes of GT5.
+	 */
+	public static final double DELTALOC = 250/DEG2KM;
+	/**
+	 * Normalization to make the median absolute deviation (MAD, also 
+	 * referred to as the spread in the Locator) match the standard 
+	 * deviation for a Gaussian distribution.
+	 */
+	public static final double MADNORM = 1.482580d;
+	/**
+	 * Scale raw marginal confidence intervals to 90th percentiles.
+	 */
+	public static final double PERPT1D = 2.0285161d;
+	/**
+	 * Scale 2-D (i.e., epicenter) confidence intervals to 90th percentiles.
+	 */
+	public static final double PERPT2D = 2.6465147d;
+	/**
+	 * Scale 3-D (i.e., hypocenter) confidence intervals to 90th percentiles.
+	 */
+	public static final double PERPT3D = 3.0834703d;
+	/**
+	 * Tangential (horizontal) limits on aveH for quality levels.
+	 */
+	public static final double[] HQUALIM = {8.5d, 16d, 60d};
+	/**
+	 * Vertical (radial) limits on seDepth for quality levels.
+	 */
+	public static final double[] VQUALIM = {16d, 30d, 75d};
+	/**
+	 * Limits on the maximum semiLen for quality levels.
+	 */
+	public static final double[] AQUALIM = {42.5d, 80d, 300d};
+	/**
+	 * Limits on the number of phases used for quality levels.
+	 */
+	public static final int[] NQUALIM = {6, 2};
+	/**
+	 * Slope for compensating for the effective number of data if 
+	 * decorrelation is not used.
+	 */
+	public static final double EFFSLOPE = 0.309d;
+	/**
+	 * Offset for compensating for the effective number of data if 
+	 * decorrelation is not used.
+	 */
+	public static final double EFFOFFSET = 1.22d;
+	/**
+	 * The maximum number of picks to decorrelate.  Note that the 
+	 * magic number in the Fortran version was 450, but that 
+	 * included the Bayesian depth, which is excluded here.
+	 */
+	public static final int MAXCORR = 449;
+	/**
+	 * When decorrelating, keep the largest eigenvalues adding up 
+	 * to at least 95%.
+	 */
+	public static final double EVLIM = 0.95d;
+	/**
+	 * When decorrelating, don't eliminate eigenvalues larger than 
+	 * 1% the size of the largest eigenvalue.
+	 */
+	public static final double EVTHRESH = 0.01d;
+	/**
+	 * The Locator always uses all phases (i.e., a null phase list).
+	 */
+	public static final String[] PHLIST = null;
+	/**
+	 * If true suppress phases that are unlikely to be observed.
+	 */
+	public static final boolean USEFUL = true;
+	/**
+	 * If true, suppress back branches.
+	 */
+	public static final boolean NOBACKBRN = true;
+	
+	// The following public variables may be set by the caller:
+	
+	/**
+	 * True if the decorrelation algorithm is to be used.  Note that 
+	 * it is never used in the initial pass, hence the default.
+	 */
+	public static boolean deCorrelate = false;
+	/**
+	 * If true use the RSTT 2.5D model for local phases.  Note that 
+	 * it is never used in the initial pass, hence the default.
+	 */
+	public static boolean rstt = false;
+	/**
+	 * If false the event is in a craton with a well defined Conrad 
+	 * discontinuity and distinct Pb and Sb phases.  If true, the 
+	 * event is in a tectonic area where Pb and Sb are extensions 
+	 * of Pg and Sg respectively.
+	 */
+	public static boolean tectonic = false;
+	/**
+	 * The higher the debug level, the more output you get.
+	 */
+	public static int deBugLevel = 0;
+	
+	// The following public variable is returned by delAz:
+	
+	/**
 	 * Receiver azimuth relative to the source in degrees clockwise from 
 	 * north (available after calling delAz).
 	 */
 	public static double azimuth = Double.NaN;
+	
+	// The following are private constants and variables used by static 
+	// methods below:
+	
+	/**
+	 * Constants needed by covariance.
+	 */
+	private final static double covOffset = 15d;				// Covariance delta offset
+	private final static double covConst = 37.5d;				// Covariance constant
+	private final static double covPow = 0.4d;					// Covariance power
 	/**
 	 * Constants needed by ttResModel.
 	 */
@@ -45,10 +236,34 @@ public class LocUtil {
 	/**
 	 * Constants needed by deltaCorr.
 	 */
-	private final static double DELCORRMIN = 20d;				// Minimum distance to boost the FoM
-	private final static double DELCORRFAC = 0.067d;		// Factor to boost the FoM
+	private final static double delCorrMin = 20d;				// Minimum distance to boost the FoM
+	private final static double delCorrFac = 0.067d;		// Factor to boost the FoM
+	/**
+	 * Constants needed by the validLim.
+	 */
+	private final static double validSlope = 2.27d;			// Residual validity limit slope
+	private final static double validOffset = 5d;				// Residual validity limit offset
+	/**
+	 * Variables needed by dampFactor.
+	 */
+	private static double dampVal = 0.45d;							// Anti-loop jiggle
+	private static final double dampLim = 0.58984375d+(dampVal-0.375d);
+																											// Anti-loop jiggle limit
+	/**
+	 * Constants needed by isGT5.
+	 */
+	private static final int localMin = 10;							// Minimum number of used local phases
+	private static final double deltaNear = 30d/DEG2KM;	// Maximum distance to the nearest 
+																											// used station in degrees
+	private static final double azimGapMax = 110d;			// Maximum azimuthal gap in degrees
+	private static final double lestGapMax = 160d;			// Maximum robust azimuth gap in degrees
+	/*
+	 * Variable needed by timer.
+	 */
+	private static long sysTime;
 	
 	/**
+	 * Compute the source-receiver distance and the receiver azimuth.  
 	 * An historically significant subroutine from deep time (1962)!  This 
 	 * routine was written by Bob Engdahl in Fortran (actually in the days 
 	 * before subroutines) and beaten into it's current Fortran form by 
@@ -64,7 +279,7 @@ public class LocUtil {
 	public static double delAz(Hypocenter hypo, Station sta) {
 		double cosdel, sindel, tm1, tm2;	// Use Bob Engdahl's variable names
 		
-		// South Pole:
+		// South Pole (only tests the station because the South Pole is aseismic).
 		if(sta.sinLat <= TauUtil.DTOL) {
 			azimuth = 180d;
 			return Math.toDegrees(Math.PI-Math.acos(hypo.cosLat));
@@ -95,6 +310,124 @@ public class LocUtil {
 	}
 	
 	/**
+	 * Compute the epicentral distance between two hypocenters.
+	 * 
+	 * @param hypo Hypocenter information
+	 * @param audit Hypocenter audit information
+	 * @return Distance between hypocenters in kilometers
+	 */
+	public static double delStep(Hypocenter hypo, HypoAudit audit) {
+		double cosdel, sindel, tm1, tm2;	// Use Bob Engdahl's variable names
+		
+		// Compute some intermediate variables.
+		cosdel = hypo.sinLat*audit.sinLat*(audit.cosLon*hypo.cosLon+
+				audit.sinLon*hypo.sinLon)+hypo.cosLat*audit.cosLat;
+		tm1 = audit.sinLat*(audit.sinLon*hypo.cosLon-audit.cosLon*hypo.sinLon);
+		tm2 = hypo.sinLat*audit.cosLat-hypo.cosLat*audit.sinLat*
+				(audit.cosLon*hypo.cosLon+audit.sinLon*hypo.sinLon);
+		sindel = Math.sqrt(Math.pow(tm1,2d)+Math.pow(tm2,2d));
+		
+		// Do delta.
+		if(sindel <= TauUtil.DTOL && Math.abs(cosdel) <= TauUtil.DTOL) {
+			return 0d;
+		} else {
+			return DEG2KM*Math.toDegrees(Math.atan2(sindel,cosdel));
+		}
+	}
+	
+	/**
+	 * Compare two hypocenters.
+	 * 
+	 * @param hypo Hypocenter information
+	 * @param audit Hypocenter audit information
+	 * @return True if the hypocenters are (nearly) the same
+	 */
+	public static boolean hypoCompare(Hypocenter hypo, HypoAudit audit) {
+		if(Math.abs(hypo.originTime-audit.originTime) <= 0.01d && 
+				Math.abs(hypo.latitude-audit.latitude) <= 0.0001d && 
+				Math.abs(hypo.longitude-audit.longitude) <= 0.0001d && 
+				Math.abs(hypo.depth-audit.depth) <= 0.01d) return true;
+		else return false;
+	}
+	
+	/**
+	 * Compute the empirical covariance between two picks.  The covariance 
+	 * form was developed by Bondar and McLauglin (BSSA, vol. 99, pp 172-193).  
+	 * The constants were fit by Buland based on first arriving data from 
+	 * four years of Chicxulub data.
+	 * 
+	 * @param pick1 Information for the first pick
+	 * @param pick2 Information for the second pick
+	 * @return Covariance between pick1 and pick2
+	 */
+	public static double covariance(Pick pick1, Pick pick2) {
+		double cosdel, sindel, tm1, tm2, delta;	// Use Bob Engdahl's variable names
+		Station sta1, sta2;
+		
+		// Do the autocorrelation.
+		if(pick1 == pick2) {
+			return 1d/(pick1.weight*pick2.weight);
+		}
+		
+		// Assume the correlation between different phases is zero.
+		if(!pick1.phCode.equals(pick2.phCode)) return 0d;
+		
+		// Otherwise, we have to compute it.
+		sta1 = pick1.station;
+		sta2 = pick2.station;
+		// South Pole.
+		if(sta1.sinLat <= TauUtil.DTOL) {
+			delta = Math.toDegrees(Math.PI-Math.acos(sta2.cosLat));
+		} else if(sta2.sinLat <= TauUtil.DTOL) {
+			delta = Math.toDegrees(Math.PI-Math.acos(sta1.cosLat));
+		} else {
+			// Compute some intermediate variables.
+			cosdel = sta1.sinLat*sta2.sinLat*(sta2.cosLon*sta1.cosLon+
+					sta2.sinLon*sta1.sinLon)+sta1.cosLat*sta2.cosLat;
+			tm1 = sta2.sinLat*(sta2.sinLon*sta1.cosLon-sta2.cosLon*sta1.sinLon);
+			tm2 = sta1.sinLat*sta2.cosLat-sta1.cosLat*sta2.sinLat*
+					(sta2.cosLon*sta1.cosLon+sta2.sinLon*sta1.sinLon);
+			sindel = Math.sqrt(Math.pow(tm1,2d)+Math.pow(tm2,2d));
+			// Do delta.
+			if(sindel <= TauUtil.DTOL && Math.abs(cosdel) <= TauUtil.DTOL) {
+				delta = 0d;
+			} else {
+				delta = Math.toDegrees(Math.atan2(sindel,cosdel));
+			}
+		}
+		// Do covariance.
+		double cov = (1d-Math.pow(delta/(Math.abs(delta-covOffset)+covConst),covPow))/
+				(pick1.weight*pick2.weight);
+		return cov;
+	}
+	
+	/**
+	 * Calculate the derivative of travel time with respect to latitude.
+	 * 
+	 * @param dTdD Derivative of travel time with respect to distance in 
+	 * seconds/degree
+	 * @param azimuth Azimuth of the receiver from the source in degrees
+	 * @return Derivative of travel time with respect to latitude in 
+	 * seconds/kilometer
+	 */
+	public static double dTdLat(double dTdD, double azimuth) {
+		return Math.cos(Math.toRadians(azimuth))*dTdD/DEG2KM;
+	}
+	
+	/**
+	 * Calculate the derivative of travel time with respect to longitude.
+	 * 
+	 * @param dTdD Derivative of travel time with respect to distance in 
+	 * seconds/degree
+	 * @param azimuth Azimuth of the receiver from the source in degrees
+	 * @return Derivative of travel time with respect to longitude in 
+	 * seconds/kilometer
+	 */
+	public static double dTdLon(double dTdD, double azimuth) {
+		return -Math.sin(Math.toRadians(azimuth))*dTdD/DEG2KM;
+	}
+	
+	/**
 	 * The canonical Buland statistical model for travel-time residuals 
 	 * is a linear combination of a Gaussian and a Cauchy distribution.  
 	 * In practice, the canonical model must be adapted for the median 
@@ -104,7 +437,7 @@ public class LocUtil {
 	 * 
 	 * @param residual Travel-time residual in seconds
 	 * @param median Median probability density function time in seconds 
-	 * for the desired phase
+	 * relative to the theoretical travel time (usually zero)
 	 * @param spread Probability density function spread in seconds for 
 	 * the desired phase
 	 * @return Probability density function value for the desired residual
@@ -136,11 +469,108 @@ public class LocUtil {
 	 * @return Correction to the phase association figure-of-merit
 	 */
 	public static double deltaCorr(double delta) {
-		if(delta < DELCORRMIN) {
-			return 1d+DELCORRFAC*(DELCORRMIN-delta);
+		if(delta < delCorrMin) {
+			return 1d+delCorrFac*(delCorrMin-delta);
 		} else {
 			return 1d;
 		}
+	}
+	
+	/**
+	 * To be a valid association, the travel-time residual must be smaller 
+	 * than the validity limit determined from the spread.  This is, of 
+	 * course, a purely empirical limit based on years of Hydra experience.
+	 * 
+	 * @param spread Statistical spread in seconds
+	 * @return Empirical validity limit
+	 */
+	public static double validLim(double spread) {
+		return validSlope*(spread-1d)+ validOffset;
+	}
+	
+	/**
+	 * Sometimes you can jiggle a machine to jog it out of a rut.  In this 
+	 * case the damping factor is jiggled to avoid loops when step length 
+	 * damping is required.  Note that, the step length will be damped by 
+	 * multiplying it by the damping factor.
+	 * 
+	 * @return Updated damping factor
+	 */
+	public static double dampFactor() {
+		if(dampVal <= dampLim) {
+			dampVal += 0.0390625d;
+		} else {
+			dampVal -= 0.21875d;
+		}
+		return dampVal;
+	}
+	
+	/**
+	 * Test whether this event meets the criteria for the old "ground truth 
+	 * within 5 kilometers" (GT5) algorithm.
+	 * 
+	 * @param locPhUsed Number of local phases used
+	 * @param delMin Distance to the closest station used in degrees
+	 * @param azimGap Azimuthal gap in degrees
+	 * @param lestGap Robust azimuthal gap in degrees
+	 * @return True if this event qualifies as GT5
+	 */
+	public static boolean isGT5(int locPhUsed, double delMin, double azimGap, 
+			double lestGap) {
+		if(locPhUsed >= localMin && delMin <= deltaNear && azimGap < azimGapMax && 
+				lestGap < lestGapMax) return true;
+		else return false;
+	}
+	
+	/**
+	 * Normalize an arbitrary vector to a 2-norm unit vector.
+	 * 
+	 * @param vector Vector
+	 * @return Unit vector
+	 */
+	public static double[] unitVector(double[] vector) {
+		double sum = 0d;
+		
+		// Be sure we have a valid vector.
+		if(vector == null) return vector;
+		if(vector.length < 1) return vector;
+		
+		// Compute the 2-norm.
+		for(int j=0; j<vector.length; j++) {
+			sum += Math.pow(vector[j], 2d);
+		}
+		// Bail if the vector is all zeros.
+		if(sum == 0d) return vector;
+		// Remove the norm.
+		sum = Math.sqrt(sum);
+		for(int j=0; j<vector.length; j++) {
+			vector[j] /= sum;
+		}
+		return vector;
+	}
+	
+	/**
+	 * Convert from Java standard time in milliseconds since the 
+	 * epoch as a long to Hydra time in seconds since the epoch as 
+	 * a double.
+	 * 
+	 * @param time Java standard time
+	 * @return Hydra standard time
+	 */
+	public static double toHydraTime(long time) {
+		return 0.001d*time;
+	}
+	
+	/**
+	 * Convert from Hydra time in seconds since the epoch as 
+	 * a double to Java standard time in milliseconds since the 
+	 * epoch as a long.
+	 * 
+	 * @param time Hydra standard time
+	 * @return Java standard time
+	 */
+	public static long toJavaTime(double time) {
+		return (long)(1000d*time);
 	}
 	
 	/**
@@ -154,7 +584,7 @@ public class LocUtil {
 	 */
 	public static String getRayTime(double time) {
 		Calendar cal = Calendar.getInstance();
-		cal.setTime(new Date((long)(1000d*time)));
+		cal.setTime(new Date(toJavaTime(time)));
 		return String.format("%1$tH:%1$tM:%1$tS.%1$tL", cal);
 	}
 	
@@ -169,7 +599,7 @@ public class LocUtil {
 	 */
 	public static String getRayDate(double time) {
 		Calendar cal = Calendar.getInstance();
-		cal.setTime(new Date((long)(1000d*time)));
+		cal.setTime(new Date(toJavaTime(time)));
 		return String.format("%1$td-%1$tb-%1$ty %1$tH:%1$tM:%1$tS.%1$tL", cal);
 	}
 	
@@ -182,7 +612,7 @@ public class LocUtil {
 	 */
 	public static String getNEICtime(double time) {
 		Calendar cal = Calendar.getInstance();
-		cal.setTime(new Date((long)(1000d*time)));
+		cal.setTime(new Date(toJavaTime(time)));
 		return String.format("%1$tH:%1$tM:%1$tS.%1$tL", cal).substring(0, 11);
 	}
 	
@@ -195,14 +625,14 @@ public class LocUtil {
 	 */
 	public static String getNEICdate(double time) {
 		Calendar cal = Calendar.getInstance();
-		cal.setTime(new Date((long)(1000d*time)));
+		cal.setTime(new Date(toJavaTime(time)));
 		return String.format("%1$tY-%1$tm-%1$td %1$tH:%1$tM:%1$tS.%1$tL", cal);
 	}
 	
 	/**
 	 * Format latitude for printing.
 	 * 
-	 * @param latitude Geographic latitude in degrees
+	 * @param latitude Signed geographic latitude in degrees
 	 * @return Latitude string suitable for a bulletin
 	 */
 	public static String niceLat(double latitude) {
@@ -216,7 +646,7 @@ public class LocUtil {
 	/**
 	 * Format longitude for printing.
 	 * 
-	 * @param longitude Longitude in degrees
+	 * @param longitude Signed longitude in degrees
 	 * @return Longitude string suitable for a bulletin
 	 */
 	public static String niceLon(double longitude) {
@@ -228,7 +658,8 @@ public class LocUtil {
 	}
 	
 	/**
-	 *  Get the numeric authority code from the enumerated types.
+	 *  Get the numeric authority code from the enumerated author 
+	 *  types.
 	 *  
 	 * @param author AuthorType
 	 * @return Numeric authority code
@@ -270,5 +701,89 @@ public class LocUtil {
 	public static char getBoolChar(boolean log) {
 		if(log) return 'T';
 		else return 'F';
+	}
+	
+	/**
+	 * Print a vector for debugging purposes.
+	 * 
+	 * @param a Vector to print
+	 * @param label Label to print as a header
+	 */
+	public static void printMatrix(double[] a, String label) {
+		int count;
+		
+		System.out.println("\n\t\t"+label+":");
+		count = 0;
+		for(int j=0; j<a.length; j++) {
+			if(count > 8) {
+				System.out.print("\n\t");
+				count = 0;
+			}
+			System.out.format(" %10.3e", a[j]);
+			count++;
+		}
+		System.out.println();
+	}
+	
+	/**
+	 * Print a vector for debugging purposes.
+	 * 
+	 * @param a Vector to print
+	 * @param label Label to print as a header
+	 */
+	public static void printMatrix(int[] a, String label) {
+		int count;
+		
+		System.out.println("\n\t\t"+label+":");
+		count = 0;
+		for(int j=0; j<a.length; j++) {
+			if(count > 17) {
+				System.out.print("\n\t");
+				count = 0;
+			}
+			System.out.format(" %4d", a[j]);
+			count++;
+		}
+		System.out.println();
+	}
+	
+	/**
+	 * Print a matrix for debugging purposes.
+	 * 
+	 * @param a Matrix to print
+	 * @param label Label to print as a header
+	 */
+	public static void printMatrix(double[][] a, String label) {
+		int count;
+		
+		System.out.println("\n\t\t"+label+":");
+		for(int i=0; i<a.length; i++) {
+			count = 0;
+			for(int j=0; j<a[i].length; j++) {
+				if(count > 8) {
+					System.out.print("\n\t");
+					count = 0;
+				}
+				System.out.format(" %10.3e", a[i][j]);
+				count++;
+			}
+			System.out.println();
+		}
+	}
+	/**
+	 * Set a system timer in milliseconds.
+	 */
+	public static void timer() {
+		sysTime = System.currentTimeMillis();
+	}
+	
+	/**
+	 * End the timer and print out the result in seconds.
+	 * 
+	 * @param label String used to identify the timer
+	 */
+	public static void timer(String label) {
+		System.out.println(""+label+" time: "+
+				0.001*(System.currentTimeMillis()-sysTime));
 	}
 }
