@@ -139,7 +139,7 @@ public class Event {
 	 * @param inFile File path
 	 * @return True if the read was successful
 	 */
-	public boolean readHydra(String inFile) {
+	public boolean readHydra(String eventID) {
 		BufferedInputStream in;
 		Scanner scan;
 		char held, heldDep, prefDep, rstt, noSvd, moved, cmndUse;
@@ -154,7 +154,7 @@ public class Event {
 		
 		// Set up the IO.
 		try {
-			in = new BufferedInputStream(new FileInputStream(inFile));
+			in = new BufferedInputStream(new FileInputStream(TauUtil.event(eventID)));
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
 			return false;

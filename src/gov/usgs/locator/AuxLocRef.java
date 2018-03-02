@@ -9,6 +9,8 @@ import java.nio.ByteOrder;
 import java.nio.IntBuffer;
 import java.util.Scanner;
 
+import gov.usgs.traveltime.TauUtil;
+
 /**
  * Read in auxiliary data to support the Locator.  Note that this 
  * data can never change and will be common to all events subsequently 
@@ -20,9 +22,6 @@ import java.util.Scanner;
 public class AuxLocRef {
 	final Cratons cratons;			// Continental craton boundaries
 	final ZoneStats zoneStats;	// Earthquake statistics by geographic location
-	final String cratonsPath = "../../Documents/Work/Models/cratons.txt";
-	final String zoneKeyPath = "../../Documents/Work/Models/zonkey.dat";
-	final String zoneStatPath = "../../Documents/Work/Models/zonstt.dat";
 	int noYears = -1;
 	Scanner scan;
 	
@@ -39,7 +38,7 @@ public class AuxLocRef {
 		RandomAccessFile inZones;
 		
 		// Open and read the cratons file.
-		inCratons = new BufferedInputStream(new FileInputStream(cratonsPath));
+		inCratons = new BufferedInputStream(new FileInputStream(TauUtil.model("cratons.txt")));
 		scan = new Scanner(inCratons);
 		cratons = new Cratons();
 		while(scan.hasNext()) {
@@ -50,13 +49,13 @@ public class AuxLocRef {
 //	cratons.printCratons();
 		
 		// Open and read the zone key file.
-		inZones = new RandomAccessFile(zoneKeyPath, "r");
+		inZones = new RandomAccessFile(TauUtil.model("zonekey.dat"), "r");
 		zoneKeys = readZoneKeys(inZones);
 		zoneStats = new ZoneStats(zoneKeys);
 		inZones.close();
 		
 		// Open and read the zone statistics file.
-		inZones = new RandomAccessFile(zoneStatPath, "r");
+		inZones = new RandomAccessFile(TauUtil.model("zonestat.dat"), "r");
 		stats = readZoneStats(inZones);
 		zoneStats.addStats(noYears, stats);
 		inZones.close();
