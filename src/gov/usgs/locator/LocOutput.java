@@ -135,4 +135,39 @@ public class LocOutput {
 			networkCode, locationCode, locatorPhase, residual, delta, azimuth, 
 			weight, pickImport, useFlag, errorCode));
 	}
+	
+	/**
+	 * Add information to support printing for testing purposes.
+	 * 
+	 * @param authType Author type
+	 * @param arrivalTime Arrival time
+	 */
+	public void addPrint(AuthorType authType, double arrivalTime) {
+		picks.get(picks.size()-1).addPrint(authType, arrivalTime);
+	}
+	
+	/**
+	 * Print an NEIC style web output.
+	 */
+	public void printNEIC() {
+		// Print the hypocenter.
+		System.out.format("\nLocation:             %-7s %-8s ±%6.1f km\n", 
+				LocUtil.niceLat(sourceLat), LocUtil.niceLon(sourceLon), 
+				errh);
+		System.out.format("Depth:                %5.1f ±%6.1f km\n", 
+				sourceDepth, errz);
+		System.out.format("Origin Time:          %23s UTC\n", 
+				LocUtil.getNEICdate(originTime));
+		System.out.format("Number of Stations:     %4d\n", noStations);
+		System.out.format("Number of Phases:       %4d\n", noPicks);
+		System.out.format("Minimum Distance:     %6.1f\n", minDelta);
+		System.out.format("Travel Time Residual:  %5.2f\n", timeError);
+		System.out.format("Azimuthal Gap:           %3.0f\n", azimuthGap);
+		System.out.println("\n    Channel     Distance Azimuth Phase  "+
+				"   Arrival Time Status    Residual Weight");
+		// Print the picks.
+		for(int j=0; j<picks.size(); j++) {
+			picks.get(j).printNEIC();
+		}
+	}
 }

@@ -20,11 +20,12 @@ public class PhaseID {
   Event event;
   Hypocenter hypo;
   AllBrnVol allBrn;
+ //TravelTimeSession session;
   AuxTtRef auxTT;
   ArrayList<Wresidual> wResiduals;
   PickGroup group;
   Pick lastPick = null;
-  TTime ttList;
+  TTime ttList = null;
   double otherWeight;				// Weight for phases that don't match
   double stickyWeight;			// Weight to resist changing identification
   boolean generic = false, primary = false;
@@ -77,14 +78,20 @@ public class PhaseID {
 		// Reinitialize the weighted residual storage.
 		if(wResiduals.size() > 0) wResiduals.clear();
 
-		if(hypo.depth != hypo.ttDepth) {
-			// Set up a new travel-time session if the depth has changed.
-			allBrn.newSession(hypo.latitude, hypo.longitude, hypo.depth, 
-					LocUtil.PHLIST);
-			hypo.ttDepth = hypo.depth;
+		if(LocUtil.server) {
+//		session = TravelTimePool.getTravelTimeSession(event.earthModel, hypo.depth, 
+//				LocUtil.PHLIST, hypo.latitude, hypo.longitude, LocUtil.USEFUL,
+//       	LocUtil.NOBACKBRN, LocUtil.tectonic, LocUtil.rstt, false, getLogger());
 		} else {
-			// Otherwise, just update the epicenter coordinates.
-			allBrn.newEpicenter(hypo.latitude, hypo.longitude);
+			if(hypo.depth != hypo.ttDepth) {
+				// Set up a new travel-time session if the depth has changed.
+					allBrn.newSession(hypo.latitude, hypo.longitude, hypo.depth, 
+							LocUtil.PHLIST);
+				hypo.ttDepth = hypo.depth;
+			} else {
+				// Otherwise, just update the epicenter coordinates.
+				allBrn.newEpicenter(hypo.latitude, hypo.longitude);
+			}
 		}
 		
     // Do the travel-time calculation.
@@ -95,9 +102,14 @@ public class PhaseID {
       if(LocUtil.deBugLevel > 1) System.out.format("PhaseID: %-5s %6.2f "+
       		"%6.2f %6.2f\n", station.staID.staCode,group.picks.get(0).tt, 
       		group.delta, group.azimuth);
-      ttList = allBrn.getTT(station.latitude, station.longitude,
-              station.elevation, group.delta, group.azimuth, LocUtil.USEFUL,
-              LocUtil.tectonic, LocUtil.NOBACKBRN, LocUtil.rstt);
+      if(LocUtil.server) {
+//    	ttList = session.getTT(station.latitude, station.longitude,
+//          station.elevation, group.delta, group.azimuth);
+      } else {
+	      ttList = allBrn.getTT(station.latitude, station.longitude,
+	          station.elevation, group.delta, group.azimuth, LocUtil.USEFUL,
+	          LocUtil.tectonic, LocUtil.NOBACKBRN, LocUtil.rstt);
+      }
       // Print them.
   //  ttList.print(hypo.depth, group.delta);
       // If reID is true, do a full phase re-identification.

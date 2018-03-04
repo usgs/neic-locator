@@ -6,7 +6,7 @@ package gov.usgs.locator;
  * @author Ray Buland
  *
  */
-class PickOutput {
+public class PickOutput {
 	String source;					// Source of the pick ID
 	int pickID;							// Hydra database ID
 	String stationCode;			// Station code.
@@ -21,6 +21,9 @@ class PickOutput {
 	double pickImport;			// Pick data importance.
 	boolean useFlag;				// Pick use flag.
 	String errorCode;				// Pick summary error code (RSTT)
+	// Added for printing purposes only.
+	AuthorType authType;
+	double arrivalTime;
 	
 	/**
 	 * The following Locator outputs are produced for each pick.
@@ -40,7 +43,7 @@ class PickOutput {
 	 * @param useFlag True if the pick was used in the location.
 	 * @param errorCode Summary pick error code.
 	 */
-	PickOutput(String source, int pickID, String stationCode, 
+	public PickOutput(String source, int pickID, String stationCode, 
 			String componentCode, String networkCode, String locationCode, 
 			String locatorPhase, double residual, double delta, double azimuth, 
 			double weight, double pickImport, boolean useFlag, String errorCode) {
@@ -58,5 +61,36 @@ class PickOutput {
 		this.pickImport = pickImport;
 		this.useFlag = useFlag;
 		this.errorCode = errorCode;
+	}
+	
+	/**
+	 * Add a few things to support the print function.
+	 * 
+	 * @param authType Author type
+	 * @param arrivalTime Arrival time
+	 */
+	public void addPrint(AuthorType authType, double arrivalTime) {
+		this.authType = authType;
+		this.arrivalTime = arrivalTime;
+	}
+	
+	/**
+	 * Print out picks in the group in a way similar to the NEIC web format.
+	 */
+	public void printNEIC() {
+		switch(authType) {
+			case CONTRIB_HUMAN: case LOCAL_HUMAN:
+				System.out.format("%-2s %-5s %-3s %-2s  %5.1f     %3.0f   %-8s %12s "+
+						" manual    %6.1f    %4.2f\n", networkCode, stationCode, 
+						componentCode, locationCode, delta, azimuth, locatorPhase, 
+						LocUtil.getNEICtime(arrivalTime), residual, weight);
+				break;
+			default:
+				System.out.format("%-2s %-5s %-3s %-2s  %5.1f     %3.0f   %-8s %12s "+
+						" automatic  %6.1f    %4.2f\n", networkCode, stationCode, 
+						componentCode, locationCode, delta, azimuth, locatorPhase, 
+						LocUtil.getNEICtime(arrivalTime), residual, weight);
+				break;
+		}
 	}
 }
