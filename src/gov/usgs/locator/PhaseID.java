@@ -80,13 +80,14 @@ public class PhaseID {
 
 		if(LocUtil.server) {
 //		session = TravelTimePool.getTravelTimeSession(event.earthModel, hypo.depth, 
-//				LocUtil.PHLIST, hypo.latitude, hypo.longitude, LocUtil.USEFUL,
+//				LocUtil.PHLIST, hypo.latitude, hypo.longitude, !LocUtil.USEFUL,
 //       	LocUtil.NOBACKBRN, LocUtil.tectonic, LocUtil.rstt, false, getLogger());
 		} else {
 			if(hypo.depth != hypo.ttDepth) {
 				// Set up a new travel-time session if the depth has changed.
 					allBrn.newSession(hypo.latitude, hypo.longitude, hypo.depth, 
-							LocUtil.PHLIST);
+							LocUtil.PHLIST, LocUtil.USEFUL, LocUtil.NOBACKBRN, LocUtil.tectonic, 
+							LocUtil.rstt, false);
 				hypo.ttDepth = hypo.depth;
 			} else {
 				// Otherwise, just update the epicenter coordinates.
@@ -107,8 +108,7 @@ public class PhaseID {
 //          station.elevation, group.delta, group.azimuth);
       } else {
 	      ttList = allBrn.getTT(station.latitude, station.longitude,
-	          station.elevation, group.delta, group.azimuth, LocUtil.USEFUL,
-	          LocUtil.tectonic, LocUtil.NOBACKBRN, LocUtil.rstt);
+	          station.elevation, group.delta, group.azimuth);
       }
       // Print them.
   //  ttList.print(hypo.depth, group.delta);

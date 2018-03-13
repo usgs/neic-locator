@@ -415,7 +415,9 @@ public class Event {
 	 */
 	@SuppressWarnings("unchecked")
 	public void saveWres() {
-		if(cmndCorr) wResOrg = (ArrayList<Wresidual>) wResRaw.clone();
+		if(cmndCorr) {
+			wResOrg = (ArrayList<Wresidual>) wResRaw.clone();
+		}
 	}
 	
 	/**

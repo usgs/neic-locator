@@ -75,7 +75,8 @@ public class InitialID {
 			if(hypo.depth != hypo.ttDepth) {
 				// Set up a new travel-time session if the depth has changed.
 				allBrn.newSession(hypo.latitude, hypo.longitude, hypo.depth, 
-						LocUtil.PHLIST);
+						LocUtil.PHLIST, LocUtil.USEFUL, LocUtil.NOBACKBRN, LocUtil.tectonic, 
+						LocUtil.rstt, false);
 				hypo.ttDepth = hypo.depth;
 			} else {
 				// Otherwise, just update the epicenter coordinates.
@@ -98,8 +99,7 @@ public class InitialID {
 //            station.elevation, group.delta, group.azimuth);
         } else {
 	        ttList = allBrn.getTT(station.latitude, station.longitude,
-	            station.elevation, group.delta, group.azimuth, LocUtil.USEFUL,
-	            LocUtil.tectonic, LocUtil.NOBACKBRN, LocUtil.rstt);
+	            station.elevation, group.delta, group.azimuth);
         }
         // Print them.
   //    ttList.print(event.hypo.depth, group.delta);
@@ -261,8 +261,7 @@ public class InitialID {
         		station = group.station;
         		if(LocUtil.deBugLevel > 1) System.out.println("\n" + station + ":");
         		ttList = allBrn.getTT(station.latitude, station.longitude,
-                station.elevation, group.delta, group.azimuth, true,
-                false, false, false);
+                station.elevation, group.delta, group.azimuth);
         		// Print them.
     //  		ttList.print(event.hypo.depth, group.delta);
         		// Set the phase code.  The travel time was already set in survey.
