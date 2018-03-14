@@ -78,21 +78,15 @@ public class PhaseID {
 		// Reinitialize the weighted residual storage.
 		if(wResiduals.size() > 0) wResiduals.clear();
 
+		// Set up a new travel-time session.
 		if(LocUtil.server) {
 //		session = TravelTimePool.getTravelTimeSession(event.earthModel, hypo.depth, 
 //				LocUtil.PHLIST, hypo.latitude, hypo.longitude, !LocUtil.USEFUL,
-//       	LocUtil.NOBACKBRN, LocUtil.tectonic, LocUtil.rstt, false, getLogger());
+//       	!LocUtil.NOBACKBRN, LocUtil.tectonic, LocUtil.rstt, false, getLogger());
 		} else {
-			if(hypo.depth != hypo.ttDepth) {
-				// Set up a new travel-time session if the depth has changed.
-					allBrn.newSession(hypo.latitude, hypo.longitude, hypo.depth, 
-							LocUtil.PHLIST, LocUtil.USEFUL, LocUtil.NOBACKBRN, LocUtil.tectonic, 
-							LocUtil.rstt, false);
-				hypo.ttDepth = hypo.depth;
-			} else {
-				// Otherwise, just update the epicenter coordinates.
-				allBrn.newEpicenter(hypo.latitude, hypo.longitude);
-			}
+			allBrn.newSession(hypo.latitude, hypo.longitude, hypo.depth, 
+					LocUtil.PHLIST, LocUtil.USEFUL, LocUtil.NOBACKBRN, LocUtil.tectonic, 
+					LocUtil.rstt, false);
 		}
 		
     // Do the travel-time calculation.
@@ -101,7 +95,7 @@ public class PhaseID {
       // For the first pick in the group, get the travel times.
       station = group.station;
       if(LocUtil.deBugLevel > 1) System.out.format("PhaseID: %-5s %6.2f "+
-      		"%6.2f %6.2f\n", station.staID.staCode,group.picks.get(0).tt, 
+      		"%6.2f %6.2f\n", station.staID.staCode, group.picks.get(0).tt, 
       		group.delta, group.azimuth);
       if(LocUtil.server) {
 //    	ttList = session.getTT(station.latitude, station.longitude,
@@ -111,7 +105,7 @@ public class PhaseID {
 	          station.elevation, group.delta, group.azimuth);
       }
       // Print them.
-  //  ttList.print(hypo.depth, group.delta);
+//    ttList.print(hypo.depth, group.delta);
       // If reID is true, do a full phase re-identification.
       if(reID) {
       	reID();
@@ -221,6 +215,9 @@ public class PhaseID {
     TTimeData tTime;
     Pick pick;
 
+    // Initialize the figure-of-merit memory.
+  	group.initFoM(0, group.picks.size());
+  	
     // Pre-identify surface waves identified by trusted sources.
     for (int j = 0; j < group.noPicks(); j++) {
       pick = group.getPick(j);
@@ -280,7 +277,7 @@ public class PhaseID {
         			"  Pick: %2d %2d  Win: %7.2f %7.2f\n", ttBeg, ttLen, 
         			pickBeg, pickLen, winMin, winMax);
           // Initialize the figure-of-merit memory.
-          group.initFoM(pickBeg, pickBeg+pickLen);
+    //     group.initFoM(pickBeg, pickBeg+pickLen);
           // Do the identification.
           permut(pickBeg, pickLen, ttBeg, ttLen);
         }
@@ -296,16 +293,6 @@ public class PhaseID {
         pickBeg = -1;
         pickLen = 0;
       }
-    }
-    
-    // Handle the special case where no observed pick falls close to 
-    // a theoretical arrival.
-    if(pickBeg < 0) {
-    	if(LocUtil.deBugLevel > 1) 
-    		System.out.println("No possible association for "+
-    				group.station.staID.staCode);
-    	group.initFoM(0, group.picks.size());
-    	return;
     }
 
     // Apply the distance correction to the first arriving phase.

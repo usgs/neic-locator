@@ -65,33 +65,25 @@ public class InitialID {
 		// Reinitialize the weighted residual storage.
 		if(wResiduals.size() > 0) wResiduals.clear();
 		
+		// Set up a new travel-time session if the depth has changed.
 		if(LocUtil.server) {
 //		session = TravelTimePool.getTravelTimeSession(event.earthModel, hypo.depth, 
 //				LocUtil.PHLIST, hypo.latitude, hypo.longitude, LocUtil.USEFUL,
-//       	LocUtil.NOBACKBRN, LocUtil.tectonic, LocUtil.rstt, false, getLogger());
+//       	!LocUtil.NOBACKBRN, LocUtil.tectonic, LocUtil.rstt, false, getLogger());
 		} else {
-			// This should always be the first new session, but just to be 
-			// on the safe side...
-			if(hypo.depth != hypo.ttDepth) {
-				// Set up a new travel-time session if the depth has changed.
-				allBrn.newSession(hypo.latitude, hypo.longitude, hypo.depth, 
-						LocUtil.PHLIST, LocUtil.USEFUL, LocUtil.NOBACKBRN, LocUtil.tectonic, 
-						LocUtil.rstt, false);
-				hypo.ttDepth = hypo.depth;
-			} else {
-				// Otherwise, just update the epicenter coordinates.
-				allBrn.newEpicenter(hypo.latitude, hypo.longitude);
-			}
+			allBrn.newSession(hypo.latitude, hypo.longitude, hypo.depth, 
+					LocUtil.PHLIST, LocUtil.USEFUL, LocUtil.NOBACKBRN, LocUtil.tectonic, 
+					LocUtil.rstt, false);
 		}
 		
-    // Loop over picks in the group.
-    if(LocUtil.deBugLevel > 1) System.out.println();
+    // Loop over picks in the groups.
+		if(LocUtil.deBugLevel > 1) System.out.println();
     for (int j = 0; j < event.noStations(); j++) {
       group = event.groups.get(j);
       if (group.picksUsed() > 0) {
         // For the first pick in the group, get the travel times.
         station = group.station;
-        if(LocUtil.deBugLevel > 1) System.out.println("\nInitialID: "+
+        if(LocUtil.deBugLevel > 1) System.out.println("InitialID: "+
         		station+":");
         // Do the travel-time calculation.
         if(LocUtil.server) {
@@ -259,7 +251,7 @@ public class InitialID {
         			!phCode.equals("Sn") && !phCode.equals("Lg")) {
         		// For the first pick in the group, get the travel times.
         		station = group.station;
-        		if(LocUtil.deBugLevel > 1) System.out.println("\n" + station + ":");
+        		if(LocUtil.deBugLevel > 1) System.out.println("" + station + ":");
         		ttList = allBrn.getTT(station.latitude, station.longitude,
                 station.elevation, group.delta, group.azimuth);
         		// Print them.

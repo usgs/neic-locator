@@ -34,8 +34,6 @@ public class Hypocenter {
 	double delH;					// Horizontal (tangential) step length in kilometers
 	double delZ;					// Vertical (depth) step length in kilometers
 	double[] stepDir;			// Spatial local Cartesian step direction unit vector
-	// Travel-time control:
-	double ttDepth;
 	// Getters:
 	public double getOrigin() { return originTime;}
 	public double getLatitude() {return latitude;}
@@ -65,7 +63,6 @@ public class Hypocenter {
 		stepLen = 0d;
 		delH = 0d;
 		delZ = 0d;
-		ttDepth = Double.NaN;
 	}
 	
 	/**
