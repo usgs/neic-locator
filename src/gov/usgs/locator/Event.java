@@ -21,6 +21,8 @@ import gov.usgs.traveltime.TauUtil;
  *
  */
 public class Event {
+	// Informational:
+	String earthModel;		// Earth model being used
 	// Commands:
 	boolean heldLoc;			// True if the hypocenter will be held constant
 	boolean heldDepth;		// True if the depth will be held constant
@@ -78,7 +80,8 @@ public class Event {
 	/**
 	 * Allocate some storage.
 	 */
-	public Event() {
+	public Event(String earthModel) {
+		this.earthModel = earthModel;
 		stations = new TreeMap<StationID, Station>();
 		groups = new ArrayList<PickGroup>();
 		picks = new ArrayList<Pick>();
@@ -139,7 +142,7 @@ public class Event {
 	 * @param inFile File path
 	 * @return True if the read was successful
 	 */
-	public boolean readHydra(String inFile) {
+	public boolean readHydra(String eventID) {
 		BufferedInputStream in;
 		Scanner scan;
 		char held, heldDep, prefDep, rstt, noSvd, moved, cmndUse;
@@ -154,7 +157,7 @@ public class Event {
 		
 		// Set up the IO.
 		try {
-			in = new BufferedInputStream(new FileInputStream(inFile));
+			in = new BufferedInputStream(new FileInputStream(TauUtil.event(eventID)));
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
 			return false;
@@ -412,7 +415,9 @@ public class Event {
 	 */
 	@SuppressWarnings("unchecked")
 	public void saveWres() {
-		if(cmndCorr) wResOrg = (ArrayList<Wresidual>) wResRaw.clone();
+		if(cmndCorr) {
+			wResOrg = (ArrayList<Wresidual>) wResRaw.clone();
+		}
 	}
 	
 	/**
@@ -653,6 +658,9 @@ public class Event {
 				azimGap, lestGap, delMin, quality);
 		out.addErrors(seTime, seLat, seLon, seDepth, seResid, errH, errZ, aveH, 
 				hypo.bayesDepth, hypo.bayesSpread, bayesImport, errEllip, exitCode);
+		// Sort the pick groups by distance.
+		groups.sort(new GroupComp());
+		// Pack up the picks.
 		for(int i=0; i<groups.size(); i++) {
 			group = groups.get(i);
 			for(int j=0; j<group.picks.size(); j++) {
@@ -661,6 +669,7 @@ public class Event {
 				out.addPick(pick.source, pick.dbID, staID.staCode, pick.chaCode, 
 						staID.netCode, staID.locCode, pick.phCode, pick.residual, 
 						group.delta, group.azimuth, pick.weight, pick.importance, pick.used, "");
+				out.addPrint(pick.authType, pick.arrivalTime);
 			}
 		}
 		return out;

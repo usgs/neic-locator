@@ -21,6 +21,7 @@ public class InitialID {
 	Event event;
 	Hypocenter hypo;
 	AllBrnVol allBrn;
+//TravelTimeSession session;
 	PhaseID phaseID;
   ArrayList<Wresidual> wResiduals;
   Restimator rEst;
@@ -58,37 +59,40 @@ public class InitialID {
     Station station;
     Pick pick;
     String phCode;
-		TTime ttList;
+		TTime ttList = null;
     TTimeData tTime;
 		
 		// Reinitialize the weighted residual storage.
 		if(wResiduals.size() > 0) wResiduals.clear();
 		
-		// This should always be the first new session, but just to be 
-		// on the safe side...
-		if(hypo.depth != hypo.ttDepth) {
-			// Set up a new travel-time session if the depth has changed.
-			allBrn.newSession(hypo.latitude, hypo.longitude, hypo.depth, 
-					LocUtil.PHLIST);
-			hypo.ttDepth = hypo.depth;
+		// Set up a new travel-time session if the depth has changed.
+		if(LocUtil.server) {
+//		session = TravelTimePool.getTravelTimeSession(event.earthModel, hypo.depth, 
+//				LocUtil.PHLIST, hypo.latitude, hypo.longitude, LocUtil.USEFUL,
+//       	!LocUtil.NOBACKBRN, LocUtil.tectonic, LocUtil.rstt, false, getLogger());
 		} else {
-			// Otherwise, just update the epicenter coordinates.
-			allBrn.newEpicenter(hypo.latitude, hypo.longitude);
+			allBrn.newSession(hypo.latitude, hypo.longitude, hypo.depth, 
+					LocUtil.PHLIST, LocUtil.USEFUL, LocUtil.NOBACKBRN, LocUtil.tectonic, 
+					LocUtil.rstt, false);
 		}
 		
-    // Loop over picks in the group.
-    if(LocUtil.deBugLevel > 1) System.out.println();
+    // Loop over picks in the groups.
+		if(LocUtil.deBugLevel > 1) System.out.println();
     for (int j = 0; j < event.noStations(); j++) {
       group = event.groups.get(j);
       if (group.picksUsed() > 0) {
         // For the first pick in the group, get the travel times.
         station = group.station;
-        if(LocUtil.deBugLevel > 1) System.out.println("\nInitialID: "+
+        if(LocUtil.deBugLevel > 1) System.out.println("InitialID: "+
         		station+":");
         // Do the travel-time calculation.
-        ttList = allBrn.getTT(station.latitude, station.longitude,
-                station.elevation, group.delta, group.azimuth, LocUtil.USEFUL,
-                LocUtil.tectonic, LocUtil.NOBACKBRN, LocUtil.rstt);
+        if(LocUtil.server) {
+//      	ttList = session.getTT(station.latitude, station.longitude,
+//            station.elevation, group.delta, group.azimuth);
+        } else {
+	        ttList = allBrn.getTT(station.latitude, station.longitude,
+	            station.elevation, group.delta, group.azimuth);
+        }
         // Print them.
   //    ttList.print(event.hypo.depth, group.delta);
         tTime = ttList.get(0);
@@ -247,10 +251,9 @@ public class InitialID {
         			!phCode.equals("Sn") && !phCode.equals("Lg")) {
         		// For the first pick in the group, get the travel times.
         		station = group.station;
-        		if(LocUtil.deBugLevel > 1) System.out.println("\n" + station + ":");
+        		if(LocUtil.deBugLevel > 1) System.out.println("" + station + ":");
         		ttList = allBrn.getTT(station.latitude, station.longitude,
-                station.elevation, group.delta, group.azimuth, true,
-                false, false, false);
+                station.elevation, group.delta, group.azimuth);
         		// Print them.
     //  		ttList.print(event.hypo.depth, group.delta);
         		// Set the phase code.  The travel time was already set in survey.

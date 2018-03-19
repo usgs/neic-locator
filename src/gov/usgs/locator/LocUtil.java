@@ -205,6 +205,11 @@ public class LocUtil {
 	 * The higher the debug level, the more output you get.
 	 */
 	public static int deBugLevel = 0;
+	/**
+	 * False for stand alone testing, true to integrate into the 
+	 * location server.
+	 */
+	public static boolean server = false;
 	
 	// The following public variable is returned by delAz:
 	

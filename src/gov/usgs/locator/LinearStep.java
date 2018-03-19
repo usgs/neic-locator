@@ -18,7 +18,7 @@ public class LinearStep {
 	double[] stepDir, trialVector;
 	Event event;
 	Hypocenter hypo;
-	ArrayList<Wresidual> wResRaw, wResOrg;
+	ArrayList<Wresidual> wResRaw;
 	Restimator rEstRaw, rEstProj;
 	DeCorr deCorr;
 	
@@ -61,7 +61,6 @@ public class LinearStep {
 		RestResult[] sample = new RestResult[3]; 
 		
 		if(LocUtil.deBugLevel > 0) System.out.println();
-		wResOrg = event.wResOrg;
 		
 		// The trial vector has to be the same size as the step vector.
 		trialVector = new double[stepDir.length];
