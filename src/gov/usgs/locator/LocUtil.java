@@ -721,8 +721,8 @@ public class LocUtil {
 		count = 0;
 		for(int j=0; j<a.length; j++) {
 			if(count > 8) {
-				System.out.print("\n\t");
-				count = 0;
+				System.out.print("\n           ");
+				count = 1;
 			}
 			System.out.format(" %10.3e", a[j]);
 			count++;
@@ -743,8 +743,8 @@ public class LocUtil {
 		count = 0;
 		for(int j=0; j<a.length; j++) {
 			if(count > 17) {
-				System.out.print("\n\t");
-				count = 0;
+				System.out.print("\n     ");
+				count = 1;
 			}
 			System.out.format(" %4d", a[j]);
 			count++;
@@ -766,8 +766,8 @@ public class LocUtil {
 			count = 0;
 			for(int j=0; j<a[i].length; j++) {
 				if(count > 8) {
-					System.out.print("\n\t");
-					count = 0;
+					System.out.print("\n           ");
+					count = 1;
 				}
 				System.out.format(" %10.3e", a[i][j]);
 				count++;

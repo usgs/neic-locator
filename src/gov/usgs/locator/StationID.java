@@ -25,7 +25,7 @@ public class StationID implements Comparable<StationID>{
 		this.staCode = staCode;
 		this.locCode = locCode;
 		this.netCode = netCode;
-		staID = String.format("%-5s%-2s%-2s", staCode, locCode, netCode);
+		staID = String.format("%-5s%-2s", staCode, netCode);
 	}
 	
 	/**

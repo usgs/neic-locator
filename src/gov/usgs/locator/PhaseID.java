@@ -105,7 +105,10 @@ public class PhaseID {
 	          station.elevation, group.delta, group.azimuth);
       }
       // Print them.
-//    ttList.print(hypo.depth, group.delta);
+  /*  if(reID && (station.staID.staCode.equals("MOOR") || 
+      		station.staID.staCode.equals("QSPA"))) {
+      	ttList.print();
+      } */
       // If reID is true, do a full phase re-identification.
       if(reID) {
       	reID();
@@ -276,8 +279,8 @@ public class PhaseID {
         	if(LocUtil.deBugLevel > 1) System.out.format("TT: %2d %2d"+
         			"  Pick: %2d %2d  Win: %7.2f %7.2f\n", ttBeg, ttLen, 
         			pickBeg, pickLen, winMin, winMax);
-          // Initialize the figure-of-merit memory.
-    //     group.initFoM(pickBeg, pickBeg+pickLen);
+          // Initialize the cumulative figure-of-merit.
+        	group.fomMax = 0d;
           // Do the identification.
           permut(pickBeg, pickLen, ttBeg, ttLen);
         }
