@@ -79,6 +79,8 @@ public class Event {
 	
 	/**
 	 * Allocate some storage.
+	 * 
+	 * @param earthModel Name of earth model to be used
 	 */
 	public Event(String earthModel) {
 		this.earthModel = earthModel;
@@ -139,7 +141,7 @@ public class Event {
 	 * Read a Bulletin Hydra style event input file.  File open and 
 	 * read exceptions are trapped.
 	 * 
-	 * @param inFile File path
+	 * @param eventID Hydra style event ID number
 	 * @return True if the read was successful
 	 */
 	public boolean readHydra(String eventID) {
