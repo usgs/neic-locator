@@ -1,0 +1,9 @@
+# travis file for java
+language: java
+
+jdk:
+  - oraclejdk8
+
+script:
+  # Java build
+  - ant all
