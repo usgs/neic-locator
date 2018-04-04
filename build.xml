@@ -82,7 +82,7 @@
       <!-- Build the jar file -->
       <jar jarfile="${dist}/neic-locator/neic-locator.jar" basedir="${build}" excludes="**/*Test*">
         <manifest>
-          <attribute name="Main-Class" value="gov.usgs.locator.Locate.Locate" />
+          <attribute name="Main-Class" value="gov.usgs.locator.LocMain.main" />
         </manifest>
 
         <!-- Include dependencies in jar -->

@@ -6,7 +6,7 @@ import gov.usgs.traveltime.*;
 
 /**
  * Test driver for the locator.
- * 
+ *
  * @author Ray Buland
  *
  */
@@ -20,6 +20,7 @@ public class LocMain {
 		ReadTau readTau;
 		AllBrnRef allRef;
 		AllBrnVol allBrn;
+		AuxLocRef auxLoc;
 		Event event = null;
 		Locate loc;
 
@@ -31,7 +32,7 @@ public class LocMain {
 			e1.printStackTrace();
 			System.exit(1);
 		}
-	
+
 		try {
 			// Read in ak135.
 			readTau = new ReadTau("ak135");
@@ -43,31 +44,33 @@ public class LocMain {
 			// Set up the (depth dependent) volatile part.
 			allBrn = new AllBrnVol(allRef);
 //		allBrn.dumpTable(true);
-			
+			// Set up aux loc
+			auxLoc = new AuxLocRef();
+
 			// Set the debug level.
 			LocUtil.deBugLevel = 2;
 			// Set up the event.
-			event = new Event();
+			event = new Event("ak135");
 			if(event.readHydra(inFile)) {
 				event.printIn();
 			} else {
 				System.out.println("Unable to read event.");
 				System.exit(3);;
 			}
-			
-			loc = new Locate(event, allBrn, auxtt);
+
+			loc = new Locate(event, allBrn, auxLoc, auxtt);
 			loc.doLoc();
-			
+
 		} catch(IOException e) {
 			System.out.println("Unable to read Earth model ak135.");
 			System.exit(2);
 		}
-		
+
 		// Print the event.
 		event.staStats();
 //	event.printHydra();
 		event.printNEIC();
-		
+
 		// Print a station list
 //	event.stationList();
 	}
