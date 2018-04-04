@@ -54,7 +54,7 @@
     <!-- TARGETS -->
     <!-- tt-compile -->
     <target name="tt-compile" description="Download and build ttlib">
-      <git-clone-pull repository="git@github.com:usgs/neic-traveltime.git" dest="${lib}/neic-traveltime" />
+      <git-clone-pull repository="https://github.com/usgs/neic-traveltime.git" dest="${lib}/neic-traveltime" />
       <ant antfile="build.xml" dir="${lib}/neic-traveltime" target="jar">
           <property name="src" value="${lib}/neic-traveltime/src"/>
           <property name="build" value="${lib}/neic-traveltime/build"/>
