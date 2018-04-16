@@ -96,4 +96,13 @@ public class LocInput {
 			networkCode, locationCode, pickTime, locatorPhase, originalPhase, 
 			usePick, authorType, pickAffinity, pickQuality));
 	}
+	
+	/**
+	 * Get the Earth model.
+	 * 
+	 * @return Name of the Earth model to be used
+	 */
+	public String getModel() {
+		return earthModel;
+	}
 }

@@ -257,6 +257,7 @@ public class DeCorr {
 		e = eig.getRealEigenvalues();
 		if(LocUtil.deBugLevel > 0) LocUtil.printMatrix(e, "Eigenvalues");
 		v = eig.getV().getArray();
+		if(LocUtil.deBugLevel > 2) testEig(covFin, eig);
 		// We don't need the covariance matrix any more.
 		covFin = null;
 		eig = null;
@@ -354,6 +355,41 @@ public class DeCorr {
 				} else {
 					return false;
 				}
+			}
+		}
+	}
+	
+	/**
+	 * Test the eigenvectors by computing the norm of (A-value*I)*vector 
+	 * for each eigenvalue-eigenvector pair.
+	 * 
+	 * @param a Matrix for which eigenvalues have been computed
+	 * @param eig Eigenvalues and eigenvectors
+	 */
+	private void testEig(Matrix a, EigenvalueDecomposition eig) {
+		boolean bad = false;
+		int n;
+		double[] values;
+		Matrix vectors, test, result;
+		
+		values = eig.getRealEigenvalues();
+		vectors = eig.getV();
+		n = values.length;
+
+		// Loop over the eigenvalues.
+		for(int j=0; j<n; j++) {
+			// Construct A-value*I.
+			test = a.minus(Matrix.identity(n,n).times(values[j]));
+			// Multiply by the eigenvector.
+			result = test.times(vectors.getMatrix(0,n-1,j,j));
+			// Only print something if it doesn't look right.
+			if(result.norm2() > TauUtil.DTOL) {
+				if(!bad) {
+					bad = true;
+					System.out.println("\nBad eigenvector(s):");
+				}
+				System.out.format("\t%3d %8.2e %8.2e %8.2e\n", j, result.norm1(), 
+						result.norm2(), result.normInf());
 			}
 		}
 	}

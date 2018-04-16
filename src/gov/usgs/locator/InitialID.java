@@ -2,9 +2,11 @@ package gov.usgs.locator;
 
 import java.util.ArrayList;
 
-import gov.usgs.traveltime.AllBrnVol;
+import gov.usgs.traveltime.TTSessionLocal;
 import gov.usgs.traveltime.TTime;
 import gov.usgs.traveltime.TTimeData;
+import gov.usgs.traveltime.session.TTSession;
+import gov.usgs.traveltime.session.TTSessionPool;
 
 /**
  * Before any location iteration or real phase identification 
@@ -20,12 +22,12 @@ import gov.usgs.traveltime.TTimeData;
 public class InitialID {
 	Event event;
 	Hypocenter hypo;
-	AllBrnVol allBrn;
-//TravelTimeSession session;
+	TTSessionLocal ttLocal;
 	PhaseID phaseID;
   ArrayList<Wresidual> wResiduals;
   Restimator rEst;
   Stepper stepper;
+  TTSession session;
 
 	/**
 	 * Remember the event and travel times.
@@ -35,11 +37,11 @@ public class InitialID {
 	 * @param phaseID Phase identification logic
 	 * @param stepper R-estimator driver logic
 	 */
-	public InitialID(Event event, AllBrnVol allBrn, PhaseID phaseID, 
+	public InitialID(Event event, TTSessionLocal ttLocal, PhaseID phaseID, 
 			Stepper stepper) {
 		this.event = event;
 		hypo = event.hypo;
-		this.allBrn = allBrn;
+		this.ttLocal = ttLocal;
 		this.phaseID = phaseID;
 		wResiduals = event.wResRaw;
 		rEst = event.rEstRaw;
@@ -67,13 +69,13 @@ public class InitialID {
 		
 		// Set up a new travel-time session if the depth has changed.
 		if(LocUtil.server) {
-//		session = TravelTimePool.getTravelTimeSession(event.earthModel, hypo.depth, 
-//				LocUtil.PHLIST, hypo.latitude, hypo.longitude, LocUtil.USEFUL,
-//       	!LocUtil.NOBACKBRN, LocUtil.tectonic, LocUtil.rstt, false, getLogger());
+			session = TTSessionPool.getTravelTimeSession(event.earthModel, hypo.depth, 
+					LocUtil.PHLIST, hypo.latitude, hypo.longitude, !LocUtil.USEFUL,
+					!LocUtil.NOBACKBRN, LocUtil.tectonic, LocUtil.rstt, false);
 		} else {
-			allBrn.newSession(hypo.latitude, hypo.longitude, hypo.depth, 
-					LocUtil.PHLIST, LocUtil.USEFUL, LocUtil.NOBACKBRN, LocUtil.tectonic, 
-					LocUtil.rstt, false);
+			ttLocal.newSession(event.earthModel, hypo.depth, LocUtil.PHLIST, hypo.latitude, 
+					hypo.longitude, !LocUtil.USEFUL, !LocUtil.NOBACKBRN, LocUtil.tectonic, 
+					LocUtil.rstt);
 		}
 		
     // Loop over picks in the groups.
@@ -87,10 +89,10 @@ public class InitialID {
         		station+":");
         // Do the travel-time calculation.
         if(LocUtil.server) {
-//      	ttList = session.getTT(station.latitude, station.longitude,
-//            station.elevation, group.delta, group.azimuth);
+        	ttList = session.getTT(station.latitude, station.longitude,
+        			station.elevation, group.delta, group.azimuth);
         } else {
-	        ttList = allBrn.getTT(station.latitude, station.longitude,
+	        ttList = ttLocal.getTT(station.latitude, station.longitude,
 	            station.elevation, group.delta, group.azimuth);
         }
         // Print them.
@@ -252,8 +254,14 @@ public class InitialID {
         		// For the first pick in the group, get the travel times.
         		station = group.station;
         		if(LocUtil.deBugLevel > 1) System.out.println("" + station + ":");
-        		ttList = allBrn.getTT(station.latitude, station.longitude,
-                station.elevation, group.delta, group.azimuth);
+            // Do the travel-time calculation.
+            if(LocUtil.server) {
+            	ttList = session.getTT(station.latitude, station.longitude,
+            			station.elevation, group.delta, group.azimuth);
+            } else {
+    	        ttList = ttLocal.getTT(station.latitude, station.longitude,
+    	            station.elevation, group.delta, group.azimuth);
+            }
         		// Print them.
     //  		ttList.print(event.hypo.depth, group.delta);
         		// Set the phase code.  The travel time was already set in survey.

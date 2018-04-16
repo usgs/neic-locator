@@ -1,6 +1,5 @@
 package gov.usgs.locator;
 
-import gov.usgs.traveltime.AllBrnVol;
 
 /**
  * Manage the R-estimator logic needed to refine the hypocenter.
@@ -11,7 +10,6 @@ import gov.usgs.traveltime.AllBrnVol;
 public class Stepper {
 	Event event;
 	Hypocenter hypo;
-	AllBrnVol allBrn;
 	AuxLocRef auxLoc;
 	Cratons cratons;
 	ZoneStats zones;
@@ -30,11 +28,10 @@ public class Stepper {
 	 * @param phaseID Phase identification logic
 	 * @param auxLoc Auxiliary locator information
 	 */
-	public Stepper(Event event, AllBrnVol allBrn, PhaseID phaseID, 
+	public Stepper(Event event, PhaseID phaseID, 
 			AuxLocRef auxLoc) {
 		this.event = event;
 		hypo = event.hypo;
-		this.allBrn = allBrn;
 		this.auxLoc = auxLoc;
 		cratons = auxLoc.cratons;
 		zones = auxLoc.zoneStats;

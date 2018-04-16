@@ -2,8 +2,7 @@ package gov.usgs.locator;
 
 import java.util.ArrayList;
 
-import gov.usgs.traveltime.AllBrnVol;
-import gov.usgs.traveltime.AuxTtRef;
+import gov.usgs.traveltime.TTSessionLocal;
 
 /**
  * Locate drives the location of one earthquake.
@@ -15,8 +14,7 @@ public class Locate {
 	Event event;
 	Hypocenter hypo;
 	ArrayList<HypoAudit> audit;
-	AllBrnVol allBrn;
-	AuxTtRef auxtt;
+	TTSessionLocal ttLocal;
 	InitialID initialID;
 	PhaseID phaseID;
 	Stepper stepper;
@@ -26,19 +24,17 @@ public class Locate {
 	 * Set up the machinery to locate one event.
 	 * 
 	 * @param event Event information
-	 * @param allBrn Travel-time information
+	 * @param ttLocal Travel-time information for a local implementation
 	 * @param auxLoc Auxiliary location information
-	 * @param auxTT Auxiliary travel-time information
 	 */
-	public Locate(Event event, AllBrnVol allBrn, AuxLocRef auxLoc, 
-			AuxTtRef auxTT) {
+	public Locate(Event event, TTSessionLocal ttLocal, AuxLocRef auxLoc) {
 		this.event = event;
 		hypo = event.hypo;
 		audit = event.audit;
-		this.allBrn = allBrn;
-		phaseID = new PhaseID(event, allBrn, auxTT);
-		stepper = new Stepper(event, allBrn, phaseID, auxLoc);
-		initialID = new InitialID(event, allBrn, phaseID, stepper);
+		this.ttLocal = ttLocal;
+		phaseID = new PhaseID(event, ttLocal);
+		stepper = new Stepper(event, phaseID, auxLoc);
+		initialID = new InitialID(event, ttLocal, phaseID, stepper);
 		close = new CloseOut(event);
 		LocUtil.deCorrelate = false;
 		LocUtil.rstt = false;
@@ -76,7 +72,7 @@ public class Locate {
 			
 			// Prepare the event for relocation.
 			initialID.survey();
-			if(LocUtil.deBugLevel > 0) initialID.printInitialID();
+			if(LocUtil.deBugLevel > 3) initialID.printInitialID();
 			
 			/*
 			 * Do the multistage iteration to refine the hypocenter.
