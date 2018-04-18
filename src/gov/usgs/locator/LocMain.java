@@ -16,8 +16,8 @@ public class LocMain {
 		// Set up the earth model.
 		String earthModel = "ak135";
 		// Set up the earthquake file.
-//	String eventID = "1000561584_17";
-		String eventID = "1000010563_23";
+		String eventID = "Baja_1";
+//	String eventID = "1000010563_23";
 		// Objects we'll need.
 		LocInput in = null;
 		LocOutput out = null;

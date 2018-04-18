@@ -1,4 +1,5 @@
 package gov.usgs.locator;
+import gov.usgs.traveltime.CWBProperties;
 import gov.usgs.traveltime.TauUtil;
 import java.util.Calendar;
 import java.util.Date;
@@ -223,6 +224,16 @@ public class LocUtil {
 	// methods below:
 	
 	/**
+	 * Path of the travel time/locator properties file.
+	 */
+	private static String propFile = "Properties"+CWBProperties.FS+"locator.prop";
+	/**
+	 * Paths for model and event files set in getProperties.
+	 */
+	private static String modelPath;
+	private static String eventPath;
+	
+	/**
 	 * Constants needed by covariance.
 	 */
 	private final static double covOffset = 15d;				// Covariance delta offset
@@ -266,6 +277,36 @@ public class LocUtil {
 	 * Variable needed by timer.
 	 */
 	private static long sysTime;
+	
+	/**
+	 * Read the travel time properties file and set up paths to the model 
+	 * and event files.
+	 */
+	public static void getProperties() {		
+		CWBProperties.loadProperties(propFile);
+		modelPath = CWBProperties.getProperty("modelPath");
+		eventPath = CWBProperties.getProperty("eventPath");
+	}
+	
+	/**
+	 * Build a path to a model file.
+	 * 
+	 * @param modelFile Model file name
+	 * @return Model file path
+	 */
+	public static String model(String modelFile) {
+		return modelPath+modelFile;
+	}
+	
+	/**
+	 * Build a path to an event file.
+	 * 
+	 * @param eventID Hydra style event file ID number
+	 * @return Event file path
+	 */
+	public static String event(String eventID) {
+		return eventPath+"RayLocInput"+eventID+".txt";
+	}
 	
 	/**
 	 * Compute the source-receiver distance and the receiver azimuth.  

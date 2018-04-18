@@ -111,10 +111,9 @@ public class PhaseID {
 	          station.elevation, group.delta, group.azimuth);
       }
       // Print them.
-  /*  if(reID && (station.staID.staCode.equals("MOOR") || 
-      		station.staID.staCode.equals("QSPA"))) {
-      	ttList.print();
-      } */
+  //  if(station.staID.staCode.equals("TX11")) {
+  //  	ttList.print();
+  //  }
       // If reID is true, do a full phase re-identification.
       if(reID) {
       	reID();
