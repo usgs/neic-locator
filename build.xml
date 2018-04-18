@@ -1,73 +1,115 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<!-- You may freely edit this file. See commented blocks below for -->
-<!-- some examples of how to customize the build. -->
-<!-- (If you delete it and reopen the project it will be recreated.) -->
-<!-- By default, only the Clean and Build commands use this build script. -->
-<!-- Commands such as Run, Debug, and Test only use this build script if -->
-<!-- the Compile on Save feature is turned off for the project. -->
-<!-- You can turn off the Compile on Save (or Deploy on Save) setting -->
-<!-- in the project's Project Properties dialog box.-->
-<project name="neic-locator" default="default" basedir=".">
-    <description>Builds, tests, and runs the project neic-locator.</description>
-    <import file="nbproject/build-impl.xml"/>
-    <!--
+<project name="neic-locator" default="jar" basedir=".">
 
-    There exist several targets which are by default empty and which can be 
-    used for execution of your tasks. These targets are usually executed 
-    before and after some main targets. They are: 
+    <description>
+      Builds, tests, and runs the project neic-locator.
+    </description>
 
-      -pre-init:                 called before initialization of project properties
-      -post-init:                called after initialization of project properties
-      -pre-compile:              called before javac compilation
-      -post-compile:             called after javac compilation
-      -pre-compile-single:       called before javac compilation of single file
-      -post-compile-single:      called after javac compilation of single file
-      -pre-compile-test:         called before javac compilation of JUnit tests
-      -post-compile-test:        called after javac compilation of JUnit tests
-      -pre-compile-test-single:  called before javac compilation of single JUnit test
-      -post-compile-test-single: called after javac compilation of single JUunit test
-      -pre-jar:                  called before JAR building
-      -post-jar:                 called after JAR building
-      -post-clean:               called after cleaning build products
+    <!-- PROJECT PROPERTIES -->
+		<property name="src" location="src" />
+    <property name="lib" location="lib" />
+		<property name="build" location="build" />
+		<property name="dist" location="dist" />
 
-    (Targets beginning with '-' are not intended to be called on their own.)
+    <!-- CLASSPATH -->
+    <fileset dir="${lib}" id="classpath.fileset">
+      <include name="JAMA.jar" />
+      <include name="neic-traveltime.jar" />
+    </fileset>
 
-    Example of inserting an obfuscator after compilation could look like this:
+    <path id="classpath">
+      <fileset refid="classpath.fileset" />
+          <fileset dir="${lib}">
+      </fileset>
+    </path>
 
-        <target name="-post-compile">
-            <obfuscate>
-                <fileset dir="${build.classes.dir}"/>
-            </obfuscate>
-        </target>
-
-    For list of available properties check the imported 
-    nbproject/build-impl.xml file. 
-
-
-    Another way to customize the build is by overriding existing main targets.
-    The targets of interest are: 
-
-      -init-macrodef-javac:     defines macro for javac compilation
-      -init-macrodef-junit:     defines macro for junit execution
-      -init-macrodef-debug:     defines macro for class debugging
-      -init-macrodef-java:      defines macro for class execution
-      -do-jar:                  JAR building
-      run:                      execution of project 
-      -javadoc-build:           Javadoc generation
-      test-report:              JUnit report generation
-
-    An example of overriding the target for project execution could look like this:
-
-        <target name="run" depends="neic-locator-impl.jar">
-            <exec dir="bin" executable="launcher.exe">
-                <arg file="${dist.jar}"/>
+    <!-- git macros -->
+    <macrodef name = "git">
+        <attribute name = "command" />
+        <attribute name = "dir" default = "" />
+        <element name = "args" optional = "true" />
+        <sequential>
+            <echo message = "git @{command}" />
+            <exec executable = "git" dir = "@{dir}">
+                <arg value = "@{command}" />
+                <args/>
             </exec>
-        </target>
+        </sequential>
+    </macrodef>
 
-    Notice that the overridden target depends on the jar target and not only on 
-    the compile target as the regular run target does. Again, for a list of available 
-    properties which you can use, check the target you are overriding in the
-    nbproject/build-impl.xml file. 
+    <macrodef name = "git-clone-pull">
+        <attribute name = "repository" />
+        <attribute name = "dest" />
+        <sequential>
+            <git command = "clone">
+                <args>
+                    <arg value = "@{repository}" />
+                    <arg value = "@{dest}" />
+                </args>
+            </git>
+            <git command = "pull" dir = "@{dest}" />
+        </sequential>
+    </macrodef>
 
-    -->
+
+    <!-- TARGETS -->
+    <!-- tt-compile -->
+    <target name="tt-compile" description="Download and build ttlib">
+      <git-clone-pull repository="https://github.com/usgs/neic-traveltime.git" dest="${lib}/neic-traveltime" />
+      <ant antfile="build.xml" dir="${lib}/neic-traveltime" target="jar">
+          <property name="src" value="${lib}/neic-traveltime/src"/>
+          <property name="build" value="${lib}/neic-traveltime/build"/>
+          <property name="dist" value="${lib}/neic-traveltime/dist"/>
+      </ant>
+      <copy file="${lib}/neic-traveltime/dist/neic-traveltime/neic-traveltime.jar" todir="${lib}"/>
+    </target>
+
+
+
+
+
+    <!-- compile -->
+    <target name="compile" depends="tt-compile" description="Compile code">
+      <mkdir dir="${build}" />
+      <javac srcdir="${src}" destdir="${build}" source="1.7" target="1.7" includeAntRuntime="no" debug="${compile.debug}">
+        <classpath refid="classpath" />
+      </javac>
+    </target>
+
+    <!-- jar -->
+    <target name="jar" depends="compile" description="Build jar">
+      <mkdir dir="${dist}" />
+
+      <!-- Build the jar file -->
+      <jar jarfile="${dist}/neic-locator/neic-locator.jar" basedir="${build}" excludes="**/*Test*">
+        <manifest>
+          <attribute name="Main-Class" value="gov.usgs.locator.LocMain.main" />
+        </manifest>
+
+        <!-- Include dependencies in jar -->
+  			<zipgroupfileset refid="classpath.fileset" />
+      </jar>
+
+      <!-- Build the zip distribution -->
+      <zip destfile="${dist}/neic-locator.zip" basedir="${dist}">
+        <include name="neic-locator/**"/>
+      </zip>
+    </target>
+
+    <!-- javadoc -->
+    <target name="javadoc" depends="jar" description="Run JavaDoc">
+      <javadoc destdir="${dist}/javadoc" packagenames="gov.usgs.locator.*">
+        <fileset dir="${src}" excludes="**/*Test*" />
+        <classpath refid="classpath" />
+      </javadoc>
+    </target>
+
+    <!-- clean -->
+    <target name="clean" description="Delete build and dist directories">
+      <delete dir="${build}" />
+      <delete dir="${dist}" />
+    </target>
+
+    <!-- all -->
+    <target name="all" depends="clean,jar,javadoc" description="clean, jar, and javadoc" />
+
 </project>

@@ -6,7 +6,7 @@ import gov.usgs.traveltime.*;
 
 /**
  * Test driver for the locator.
- * 
+ *
  * @author Ray Buland
  *
  */
@@ -19,9 +19,11 @@ public class LocMain {
 		String eventID = "Baja_1";
 //	String eventID = "1000010563_23";
 		// Objects we'll need.
+
 		LocInput in = null;
 		LocOutput out = null;
 		AuxLocRef auxLoc = null;
+
 		Event event = null;
 		Locate loc;
 		LocStatus status = null;
@@ -40,10 +42,6 @@ public class LocMain {
 				System.exit(LocStatus.BAD_READ_AUX_DATA.status());
 			}
 		}
-		
-		/**
-		 * Problem: in server mode, I need the properties file to have been read!
-		 */
 		
 		// Read the Locator auxiliary files.
 		try {
@@ -69,6 +67,7 @@ public class LocMain {
 			// In local mode, read a Hydra style event input file.
 			if(event.readHydra(eventID)) {
 				if(LocUtil.deBugLevel > 3) event.printIn();
+
 			} else {
 				System.out.println("Unable to read event.");
 				System.exit(LocStatus.BAD_EVENT_INPUT.status());
@@ -91,5 +90,6 @@ public class LocMain {
 		
 		// Exit.
 		System.exit(event.exitCode);
+
 	}
 }
