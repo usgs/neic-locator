@@ -13,65 +13,83 @@ import gov.usgs.traveltime.*;
 public class LocMain {
 
 	public static void main(String[] args) {
+		// Set up the earth model.
+		String earthModel = "ak135";
 		// Set up the earthquake file.
-		String inFile = "../../../Documents/Work/Events/RayLocInput1000010563_23.txt";
+		String eventID = "Baja_1";
+//	String eventID = "1000010563_23";
 		// Objects we'll need.
-		AuxTtRef auxtt = null;
-		ReadTau readTau;
-		AllBrnRef allRef;
-		AllBrnVol allBrn;
-		AuxLocRef auxLoc;
+
+		LocInput in = null;
+		LocOutput out = null;
+		AuxLocRef auxLoc = null;
+
 		Event event = null;
 		Locate loc;
-
-		// Read in data common to all models.
-		try {
-			auxtt = new AuxTtRef(false, false, false, false);
-		} catch (IOException e1) {
-			System.out.println("Unable to read auxiliary data.");
-			e1.printStackTrace();
-			System.exit(1);
+		LocStatus status = null;
+		TTSessionLocal ttLocal = null;
+		
+		// Set the debug level.
+		LocUtil.deBugLevel = 1;
+		
+		// If travel times are local, set up the manager.
+		if(!LocUtil.server) {
+			try {
+				ttLocal = new TTSessionLocal(true, true, true);
+			} catch (IOException e) {
+				System.out.println("Unable to read travel-time auxiliary data.");
+				e.printStackTrace();
+				System.exit(LocStatus.BAD_READ_AUX_DATA.status());
+			}
 		}
-
+		
+		// Read the Locator auxiliary files.
 		try {
-			// Read in ak135.
-			readTau = new ReadTau("ak135");
-			readTau.readHeader();
-			readTau.readTable();
-			// Reorganize the reference data.
-			allRef = new AllBrnRef(readTau, auxtt);
-//		allRef.dumpBrn(false);
-			// Set up the (depth dependent) volatile part.
-			allBrn = new AllBrnVol(allRef);
-//		allBrn.dumpTable(true);
-			// Set up aux loc
 			auxLoc = new AuxLocRef();
+		} catch (IOException e) {
+			System.out.println("Unable to read Locator auxiliary data.");
+			e.printStackTrace();
+			System.exit(LocStatus.BAD_READ_AUX_DATA.status());
+		}
+		
+		// If server, get external event input here.
+		if(LocUtil.server) {
+			in = new LocInput();
+			earthModel = in.getModel();
+		}
+		
+		// Set up the event.
+		event = new Event(earthModel);
+		if(LocUtil.server) {
+			// In server mode, use what we've already read in.
+			event.serverIn(in);
+		} else {
+			// In local mode, read a Hydra style event input file.
+			if(event.readHydra(eventID)) {
+				if(LocUtil.deBugLevel > 3) event.printIn();
 
-			// Set the debug level.
-			LocUtil.deBugLevel = 2;
-			// Set up the event.
-			event = new Event("ak135");
-			if(event.readHydra(inFile)) {
-				event.printIn();
 			} else {
 				System.out.println("Unable to read event.");
-				System.exit(3);;
+				System.exit(LocStatus.BAD_EVENT_INPUT.status());
 			}
-
-			loc = new Locate(event, allBrn, auxLoc, auxtt);
-			loc.doLoc();
-
-		} catch(IOException e) {
-			System.out.println("Unable to read Earth model ak135.");
-			System.exit(2);
 		}
+		
+		// Do the location.
+		loc = new Locate(event, ttLocal, auxLoc);
+		status = loc.doLoc();
+		event.setExitCode(status);
+		
+		// Wrap up.
+		if(LocUtil.server) {
+			out = event.serverOut();		// JSON output
+			out.printNEIC();
+		} else {
+			event.printHydra();
+//		event.printNEIC();
+		}
+		
+		// Exit.
+		System.exit(event.exitCode);
 
-		// Print the event.
-		event.staStats();
-//	event.printHydra();
-		event.printNEIC();
-
-		// Print a station list
-//	event.stationList();
 	}
 }

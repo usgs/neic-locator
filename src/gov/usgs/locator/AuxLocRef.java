@@ -27,7 +27,7 @@ public class AuxLocRef {
 	
 	/**
 	 * Read the cratons and zone statistics files and make the data available 
-	 * to the Loctor.
+	 * to the Locator.
 	 * 
 	 * @throws IOException On any read error
 	 */
@@ -37,8 +37,12 @@ public class AuxLocRef {
 		BufferedInputStream inCratons;
 		RandomAccessFile inZones;
 		
+		// Set up the properties.
+		LocUtil.getProperties();
+		
 		// Open and read the cratons file.
-		inCratons = new BufferedInputStream(new FileInputStream(TauUtil.model("cratons.txt")));
+		inCratons = new BufferedInputStream(new FileInputStream(
+				LocUtil.model("cratons.txt")));
 		scan = new Scanner(inCratons);
 		cratons = new Cratons();
 		while(scan.hasNext()) {
@@ -49,13 +53,13 @@ public class AuxLocRef {
 //	cratons.printCratons();
 		
 		// Open and read the zone key file.
-		inZones = new RandomAccessFile(TauUtil.model("zonekey.dat"), "r");
+		inZones = new RandomAccessFile(LocUtil.model("zonekey.dat"), "r");
 		zoneKeys = readZoneKeys(inZones);
 		zoneStats = new ZoneStats(zoneKeys);
 		inZones.close();
 		
 		// Open and read the zone statistics file.
-		inZones = new RandomAccessFile(TauUtil.model("zonestat.dat"), "r");
+		inZones = new RandomAccessFile(LocUtil.model("zonestat.dat"), "r");
 		stats = readZoneStats(inZones);
 		zoneStats.addStats(noYears, stats);
 		inZones.close();

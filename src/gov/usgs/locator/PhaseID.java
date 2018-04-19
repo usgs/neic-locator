@@ -1,13 +1,15 @@
 package gov.usgs.locator;
 
 import gov.usgs.traveltime.TauUtil;
+import gov.usgs.traveltime.TTSessionLocal;
 import gov.usgs.traveltime.AuxTtRef;
 import gov.usgs.traveltime.TTime;
 
 import java.util.ArrayList;
 
-import gov.usgs.traveltime.AllBrnVol;
 import gov.usgs.traveltime.TTimeData;
+import gov.usgs.traveltime.session.TTSession;
+import gov.usgs.traveltime.session.TTSessionPool;
 
 /**
  * Associate theoretical seismic phases with observed seismic picks.
@@ -19,13 +21,13 @@ public class PhaseID {
 	double lastDepth = Double.NaN;
   Event event;
   Hypocenter hypo;
-  AllBrnVol allBrn;
- //TravelTimeSession session;
-  AuxTtRef auxTT;
+  TTSessionLocal ttLocal;
+   AuxTtRef auxTT;
   ArrayList<Wresidual> wResiduals;
   PickGroup group;
   Pick lastPick = null;
   TTime ttList = null;
+  TTSession session;
   double otherWeight;				// Weight for phases that don't match
   double stickyWeight;			// Weight to resist changing identification
   boolean generic = false, primary = false;
@@ -35,14 +37,17 @@ public class PhaseID {
    * Remember the event and travel-time machinery.
    *
    * @param event Event object
-   * @param allBrn All branches travel-time object
-   * @param auxTT Auxiliary travel-time information
+   * @param ttLocal Travel time information for a local implementation
    */
-  public PhaseID(Event event, AllBrnVol allBrn, AuxTtRef auxTT) {
+  public PhaseID(Event event, TTSessionLocal ttLocal) {
     this.event = event;
     hypo = event.hypo;
-    this.allBrn = allBrn;
-    this.auxTT = auxTT;
+    this.ttLocal = ttLocal;
+    if(ttLocal != null) {
+    	this.auxTT = ttLocal.getAuxTT();
+    } else {
+    	this.auxTT = null;
+    }
     wResiduals = event.wResRaw;
   }
 
@@ -80,13 +85,14 @@ public class PhaseID {
 
 		// Set up a new travel-time session.
 		if(LocUtil.server) {
-//		session = TravelTimePool.getTravelTimeSession(event.earthModel, hypo.depth, 
-//				LocUtil.PHLIST, hypo.latitude, hypo.longitude, !LocUtil.USEFUL,
-//       	!LocUtil.NOBACKBRN, LocUtil.tectonic, LocUtil.rstt, false, getLogger());
+			session = TTSessionPool.getTravelTimeSession(event.earthModel, hypo.depth, 
+					LocUtil.PHLIST, hypo.latitude, hypo.longitude, !LocUtil.USEFUL,
+					!LocUtil.NOBACKBRN, LocUtil.tectonic, LocUtil.rstt, false);
+			if(auxTT == null) auxTT = session.getAuxTT();
 		} else {
-			allBrn.newSession(hypo.latitude, hypo.longitude, hypo.depth, 
-					LocUtil.PHLIST, LocUtil.USEFUL, LocUtil.NOBACKBRN, LocUtil.tectonic, 
-					LocUtil.rstt, false);
+			ttLocal.newSession(event.earthModel, hypo.depth, LocUtil.PHLIST, 
+					hypo.latitude, hypo.longitude, !LocUtil.USEFUL, !LocUtil.NOBACKBRN, 
+					LocUtil.tectonic, LocUtil.rstt);
 		}
 		
     // Do the travel-time calculation.
@@ -98,17 +104,16 @@ public class PhaseID {
       		"%6.2f %6.2f\n", station.staID.staCode, group.picks.get(0).tt, 
       		group.delta, group.azimuth);
       if(LocUtil.server) {
-//    	ttList = session.getTT(station.latitude, station.longitude,
-//          station.elevation, group.delta, group.azimuth);
+      	ttList = session.getTT(station.latitude, station.longitude,
+      			station.elevation, group.delta, group.azimuth);
       } else {
-	      ttList = allBrn.getTT(station.latitude, station.longitude,
+	      ttList = ttLocal.getTT(station.latitude, station.longitude,
 	          station.elevation, group.delta, group.azimuth);
       }
       // Print them.
-  /*  if(reID && (station.staID.staCode.equals("MOOR") || 
-      		station.staID.staCode.equals("QSPA"))) {
-      	ttList.print();
-      } */
+  //  if(station.staID.staCode.equals("TX11")) {
+  //  	ttList.print();
+  //  }
       // If reID is true, do a full phase re-identification.
       if(reID) {
       	reID();

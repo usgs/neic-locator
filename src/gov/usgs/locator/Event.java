@@ -79,6 +79,8 @@ public class Event {
 	
 	/**
 	 * Allocate some storage.
+	 * 
+	 * @param earthModel Name of earth model to be used
 	 */
 	public Event(String earthModel) {
 		this.earthModel = earthModel;
@@ -139,7 +141,7 @@ public class Event {
 	 * Read a Bulletin Hydra style event input file.  File open and 
 	 * read exceptions are trapped.
 	 * 
-	 * @param inFile File path
+	 * @param eventID Hydra style event ID number
 	 * @return True if the read was successful
 	 */
 	public boolean readHydra(String eventID) {
@@ -157,7 +159,8 @@ public class Event {
 		
 		// Set up the IO.
 		try {
-			in = new BufferedInputStream(new FileInputStream(TauUtil.event(eventID)));
+			in = new BufferedInputStream(new FileInputStream(
+					LocUtil.event(eventID)));
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
 			return false;
