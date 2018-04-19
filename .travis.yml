@@ -7,3 +7,16 @@ jdk:
 script:
   # Java build
   - ant all
+  - mkdir ${TRAVIS_BUILD_DIR}/doc/javadoc
+  - cp -r ${TRAVIS_BUILD_DIR}/dist/javadoc/* ${TRAVIS_BUILD_DIR}/doc/javadoc
+
+deploy:
+  # Deploying documentation to github pages
+  provider: pages
+  skip_cleanup: true
+  github_token: $GITHUB_TOKEN # Set in travis-ci.org dashboard
+  target_branch: gh-pages
+  keep-history: true
+  local_dir: /doc
+  on:
+    branch: master
