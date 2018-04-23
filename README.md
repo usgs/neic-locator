@@ -29,3 +29,9 @@ Using
 -----
 Once you are able to build the neic-locator jar, simply include the jar
 file in your application, or call using the LocMain class.
+
+Further Information and Documentation
+------
+For further information and documentation please check out the [neic-locator Documentation Site](https://usgs.github.io/neic-locator/).
+
+File bug reports, feature requests and questions using [GitHub Issues](https://github.com/usgs/neic-locator/issues)
