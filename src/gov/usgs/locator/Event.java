@@ -70,11 +70,40 @@ public class Event {
 	Restimator rEstProj;
 	DeCorr deCorr;
 	StationID maxID = new StationID("~", "", "");
-	// Getters:
+	
+	/**
+	 * Getter for the hypocenter object.
+	 * 
+	 * @return Hypocenter information
+	 */
 	public Hypocenter getHypo() {return hypo;}
+	
+	/**
+	 * Getter for the origin time.
+	 * 
+	 * @return Origin time in double precision seconds since the epoch
+	 */
 	public double getOriginTime() {return hypo.originTime;}
+	
+	/**
+	 * Getter for the latitude.
+	 * 
+	 * @return The epicenter geographic latitude in degrees
+	 */
 	public double getLatitude() {return hypo.latitude;}
+	
+	/**
+	 * Getter for the longitude.
+	 * 
+	 * @return The epicenter geographic longitude in degrees
+	 */
 	public double getLongitude() {return hypo.longitude;}
+	
+	/**
+	 * Getter for depth.
+	 * 
+	 * @return The hypocenter depth in kilometers
+	 */
 	public double getDepth() {return hypo.depth;}
 	
 	/**

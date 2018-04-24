@@ -34,10 +34,33 @@ public class Hypocenter {
 	double delH;					// Horizontal (tangential) step length in kilometers
 	double delZ;					// Vertical (depth) step length in kilometers
 	double[] stepDir;			// Spatial local Cartesian step direction unit vector
-	// Getters:
+	
+	/**
+	 * Getter for origin time.
+	 * 
+	 * @return Event origin time as double precision seconds since the epoch
+	 */
 	public double getOrigin() { return originTime;}
+	
+	/**
+	 * Getter for latitude.
+	 * 
+	 * @return The epicenter geographic latitude in degrees
+	 */
 	public double getLatitude() {return latitude;}
+	
+	/**
+	 * Getter for longitude.
+	 * 
+	 * @return The epicenter geographic longitude in degrees
+	 */
   public double getLongitude() {return longitude;}
+  
+  /**
+   * Getter for depth.
+   * 
+   * @return The hypocenter depth in kilometers
+   */
   public double getDepth() {return depth;}
   
 	/**

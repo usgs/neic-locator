@@ -9,10 +9,26 @@ package gov.usgs.locator;
  *
  */
 public enum AuthorType {
+	/**
+	 * All picks should fall into one of the four categories below.  
+	 * Unknown handles bad input.
+	 */
 	UNKNOWN (0.0d),				// Just in case
+	/**
+	 * An automatic pick from outside the NEIC.
+	 */
 	CONTRIB_AUTO (1.0d),	// An automatic pick from outside the NEIC
+	/**
+	 * An automatic pick from the NEIC.
+	 */
 	LOCAL_AUTO (1.0d),		// An automatic pick from the NEIC
+	/**
+	 * An analyst pick from outside the NEIC.
+	 */
 	CONTRIB_HUMAN (1.5d),	// An analyst pick from outside the NEIC
+	/**
+	 * An analyst pick from the NEIC.
+	 */
 	LOCAL_HUMAN (3.0d);		// An analyst pick from the NEIC
 	
 	private final double defAffinity;	// Default affinity based on type

@@ -33,7 +33,7 @@ public class InitialID {
 	 * Remember the event and travel times.
 	 * 
 	 * @param event Event information
-	 * @param allBrn Travel-time information
+	 * @param ttLocal Local travel-time manager
 	 * @param phaseID Phase identification logic
 	 * @param stepper R-estimator driver logic
 	 */
