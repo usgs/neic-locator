@@ -9,8 +9,6 @@ import java.nio.ByteOrder;
 import java.nio.IntBuffer;
 import java.util.Scanner;
 
-import gov.usgs.traveltime.TauUtil;
-
 /**
  * Read in auxiliary data to support the Locator.  Note that this 
  * data can never change and will be common to all events subsequently 

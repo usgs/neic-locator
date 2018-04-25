@@ -24,12 +24,10 @@ public class Stepper {
 	 * Keep track of data needed.
 	 * 
 	 * @param event Event information
-	 * @param allBrn Travel-time information
 	 * @param phaseID Phase identification logic
 	 * @param auxLoc Auxiliary locator information
 	 */
-	public Stepper(Event event, PhaseID phaseID, 
-			AuxLocRef auxLoc) {
+	public Stepper(Event event, PhaseID phaseID, AuxLocRef auxLoc) {
 		this.event = event;
 		hypo = event.hypo;
 		this.auxLoc = auxLoc;

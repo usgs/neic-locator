@@ -12,6 +12,11 @@ import gov.usgs.traveltime.*;
  */
 public class LocMain {
 
+	/**
+	 * Main program for testing the locator.
+	 * 
+	 * @param args Command line arguments (not used)
+	 */
 	public static void main(String[] args) {
 		// Set up the earth model.
 		String earthModel = "ak135";
