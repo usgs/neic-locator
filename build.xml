@@ -50,7 +50,6 @@
         </sequential>
     </macrodef>
 
-
     <!-- TARGETS -->
     <!-- tt-compile -->
     <target name="tt-compile" description="Download and build ttlib">
@@ -60,12 +59,8 @@
           <property name="build" value="${lib}/neic-traveltime/build"/>
           <property name="dist" value="${lib}/neic-traveltime/dist"/>
       </ant>
-      <copy file="${lib}/neic-traveltime/dist/neic-traveltime/neic-traveltime.jar" todir="${lib}"/>
+      <copy file="${lib}/neic-traveltime/dist/neic-traveltime.jar" todir="${lib}"/>
     </target>
-
-
-
-
 
     <!-- compile -->
     <target name="compile" depends="tt-compile" description="Compile code">
@@ -80,7 +75,7 @@
       <mkdir dir="${dist}" />
 
       <!-- Build the jar file -->
-      <jar jarfile="${dist}/neic-locator/neic-locator.jar" basedir="${build}" excludes="**/*Test*">
+      <jar jarfile="${dist}/neic-locator.jar" basedir="${build}" excludes="**/*Test*">
         <manifest>
           <attribute name="Main-Class" value="gov.usgs.locator.LocMain.main" />
         </manifest>
@@ -88,6 +83,20 @@
         <!-- Include dependencies in jar -->
   			<zipgroupfileset refid="classpath.fileset" />
       </jar>
+
+      <!-- Copy the model files to dist -->
+      <!-- Locator -->
+      <copy todir="${dist}/models">
+        <fileset dir="models">
+          <include name="**/*.*"/>
+        </fileset>
+      </copy>
+      <!-- TT -->
+      <copy todir="${dist}/models">
+        <fileset dir="${lib}/neic-traveltime/dist/models">
+          <include name="**/*.*"/>
+        </fileset>
+      </copy>
 
       <!-- Build the zip distribution -->
       <zip destfile="${dist}/neic-locator.zip" basedir="${dist}">
