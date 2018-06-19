@@ -3,17 +3,17 @@
 [![Documentation](https://usgs.github.io/neic-locator/codedocumented.svg)](https://usgs.github.io/neic-locator/)
 
 # neic-locator
-Port of the NEIC locator from FORTRAN77 to Java
+The neic-locator project is a direct port of the [United States Geolgical Survey National Earthquake Information Center](https://earthquake.usgs.gov/contactus/golden/neic.php) production earthquake location software from FORTRAN to Java. 
+
+The neic-locator project depends on the [neic-traveltime](https://github.com/usgs/neic-traveltime) package to produce seismic travel times and some additional metadata. In its current incarnation, the neic-locator package represents 55 years of evolution from roots in the early 1960s, Engahl, E. R., and R. H. Gunst, “Use of a High Speed Computer for the Preliminary Determination of Earthquake Hypocenters”, [BSSA, 1962, vol. 56, pp. 325-336](https://pubs.geoscienceworld.org/ssa/bssa/article/56/2/325/116393/use-of-a-high-speed-computer-for-the-preliminary). Evolutions include using a much wider selection of seismic phases and eliminating the use of pP-P times to fix depth in the 1980s. In the 1990s, travel-time statistics and Bayesian depth statistics were added to the algorithm. In the early 2000s, the Jeffreys reweighting scheme was replaced by a rank-sum regression to improve statistical properties and decorrelation was added to deal with significant inhomogeneity in the network of available stations.
+
+In its current form, the neic-locator is a small piece of the much larger NEIC seismic processing system. This is significant because, the neic-locator is not responsible for event nucleation, phase association, or magnitudes. It is responsible for phase re-identification and does have some responsibility for handling analysis commands (e.g., phase use, phase identification, modifying the Bayesian depth parameters, fixing a hypocenter or depth, etc.). In the absence of other input, the Bayesian depth is guided by 40 years of earthquake statistics. The Locator is also aware of gross global crustal geology, which is used to modify Pg and Sg in tectonic areas where Pb and Sb are not observed.
 
 Dependencies
 ------
 * neic-locator was written in Oracle Java 1.8
-* neic-locator was depends on the [neic-traveltime](https://github.com/usgs/neic-traveltime)
-package. A copy of this package is automatically downloaded and built as part of
-the neic-locator build.
-* neic-locator is built with [Apache Ant](http://ant.apache.org/), and was
-written using Eclipse and netbeans.  Netbeans project files, source files,
-and an ant build.xml are included in this project
+* neic-locator is built with [Apache Ant](http://ant.apache.org/), and was written using Eclipse and netbeans.  Netbeans project files, source files, and an ant build.xml are included in this project
+* neic-locator depends on the [neic-traveltime](https://github.com/usgs/neic-traveltime) package. A copy of this package is automatically downloaded and built as part of the neic-locator ant build.
 
 Building
 ------
