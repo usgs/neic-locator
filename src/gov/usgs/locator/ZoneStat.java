@@ -1,12 +1,15 @@
 package gov.usgs.locator;
 
+import java.io.Serializable;
+
 /**
  * Keep depth statistics for one Marsden square.
  * 
  * @author Ray Buland
  *
  */
-public class ZoneStat {
+public class ZoneStat implements Serializable {
+	private static final long serialVersionUID = 1L;
 	double meanDepth;	// Average historical free depth in kilometers
 	double minDepth;	// Shallowest historical free depth in kilometers
 	double maxDepth;	// Deepest historical free depth in kilometers

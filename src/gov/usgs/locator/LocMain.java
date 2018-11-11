@@ -21,8 +21,8 @@ public class LocMain {
 		// Set up the earth model.
 		String earthModel = "ak135";
 		// Set up the earthquake file.
-		String eventID = "Baja_1";
-//	String eventID = "1000010563_23";
+//	String eventID = "Baja_1";
+		String eventID = "1000010563_23";
 		// Objects we'll need.
 
 		LocInput in = null;
@@ -51,7 +51,7 @@ public class LocMain {
 		// Read the Locator auxiliary files.
 		try {
 			auxLoc = new AuxLocRef();
-		} catch (IOException e) {
+		} catch (IOException | ClassNotFoundException e) {
 			System.out.println("Unable to read Locator auxiliary data.");
 			e.printStackTrace();
 			System.exit(LocStatus.BAD_READ_AUX_DATA.status());

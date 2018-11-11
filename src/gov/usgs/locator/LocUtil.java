@@ -228,10 +228,13 @@ public class LocUtil {
 	 */
 	private static String propFile = "Properties"+CWBProperties.FS+"locator.prop";
 	/**
-	 * Paths for model and event files set in getProperties.
+	 * Path for model files set in getProperties.
 	 */
-	private static String modelPath;
-	private static String eventPath;
+	public static String modelPath;
+	/**
+	 * Path for Hydra style event files set in getProperties.
+	 */
+	public static String eventPath;
 	
 	/**
 	 * Constants needed by covariance.
@@ -816,6 +819,7 @@ public class LocUtil {
 			System.out.println();
 		}
 	}
+	
 	/**
 	 * Set a system timer in milliseconds.
 	 */

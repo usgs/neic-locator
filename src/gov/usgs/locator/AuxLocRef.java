@@ -2,12 +2,17 @@ package gov.usgs.locator;
 
 import java.io.BufferedInputStream;
 import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.IntBuffer;
 import java.util.Scanner;
+
+import gov.usgs.traveltime.FileChanged;
 
 /**
  * Read in auxiliary data to support the Locator.  Note that this 
@@ -22,45 +27,85 @@ public class AuxLocRef {
 	final ZoneStats zoneStats;	// Earthquake statistics by geographic location
 	int noYears = -1;
 	Scanner scan;
+	// Set up serialization.
+	String serName = "locaux.ser";					// Serialized file name
+	String[] fileNames = {"cratons.txt", "zonekey.dat", 
+			"zonestat.dat"};										// Raw input file names
 	
 	/**
 	 * Read the cratons and zone statistics files and make the data available 
 	 * to the Locator.
 	 * 
 	 * @throws IOException On any read error
+	 * @throws ClassNotFoundException In input serialization is hosed
 	 */
-	public AuxLocRef() throws IOException {
+	public AuxLocRef() throws IOException, ClassNotFoundException {
+		long time;
 		int[][] zoneKeys;
+		String[] absNames;
 		ZoneStat[] stats;
 		BufferedInputStream inCratons;
 		RandomAccessFile inZones;
+		FileInputStream serIn;
+		FileOutputStream serOut;
+		ObjectInputStream objIn;
+		ObjectOutputStream objOut;
 		
 		// Set up the properties.
-		LocUtil.getProperties();
-		
-		// Open and read the cratons file.
-		inCratons = new BufferedInputStream(new FileInputStream(
-				LocUtil.model("cratons.txt")));
-		scan = new Scanner(inCratons);
-		cratons = new Cratons();
-		while(scan.hasNext()) {
-			readCraton();
+		if(LocUtil.modelPath == null) {
+			LocUtil.getProperties();
 		}
-		scan.close();
-		inCratons.close();
-//	cratons.printCratons();
+		// Create absolute path names.
+		absNames = new String[fileNames.length];
+		for(int j=0; j<fileNames.length; j++) {
+			absNames[j] = LocUtil.model(fileNames[j]);
+		}
 		
-		// Open and read the zone key file.
-		inZones = new RandomAccessFile(LocUtil.model("zonekey.dat"), "r");
-		zoneKeys = readZoneKeys(inZones);
-		zoneStats = new ZoneStats(zoneKeys);
-		inZones.close();
-		
-		// Open and read the zone statistics file.
-		inZones = new RandomAccessFile(LocUtil.model("zonestat.dat"), "r");
-		stats = readZoneStats(inZones);
-		zoneStats.addStats(noYears, stats);
-		inZones.close();
+		// If any of the raw input files have changed, regenerate the 
+		// serialized file.
+		if(FileChanged.isChanged(LocUtil.model(serName), absNames)) {
+			time = System.currentTimeMillis();
+			// Open and read the cratons file.
+			inCratons = new BufferedInputStream(new FileInputStream(absNames[0]));
+			scan = new Scanner(inCratons);
+			cratons = new Cratons();
+			while(scan.hasNext()) {
+				readCraton();
+			}
+			scan.close();
+			inCratons.close();
+			
+			// Open and read the zone key file.
+			inZones = new RandomAccessFile(absNames[1], "r");
+			zoneKeys = readZoneKeys(inZones);
+			zoneStats = new ZoneStats(zoneKeys);
+			inZones.close();
+			
+			// Open and read the zone statistics file.
+			inZones = new RandomAccessFile(absNames[2], "r");
+			stats = readZoneStats(inZones);
+			zoneStats.addStats(noYears, stats);
+			inZones.close();
+			
+			// Write out the serialized file.
+			serOut = new FileOutputStream(LocUtil.model(serName));
+			objOut = new ObjectOutputStream(serOut);
+			objOut.writeObject(cratons);
+			objOut.writeObject(zoneStats);
+			objOut.close();
+			serOut.close();
+			System.out.format("Serialize loc aux out: %5.3f\n", 0.001*(System.currentTimeMillis()-time));
+		} else {
+			// Read in the serialized file.
+			time = System.currentTimeMillis();
+			serIn = new FileInputStream(LocUtil.model(serName));
+			objIn = new ObjectInputStream(serIn);
+			cratons = (Cratons)objIn.readObject();
+			zoneStats = (ZoneStats)objIn.readObject();
+			objIn.close();
+			serIn.close();
+			System.out.format("Serialize loc aux in: %5.3f\n", 0.001*(System.currentTimeMillis()-time));
+		}
 	}
 	
 	/**

@@ -1,5 +1,7 @@
 package gov.usgs.locator;
 
+import java.io.Serializable;
+
 import gov.usgs.traveltime.TauUtil;
 
 /**
@@ -8,7 +10,8 @@ import gov.usgs.traveltime.TauUtil;
  * @author Ray Buland
  *
  */
-public class Craton {
+public class Craton implements Serializable {
+	private static final long serialVersionUID = 1L;
 	String region;	// Region name
 	double[] lats;	// Geographic latitude points of boundary in degrees
 	double[] lons;	// Geographic longitude points of boundary in degrees
