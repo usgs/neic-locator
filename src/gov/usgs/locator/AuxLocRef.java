@@ -10,6 +10,7 @@ import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.IntBuffer;
+import java.nio.channels.FileLock;
 import java.util.Scanner;
 
 import gov.usgs.traveltime.FileChanged;
@@ -40,7 +41,7 @@ public class AuxLocRef {
 	 * @throws ClassNotFoundException In input serialization is hosed
 	 */
 	public AuxLocRef() throws IOException, ClassNotFoundException {
-		long time;
+//	long time;
 		int[][] zoneKeys;
 		String[] absNames;
 		ZoneStat[] stats;
@@ -50,6 +51,7 @@ public class AuxLocRef {
 		FileOutputStream serOut;
 		ObjectInputStream objIn;
 		ObjectOutputStream objOut;
+		FileLock lock;
 		
 		// Set up the properties.
 		if(LocUtil.modelPath == null) {
@@ -64,7 +66,7 @@ public class AuxLocRef {
 		// If any of the raw input files have changed, regenerate the 
 		// serialized file.
 		if(FileChanged.isChanged(LocUtil.model(serName), absNames)) {
-			time = System.currentTimeMillis();
+//		time = System.currentTimeMillis();
 			// Open and read the cratons file.
 			inCratons = new BufferedInputStream(new FileInputStream(absNames[0]));
 			scan = new Scanner(inCratons);
@@ -90,21 +92,44 @@ public class AuxLocRef {
 			// Write out the serialized file.
 			serOut = new FileOutputStream(LocUtil.model(serName));
 			objOut = new ObjectOutputStream(serOut);
+			// Wait for an exclusive lock for writing.
+			lock = serOut.getChannel().lock();
+			if(LocUtil.deBugLevel > 0) {
+				System.out.println("AuxLocRef write lock: valid = "+lock.isValid()+
+						" shared = "+lock.isShared());
+			}
+			/*
+			 * The auxiliary data can be read and written very quickly, so for persistent 
+			 * applications such as the travel time or location server, serialization is 
+			 * not necessary.  However, if the travel times are needed for applications 
+			 * that start and stop frequently, the serialization should save some set up 
+			 * time.
+			 */
 			objOut.writeObject(cratons);
 			objOut.writeObject(zoneStats);
+			if(lock.isValid()) lock.release();
 			objOut.close();
 			serOut.close();
-			System.out.format("Serialize loc aux out: %5.3f\n", 0.001*(System.currentTimeMillis()-time));
+//		System.out.format("Serialize loc aux out: %5.3f\n", 
+//			0.001*(System.currentTimeMillis()-time));
 		} else {
 			// Read in the serialized file.
-			time = System.currentTimeMillis();
+//		time = System.currentTimeMillis();
 			serIn = new FileInputStream(LocUtil.model(serName));
 			objIn = new ObjectInputStream(serIn);
+			// Wait for a shared lock for reading.
+			lock = serIn.getChannel().lock(0, Long.MAX_VALUE, true);
+			if(LocUtil.deBugLevel > 0) {
+				System.out.println("AuxLocRef read lock: valid = "+lock.isValid()+
+						" shared = "+lock.isShared());
+			}
 			cratons = (Cratons)objIn.readObject();
 			zoneStats = (ZoneStats)objIn.readObject();
+			if(lock.isValid()) lock.release();
 			objIn.close();
 			serIn.close();
-			System.out.format("Serialize loc aux in: %5.3f\n", 0.001*(System.currentTimeMillis()-time));
+//		System.out.format("Serialize loc aux in: %5.3f\n", 
+//			0.001*(System.currentTimeMillis()-time));
 		}
 	}
 	
