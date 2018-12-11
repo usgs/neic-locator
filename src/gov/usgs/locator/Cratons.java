@@ -1,5 +1,6 @@
 package gov.usgs.locator;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 
 /**
@@ -13,7 +14,8 @@ import java.util.ArrayList;
  * @author Ray Buland
  *
  */
-public class Cratons {
+public class Cratons implements Serializable {
+	private static final long serialVersionUID = 1L;
 	ArrayList<Craton> cratons;
 	
 	/**

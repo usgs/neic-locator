@@ -1,5 +1,7 @@
 package gov.usgs.locator;
 
+import java.io.Serializable;
+
 /**
  * Implements the historical free depth statistics portion of the 
  * SEDAS zone statistics subsystem.  Note that the zone keys was a 
@@ -13,7 +15,8 @@ package gov.usgs.locator;
  * @author Ray Buland
  *
  */
-public class ZoneStats {
+public class ZoneStats implements Serializable {
+	private static final long serialVersionUID = 1L;
 	int size = 0, index = 0;
 	int noYears;			// Number of years used to compute the statistics
 	int[][] zoneKey;	// Index into the statistics based on Marsden squares
