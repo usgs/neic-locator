@@ -177,11 +177,11 @@ public class LocUtil {
 	/**
 	 * If true suppress phases that are unlikely to be observed.
 	 */
-	public static final boolean USEFUL = true;
+	public static final boolean ALLPHASES = false;
 	/**
 	 * If true, suppress back branches.
 	 */
-	public static final boolean NOBACKBRN = true;
+	public static final boolean BACKBRN = false;
 	
 	// The following public variables may be set by the caller:
 	
