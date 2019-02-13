@@ -70,11 +70,11 @@ public class InitialID {
 		// Set up a new travel-time session if the depth has changed.
 		if(LocUtil.server) {
 			session = TTSessionPool.getTravelTimeSession(event.earthModel, hypo.depth, 
-					LocUtil.PHLIST, hypo.latitude, hypo.longitude, !LocUtil.USEFUL,
-					!LocUtil.NOBACKBRN, LocUtil.tectonic, LocUtil.rstt, false);
+					LocUtil.PHLIST, hypo.latitude, hypo.longitude, LocUtil.ALLPHASES,
+					LocUtil.BACKBRN, LocUtil.tectonic, LocUtil.rstt, false);
 		} else {
 			ttLocal.newSession(event.earthModel, hypo.depth, LocUtil.PHLIST, hypo.latitude, 
-					hypo.longitude, !LocUtil.USEFUL, !LocUtil.NOBACKBRN, LocUtil.tectonic, 
+					hypo.longitude, LocUtil.ALLPHASES, LocUtil.BACKBRN, LocUtil.tectonic, 
 					LocUtil.rstt);
 		}
 		
