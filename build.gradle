@@ -17,16 +17,6 @@ sourceCompatibility = '1.8'
 targetCompatibility = '1.8'
 version = '0.1.0'
 
-// neic-traveltime
-def travelTimeLocation = "$projectDir/lib/neic-traveltime"
-File travelTimeDir = new File("$travelTimeLocation")
-def travelTimeUri = "https://github.com/usgs/neic-traveltime.git"
-
-// earthquake-processing-formats
-def processingFormatsLocation = "$projectDir/lib/earthquake-processing-formats"
-File processingFormatsDir = new File("$processingFormatsLocation")
-def processingFormatsUri = "https://github.com/usgs/earthquake-processing-formats.git"
-
 repositories {
     mavenCentral()
 }
@@ -42,28 +32,38 @@ dependencies {
     compile "gov.nist.math:jama:1.0.2"
 }
 
-defaultTasks 'cloneExternalProjects'
-compileJava.dependsOn 'cloneExternalProjects'
+// clone/update external libs from github, at least until they're available in
+// maven
+// neic-traveltime
+def travelTimeLocation = "$projectDir/lib/neic-traveltime"
+File travelTimeDir = new File("$travelTimeLocation")
+def travelTimeUri = "https://github.com/usgs/neic-traveltime.git"
 
-// clone/update external libs from github
+// earthquake-processing-formats
+def processingFormatsLocation = "$projectDir/lib/earthquake-processing-formats"
+File processingFormatsDir = new File("$processingFormatsLocation")
+def processingFormatsUri = "https://github.com/usgs/earthquake-processing-formats.git"
+
 task cloneExternalProjects {
   description 'Clones/Updates external project(s).'
   
   doFirst {
-    // neic-traveltime
+    // clone if it doesn't exist
     if(!travelTimeDir.exists()) {
       grgit.clone(dir: travelTimeDir, uri: travelTimeUri)
     }
+    // pull if it does
     else {
       grgit.open(dir: travelTimeDir)
       grgit.pull()
       grgit.close()
     }
 
-    // earthquake-processing-formats
+    // clone if it doesn't exist
     if(!processingFormatsDir.exists()) {
       grgit.clone(dir: processingFormatsDir, uri: processingFormatsUri)
     }
+    // pull if it does
     else {
       grgit.open(dir: processingFormatsDir)
       grgit.pull()
@@ -72,6 +72,12 @@ task cloneExternalProjects {
   }
 }
 
+// make sure we always update the external project prior to complile
+defaultTasks 'cloneExternalProjects'
+compileJava.dependsOn 'cloneExternalProjects'
+
+// for now, just add traveltime and processing formats to the source set,
+// at least until they're availible in maven
 sourceSets {
     main {
          java {
