@@ -72,18 +72,41 @@ task cloneExternalProjects {
   }
 }
 
-// make sure we always update the external project prior to complile
-defaultTasks 'cloneExternalProjects'
-compileJava.dependsOn 'cloneExternalProjects'
+// copy required model files
+task copyModelFiles(type: Copy) {
+  description 'Copies required model files to build directory.'
+  dependsOn 'cloneExternalProjects'
+  from "models", "$travelTimeLocation/models/"
+  exclude "README.txt"
+  into "$buildDir/models"
+}
+
+// make sure we always update the external projects and copy models prior to 
+// complile
+defaultTasks 'cloneExternalProjects', 'copyModelFiles'
+compileJava.dependsOn 'cloneExternalProjects', 'copyModelFiles'
 
 // for now, just add traveltime and processing formats to the source set,
-// at least until they're availible in maven
+// at least until they're availible in maven. This also means they don't have 
+// to be gradle builds
 sourceSets {
     main {
          java {
             srcDirs = ['src', "$travelTimeLocation/src", "$processingFormatsLocation/java/src"]
          }
     }
+}
+
+jar {
+  manifest {
+    attributes(
+      'Class-Path': configurations.compile.collect { it.getName() }.join(' '),
+      'Main-Class': 'gov.usgs.locator.LocMain'
+    )
+  }
+  from {
+      configurations.compile.collect { it.isDirectory() ? it : zipTree(it) }
+  }
 }
 
 // create javadocs
