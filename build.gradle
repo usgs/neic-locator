@@ -87,23 +87,13 @@ task copyModelFiles(type: Copy) {
 defaultTasks 'cloneExternalProjects', 'copyModelFiles'
 compileJava.dependsOn 'cloneExternalProjects', 'copyModelFiles'
 
-// for now, just add traveltime and processing formats to the source set,
-// at least until they're availible in maven. This also means they don't have 
-// to be gradle builds
-sourceSets {
-    main {
-         java {
-            srcDirs 'src'
-         }
-    }
-}
-
 // show compile warnings
 tasks.withType(JavaCompile) {
   options.setDeprecation(true);
   options.setWarnings(true);
 }
 
+// set jar entry point
 jar {
   manifest {
     attributes(
