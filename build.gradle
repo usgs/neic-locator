@@ -34,7 +34,7 @@ dependencies {
 
 // method to add/update an external project from git and add it to the 
 // sourceset
-ext.addExternalProject = { path, url ->
+ext.addExternalProject = { path, url, srcDir ->
   File projDir = new File("$path")
   // clone project if it doesn't exist locally
   if(!projDir.exists()) {
@@ -51,7 +51,7 @@ ext.addExternalProject = { path, url ->
   sourceSets {
     main {
       java {
-          srcDirs "$path/src"
+          srcDirs "$path/$srcDir"
       }
     }
   }
@@ -65,11 +65,11 @@ task cloneExternalProjects {
   doFirst {
     // neic-traveltime
     addExternalProject("$projectDir/lib/neic-traveltime", 
-      "https://github.com/usgs/neic-traveltime.git")
+      "https://github.com/usgs/neic-traveltime.git", "src")
 
     // earthquake-processing-formats
     addExternalProject("$projectDir/lib/earthquake-processing-formats", 
-      "https://github.com/usgs/earthquake-processing-formats.git")
+      "https://github.com/usgs/earthquake-processing-formats.git", "src")
   }
 }
 
