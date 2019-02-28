@@ -23,7 +23,7 @@ repositories {
 
 dependencies {
     // Use JUnit test framework
-    compile "junit:junit-dep:4.11"
+    testCompile "junit:junit-dep:4.11"
     // com.googlecode.json.simple
     compile "com.googlecode.json-simple:json-simple:1.1.1"
     // org.apache.commons.math3
@@ -32,43 +32,44 @@ dependencies {
     compile "gov.nist.math:jama:1.0.2"
 }
 
+// method to add/update an external project from git and add it to the 
+// sourceset
+ext.addExternalProject = { path, url ->
+  File projDir = new File("$path")
+  // clone project if it doesn't exist locally
+  if(!projDir.exists()) {
+    grgit.clone(dir: projDir, uri: url)
+  }
+  // pull the project if it does exist locally
+  else {
+    grgit.open(dir: projDir)
+    grgit.pull()
+    grgit.close()
+  }
+
+  // add to sourceset
+  sourceSets {
+    main {
+      java {
+          srcDirs "$path/src"
+      }
+    }
+  }
+}
+
 // clone/update external libs from github, at least until they're available in
 // maven
-// neic-traveltime
-def travelTimeLocation = "$projectDir/lib/neic-traveltime"
-File travelTimeDir = new File("$travelTimeLocation")
-def travelTimeUri = "https://github.com/usgs/neic-traveltime.git"
-
-// earthquake-processing-formats
-def processingFormatsLocation = "$projectDir/lib/earthquake-processing-formats"
-File processingFormatsDir = new File("$processingFormatsLocation")
-def processingFormatsUri = "https://github.com/usgs/earthquake-processing-formats.git"
-
 task cloneExternalProjects {
   description 'Clones/Updates external project(s).'
   
   doFirst {
-    // clone if it doesn't exist
-    if(!travelTimeDir.exists()) {
-      grgit.clone(dir: travelTimeDir, uri: travelTimeUri)
-    }
-    // pull if it does
-    else {
-      grgit.open(dir: travelTimeDir)
-      grgit.pull()
-      grgit.close()
-    }
+    // neic-traveltime
+    addExternalProject("$projectDir/lib/neic-traveltime", 
+      "https://github.com/usgs/neic-traveltime.git")
 
-    // clone if it doesn't exist
-    if(!processingFormatsDir.exists()) {
-      grgit.clone(dir: processingFormatsDir, uri: processingFormatsUri)
-    }
-    // pull if it does
-    else {
-      grgit.open(dir: processingFormatsDir)
-      grgit.pull()
-      grgit.close()
-    }
+    // earthquake-processing-formats
+    addExternalProject("$projectDir/lib/earthquake-processing-formats", 
+      "https://github.com/usgs/earthquake-processing-formats.git")
   }
 }
 
@@ -76,7 +77,7 @@ task cloneExternalProjects {
 task copyModelFiles(type: Copy) {
   description 'Copies required model files to build directory.'
   dependsOn 'cloneExternalProjects'
-  from "models", "$travelTimeLocation/models/"
+  from "models", "$projectDir/lib/neic-traveltime/models/"
   exclude "README.txt"
   into "$buildDir/models"
 }
@@ -92,9 +93,15 @@ compileJava.dependsOn 'cloneExternalProjects', 'copyModelFiles'
 sourceSets {
     main {
          java {
-            srcDirs = ['src', "$travelTimeLocation/src", "$processingFormatsLocation/java/src"]
+            srcDirs 'src'
          }
     }
+}
+
+// show compile warnings
+tasks.withType(JavaCompile) {
+  options.setDeprecation(true);
+  options.setWarnings(true);
 }
 
 jar {
