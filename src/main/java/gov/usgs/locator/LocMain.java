@@ -18,12 +18,31 @@ public class LocMain {
 	 * @param args Command line arguments (not used)
 	 */
 	public static void main(String[] args) {
+
+		if (args == null || args.length == 0) {
+			System.out
+					.println("Usage: neic-locator" + 
+						" <modelPath> <eventPath>");
+		}
+
 		// Set up the earth model.
 		String earthModel = "ak135";
 		// Set up the earthquake file.
 //	String eventID = "Baja_1";
 		String eventID = "1000010563_23";
 		// Objects we'll need.
+
+		// get model path
+		String modelPath = null;
+		if (args != null && args.length >= 1) {
+			modelPath = args[0];
+		}
+
+		// get event path
+		String eventPath = null;
+		if (args != null && args.length >= 2) {
+			eventPath = args[1];
+		}		
 
 		LocInput in = null;
 		LocOutput out = null;
@@ -40,9 +59,7 @@ public class LocMain {
 		// If travel times are local, set up the manager.
 		if(!LocUtil.server) {
 			try {
-				// NOTE assumes default model path for now, need to figure out
-        		// where to get this path. Cmd line arg?
-				ttLocal = new TTSessionLocal(true, true, true, null);
+				ttLocal = new TTSessionLocal(true, true, true, modelPath);
 			} catch (IOException e) {
 				System.out.println("Unable to read travel-time auxiliary data.");
 				e.printStackTrace();
@@ -52,9 +69,7 @@ public class LocMain {
 		
 		// Read the Locator auxiliary files.
 		try {
-			// NOTE assumes default model path for now, need to figure out
-        	// where to get this path. Cmd line arg?
-			auxLoc = new AuxLocRef(null);
+			auxLoc = new AuxLocRef(modelPath);
 		} catch (IOException | ClassNotFoundException e) {
 			System.out.println("Unable to read Locator auxiliary data.");
 			e.printStackTrace();
@@ -74,7 +89,7 @@ public class LocMain {
 			event.serverIn(in);
 		} else {
 			// In local mode, read a Hydra style event input file.
-			if(event.readHydra(eventID)) {
+			if(event.readHydra(eventID, eventPath)) {
 				if(LocUtil.deBugLevel > 3) event.printIn();
 
 			} else {
