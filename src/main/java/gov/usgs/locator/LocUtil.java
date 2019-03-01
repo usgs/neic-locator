@@ -1,5 +1,4 @@
 package gov.usgs.locator;
-import gov.usgs.traveltime.CWBProperties;
 import gov.usgs.traveltime.TauUtil;
 import java.util.Calendar;
 import java.util.Date;
@@ -224,17 +223,13 @@ public class LocUtil {
 	// methods below:
 	
 	/**
-	 * Path of the travel time/locator properties file.
+	 * Path for model files s.
 	 */
-	private static String propFile = "Properties"+CWBProperties.FS+"locator.prop";
+	public static String modelPath = "./models/";
 	/**
-	 * Path for model files set in getProperties.
+	 * Path for Hydra style event files 
 	 */
-	public static String modelPath;
-	/**
-	 * Path for Hydra style event files set in getProperties.
-	 */
-	public static String eventPath;
+	public static String eventPath = "./";
 	
 	/**
 	 * Constants needed by covariance.
@@ -280,16 +275,6 @@ public class LocUtil {
 	 * Variable needed by timer.
 	 */
 	private static long sysTime;
-	
-	/**
-	 * Read the travel time properties file and set up paths to the model 
-	 * and event files.
-	 */
-	public static void getProperties() {		
-		CWBProperties.loadProperties(propFile);
-		modelPath = CWBProperties.getProperty("modelPath");
-		eventPath = CWBProperties.getProperty("eventPath");
-	}
 	
 	/**
 	 * Build a path to a model file.

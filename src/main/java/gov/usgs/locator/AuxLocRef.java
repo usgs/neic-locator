@@ -37,10 +37,12 @@ public class AuxLocRef {
 	 * Read the cratons and zone statistics files and make the data available 
 	 * to the Locator.
 	 * 
+	 * @param modelPath If not null, path to model files
+	 * 
 	 * @throws IOException On any read error
 	 * @throws ClassNotFoundException In input serialization is hosed
 	 */
-	public AuxLocRef() throws IOException, ClassNotFoundException {
+	public AuxLocRef(String modelPath) throws IOException, ClassNotFoundException {
 //	long time;
 		int[][] zoneKeys;
 		String[] absNames;
@@ -53,10 +55,10 @@ public class AuxLocRef {
 		ObjectOutputStream objOut;
 		FileLock lock;
 		
-		// Set up the properties.
-		if(LocUtil.modelPath == null) {
-			LocUtil.getProperties();
+		if (modelPath != null) {
+			LocUtil.modelPath = modelPath;
 		}
+
 		// Create absolute path names.
 		absNames = new String[fileNames.length];
 		for(int j=0; j<fileNames.length; j++) {

@@ -40,7 +40,9 @@ public class LocMain {
 		// If travel times are local, set up the manager.
 		if(!LocUtil.server) {
 			try {
-				ttLocal = new TTSessionLocal(true, true, true);
+				// NOTE assumes default model path for now, need to figure out
+        		// where to get this path. Cmd line arg?
+				ttLocal = new TTSessionLocal(true, true, true, null);
 			} catch (IOException e) {
 				System.out.println("Unable to read travel-time auxiliary data.");
 				e.printStackTrace();
@@ -50,7 +52,9 @@ public class LocMain {
 		
 		// Read the Locator auxiliary files.
 		try {
-			auxLoc = new AuxLocRef();
+			// NOTE assumes default model path for now, need to figure out
+        	// where to get this path. Cmd line arg?
+			auxLoc = new AuxLocRef(null);
 		} catch (IOException | ClassNotFoundException e) {
 			System.out.println("Unable to read Locator auxiliary data.");
 			e.printStackTrace();
