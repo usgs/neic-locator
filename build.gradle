@@ -43,7 +43,7 @@ ext.addExternalProject = { path, url, srcDir ->
   // pull the project if it does exist locally
   else {
     grgit.open(dir: projDir)
-    grgit.pull()
+    grgit.pull(branch: "master")
     grgit.close()
   }
 
@@ -69,7 +69,7 @@ task cloneExternalProjects {
 
     // earthquake-processing-formats
     addExternalProject("$projectDir/lib/earthquake-processing-formats", 
-      "https://github.com/usgs/earthquake-processing-formats.git", "src")
+      "https://github.com/usgs/earthquake-processing-formats.git", "java/src")
   }
 }
 

@@ -11,9 +11,11 @@ In its current form, the neic-locator is a small piece of the much larger NEIC s
 
 Dependencies
 ------
-* neic-locator was written in Oracle Java 1.8
-* neic-locator is built with [Apache Ant](http://ant.apache.org/), and was written using Eclipse and netbeans.  Netbeans project files, source files, and an ant build.xml are included in this project
-* neic-locator depends on the [neic-traveltime](https://github.com/usgs/neic-traveltime) package. A copy of this package is automatically downloaded and built as part of the neic-locator ant build.
+* neic-locator was written in Java 1.8
+* neic-locator can be built with [Apache Ant](http://ant.apache.org/), and was written using Eclipse and netbeans.  Netbeans project files, source files, and an ant build.xml are included in this project
+* neic-locator can also be built with [Gradle](https://gradle.org/), a build.gradle file is included in this project
+* neic-locator depends on the [neic-traveltime](https://github.com/usgs/neic-traveltime) package. A copy of this package is automatically downloaded and built as part of the neic-locator build.
+* neic-locator depends on the [earthquake-processing-formats](https://github.com/usgs/earthquake-processing-formats) package. A copy of this package is automatically downloaded and built as part of the neic-locator build.
 
 Building
 ------
@@ -24,6 +26,13 @@ The steps to get and build neic-locator.jar using ant are as follows:
 3. To build the jar file, run the command `ant jar`
 4. To generate javadocs, run the command `ant javadoc`
 5. To compile, generate javadocs, build jar, run the command `ant all`
+
+The steps to get and build neic-locator.jar using gradle are as follows:
+
+1. Clone neic-locator.
+2. Open a command window and change directories to /neic-locator/
+3. To build the jar file, run the command `./gradlew build`
+4. To generate javadocs, run the command `./gradlew javadoc`
 
 Using
 -----
