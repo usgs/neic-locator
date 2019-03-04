@@ -29,7 +29,7 @@ public class LocMain {
 	/**
 	 * Main program for testing the locator.
 	 * 
-	 * @param args Command line arguments (not used)
+	 * @param args Command line arguments
 	 */
 	public static void main(String[] args) {
 

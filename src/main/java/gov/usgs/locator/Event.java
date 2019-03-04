@@ -154,7 +154,8 @@ public class Event {
 			// Create the station.
 			staID = new StationID(pickIn.stationCode, pickIn.locationCode, 
 					pickIn.networkCode);
-			station = new Station(staID);
+			station = new Station(staID, pickIn.latitude, pickIn.longitude,
+					pickIn.elevation);
 			pick = new Pick(station, pickIn.componentCode, 
 					LocUtil.toHydraTime(pickIn.pickTime), pickIn.usePick, pickIn.locatorPhase);
 			pick.addIdAids(pickIn.source, pickIn.pickID, pickIn.pickQuality, 
@@ -178,7 +179,8 @@ public class Event {
 		BufferedInputStream in;
 		Scanner scan;
 		char held, heldDep, prefDep, rstt, noSvd, moved, cmndUse;
-		int dbID, auth;
+		int auth;
+		String dbID;
 		double origin, lat, lon, depth, bDep, bSe, elev, qual, 
 			arrival, aff;
 		String staCode, chaCode, netCode, locCode, curPh, obsPh;
@@ -240,7 +242,7 @@ public class Event {
 			// Get the pick information.
 			while(scan.hasNext()) {
 				// Get the station information.
-				dbID = scan.nextInt();
+				dbID = scan.next();
 				staCode = scan.next();
 				chaCode = scan.next();
 				netCode = scan.next();
@@ -704,10 +706,13 @@ public class Event {
 			for(int j=0; j<group.picks.size(); j++) {
 				pick = picks.get(j);
 				staID = pick.station.staID;
-				out.addPick(pick.source, pick.dbID, staID.staCode, pick.chaCode, 
-						staID.netCode, staID.locCode, pick.phCode, pick.residual, 
-						group.delta, group.azimuth, pick.weight, pick.importance, pick.used, "");
-				out.addPrint(pick.authType, pick.arrivalTime);
+				out.addPick(pick.source, pick.authType, pick.dbID, staID.staCode, 
+					pick.chaCode, staID.netCode, staID.locCode, 
+					pick.station.latitude, pick.station.longitude, 
+					pick.station.elevation, (long)pick.arrivalTime*1000, 
+					pick.phCode, pick.obsCode, pick.residual, group.delta, 
+					group.azimuth, pick.weight, pick.importance, pick.used, 
+					pick.affinity, pick.quality, "");
 			}
 		}
 		return out;

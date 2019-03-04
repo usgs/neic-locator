@@ -13,7 +13,7 @@ import gov.usgs.traveltime.TauUtil;
  */
 public class Pick implements Comparable<Pick> {
 	// Hydra specific:
-	int dbID;							// Hydra aid to database update
+	String dbID;							// Hydra aid to database update
 	// Inputs:
 	String source;				// Requester ID
 	Station station;			// Station
@@ -64,7 +64,7 @@ public class Pick implements Comparable<Pick> {
 		this.cmndUse = cmndUse;
 		this.phCode = phCode;
 		// Set defaults.
-		dbID = 0;
+		dbID = "0";
 		quality = 0d;
 		obsCode = null;
 		authType = null;
@@ -95,8 +95,8 @@ public class Pick implements Comparable<Pick> {
 	 * identification
 	 * @param affinity Higher numbers make it harder to re-identify the phase
 	 */
-	public void addIdAids(String source, int dbID, double quality, String obsCode, 
-			AuthorType authType, double affinity) {
+	public void addIdAids(String source, String dbID, double quality, 
+			String obsCode, AuthorType authType, double affinity) {
 		this.source = source;
 		this.dbID = dbID;
 		this.quality = quality;

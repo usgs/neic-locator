@@ -8,11 +8,14 @@ package gov.usgs.locator;
  */
 public class PickInput {
 	String source;					// Source of the pick ID
-	int pickID;							// Hydra database ID
+	String pickID;							// Hydra database ID
 	String stationCode;			// Station code.
 	String componentCode;		// Component code.
 	String networkCode;			// Network code.
 	String locationCode;		// Location code.
+	double latitude;			// Station latitude 
+	double longitude;			// Station longitude
+	double elevation;			// Station elevation 		
 	long pickTime;					// Pick arrival time.
 	String locatorPhase;		// Phase code identified by the Locator.
 	String originalPhase;		// Phase code identified externally.
@@ -30,6 +33,9 @@ public class PickInput {
 	 * @param componentCode Component code.
 	 * @param networkCode Network code.
 	 * @param locationCode Location code.
+	 * @param stationLatitude station latitude
+	 * @param stationLongitude station longitude
+	 * @param stationElevation station elevation
 	 * @param pickTime Pick time in milliseconds.
 	 * @param locatorPhase Current locator seismic phase code.
 	 * @param originalPhase Original seismic phase code.
@@ -41,17 +47,21 @@ public class PickInput {
 	 * 1.0, 1.0, 1.5, and 3.0 respectively.
 	 * @param pickQuality The pick standard deviation in seconds.
 	 */
-	PickInput(String source, int pickID, String stationCode, 
+	PickInput(String source, String pickID, String stationCode, 
 			String componentCode, String networkCode, String locationCode, 
-			long pickTime, String locatorPhase, String originalPhase, 
-			boolean usePick, int authorType, double pickAffinity, 
-			double pickQuality) {
+			double stationLatitude, double stationLongitude, 
+			double stationElevation, long pickTime, String locatorPhase, 
+			String originalPhase, boolean usePick, int authorType, 
+			double pickAffinity, double pickQuality) {
 		this.source = source;
 		this.pickID = pickID;
 		this.stationCode = stationCode;
 		this.componentCode = componentCode;
 		this.networkCode = networkCode;
 		this.locationCode = locationCode;
+		this.latitude = stationLatitude;
+		this.longitude = stationLongitude;
+		this.elevation = stationElevation;
 		this.pickTime = pickTime;
 		this.locatorPhase = locatorPhase;
 		this.originalPhase = originalPhase;

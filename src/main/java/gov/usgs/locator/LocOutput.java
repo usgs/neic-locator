@@ -112,38 +112,44 @@ public class LocOutput {
 	 * The following parameters are produced for each pick.
 	 * 
 	 * @param source Source of the database pick ID (optional).
+	 * @param authType Type (e.g., human or auto) of the original phase 
+	 * identification
 	 * @param pickID Hydra database pick ID (optional)
 	 * @param stationCode Station code.
 	 * @param componentCode Component code.
 	 * @param networkCode Network code.
 	 * @param locationCode Location code.
+	 * @param stationLatitude station latitude
+	 * @param stationLongitude station longitude
+	 * @param stationElevation station elevation 
+	 * @param pickTime Pick time in milliseconds.
 	 * @param locatorPhase Final seismic phase code.
 	 * @param residual Pick residual in seconds.
 	 * @param delta Source-receiver distance in degrees.
-	 * @param azimuth Receiver azimuth (clockwise from north).
+	 * @param azimuth Receiver azimuth (clockwise from north) in degrees.
 	 * @param weight Pick weight.
 	 * @param pickImport Pick data importance.
 	 * @param useFlag True if the pick was used in the location.
+	 * @param pickAffinity The higher the affinity, the harder it is to re-identify 
+	 * a pick.  By default, the affinity for the four author types would be 
+	 * 1.0, 1.0, 1.5, and 3.0 respectively.
+	 * @param pickQuality The pick standard deviation in seconds.
 	 * @param errorCode Summary pick error code.
 	 */
-	public void addPick(String source, int pickID, String stationCode, 
-			String componentCode, String networkCode, String locationCode, 
-			String locatorPhase, double residual, double delta, double azimuth, 
-			double weight, double pickImport, boolean useFlag, String errorCode) {
+	public void addPick(String source, AuthorType authType, String pickID, 
+			String stationCode, String componentCode, String networkCode, 
+			String locationCode, double stationLatitude, double stationLongitude, 
+			double stationElevation, long pickTime, String locatorPhase, 
+			String originalPhase, double residual, double delta, double azimuth, 
+			double weight, double pickImport, boolean useFlag, 
+			double pickAffinity, double pickQuality, String errorCode) {
 		if(picks == null) picks = new ArrayList<PickOutput>();
-		picks.add(new PickOutput(source, pickID, stationCode, componentCode, 
-			networkCode, locationCode, locatorPhase, residual, delta, azimuth, 
-			weight, pickImport, useFlag, errorCode));
-	}
-	
-	/**
-	 * Add information to support printing for testing purposes.
-	 * 
-	 * @param authType Author type
-	 * @param arrivalTime Arrival time
-	 */
-	public void addPrint(AuthorType authType, double arrivalTime) {
-		picks.get(picks.size()-1).addPrint(authType, arrivalTime);
+
+		picks.add(new PickOutput(source, authType, pickID, stationCode, 
+			componentCode, networkCode, locationCode, stationLatitude, 
+			stationLongitude, stationElevation, pickTime, locatorPhase, 
+			originalPhase, residual, delta, azimuth, weight, pickImport, 
+			useFlag, pickAffinity, pickQuality, errorCode));
 	}
 	
 	/**

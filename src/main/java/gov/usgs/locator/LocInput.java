@@ -50,8 +50,10 @@ public class LocInput {
 			double sourceLon, double sourceDepth, double bayesDepth, 
 			double bayesSpread, boolean heldLoc, boolean heldDepth, 
 			boolean useBayes, boolean useRstt, boolean noSvd, boolean newLoc) {
-		if(earthModel != null) this.earthModel = earthModel;
-		else this.earthModel = "AK135";
+		if(earthModel != null) 
+			this.earthModel = earthModel;
+		else 
+			this.earthModel = "AK135";
 		this.originTime = originTime;
 		this.sourceLat = sourceLat;
 		this.sourceLon = sourceLon;
@@ -75,6 +77,9 @@ public class LocInput {
 	 * @param componentCode Component code.
 	 * @param networkCode Network code.
 	 * @param locationCode Location code.
+	 * @param stationLatitude station latitude
+	 * @param stationLongitude station longitude
+	 * @param stationElevation station elevation
 	 * @param pickTime Pick time in milliseconds.
 	 * @param locatorPhase Current locator seismic phase code.
 	 * @param originalPhase Original seismic phase code.
@@ -86,14 +91,16 @@ public class LocInput {
 	 * 1.0, 1.0, 1.5, and 3.0 respectively.
 	 * @param pickQuality The pick standard deviation in seconds.
 	 */
-	public void addPick(String source, int pickID, String stationCode, 
+	public void addPick(String source, String pickID, String stationCode, 
 			String componentCode, String networkCode, String locationCode, 
-			long pickTime, String locatorPhase, String originalPhase, 
-			boolean usePick, int authorType, double pickAffinity, 
-			double pickQuality) {
+			double stationLatitude, double stationLongitude, 
+			double stationElevation, long pickTime, String locatorPhase, 
+			String originalPhase, boolean usePick, int authorType, 
+			double pickAffinity, double pickQuality) {
 		if(picks == null) picks = new ArrayList<PickInput>();
 		picks.add(new PickInput(source, pickID, stationCode, componentCode, 
-			networkCode, locationCode, pickTime, locatorPhase, originalPhase, 
+			networkCode, locationCode, stationLatitude, stationLongitude, 
+			stationElevation, pickTime, locatorPhase, originalPhase, 
 			usePick, authorType, pickAffinity, pickQuality));
 	}
 	
