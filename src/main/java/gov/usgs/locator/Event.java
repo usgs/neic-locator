@@ -139,6 +139,7 @@ public class Event {
 			bayesDepth = in.getBayesianDepth();
 			bayesSpread = in.getBayesianSpread();
 		}
+		cmndRstt = in.getUseRSTT();
 		cmndCorr = in.getUseSVD();		// True when noSvd is false
 		restart = in.getIsLocationNew();
 		
@@ -153,24 +154,14 @@ public class Event {
 			// source type conversion
 			int authorType = 1; // default to automatic contributed
 			String typeString = pickIn.getSource().getType();
-			if (typeString.equals("ContributedAutomatic"))
+			if (typeString == "ContributedAutomatic")
 				authorType = 1; // automatic contributed
-			else if (typeString.equals("LocalAutomatic"))
+			else if (typeString == "LocalAutomatic")
 				authorType = 2; // automatic NEIC
-			else if (typeString.equals("ContributedHuman"))
+			else if (typeString == "ContributedHuman")
 				authorType = 3; // analyst contributed
-			else if (typeString.equals("LocalHuman"))
+			else if (typeString == "LocalHuman")
 				authorType = 4; // NEIC analyst
-
-			// make sure phCode and obsCode are not null
-			String phCode = "";
-			if (pickIn.getPickedPhase() != null) {
-				phCode = pickIn.getPickedPhase();
-			}
-			String obsCode = "";
-			if (pickIn.getAssociatedPhase() != null) {
-				obsCode = pickIn.getAssociatedPhase();
-			}
 
 			// Create the station.
 			StationID staID = new StationID(pickIn.getSite().getStation(), 
@@ -181,9 +172,10 @@ public class Event {
 					pickIn.getSite().getElevation());
 			Pick pick = new Pick(station, pickIn.getSite().getChannel(), 
 					LocUtil.toHydraTime(pickIn.getTime().getTime()), 
-					pickIn.getUse(), phCode);
+					pickIn.getUse(), pickIn.getLocatedPhase());
 			pick.addIdAids(source, pickIn.getID(), pickIn.getQuality(), 
-					obsCode, LocUtil.getAuthCode(authorType), 
+					pickIn.getAssociatedPhase(), 
+					LocUtil.getAuthCode(authorType), 
 					pickIn.getAffinity());
 			picks.add(pick);
 		}
@@ -191,6 +183,44 @@ public class Event {
 		initEvent();
 	}
 	
+/**
+	 * JSON output.  Populate a LocOutput object for the JSON 
+	 * output, it will be packed here after the relocation.
+	 * 
+	 * @return out Location output information
+	 */
+	public LocOutput serverOut() {
+		LocOutput out;
+		PickGroup group;
+		Pick pick;
+		StationID staID;
+		
+		out = new LocOutput(LocUtil.toJavaTime(hypo.originTime), hypo.latitude, 
+				hypo.longitude, hypo.depth, staAssoc, phAssoc, staUsed, phUsed, 
+				azimGap, lestGap, delMin, quality);
+		out.addErrors(seTime, seLat, seLon, seDepth, seResid, errH, errZ, aveH, 
+				hypo.bayesDepth, hypo.bayesSpread, bayesImport, errEllip, exitCode);
+		// Sort the pick groups by distance.
+		groups.sort(new GroupComp());
+		// Pack up the picks.
+		for(int i=0; i<groups.size(); i++) {
+			group = groups.get(i);
+			for(int j=0; j<group.picks.size(); j++) {
+				pick = group.picks.get(j);
+				staID = pick.station.staID;
+				out.addPick(pick.source, pick.authType, pick.dbID, staID.staCode, 
+					pick.chaCode, staID.netCode, staID.locCode, 
+					pick.station.latitude, pick.station.longitude, 
+					pick.station.elevation, LocUtil.toJavaTime(pick.arrivalTime), 
+					pick.phCode, pick.obsCode, pick.residual, group.delta, 
+					group.azimuth, pick.weight, pick.importance, pick.used, 
+					pick.affinity, pick.quality, "");
+			}
+		}
+
+		return out;
+	}
+
 	/**
 	 * JSON output.  Populate a LocOutput object for the JSON 
 	 * output, it will be packed here after the relocation.

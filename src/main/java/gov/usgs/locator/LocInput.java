@@ -6,7 +6,6 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.Scanner;
 import java.util.regex.Pattern;
-import java.util.ArrayList;
 import java.util.Date;
 
 import gov.usgs.processingformats.*;
@@ -39,6 +38,7 @@ public class LocInput extends LocationRequest {
 		setIsBayesianDepth(request.getIsBayesianDepth());
 		setBayesianDepth(request.getBayesianDepth());
 		setBayesianSpread(request.getBayesianSpread());
+		setUseRSTT(request.getUseRSTT());
 		setUseSVD(request.getIsLocationNew());
 		setOutputData(request.getOutputData());
 	}
@@ -52,18 +52,13 @@ public class LocInput extends LocationRequest {
 	 */
 	public boolean readHydra(String filePath) {
 		BufferedInputStream in;
-		char held, heldDep, prefDep, rstt, noSvd, moved, cmndUse;
-		int auth;
-		String dbID, authType;
-		double origin, lat, lon, depth, bDep, bSe, elev, qual, 
-			arrival, aff;
-		String staCode, chaCode, netCode, locCode, curPh, obsPh;
 		Scanner scan;
 		Pattern affinity = Pattern.compile("\\d*\\.\\d*");
 
 		// Set up the IO.
 		try {
-			in = new BufferedInputStream(new FileInputStream(filePath));
+			in = new BufferedInputStream(new FileInputStream(
+				filePath));
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
 			return false;
@@ -71,65 +66,52 @@ public class LocInput extends LocationRequest {
 		scan = new Scanner(in);
 		try {
 			// Get the hypocenter information.
-			origin = scan.nextDouble();
-			lat = scan.nextDouble();
-			lon = scan.nextDouble();
-			depth = scan.nextDouble();
+			setSourceOriginTime(new Date(LocUtil.toJavaTime(scan.nextDouble())));
+			setSourceLatitude(scan.nextDouble());
+			setSourceLongitude(scan.nextDouble());
+			setSourceDepth(scan.nextDouble());
 			// Get the analyst commands.
-			held = scan.next().charAt(0);
-			heldDep = scan.next().charAt(0);
-			prefDep = scan.next().charAt(0);
-			bDep = scan.nextDouble();
-			bSe = scan.nextDouble();
-			rstt = scan.next().charAt(0); // (not used)
-			noSvd = scan.next().charAt(0);
+			setIsLocationHeld(LocUtil.getBoolean(scan.next().charAt(0)));
+			setIsDepthHeld(LocUtil.getBoolean(scan.next().charAt(0)));
+			setIsBayesianDepth(LocUtil.getBoolean(scan.next().charAt(0)));
+			setBayesianDepth(scan.nextDouble());
+			setBayesianSpread(scan.nextDouble());
+			setUseRSTT(LocUtil.getBoolean(scan.next().charAt(0)));
+			setUseSVD(!LocUtil.getBoolean(scan.next().charAt(0))); // True when noSvd is false
 			// Fiddle because the last flag is omitted in earlier data.
 			if(scan.hasNextInt()) {
-				moved = 'F';
+				setIsLocationNew(false);
 			} else {
-				moved = scan.next().charAt(0);
+				setIsLocationNew(LocUtil.getBoolean(scan.next().charAt(0)));
 			}
-
-			// create the request
-			setSourceOriginTime(new Date(LocUtil.toJavaTime(origin)));
-			setSourceLatitude(lat);
-			setSourceLongitude(lon);
-			setSourceDepth(depth);
-			setIsLocationHeld(LocUtil.getBoolean(held));
-			setIsDepthHeld(LocUtil.getBoolean(heldDep));
-			setIsBayesianDepth(LocUtil.getBoolean(prefDep));
-			setBayesianDepth(bDep);
-			setBayesianSpread(bSe);
-			setUseSVD(!LocUtil.getBoolean(noSvd)); // True when noSvd is false
-			setIsLocationNew(LocUtil.getBoolean(moved));
 			
-			// create the pick list
-			ArrayList<gov.usgs.processingformats.Pick> pickList 
-				= new ArrayList<gov.usgs.processingformats.Pick>();
-
 			// Get the pick information.
 			while(scan.hasNext()) {
+				gov.usgs.processingformats.Pick newPick = 
+					new gov.usgs.processingformats.Pick();
+
 				// Get the station information.
-				dbID = scan.next();
-				staCode = scan.next();
-				chaCode = scan.next();
-				netCode = scan.next();
-				locCode = scan.next();
-				lat = scan.nextDouble();
-				lon = scan.nextDouble();
-				elev = scan.nextDouble();
+				newPick.setId(scan.next());
+				newPick.getSite().setStation(scan.next());
+				newPick.getSite().setChannel(scan.next());
+				newPick.getSite().setNetwork(scan.next());
+				newPick.getSite().setLocation(scan.next());
+				newPick.getSite().setLatitude(scan.nextDouble());
+				newPick.getSite().setLongitude(scan.nextDouble());
+				newPick.getSite().setElevation(scan.nextDouble());
 				// Get the rest of the pick information.	Note that some 
 				// fiddling is required as some of the positional arguments 
 				// are sometimes omitted.
-				qual = scan.nextDouble();
+				newPick.setQuality(scan.nextDouble());
 				if(scan.hasNextDouble()) {
-					curPh = null;
+					newPick.setLocatedPhase("");
 				} else {
-					curPh = scan.next();
+					newPick.setLocatedPhase(scan.next());
 				}
-				arrival = scan.nextDouble();
-				cmndUse = scan.next().charAt(0);
-				auth = scan.nextInt();
+				newPick.setTime(new Date(LocUtil.toJavaTime(scan.nextDouble())));
+				newPick.setUse(LocUtil.getBoolean(scan.next().charAt(0)));
+				
+				int auth = scan.nextInt();
 				// convert author type 
 				// 1 = automatic contributed, 2 = automatic NEIC, 
 				// 3 = analyst contributed, 4 = NEIC analyst.
@@ -146,48 +128,22 @@ public class LocInput extends LocationRequest {
 				}
 
 				if(scan.hasNextInt() || !scan.hasNext()) {
-					obsPh = null;
-					aff = 0d;
+					newPick.setAssociatedPhase("");
+					newPick.setAffinity(0d);
 				} else if(scan.hasNext(affinity)) {
-					obsPh = null;
-					aff = scan.nextDouble();
+					newPick.setAssociatedPhase("");
+					newPick.setAffinity(scan.nextDouble());
 				} else {
-					obsPh = scan.next();
+					newPick.setAssociatedPhase(scan.next());
 					if(scan.hasNext(affinity)) {
-						aff = scan.nextDouble();
+						newPick.setAffinity(scan.nextDouble());
 					} else {
-						aff = 0d;
+						newPick.setAffinity(0d);
 					}
 				}
-
-				// Create the pick.
-				gov.usgs.processingformats.Pick newPick = 
-					new gov.usgs.processingformats.Pick(dbID, staCode, chaCode,
-						netCode, locCode, lat, lon, elev, "US", "Hydra", 
-						authType, new Date(LocUtil.toJavaTime(arrival)), aff, 
-						qual, LocUtil.getBoolean(cmndUse), curPh, obsPh, null, 
-						null, null, null, null, null);
-				
-				if (newPick.isValid()) {
-					// Add the pick to the list
-					pickList.add(newPick);
-				} else {
-					ArrayList<String> errorList = newPick.getErrors();
-
-					// combine the errors into a single string
-					String errorString = new String();
-					for (int i = 0; i < errorList.size(); i++) {
-						errorString += " " + errorList.get(i);
-					}
-
-					System.out.println("Invalid pick: " + errorString);
-				}
+				// Add the pick to the list
+				getInputData().add(newPick);
 			}
-
-			// add the pick list to the request
-			setInputData(pickList);
-
-			// done with file
 			scan.close();
 			in.close();
 		} catch (IOException e) {

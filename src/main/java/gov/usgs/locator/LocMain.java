@@ -294,6 +294,4 @@ public class LocMain {
 		
 		// Exit.
 		System.exit(event.exitCode);
-  }
-}
 */
