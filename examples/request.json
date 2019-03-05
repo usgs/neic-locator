@@ -1,0 +1,188 @@
+{
+    "Type": "RayLoc",
+    "EarthModel": "ak135",
+    "SourceLatitude": 74.3223,
+    "SourceLongitude": -61.3606,
+    "SourceOriginTime": "2019-03-04T22:53:02.440Z",
+    "SourceDepth": 660.0,
+    "IsLocationNew": true,
+    "IsLocationHeld": false,
+    "IsDepthHeld": false,
+    "IsBayesianDepth": false,
+    "BayesianDepth": 660.0,
+    "BayesianSpread": 30.0,
+    "UseRSTT": false,
+    "UseSVD": false,
+    "InputData": [
+      {
+        "Type": "Pick",
+        "ID": "64396690",
+        "Site": {
+          "Station": "BMAR",
+          "Network": "IM",
+          "Channel": "SHZ",
+          "Location": "F0",
+          "Latitude": 67.4291,
+          "Longitude": -144.5806,
+          "Elevation": 767.0
+        },
+        "Source": {
+          "AgencyID": "US",
+          "Author": "Prod-Glass1-1",
+          "Type": "LocalAutomatic"
+        },
+        "Time": "2019-03-04T22:57:43.710Z",
+        "Affinity": 2.0,
+        "Quality": 1.0,
+        "Use": true,
+        "PickedPhase": "P",
+        "LocatedPhase": "P",
+        "AssociatedPhase": "P"
+      },
+      {
+        "Type": "Pick",
+        "ID": "64396693",
+        "Site": {
+          "Station": "TOLK",
+          "Network": "TA",
+          "Channel": "BHZ",
+          "Latitude": 68.6408,
+          "Longitude": -149.572403,
+          "Elevation": 755.0
+        },
+        "Source": {
+          "AgencyID": "US",
+          "Author": "Prod-Glass1-1",
+          "Type": "LocalAutomatic"
+        },
+        "Time": "2019-03-04T22:57:45.790Z",
+        "Affinity": 2.0,
+        "Quality": 1.0,
+        "Use": true,
+        "PickedPhase": "P",
+        "LocatedPhase": "P",
+        "AssociatedPhase": "P"
+      },
+      {
+        "Type": "Pick",
+        "ID": "64396794",
+        "Site": {
+          "Station": "SHAA",
+          "Network": "TJ",
+          "Channel": "HHZ",
+          "Latitude": 37.562,
+          "Longitude": 68.1228,
+          "Elevation": 868.0
+        },
+        "Source": {
+          "AgencyID": "US",
+          "Author": "Prod-Glass1-1",
+          "Type": "LocalAutomatic"
+        },
+        "Time": "2019-03-04T23:02:30.020Z",
+        "Affinity": 2.0,
+        "Quality": 1.0,
+        "Use": true,
+        "PickedPhase": "P",
+        "LocatedPhase": "P",
+        "AssociatedPhase": "P"
+      },
+      {
+        "Type": "Pick",
+        "ID": "64396797",
+        "Site": {
+          "Station": "D27M",
+          "Network": "TA",
+          "Channel": "BHZ",
+          "Latitude": 69.24299,
+          "Longitude": -140.964798,
+          "Elevation": 893.0
+        },
+        "Source": {
+          "AgencyID": "US",
+          "Author": "Prod-Glass1-1",
+          "Type": "LocalAutomatic"
+        },
+        "Time": "2019-03-04T22:57:25.950Z",
+        "Affinity": 2.0,
+        "Quality": 1.0,
+        "Use": true,
+        "PickedPhase": "P",
+        "LocatedPhase": "P",
+        "AssociatedPhase": "P"
+      },
+      {
+        "Type": "Pick",
+        "ID": "64396806",
+        "Site": {
+          "Station": "IGRN",
+          "Network": "TJ",
+          "Channel": "HHZ",
+          "Latitude": 38.2203,
+          "Longitude": 69.3266,
+          "Elevation": 1284.0
+        },
+        "Source": {
+          "AgencyID": "US",
+          "Author": "Prod-Glass1-1",
+          "Type": "LocalAutomatic"
+        },
+        "Time": "2019-03-04T23:02:25.580Z",
+        "Affinity": 2.0,
+        "Quality": 1.0,
+        "Use": true,
+        "PickedPhase": "P",
+        "LocatedPhase": "P",
+        "AssociatedPhase": "P"
+      },
+      {
+        "Type": "Pick",
+        "ID": "64396822",
+        "Site": {
+          "Station": "RUS",
+          "Network": "CM",
+          "Channel": "BHZ",
+          "Location": "00",
+          "Latitude": 5.893,
+          "Longitude": -73.083,
+          "Elevation": 3697.0 
+        },
+        "Source": {
+          "AgencyID": "US",
+          "Author": "Prod-Glass1-1",
+          "Type": "LocalAutomatic"
+        },
+        "Time": "2019-03-04T23:03:02.760Z",
+        "Affinity": 2.0,
+        "Quality": 1.0,
+        "Use": true,
+        "PickedPhase": "P",
+        "LocatedPhase": "P",
+        "AssociatedPhase": "P"
+      },
+      {
+        "Type": "Pick",
+        "ID": "64396862",
+        "Site": {
+          "Station": "JOW",
+          "Network": "JP",
+          "Channel": "BHZ",
+          "Latitude": 26.836,
+          "Longitude": 128.2725,
+          "Elevation": 220.0
+        },
+        "Source": {
+          "AgencyID": "US",
+          "Author": "Prod-Glass1-1",
+          "Type": "LocalAutomatic"
+        },
+        "Time": "2019-03-04T23:03:58.340Z",
+        "Affinity": 2.0,
+        "Quality": 1.0,
+        "Use": true,
+        "PickedPhase": "P",
+        "LocatedPhase": "P",
+        "AssociatedPhase": "P"
+      }
+    ]
+  }

@@ -1,6 +1,14 @@
 package gov.usgs.locator;
 
-import java.util.ArrayList;
+import java.io.BufferedInputStream;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.util.Scanner;
+import java.util.regex.Pattern;
+import java.util.Date;
+
+import gov.usgs.processingformats.*;
 
 /**
  * Locator inputs needed to relocate an event.  This class is designed to contain 
@@ -10,106 +18,133 @@ import java.util.ArrayList;
  * @author Ray Buland
  *
  */
-public class LocInput {
-	String earthModel;			// Earth model to be used (optional)
-	long originTime;				// Source origin time
-	double sourceLat;				// Geographic source latitude in degrees
-	double sourceLon;				// Geographic source longitude in degrees
-	double sourceDepth;			// Source depth relative to the WGS84 datum in kilometers
-	double bayesDepth;			// Analyst set Bayesian depth in kilometers
-	double bayesSpread;			// Analyst set Bayesian spread in kilometers
-	boolean heldLoc;				// The location is held (compute residuals, etc.)
-	boolean heldDepth;			// The depth is held
-	boolean useBayes;				// Use the analyst set Bayesian depth
-	boolean useRstt;				// Use the RSTT regional travel-time model
-	boolean noSvd;					// Don't use the singular valued decomposition
-	boolean newLoc;					// The starting location has been changed externally
-	ArrayList<PickInput> picks = null;
-	
-	/**
-	 * The following Locator input parameters control an event relocation.
-	 * 
-	 * @param earthModel The name of the Earth model to be used (default AK135).
-	 * @param originTime The current source origin time in milliseconds.
-	 * @param sourceLat The current geographic source latitude in degrees.
-	 * @param sourceLon The current geographic source longitude in degrees.
-	 * @param sourceDepth The current source depth in kilometers.
-	 * @param bayesDepth The analyst specified Bayesian depth in kilometers.
-	 * @param bayesSpread The analyst specified Bayesian depth standard deviation 
-	 * in kilometers.
-	 * @param heldLoc True if the current location cannot be changed.
-	 * @param heldDepth True if the current depth cannot be changed.
-	 * @param useBayes True if the analyst supplied Bayesian depth and spread 
-	 * should be used.
-	 * @param useRstt True if the RSTT regional Earth model should be used.
-	 * @param noSvd True if the singular valued decomposition (i.e., pick 
-	 * de-correlation) should not be used.
-	 * @param newLoc True if the current location has changed outside of the Locator.
-	 */
-	public void addLoc(String earthModel, long originTime, double sourceLat, 
-			double sourceLon, double sourceDepth, double bayesDepth, 
-			double bayesSpread, boolean heldLoc, boolean heldDepth, 
-			boolean useBayes, boolean useRstt, boolean noSvd, boolean newLoc) {
-		if(earthModel != null) 
-			this.earthModel = earthModel;
-		else 
-			this.earthModel = "AK135";
-		this.originTime = originTime;
-		this.sourceLat = sourceLat;
-		this.sourceLon = sourceLon;
-		this.sourceDepth = sourceDepth;
-		this.bayesDepth = bayesDepth;
-		this.bayesSpread = bayesSpread;
-		this.heldLoc = heldLoc;
-		this.heldDepth = heldDepth;
-		this.useBayes = useBayes;
-		this.useRstt = useRstt;
-		this.noSvd = noSvd;
-		this.newLoc = newLoc;
+public class LocInput extends LocationRequest {
+
+	public LocInput() {
+		super();
 	}
-	
-	/**
-	 * The following Locator input parameters are expected for each pick.
-	 * 
-	 * @param source Source of the database pick ID (optional).
-	 * @param pickID Hydra database pick ID (optional).
-	 * @param stationCode Station code.
-	 * @param componentCode Component code.
-	 * @param networkCode Network code.
-	 * @param locationCode Location code.
-	 * @param stationLatitude station latitude
-	 * @param stationLongitude station longitude
-	 * @param stationElevation station elevation
-	 * @param pickTime Pick time in milliseconds.
-	 * @param locatorPhase Current locator seismic phase code.
-	 * @param originalPhase Original seismic phase code.
-	 * @param usePick If true, this pick may be used in the location.
-	 * @param authorType 1 = automatic contributed, 2 = automatic NEIC, 
-	 * 3 = analyst contributed, 4 = NEIC analyst.
-	 * @param pickAffinity The higher the affinity, the harder it is to re-identify 
-	 * a pick.  By default, the affinity for the four author types would be 
-	 * 1.0, 1.0, 1.5, and 3.0 respectively.
-	 * @param pickQuality The pick standard deviation in seconds.
-	 */
-	public void addPick(String source, String pickID, String stationCode, 
-			String componentCode, String networkCode, String locationCode, 
-			double stationLatitude, double stationLongitude, 
-			double stationElevation, long pickTime, String locatorPhase, 
-			String originalPhase, boolean usePick, int authorType, 
-			double pickAffinity, double pickQuality) {
-		if(picks == null) picks = new ArrayList<PickInput>();
-		picks.add(new PickInput(source, pickID, stationCode, componentCode, 
-			networkCode, locationCode, stationLatitude, stationLongitude, 
-			stationElevation, pickTime, locatorPhase, originalPhase, 
-			usePick, authorType, pickAffinity, pickQuality));
+
+	public LocInput(final LocationRequest request) {
+		setType(request.getType());
+		setEarthModel(request.getEarthModel());
+		setSourceLatitude(request.getSourceLatitude());
+		setSourceLongitude(request.getSourceLongitude());
+		setSourceOriginTime(request.getSourceOriginTime());
+		setSourceDepth(request.getSourceDepth());
+		setInputData(request.getInputData());
+		setIsLocationNew(request.getIsLocationNew());
+		setIsLocationHeld(request.getIsLocationHeld());
+		setIsDepthHeld(request.getIsDepthHeld());
+		setIsBayesianDepth(request.getIsBayesianDepth());
+		setBayesianDepth(request.getBayesianDepth());
+		setBayesianSpread(request.getBayesianSpread());
+		setUseRSTT(request.getUseRSTT());
+		setUseSVD(request.getIsLocationNew());
+		setOutputData(request.getOutputData());
 	}
-	
+
 	/**
-	 * Get the Earth model.
+	 * Read a Bulletin Hydra style event input file.  File open and 
+	 * read exceptions are trapped.
 	 * 
-	 * @return Name of the Earth model to be used
+	 * @param filePath path to hydra file
+	 * @return True if the read was successful
 	 */
-	public String getModel() {
-		return earthModel;
+	public boolean readHydra(String filePath) {
+		BufferedInputStream in;
+		Scanner scan;
+		Pattern affinity = Pattern.compile("\\d*\\.\\d*");
+
+		// Set up the IO.
+		try {
+			in = new BufferedInputStream(new FileInputStream(
+				filePath));
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+			return false;
+		}
+		scan = new Scanner(in);
+		try {
+			// Get the hypocenter information.
+			setSourceOriginTime(new Date(LocUtil.toJavaTime(scan.nextDouble())));
+			setSourceLatitude(scan.nextDouble());
+			setSourceLongitude(scan.nextDouble());
+			setSourceDepth(scan.nextDouble());
+			// Get the analyst commands.
+			setIsLocationHeld(LocUtil.getBoolean(scan.next().charAt(0)));
+			setIsDepthHeld(LocUtil.getBoolean(scan.next().charAt(0)));
+			setIsBayesianDepth(LocUtil.getBoolean(scan.next().charAt(0)));
+			setBayesianDepth(scan.nextDouble());
+			setBayesianSpread(scan.nextDouble());
+			setUseRSTT(LocUtil.getBoolean(scan.next().charAt(0)));
+			setUseSVD(!LocUtil.getBoolean(scan.next().charAt(0))); // True when noSvd is false
+			// Fiddle because the last flag is omitted in earlier data.
+			if(scan.hasNextInt()) {
+				setIsLocationNew(false);
+			} else {
+				setIsLocationNew(LocUtil.getBoolean(scan.next().charAt(0)));
+			}
+			
+			// Get the pick information.
+			while(scan.hasNext()) {
+				gov.usgs.processingformats.Pick newPick = 
+					new gov.usgs.processingformats.Pick();
+
+				// Get the station information.
+				newPick.setId(scan.next());
+				newPick.getSite().setStation(scan.next());
+				newPick.getSite().setChannel(scan.next());
+				newPick.getSite().setNetwork(scan.next());
+				newPick.getSite().setLocation(scan.next());
+				newPick.getSite().setLatitude(scan.nextDouble());
+				newPick.getSite().setLongitude(scan.nextDouble());
+				newPick.getSite().setElevation(scan.nextDouble());
+				// Get the rest of the pick information.  Note that some 
+				// fiddling is required as some of the positional arguments 
+				// are sometimes omitted.
+				newPick.setQuality(scan.nextDouble());
+				if(scan.hasNextDouble()) {
+					newPick.setLocatedPhase("");
+				} else {
+					newPick.setLocatedPhase(scan.next());
+				}
+				newPick.setTime(new Date(LocUtil.toJavaTime(scan.nextDouble())));
+				newPick.setUse(LocUtil.getBoolean(scan.next().charAt(0)));
+				
+				int auth = scan.nextInt();
+				if (auth == 0) {
+					newPick.getSource().setType("ContributedAutomatic");
+				} else if (auth == 1) {
+					newPick.getSource().setType("LocalAutomatic");
+				} else if (auth == 2) {
+					newPick.getSource().setType("ContributedHuman");
+				} else if (auth == 3) {
+					newPick.getSource().setType("LocalHuman");
+				}
+
+				if(scan.hasNextInt() || !scan.hasNext()) {
+					newPick.setAssociatedPhase("");
+					newPick.setAffinity(0d);
+				} else if(scan.hasNext(affinity)) {
+					newPick.setAssociatedPhase("");
+					newPick.setAffinity(scan.nextDouble());
+				} else {
+					newPick.setAssociatedPhase(scan.next());
+					if(scan.hasNext(affinity)) {
+						newPick.setAffinity(scan.nextDouble());
+					} else {
+						newPick.setAffinity(0d);
+					}
+				}
+				// Add the pick to the list
+				getInputData().add(newPick);
+			}
+			scan.close();
+			in.close();
+		} catch (IOException e) {
+			e.printStackTrace();
+			return false;
+		}
+		return true;
 	}
 }

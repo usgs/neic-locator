@@ -13,7 +13,7 @@ import java.util.TreeMap;
 import java.util.regex.Pattern;
 
 import gov.usgs.traveltime.TauUtil;
-
+import gov.usgs.processingformats.*;
 /**
  * Keep all data for one seismic event (earthquake usually).
  * 
@@ -128,45 +128,100 @@ public class Event {
 	 * @param in Location input information
 	 */
 	public void serverIn(LocInput in) {
-		Station station;
-		StationID staID;
-		PickInput pickIn;
-		Pick pick;
-		
 		// Create the hypocenter.
-		hypo = new Hypocenter(LocUtil.toHydraTime(in.originTime), in.sourceLat, 
-				in.sourceLon, in.sourceDepth);
+		hypo = new Hypocenter(LocUtil.toHydraTime(in.getSourceOriginTime().getTime()), 
+				in.getSourceLatitude(), in.getSourceLongitude(), 
+				in.getSourceDepth());
 		// Get the analyst commands.
-		heldLoc = in.heldLoc;
-		heldDepth = in.heldDepth;
-		prefDepth = in.useBayes;
+		heldLoc = in.getIsLocationHeld();
+		heldDepth = in.getIsDepthHeld();
+		prefDepth = in.getIsBayesianDepth();
 		if(prefDepth) {
-			bayesDepth = in.bayesDepth;
-			bayesSpread = in.bayesSpread;
+			bayesDepth = in.getBayesianDepth();
+			bayesSpread = in.getBayesianSpread();
 		}
-		cmndRstt = in.useRstt;
-		cmndCorr = !in.noSvd;		// True when noSvd is false
-		restart = in.newLoc;
+		cmndRstt = in.getUseRSTT();
+		cmndCorr = in.getUseSVD();		// True when noSvd is false
+		restart = in.getIsLocationNew();
 		
 		// Do the pick data.
-		for(int j=0; j<in.picks.size(); j++) {
-			pickIn = in.picks.get(j);
+		for(int j=0; j<in.getInputData().size(); j++) {
+			gov.usgs.processingformats.Pick pickIn = in.getInputData().get(j);
+
+			// source conversion
+			String source = pickIn.getSource().getAgencyID() + "|" +
+			pickIn.getSource().getAuthor();
+
+			// source type conversion
+			int authorType = 1; // default to automatic contributed
+			String typeString = pickIn.getSource().getType();
+			if (typeString == "ContributedAutomatic")
+				authorType = 1; // automatic contributed
+			else if (typeString == "LocalAutomatic")
+				authorType = 2; // automatic NEIC
+			else if (typeString == "ContributedHuman")
+				authorType = 3; // analyst contributed
+			else if (typeString == "LocalHuman")
+				authorType = 4; // NEIC analyst
+
 			// Create the station.
-			staID = new StationID(pickIn.stationCode, pickIn.locationCode, 
-					pickIn.networkCode);
-			station = new Station(staID, pickIn.latitude, pickIn.longitude,
-					pickIn.elevation);
-			pick = new Pick(station, pickIn.componentCode, 
-					LocUtil.toHydraTime(pickIn.pickTime), pickIn.usePick, pickIn.locatorPhase);
-			pick.addIdAids(pickIn.source, pickIn.pickID, pickIn.pickQuality, 
-					pickIn.originalPhase, LocUtil.getAuthCode(pickIn.authorType), 
-					pickIn.pickAffinity);
+			StationID staID = new StationID(pickIn.getSite().getStation(), 
+					pickIn.getSite().getLocation(), 
+					pickIn.getSite().getNetwork());
+			Station station = new Station(staID, pickIn.getSite().getLatitude(), 
+					pickIn.getSite().getLongitude(),
+					pickIn.getSite().getElevation());
+			Pick pick = new Pick(station, pickIn.getSite().getChannel(), 
+					LocUtil.toHydraTime(pickIn.getTime().getTime()), 
+					pickIn.getUse(), pickIn.getLocatedPhase());
+			pick.addIdAids(source, pickIn.getID(), pickIn.getQuality(), 
+					pickIn.getAssociatedPhase(), 
+					LocUtil.getAuthCode(authorType), 
+					pickIn.getAffinity());
 			picks.add(pick);
 		}
 		// Take care of some event initialization.
 		initEvent();
 	}
 	
+/**
+	 * JSON output.  Populate a LocOutput object for the JSON 
+	 * output, it will be packed here after the relocation.
+	 * 
+	 * @return out Location output information
+	 */
+	public LocOutput serverOut() {
+		LocOutput out;
+		PickGroup group;
+		Pick pick;
+		StationID staID;
+		
+		out = new LocOutput(LocUtil.toJavaTime(hypo.originTime), hypo.latitude, 
+				hypo.longitude, hypo.depth, staAssoc, phAssoc, staUsed, phUsed, 
+				azimGap, lestGap, delMin, quality);
+		out.addErrors(seTime, seLat, seLon, seDepth, seResid, errH, errZ, aveH, 
+				hypo.bayesDepth, hypo.bayesSpread, bayesImport, errEllip, exitCode);
+		// Sort the pick groups by distance.
+		groups.sort(new GroupComp());
+		// Pack up the picks.
+		for(int i=0; i<groups.size(); i++) {
+			group = groups.get(i);
+			for(int j=0; j<group.picks.size(); j++) {
+				pick = group.picks.get(j);
+				staID = pick.station.staID;
+				out.addPick(pick.source, pick.authType, pick.dbID, staID.staCode, 
+					pick.chaCode, staID.netCode, staID.locCode, 
+					pick.station.latitude, pick.station.longitude, 
+					pick.station.elevation, LocUtil.toJavaTime(pick.arrivalTime), 
+					pick.phCode, pick.obsCode, pick.residual, group.delta, 
+					group.azimuth, pick.weight, pick.importance, pick.used, 
+					pick.affinity, pick.quality, "");
+			}
+		}
+
+		return out;
+	}
+
 	/**
 	 * Read a Bulletin Hydra style event input file.  File open and 
 	 * read exceptions are trapped.
@@ -681,42 +736,7 @@ public class Event {
 		}
 	}
 	
-	/**
-	 * JSON output.  Populate a LocOutput object for the JSON 
-	 * output, it will be packed here after the relocation.
-	 * 
-	 * @return out Location output information
-	 */
-	public LocOutput serverOut() {
-		LocOutput out;
-		PickGroup group;
-		Pick pick;
-		StationID staID;
-		
-		out = new LocOutput(LocUtil.toJavaTime(hypo.originTime), hypo.latitude, 
-				hypo.longitude, hypo.depth, staAssoc, phAssoc, staUsed, phUsed, 
-				azimGap, lestGap, delMin, quality);
-		out.addErrors(seTime, seLat, seLon, seDepth, seResid, errH, errZ, aveH, 
-				hypo.bayesDepth, hypo.bayesSpread, bayesImport, errEllip, exitCode);
-		// Sort the pick groups by distance.
-		groups.sort(new GroupComp());
-		// Pack up the picks.
-		for(int i=0; i<groups.size(); i++) {
-			group = groups.get(i);
-			for(int j=0; j<group.picks.size(); j++) {
-				pick = picks.get(j);
-				staID = pick.station.staID;
-				out.addPick(pick.source, pick.authType, pick.dbID, staID.staCode, 
-					pick.chaCode, staID.netCode, staID.locCode, 
-					pick.station.latitude, pick.station.longitude, 
-					pick.station.elevation, (long)pick.arrivalTime*1000, 
-					pick.phCode, pick.obsCode, pick.residual, group.delta, 
-					group.azimuth, pick.weight, pick.importance, pick.used, 
-					pick.affinity, pick.quality, "");
-			}
-		}
-		return out;
-	}
+	
 	
 	/**
 	 * Print a station list.

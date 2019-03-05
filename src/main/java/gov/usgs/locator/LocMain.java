@@ -1,13 +1,21 @@
 package gov.usgs.locator;
 
+import java.util.*;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
 import java.io.IOException;
 
 import gov.usgs.traveltime.*;
+import gov.usgs.processingformats.*;
+
+import org.json.simple.parser.ParseException;
 
 /**
  * Test driver for the locator.
  *
- * @author Ray Buland
+ * @author John Patton
  *
  */
 public class LocMain {
@@ -36,6 +44,126 @@ public class LocMain {
 		if (args == null || args.length == 0) {
 			System.out
 					.println("Usage: neic-locator" + 
+						" <modelPath> <filePath> <fileType> ");
+			System.exit(1);
+		}
+
+		// get model path
+		String modelPath = null;
+		if (args != null && args.length >= 1) {
+			modelPath = args[0];
+		}
+
+		// get file path
+		String filePath = null;
+		if (args != null && args.length >= 2) {
+			filePath = args[1];
+		}
+
+		// get file type
+		String fileType = "hydra";
+		if (args != null && args.length >= 3) {
+			fileType = args[2];
+		}
+
+		System.out
+		.println("neic-locator " + modelPath + " " + filePath + " " + fileType);
+
+		// set up service
+		LocService service = new LocService();
+		service.modelPath = modelPath;
+
+		LocationRequest request = null;
+		LocationData result = null;
+		if (fileType != "hydra") {
+			// read the file
+			BufferedReader inputReader = null;
+			String inputString = "";
+			try {
+				inputReader = new BufferedReader(
+						new FileReader(filePath));
+				String text = null;
+
+				// each line is assumed to be part of the input
+				while ((text = inputReader.readLine()) != null) {
+					inputString += text;
+				}
+			} catch (FileNotFoundException e) {
+				System.out.println("Exception: " + e.toString());
+				System.exit(1);
+			} catch (IOException e) {
+				System.out.println("Exception: " + e.toString());
+				System.exit(1);
+			} finally {
+				try {
+					if (inputReader != null) {
+						inputReader.close();
+					}
+				} catch (IOException e) {
+					System.out.println("Exception: " + e.toString());
+				}
+			}
+
+			// parse into request
+			try{
+				request = new LocationRequest(Utility.fromJSONString(inputString));
+
+				String jsonString = Utility.toJSONString(request.toJSON());
+				System.out.println("Input: " + jsonString);
+			} catch(ParseException e) {
+				System.out.println("Exception: " + e.toString());
+				System.exit(1);
+			}
+
+			// check request
+			if (request.isValid() == false) {
+				System.out.println("Invalid request");
+				System.exit(1);
+			}
+
+			// do location
+			try {
+				result = service.getLocation(request);
+			} catch(LocationException e) {
+				System.out.println("Exception: " + e.toString());
+				System.exit(1);
+			}
+		} else {
+			LocInput hydraIn = new LocInput();
+			if(hydraIn.readHydra(filePath) == false) {
+				System.exit(0);
+			}
+			
+			// check hydraIn
+			if (hydraIn.isValid() == false) {
+				System.out.println("Invalid hydraIn");
+				System.exit(1);
+			}
+
+			// do location
+			try {
+				result = service.getLocation(hydraIn);
+			} catch(LocationException e) {
+				System.out.println("Exception: " + e.toString());
+				System.exit(1);
+			}
+		}
+
+		// print result
+		if (result != null) {
+			String jsonString = Utility.toJSONString(result.toJSON());
+			System.out.println("Output: " + jsonString);
+			System.exit(0);
+		}
+
+		// Exit.
+		System.exit(1);
+
+/*
+
+		if (args == null || args.length == 0) {
+			System.out
+					.println("Usage: neic-locator" + 
             " --modelPath=[model path] --eventFile=[event file path]");
       System.exit(0);    
 		}
@@ -43,7 +171,7 @@ public class LocMain {
 		// Set up the earth model.
 		String earthModel = "ak135";
 		// Set up the earthquake file.
-//	String eventID = "Baja_1";
+		//	String eventID = "Baja_1";
 		String eventID = "1000010563_23";
 		// Objects we'll need.
 
@@ -145,6 +273,6 @@ public class LocMain {
 		
 		// Exit.
 		System.exit(event.exitCode);
-
+*/
 	}
 }

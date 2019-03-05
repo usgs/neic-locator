@@ -19,9 +19,13 @@ public class LocService implements LocationService {
     @Override
     public LocationData getLocation(final LocationRequest request) 
         throws LocationException {
-
-        // convert input from json
-        LocInput in = convertRequestToInput(request);
+           
+        LocInput in = new LocInput(request);
+        return(getLocation(in));
+    }
+    
+    public LocationData getLocation(final LocInput in) 
+        throws LocationException {
         
         // init the tt models
         TTSessionLocal ttLocal = null;
@@ -42,7 +46,7 @@ public class LocService implements LocationService {
         }
 
         // setup the event
-        Event event = new Event(in.getModel());
+        Event event = new Event(in.getEarthModel());
         event.serverIn(in);
 
         // setup the locator
@@ -52,10 +56,15 @@ public class LocService implements LocationService {
         LocStatus status = loc.doLoc();
         event.setExitCode(status);
 
+        // only return on a successful completion
+        if (status.status() > 3) {
+            return(null);
+        }
+
         // convert output to json
         return(convertOutputToData(event.serverOut()));
     }
-
+/*
     public LocInput convertRequestToInput(LocationRequest request) {
         // create the loc input
         LocInput in = new LocInput();
@@ -94,6 +103,11 @@ public class LocService implements LocationService {
             else if (typeString == "LocalHuman")
                 authorType = 4; // NEIC analyst
 
+            // prevent null crash if located phase (optional) isn't provided
+            if (aPick.getLocatedPhase() == null) {
+                aPick.setLocatedPhase(aPick.getAssociatedPhase());
+            }
+
             // add the pick
             in.addPick(source, aPick.getID(), aPick.getSite().getStation(),
                 aPick.getSite().getChannel(), aPick.getSite().getNetwork(), 
@@ -106,13 +120,13 @@ public class LocService implements LocationService {
 
         return(in);
     }
-
+*/
     public LocationData convertOutputToData(LocOutput out) {
         ArrayList<gov.usgs.processingformats.Pick> picks = 
             new ArrayList<gov.usgs.processingformats.Pick>();
 
         // for each pick we have
-        for (Iterator<PickOutput> pickIterator =  out.picks.iterator(); 
+        for (Iterator<PickOutput> pickIterator = out.picks.iterator(); 
             pickIterator.hasNext();) {
 
             // get the next pick
@@ -123,16 +137,17 @@ public class LocService implements LocationService {
 
             // source type conversion
             String typeString = "ContributedAutomatic";
-            switch(aPick.authorType) {
-                case CONTRIB_AUTO: // automatic contributed
+            switch(aPick.authorType.ordinal()) {
+                case 0: // CONTRIB_AUTO: // automatic contributed
                     typeString = "ContributedAutomatic"; 
                     break;
-                case LOCAL_AUTO: // automatic NEIC
+                case 1: // LOCAL_AUTO: // automatic NEIC
                     typeString = "LocalAutomatic"; 
-                case CONTRIB_HUMAN: // analyst contributed
+                    break;
+                case 2: // CONTRIB_HUMAN: // analyst contributed
                     typeString = "ContributedHuman"; 
                     break;
-                case LOCAL_HUMAN: // NEIC analyst
+                case 3: // LOCAL_HUMAN: // NEIC analyst
                     typeString = "LocalHuman"; 
                     break;
             }
