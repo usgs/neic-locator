@@ -155,14 +155,24 @@ public class Event {
 			// source type conversion
 			int authorType = 1; // default to automatic contributed
 			String typeString = pickIn.getSource().getType();
-			if (typeString == "ContributedAutomatic")
+			if (typeString.equals("ContributedAutomatic"))
 				authorType = 1; // automatic contributed
-			else if (typeString == "LocalAutomatic")
+			else if (typeString.equals("LocalAutomatic"))
 				authorType = 2; // automatic NEIC
-			else if (typeString == "ContributedHuman")
+			else if (typeString.equals("ContributedHuman"))
 				authorType = 3; // analyst contributed
-			else if (typeString == "LocalHuman")
+			else if (typeString.equals("LocalHuman"))
 				authorType = 4; // NEIC analyst
+
+			// make sure phCode and obsCode are not null
+			String phCode = "";
+			if (pickIn.getPickedPhase() != null) {
+				phCode = pickIn.getPickedPhase();
+			}
+			String obsCode = "";
+			if (pickIn.getAssociatedPhase() != null) {
+				obsCode = pickIn.getAssociatedPhase();
+			}
 
 			// Create the station.
 			StationID staID = new StationID(pickIn.getSite().getStation(), 
@@ -173,10 +183,9 @@ public class Event {
 					pickIn.getSite().getElevation());
 			Pick pick = new Pick(station, pickIn.getSite().getChannel(), 
 					LocUtil.toHydraTime(pickIn.getTime().getTime()), 
-					pickIn.getUse(), pickIn.getLocatedPhase());
+					pickIn.getUse(), phCode);
 			pick.addIdAids(source, pickIn.getID(), pickIn.getQuality(), 
-					pickIn.getAssociatedPhase(), 
-					LocUtil.getAuthCode(authorType), 
+					obsCode, LocUtil.getAuthCode(authorType), 
 					pickIn.getAffinity());
 			picks.add(pick);
 		}

@@ -45,6 +45,11 @@ public class LocService implements LocationService {
             e.printStackTrace();
         }
 
+        // make sure we have an earth model
+        if (in.getEarthModel() == null) {
+            in.setEarthModel("ak135");
+        }
+
         // setup the event
         Event event = new Event(in.getEarthModel());
         event.serverIn(in);
@@ -56,6 +61,8 @@ public class LocService implements LocationService {
         LocStatus status = loc.doLoc();
         event.setExitCode(status);
 
+        event.printNEIC();
+
         // only return on a successful completion
         if (status.status() > 3) {
             return(null);
@@ -64,63 +71,7 @@ public class LocService implements LocationService {
         // convert output to json
         return(convertOutputToData(event.serverOut()));
     }
-/*
-    public LocInput convertRequestToInput(LocationRequest request) {
-        // create the loc input
-        LocInput in = new LocInput();
-        
-        // fill in location information
-        in.addLoc(request.getEarthModel(), 
-            request.getSourceOriginTime().getTime(), request.getSourceLatitude(), 
-            request.getSourceLongitude(), request.getSourceDepth(),
-            request.getBayesianDepth(), request.getBayesianSpread(),
-            request.getIsLocationHeld(), request.getIsDepthHeld(),
-            request.getIsBayesianDepth(), request.getUseRSTT(), 
-            request.getUseSVD(), request.getIsLocationNew());
 
-        // add the picks
-        // for each pick we have
-        for (Iterator<gov.usgs.processingformats.Pick> pickIterator = 
-            request.getInputData().iterator(); pickIterator.hasNext();) {
-            
-            // get the next pick
-            gov.usgs.processingformats.Pick aPick = 
-                (gov.usgs.processingformats.Pick) pickIterator.next();
-
-            // source conversion
-            String source = aPick.getSource().getAgencyID() + "|" +
-                aPick.getSource().getAuthor();
-
-            // source type conversion
-            int authorType = 1; // default to automatic contributed
-            String typeString = aPick.getSource().getType();
-            if (typeString == "ContributedAutomatic")
-                authorType = 1; // automatic contributed
-            else if (typeString == "LocalAutomatic")
-                authorType = 2; // automatic NEIC
-            else if (typeString == "ContributedHuman")
-                authorType = 3; // analyst contributed
-            else if (typeString == "LocalHuman")
-                authorType = 4; // NEIC analyst
-
-            // prevent null crash if located phase (optional) isn't provided
-            if (aPick.getLocatedPhase() == null) {
-                aPick.setLocatedPhase(aPick.getAssociatedPhase());
-            }
-
-            // add the pick
-            in.addPick(source, aPick.getID(), aPick.getSite().getStation(),
-                aPick.getSite().getChannel(), aPick.getSite().getNetwork(), 
-                aPick.getSite().getLocation(), aPick.getSite().getLatitude(),
-                aPick.getSite().getLongitude(), aPick.getSite().getElevation(),
-                aPick.getTime().getTime(), aPick.getLocatedPhase(), 
-                aPick.getAssociatedPhase(), aPick.getUse(), authorType, 
-                aPick.getAffinity(), aPick.getQuality());
-        }
-
-        return(in);
-    }
-*/
     public LocationData convertOutputToData(LocOutput out) {
         ArrayList<gov.usgs.processingformats.Pick> picks = 
             new ArrayList<gov.usgs.processingformats.Pick>();
@@ -137,17 +88,17 @@ public class LocService implements LocationService {
 
             // source type conversion
             String typeString = "ContributedAutomatic";
-            switch(aPick.authorType.ordinal()) {
-                case 0: // CONTRIB_AUTO: // automatic contributed
+            switch(aPick.authorType) {
+                case CONTRIB_AUTO: // automatic contributed
                     typeString = "ContributedAutomatic"; 
                     break;
-                case 1: // LOCAL_AUTO: // automatic NEIC
+                case LOCAL_AUTO: // automatic NEIC
                     typeString = "LocalAutomatic"; 
                     break;
-                case 2: // CONTRIB_HUMAN: // analyst contributed
+                case CONTRIB_HUMAN: // analyst contributed
                     typeString = "ContributedHuman"; 
                     break;
-                case 3: // LOCAL_HUMAN: // NEIC analyst
+                case LOCAL_HUMAN: // NEIC analyst
                     typeString = "LocalHuman"; 
                     break;
             }

@@ -2,6 +2,8 @@ package gov.usgs.locator;
 
 import java.util.ArrayList;
 
+import gov.usgs.processingformats.*;
+
 /**
  * Locator outputs from an event relocation.  This class is designed to contain 
  * all parameters resulting from a Locator pass.  An object of this class should 
@@ -10,7 +12,7 @@ import java.util.ArrayList;
  * @author Ray Buland
  *
  */
-public class LocOutput {
+public class LocOutput extends LocationData {
 	long originTime;				// Source origin time
 	double sourceLat;				// Geographic source latitude in degrees
 	double sourceLon;				// Geographic source longitude in degrees
@@ -176,4 +178,25 @@ public class LocOutput {
 			picks.get(j).printNEIC();
 		}
 	}
+
+	/**
+	 * Print out picks in the group in a way similar to the NEIC web format.
+	 */
+/*	public void printNEICPicks() {
+		switch(authorType) {
+			case CONTRIB_HUMAN: case LOCAL_HUMAN:
+				System.out.format("%-2s %-5s %-3s %-2s  %5.1f     %3.0f   %-8s %12s "+
+						" manual    %6.1f    %4.2f\n", networkCode, stationCode, 
+						componentCode, locationCode, delta, azimuth, locatorPhase, 
+						LocUtil.getNEICtime(pickTime), residual, weight);
+				break;
+			default:
+				System.out.format("%-2s %-5s %-3s %-2s  %5.1f     %3.0f   %-8s %12s "+
+						" automatic  %6.1f    %4.2f\n", networkCode, stationCode, 
+						componentCode, locationCode, delta, azimuth, locatorPhase, 
+						LocUtil.getNEICtime(pickTime), residual, weight);
+				break;
+		}
+	}*/
+
 }

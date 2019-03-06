@@ -75,7 +75,8 @@ public class LocMain {
 
 		LocationRequest request = null;
 		LocationData result = null;
-		if (fileType != "hydra") {
+		if (fileType.equals("json")) {
+			System.out.println("Reading a json file.");
 			// read the file
 			BufferedReader inputReader = null;
 			String inputString = "";
@@ -117,7 +118,15 @@ public class LocMain {
 
 			// check request
 			if (request.isValid() == false) {
-				System.out.println("Invalid request");
+				ArrayList<String> errorList = request.getErrors();
+
+				// combine the errors into a single string
+				String errorString = new String();
+				for (int i = 0; i < errorList.size(); i++) {
+					errorString += " " + errorList.get(i);
+				}
+
+				System.out.println("Invalid request: " + errorString);
 				System.exit(1);
 			}
 
@@ -129,14 +138,26 @@ public class LocMain {
 				System.exit(1);
 			}
 		} else {
+			System.out.println("Reading a hydra file.");
 			LocInput hydraIn = new LocInput();
 			if(hydraIn.readHydra(filePath) == false) {
 				System.exit(0);
 			}
 			
+			String jsonString = Utility.toJSONString(hydraIn.toJSON());
+			System.out.println("Input: " + jsonString);
+
 			// check hydraIn
 			if (hydraIn.isValid() == false) {
-				System.out.println("Invalid hydraIn");
+				ArrayList<String> errorList = hydraIn.getErrors();
+
+				// combine the errors into a single string
+				String errorString = new String();
+				for (int i = 0; i < errorList.size(); i++) {
+					errorString += " " + errorList.get(i);
+				}
+
+				System.out.println("Invalid hydraIn: " + errorString);
 				System.exit(1);
 			}
 
