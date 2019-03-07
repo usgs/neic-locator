@@ -165,6 +165,14 @@ public class LocOutput extends LocationData {
 				break;
 		}
 
+    // empty phases become null in proc formats
+    if(originalPhase.equals("")) {
+      originalPhase = null;
+    }
+    if(locatorPhase.equals("")) {
+      locatorPhase = null;
+    }
+
 		// note no place for pick quality or pick error code
 		getAssociatedData().add(new gov.usgs.processingformats.Pick(pickID, 
 			stationCode, componentCode, networkCode, locationCode, 

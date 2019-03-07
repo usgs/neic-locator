@@ -1,15 +1,15 @@
 package gov.usgs.locator;
 
-import java.util.*;
+import gov.usgs.processingformats.LocationData;
+import gov.usgs.processingformats.LocationException;
+import gov.usgs.processingformats.LocationRequest;
+import gov.usgs.processingformats.Utility;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
-
-import gov.usgs.traveltime.*;
-import gov.usgs.processingformats.*;
-
+import java.util.ArrayList;
 import org.json.simple.parser.ParseException;
 
 /**
@@ -34,157 +34,183 @@ public class LocMain {
    */
   public static final String VERSION_ARGUMENT = "--version";
 
-	/**
-	 * Main program for testing the locator.
-	 * 
-	 * @param args Command line arguments
-	 */
-	public static void main(String[] args) {
+  /**
+   * Main program for testing the locator.
+   * 
+   * @param args Command line arguments
+   */
+  public static void main(String[] args) {
+    if (args == null || args.length == 0) {
+      System.out.println("Usage: neic-locator" 
+          + " <modelPath> <filePath> <fileType> ");
+      System.exit(1);
+    }
 
-		if (args == null || args.length == 0) {
-			System.out
-					.println("Usage: neic-locator" + 
-						" <modelPath> <filePath> <fileType> ");
-			System.exit(1);
-		}
+    // get model path
+    String modelPath = null;
+    if (args != null && args.length >= 1) {
+      modelPath = args[0];
+    }
 
-		// get model path
-		String modelPath = null;
-		if (args != null && args.length >= 1) {
-			modelPath = args[0];
-		}
+    // get file path
+    String filePath = null;
+    if (args != null && args.length >= 2) {
+      filePath = args[1];
+    }
 
-		// get file path
-		String filePath = null;
-		if (args != null && args.length >= 2) {
-			filePath = args[1];
-		}
+    // get file type
+    String fileType = "hydra";
+    if (args != null && args.length >= 3) {
+      fileType = args[2];
+    }
 
-		// get file type
-		String fileType = "hydra";
-		if (args != null && args.length >= 3) {
-			fileType = args[2];
-		}
+    // print out args
+    System.out.println("neic-locator " + modelPath + " " + filePath + " "
+        + fileType);
 
-		System.out
-		.println("neic-locator " + modelPath + " " + filePath + " " + fileType);
+    // set up service
+    LocService service = new LocService();
+    service.modelPath = modelPath;
 
-		// set up service
-		LocService service = new LocService();
-		service.modelPath = modelPath;
+    LocationRequest request = null;
+    LocationData result = null;
+    if (fileType.equals("json")) {
+      System.out.println("Reading a json file.");
+      // read the file
+      BufferedReader inputReader = null;
+      String inputString = "";
+      try {
+        inputReader = new BufferedReader(
+            new FileReader(filePath));
+        String text = null;
 
-		LocationRequest request = null;
-		LocationData result = null;
-		if (fileType.equals("json")) {
-			System.out.println("Reading a json file.");
-			// read the file
-			BufferedReader inputReader = null;
-			String inputString = "";
-			try {
-				inputReader = new BufferedReader(
-						new FileReader(filePath));
-				String text = null;
+        // each line is assumed to be part of the input
+        while ((text = inputReader.readLine()) != null) {
+          inputString += text;
+        }
+      } catch (FileNotFoundException e) {
+        System.out.println("Exception: " + e.toString());
+        System.exit(1);
+      } catch (IOException e) {
+        System.out.println("Exception: " + e.toString());
+        System.exit(1);
+      } finally {
+        try {
+          if (inputReader != null) {
+            inputReader.close();
+          }
+        } catch (IOException e) {
+          System.out.println("Exception: " + e.toString());
+        }
+      }
 
-				// each line is assumed to be part of the input
-				while ((text = inputReader.readLine()) != null) {
-					inputString += text;
-				}
-			} catch (FileNotFoundException e) {
-				System.out.println("Exception: " + e.toString());
-				System.exit(1);
-			} catch (IOException e) {
-				System.out.println("Exception: " + e.toString());
-				System.exit(1);
-			} finally {
-				try {
-					if (inputReader != null) {
-						inputReader.close();
-					}
-				} catch (IOException e) {
-					System.out.println("Exception: " + e.toString());
-				}
-			}
+      // parse into request
+      try {
+        request = new LocationRequest(Utility.fromJSONString(inputString));
 
-			// parse into request
-			try{
-				request = new LocationRequest(Utility.fromJSONString(inputString));
+        String jsonString = Utility.toJSONString(request.toJSON());
+        System.out.println("Input: \n" + jsonString);
+      } catch (ParseException e) {
+        System.out.println("Exception: " + e.toString());
+        System.exit(1);
+      }
 
-				String jsonString = Utility.toJSONString(request.toJSON());
-				System.out.println("Input: " + jsonString);
-			} catch(ParseException e) {
-				System.out.println("Exception: " + e.toString());
-				System.exit(1);
-			}
+      // check request
+      if (request.isValid() == false) {
+        ArrayList<String> errorList = request.getErrors();
 
-			// check request
-			if (request.isValid() == false) {
-				ArrayList<String> errorList = request.getErrors();
+        // combine the errors into a single string
+        String errorString = new String();
+        for (int i = 0; i < errorList.size(); i++) {
+          errorString += " " + errorList.get(i);
+        }
 
-				// combine the errors into a single string
-				String errorString = new String();
-				for (int i = 0; i < errorList.size(); i++) {
-					errorString += " " + errorList.get(i);
-				}
+        System.out.println("Invalid request: " + errorString);
+        System.exit(1);
+      }
 
-				System.out.println("Invalid request: " + errorString);
-				System.exit(1);
-			}
+      // do location
+      try {
+        result = service.getLocation(request);
+      } catch (LocationException e) {
+        System.out.println("Exception: " + e.toString());
+        System.exit(1);
+      }
 
-			// do location
-			try {
-				result = service.getLocation(request);
-			} catch(LocationException e) {
-				System.out.println("Exception: " + e.toString());
-				System.exit(1);
-			}
-		} else {
-			System.out.println("Reading a hydra file.");
-			LocInput hydraIn = new LocInput();
-			LocOutput hydraOut = null;
-			if(hydraIn.readHydra(filePath) == false) {
-				System.exit(0);
-			}
-			
-			String jsonString = Utility.toJSONString(hydraIn.toJSON());
-			System.out.println("Input: " + jsonString);
+      // check result
+      if (result.isValid() == false) {
+        ArrayList<String> errorList = result.getErrors();
 
-			// check hydraIn
-			if (hydraIn.isValid() == false) {
-				ArrayList<String> errorList = hydraIn.getErrors();
+        // combine the errors into a single string
+        String errorString = new String();
+        for (int i = 0; i < errorList.size(); i++) {
+          errorString += " " + errorList.get(i);
+        }
 
-				// combine the errors into a single string
-				String errorString = new String();
-				for (int i = 0; i < errorList.size(); i++) {
-					errorString += " " + errorList.get(i);
-				}
+        System.out.println("Invalid result: " + errorString);
+      }      
+    } else {
+      System.out.println("Reading a hydra file.");
+      LocInput hydraIn = new LocInput();
+      LocOutput hydraOut = null;
+      if (hydraIn.readHydra(filePath) == false) {
+        System.exit(0);
+      }
+      
+      String jsonString = Utility.toJSONString(hydraIn.toJSON());
+      System.out.println("Input: " + jsonString);
 
-				System.out.println("Invalid hydraIn: " + errorString);
-				System.exit(1);
-			}
+      // check hydraIn
+      if (hydraIn.isValid() == false) {
+        ArrayList<String> errorList = hydraIn.getErrors();
 
-			// do location
-			try {
-				hydraOut = service.getLocation(hydraIn);
-			} catch(LocationException e) {
-				System.out.println("Exception: " + e.toString());
-				System.exit(1);
-			}
+        // combine the errors into a single string
+        String errorString = new String();
+        for (int i = 0; i < errorList.size(); i++) {
+          errorString += " " + errorList.get(i);
+        }
 
-			System.out.println("Writing a hydra file.");
-			hydraOut.writeHydra(filePath + ".out");
-			result = (LocationData)hydraOut;
-		}
+        System.out.println("Invalid hydraIn: " + errorString);
+        System.exit(1);
+      }
 
-		// print result
-		if (result != null) {
-			String jsonString = Utility.toJSONString(result.toJSON());
-			System.out.println("Output: " + jsonString);
-			System.exit(0);
-		}
+      // do location
+      try {
+        hydraOut = service.getLocation(hydraIn);
+      } catch (LocationException e) {
+        System.out.println("Exception: " + e.toString());
+        System.exit(1);
+      }
 
-		// Exit.
-		System.exit(1);
+      // check hydraOut
+      if (hydraOut.isValid() == false) {
+        ArrayList<String> errorList = hydraOut.getErrors();
 
+        // combine the errors into a single string
+        String errorString = new String();
+        for (int i = 0; i < errorList.size(); i++) {
+          errorString += " " + errorList.get(i);
+        }
+
+        System.out.println("Invalid hydraOut: " + errorString);
+      }
+
+      System.out.println("Writing a hydra file.");
+      hydraOut.writeHydra(filePath + ".out");
+      result = (LocationData)hydraOut;
+    }
+
+    // print result
+    if (result != null) {
+      String jsonString = Utility.toJSONString(result.toJSON());
+      System.out.println("Output: \n" + jsonString);
+      System.exit(0);
+    }
+
+    // Exit.
+    System.exit(1);
+  }
+}
 /*
 
 		if (args == null || args.length == 0) {
@@ -302,3 +328,4 @@ public class LocMain {
 */
 	}
 }
+*/
