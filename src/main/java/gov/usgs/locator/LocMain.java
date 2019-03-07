@@ -1,6 +1,6 @@
 package gov.usgs.locator;
 
-import gov.usgs.processingformats.LocationResult;
+import gov.usgs.processingformats.LocationData;
 import gov.usgs.processingformats.LocationException;
 import gov.usgs.processingformats.LocationRequest;
 import gov.usgs.processingformats.Utility;
@@ -125,14 +125,27 @@ public class LocMain {
       // parse into request
       try {
         request = new LocationRequest(Utility.fromJSONString(inputString));
+
+        String jsonString = Utility.toJSONString(request.toJSON());
+        System.out.println("Input: \n" + jsonString);
       } catch (ParseException e) {
         System.out.println("Exception: " + e.toString());
         System.exit(1);
       }
 
-      // always print input as json for debugging
-      String jsonString = Utility.toJSONString(request.toJSON());
-      System.out.println("JSON Input: \n" + jsonString);
+      // check request
+      if (request.isValid() == false) {
+        ArrayList<String> errorList = request.getErrors();
+
+        // combine the errors into a single string
+        String errorString = new String();
+        for (int i = 0; i < errorList.size(); i++) {
+          errorString += " " + errorList.get(i);
+        }
+
+        System.out.println("Invalid request: " + errorString);
+        System.exit(1);
+      }
 
       // do location
       try {
@@ -141,18 +154,43 @@ public class LocMain {
         System.out.println("Exception: " + e.toString());
         System.exit(1);
       }
+
+      // check result
+      if (result.isValid() == false) {
+        ArrayList<String> errorList = result.getErrors();
+
+        // combine the errors into a single string
+        String errorString = new String();
+        for (int i = 0; i < errorList.size(); i++) {
+          errorString += " " + errorList.get(i);
+        }
+
+        System.out.println("Invalid result: " + errorString);
+      }      
     } else {
       System.out.println("Reading a hydra file.");
-      // run as LocInput/LocOutput to get access to read/write routines
       LocInput hydraIn = new LocInput();
       LocOutput hydraOut = null;
       if (hydraIn.readHydra(filePath) == false) {
         System.exit(0);
       }
       
-      // always print input as json for debugging
       String jsonString = Utility.toJSONString(hydraIn.toJSON());
-      System.out.println("JSON Input: " + jsonString);
+      System.out.println("Input: " + jsonString);
+
+      // check hydraIn
+      if (hydraIn.isValid() == false) {
+        ArrayList<String> errorList = hydraIn.getErrors();
+
+        // combine the errors into a single string
+        String errorString = new String();
+        for (int i = 0; i < errorList.size(); i++) {
+          errorString += " " + errorList.get(i);
+        }
+
+        System.out.println("Invalid hydraIn: " + errorString);
+        System.exit(1);
+      }
 
       // do location
       try {
@@ -161,18 +199,29 @@ public class LocMain {
         System.out.println("Exception: " + e.toString());
         System.exit(1);
       }
-      
-      if (hydraOut != null) {
-        System.out.println("Writing a hydra file.");
-        hydraOut.writeHydra(filePath + ".out");
-        result = (LocationResult)hydraOut;
+
+      // check hydraOut
+      if (hydraOut.isValid() == false) {
+        ArrayList<String> errorList = hydraOut.getErrors();
+
+        // combine the errors into a single string
+        String errorString = new String();
+        for (int i = 0; i < errorList.size(); i++) {
+          errorString += " " + errorList.get(i);
+        }
+
+        System.out.println("Invalid hydraOut: " + errorString);
       }
+
+      System.out.println("Writing a hydra file.");
+      hydraOut.writeHydra(filePath + ".out");
+      result = (LocationData)hydraOut;
     }
 
-    // always print result as json for debugging
+    // print result
     if (result != null) {
       String jsonString = Utility.toJSONString(result.toJSON());
-      System.out.println("JSON Output: \n" + jsonString);
+      System.out.println("Output: \n" + jsonString);
       System.exit(0);
     }
 
