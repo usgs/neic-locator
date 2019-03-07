@@ -239,7 +239,7 @@ public class Event {
 	 * @param eventPath If not null, location of Hydra event file directory
 	 * @return True if the read was successful
 	 */
-	public boolean readHydra(String eventID, String eventPath) {
+/*	public boolean readHydra(String eventID, String eventPath) {
 		BufferedInputStream in;
 		Scanner scan;
 		char held, heldDep, prefDep, rstt, noSvd, moved, cmndUse;
@@ -359,7 +359,7 @@ public class Event {
 		// Take care of some event initialization.
 		initEvent();
 		return true;
-	}
+	}*/
 	
 	/**
 	 * Initialize the commands, changed flag, pick and station counts, 

@@ -1,8 +1,11 @@
 package gov.usgs.locator;
 
 import java.util.ArrayList;
+import java.util.Date;
+import java.io.PrintWriter;
 
 import gov.usgs.processingformats.*;
+
 
 /**
  * Locator outputs from an event relocation.  This class is designed to contain 
@@ -13,32 +16,11 @@ import gov.usgs.processingformats.*;
  *
  */
 public class LocOutput extends LocationData {
-	long originTime;				// Source origin time
-	double sourceLat;				// Geographic source latitude in degrees
-	double sourceLon;				// Geographic source longitude in degrees
-	double sourceDepth;			// Source depth relative to the WGS84 datum in kilometers
-	int noStations;					// Number of stations associated
-	int noPicks;						// Number of phases associated
-	int stationsUsed;				// Number of stations used in the location
-	int picksUsed;					// Number of phases used in the location
-	double azimuthGap;			// Azimuthal gap in degrees
-	double azimuthGap2;			// The robust azimuthal gap in degrees
-	double minDelta;				// Distance to the closest station in degrees
-	String qualityFlags;		// Location quality flags
-	double timeError;				// Origin time marginal confidence interval in seconds
-	double latError;				// Latitude marginal confidence interval in kilometers
-	double lonError;				// Longitude marginal confidence interval in kilometers
-	double depthError;			// Depth marginal confidence interval in kilometers
-	double stdError;				// Standard error of the residuals in seconds
-	double errh;						// Maximum projection of the horizontal error in kilometers
-	double errz;						// Maximum projection of the depth error in kilometers
-	double avh;							// Equivalent radius of the error ellipse
-	double bayesDepth;			// Final Bayesian depth in kilometers
-	double bayesSpread;			// Final Bayesian spread in kilometers
-	double depthImport;			// Depth data importance
-	EllipAxis[] ellipsoid;	// 3-D error ellipsoid in kilometers and degrees
 	int exitCode;						// Exit code
-	ArrayList<PickOutput> picks;
+
+	public LocOutput() {
+		super();
+	}
 	
 	/**
 	 * The following hypocenter parameters are produced by an event relocation.
@@ -60,18 +42,25 @@ public class LocOutput extends LocationData {
 			double sourceDepth, int noStations, int noPicks, 
 			int stationsUsed, int picksUsed, double azimuthGap, 
 			double azimuthGap2, double minDelta, String qualityFlags) {
-		this.originTime = originTime;
-		this.sourceLat = sourceLat;
-		this.sourceLon = sourceLon;
-		this.sourceDepth = sourceDepth;
-		this.noStations = noStations;
-		this.noPicks = noPicks;
-		this.stationsUsed = stationsUsed;
-		this.picksUsed = picksUsed;
-		this.azimuthGap = azimuthGap;
-		this.azimuthGap2 = azimuthGap2;
-		this.minDelta = minDelta;
-		this.qualityFlags = qualityFlags;
+
+		// create subobjects
+		setHypocenter(new gov.usgs.processingformats.Hypocenter());
+		setErrorEllipse(new gov.usgs.processingformats.ErrorEllipse());
+		setAssociatedData(new ArrayList<gov.usgs.processingformats.Pick>());
+
+		// fill in information
+		getHypocenter().setTime(new Date(originTime));
+		getHypocenter().setLatitude(sourceLat);
+		getHypocenter().setLongitude(sourceLon);
+		getHypocenter().setDepth(sourceDepth);
+		setNumberOfAssociatedStations(noStations);
+		setNumberOfAssociatedPhases(noPicks);
+		setNumberOfUsedStations(stationsUsed);
+		setNumberOfUsedPhases(picksUsed);
+		setGap(azimuthGap);
+		setSecondaryGap(azimuthGap2);
+		setMinimumDistance(minDelta);
+		setQuality(qualityFlags);
 	}
 	
 	/**
@@ -95,18 +84,28 @@ public class LocOutput extends LocationData {
 			double depthError, double stdError, double errh, double errz, 
 			double avh, double bayesDepth, double bayesSpread, double depthImport, 
 			EllipAxis[] ellipsoid, int exitCode) {
-		this.timeError = timeError;
-		this.latError = latError;
-		this.lonError = lonError;
-		this.depthError = depthError;
-		this.stdError = stdError;
-		this.errh = errh;
-		this.errz = errz;
-		this.avh = avh;
-		this.bayesDepth = bayesDepth;
-		this.bayesSpread = bayesSpread;
-		this.depthImport = depthImport;
-		this.ellipsoid = ellipsoid;
+
+		getHypocenter().setTimeError(timeError);
+		getHypocenter().setLatitudeError(latError);
+		getHypocenter().setLongitudeError(lonError);
+		getHypocenter().setDepthError(depthError);
+		setRms(stdError);
+		getErrorEllipse().setMaximumHorizontalProjection(errh);
+		getErrorEllipse().setMaximumVerticalProjection(errz);
+		getErrorEllipse().setEquivalentHorizontalRadius(avh);
+		getErrorEllipse().setE0Error(ellipsoid[0].semiLen);
+		getErrorEllipse().setE0Azimuth(ellipsoid[0].azimuth);
+		getErrorEllipse().setE0Dip(ellipsoid[0].plunge);
+		getErrorEllipse().setE1Error(ellipsoid[1].semiLen);
+		getErrorEllipse().setE1Azimuth(ellipsoid[1].azimuth);
+		getErrorEllipse().setE1Dip(ellipsoid[1].plunge);
+		getErrorEllipse().setE2Error(ellipsoid[2].semiLen);
+		getErrorEllipse().setE2Azimuth(ellipsoid[2].azimuth);
+		getErrorEllipse().setE2Dip(ellipsoid[2].plunge);
+		setBayesianDepth(bayesDepth);
+		setBayesianRange(bayesSpread);
+		setDepthImportance(depthImport);
+
 		this.exitCode = exitCode;
 	}
 	
@@ -145,58 +144,92 @@ public class LocOutput extends LocationData {
 			String originalPhase, double residual, double delta, double azimuth, 
 			double weight, double pickImport, boolean useFlag, 
 			double pickAffinity, double pickQuality, String errorCode) {
-		if(picks == null) picks = new ArrayList<PickOutput>();
+	
+		// source conversion
+		String[] sourceArray = source.split("\\|", -1);
 
-		picks.add(new PickOutput(source, authType, pickID, stationCode, 
-			componentCode, networkCode, locationCode, stationLatitude, 
-			stationLongitude, stationElevation, pickTime, locatorPhase, 
-			originalPhase, residual, delta, azimuth, weight, pickImport, 
-			useFlag, pickAffinity, pickQuality, errorCode));
+		// source type conversion
+		String typeString = "ContributedAutomatic";
+		switch(authType) {
+			case CONTRIB_AUTO: // automatic contributed
+				typeString = "ContributedAutomatic"; 
+				break;
+			case LOCAL_AUTO: // automatic NEIC
+				typeString = "LocalAutomatic"; 
+				break;
+			case CONTRIB_HUMAN: // analyst contributed
+				typeString = "ContributedHuman"; 
+				break;
+			case LOCAL_HUMAN: // NEIC analyst
+				typeString = "LocalHuman"; 
+				break;
+		}
+
+		// note no place for pick quality or pick error code
+		getAssociatedData().add(new gov.usgs.processingformats.Pick(pickID, 
+			stationCode, componentCode, networkCode, locationCode, 
+			stationLatitude, stationLongitude, stationElevation, sourceArray[0], 
+			sourceArray[1], typeString, new Date(pickTime), pickAffinity, 
+			pickQuality, useFlag, null, originalPhase, locatorPhase, residual,
+			delta, azimuth, weight, pickImport));
 	}
 	
 	/**
-	 * Print an NEIC style web output.
+	 * Write a Bulletin Hydra style output file.
 	 */
-	public void printNEIC() {
-		// Print the hypocenter.
-		System.out.format("\nLocation:             %-7s %-8s ±%6.1f km\n", 
-				LocUtil.niceLat(sourceLat), LocUtil.niceLon(sourceLon), 
-				errh);
-		System.out.format("Depth:                %5.1f ±%6.1f km\n", 
-				sourceDepth, errz);
-		System.out.format("Origin Time:          %23s UTC\n", 
-				LocUtil.getNEICdate(originTime));
-		System.out.format("Number of Stations:     %4d\n", noStations);
-		System.out.format("Number of Phases:       %4d\n", noPicks);
-		System.out.format("Minimum Distance:     %6.1f\n", minDelta);
-		System.out.format("Travel Time Residual:  %5.2f\n", timeError);
-		System.out.format("Azimuthal Gap:           %3.0f\n", azimuthGap);
-		System.out.println("\n    Channel     Distance Azimuth Phase  "+
-				"   Arrival Time Status    Residual Weight");
-		// Print the picks.
-		for(int j=0; j<picks.size(); j++) {
-			picks.get(j).printNEIC();
+	public boolean writeHydra(String filePath) {
+		try {
+			PrintWriter fileWriter = new PrintWriter(filePath, "UTF-8");
+
+			fileWriter.format("\n%14.3f %8.4f %9.4f %6.2f %4d %4d %4d %4d %3.0f " +
+					"%8.4f\n", 
+					LocUtil.toHydraTime(getHypocenter().getTime().getTime()),
+					getHypocenter().getLatitude(), getHypocenter().getLongitude(),
+					getHypocenter().getDepth(), getNumberOfAssociatedStations(),
+					getNumberOfAssociatedPhases(), getNumberOfUsedStations(),
+					getNumberOfUsedPhases(), getGap(), getMinimumDistance());
+			fileWriter.format("%6.2f %6.1f %6.1f %6.1f %6.2f %6.1f %6.1f %6.1f "+
+				"%3s %5.1f %5.1f %6.4f\n", getHypocenter().getTimeError(), 
+				getHypocenter().getLatitudeError(), 
+				getHypocenter().getLongitudeError(), 
+				getHypocenter().getDepthError(), getRMS(), 
+				getErrorEllipse().getMaximumHorizontalProjection(), 
+				getErrorEllipse().getMaximumVerticalProjection(), 
+				getErrorEllipse().getEquivalentHorizontalRadius(), 
+				getQuality(), getBayesianDepth(), getBayesianRange(), 
+				getDepthImportance());
+			fileWriter.format("%6.1f %3.0f %3.0f ", getErrorEllipse().getE0Error(), 
+				getErrorEllipse().getE0Azimuth(), getErrorEllipse().getE0Dip());	
+			fileWriter.format("%6.1f %3.0f %3.0f ", getErrorEllipse().getE1Error(), 
+			getErrorEllipse().getE1Azimuth(), getErrorEllipse().getE1Dip());
+			fileWriter.format("%6.1f %3.0f %3.0f  ", getErrorEllipse().getE2Error(), 
+			getErrorEllipse().getE1Azimuth(), getErrorEllipse().getE2Dip());
+			fileWriter.format("%3.0f\n", 0.0); //lestGap); LocationDat does not have Robust (L-estimator) azimuthal gap  
+
+			// picks
+			for(int j=0; j<getAssociatedData().size(); j++) {
+				fileWriter.print(writeHydraPick(getAssociatedData().get(j)));
+			}
+
+			// done with file
+			fileWriter.close();
+		} catch (Exception e) {
+			e.printStackTrace();
+			return false;
 		}
+		return true;
 	}
 
 	/**
-	 * Print out picks in the group in a way similar to the NEIC web format.
+	 * Write the pick part of a Bulletin Hydra style output file.
 	 */
-/*	public void printNEICPicks() {
-		switch(authorType) {
-			case CONTRIB_HUMAN: case LOCAL_HUMAN:
-				System.out.format("%-2s %-5s %-3s %-2s  %5.1f     %3.0f   %-8s %12s "+
-						" manual    %6.1f    %4.2f\n", networkCode, stationCode, 
-						componentCode, locationCode, delta, azimuth, locatorPhase, 
-						LocUtil.getNEICtime(pickTime), residual, weight);
-				break;
-			default:
-				System.out.format("%-2s %-5s %-3s %-2s  %5.1f     %3.0f   %-8s %12s "+
-						" automatic  %6.1f    %4.2f\n", networkCode, stationCode, 
-						componentCode, locationCode, delta, azimuth, locatorPhase, 
-						LocUtil.getNEICtime(pickTime), residual, weight);
-				break;
-		}
-	}*/
-
+	public String writeHydraPick(gov.usgs.processingformats.Pick pick) {
+		return(new String().format("%-10s %-5s %-3s %-2s %-2s %-8s%6.1f %5.1f "+
+				"%3.0f %1s %4.2f %6.4f\n", pick.getID(), 
+				pick.getSite().getStation(), pick.getSite().getChannel(),
+				pick.getSite().getNetwork(), pick.getSite().getLocation(),
+				pick.getLocatedPhase(), pick.getResidual(), pick.getDistance(),
+				pick.getAzimuth(), LocUtil.getBoolChar(pick.getUse()),
+				pick.getWeight(), pick.getImportance()));
+	}
 }

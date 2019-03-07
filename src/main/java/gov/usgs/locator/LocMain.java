@@ -140,6 +140,7 @@ public class LocMain {
 		} else {
 			System.out.println("Reading a hydra file.");
 			LocInput hydraIn = new LocInput();
+			LocOutput hydraOut = null;
 			if(hydraIn.readHydra(filePath) == false) {
 				System.exit(0);
 			}
@@ -163,11 +164,15 @@ public class LocMain {
 
 			// do location
 			try {
-				result = service.getLocation(hydraIn);
+				hydraOut = service.getLocation(hydraIn);
 			} catch(LocationException e) {
 				System.out.println("Exception: " + e.toString());
 				System.exit(1);
 			}
+
+			System.out.println("Writing a hydra file.");
+			hydraOut.writeHydra(filePath + ".out");
+			result = (LocationData)hydraOut;
 		}
 
 		// print result
