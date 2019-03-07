@@ -193,7 +193,7 @@ public class Event {
 		initEvent();
 	}
 	
-/**
+	/**
 	 * JSON output.  Populate a LocOutput object for the JSON 
 	 * output, it will be packed here after the relocation.
 	 * 
@@ -230,136 +230,6 @@ public class Event {
 
 		return out;
 	}
-
-	/**
-	 * Read a Bulletin Hydra style event input file.  File open and 
-	 * read exceptions are trapped.
-	 * 
-	 * @param eventID Hydra style event ID number
-	 * @param eventPath If not null, location of Hydra event file directory
-	 * @return True if the read was successful
-	 */
-/*	public boolean readHydra(String eventID, String eventPath) {
-		BufferedInputStream in;
-		Scanner scan;
-		char held, heldDep, prefDep, rstt, noSvd, moved, cmndUse;
-		int auth;
-		String dbID;
-		double origin, lat, lon, depth, bDep, bSe, elev, qual, 
-			arrival, aff;
-		String staCode, chaCode, netCode, locCode, curPh, obsPh;
-		StationID staID;
-		Station station;
-		Pick pick;
-		Pattern affinity = Pattern.compile("\\d*\\.\\d*");
-		
-		// setup event path
-		if (eventPath != null) {
-			LocUtil.eventPath = eventPath;
-		}
-
-		// Set up the IO.
-		try {
-			in = new BufferedInputStream(new FileInputStream(
-					LocUtil.event(eventID)));
-		} catch (FileNotFoundException e) {
-			e.printStackTrace();
-			return false;
-		}
-		scan = new Scanner(in);
-		try {
-			// Get the hypocenter information.
-			origin = scan.nextDouble();
-			lat = scan.nextDouble();
-			lon = scan.nextDouble();
-			depth = scan.nextDouble();
-			// Get the analyst commands.
-			held = scan.next().charAt(0);
-			heldDep = scan.next().charAt(0);
-			prefDep = scan.next().charAt(0);
-			bDep = scan.nextDouble();
-			bSe = scan.nextDouble();
-			rstt = scan.next().charAt(0);
-			noSvd = scan.next().charAt(0);
-			// Fiddle because the last flag is omitted in earlier data.
-			if(scan.hasNextInt()) {
-				moved = 'F';
-			} else {
-				moved = scan.next().charAt(0);
-			}
-			// Create the hypocenter.
-			hypo = new Hypocenter(origin, lat, lon, depth);
-			// Deal with analyst commands.
-			heldLoc = LocUtil.getBoolean(held);
-			heldDepth = LocUtil.getBoolean(heldDep);
-			prefDepth = LocUtil.getBoolean(prefDep);
-			if(prefDepth) {
-				if(prefDepth) {
-					bayesDepth = bDep;
-					bayesSpread = bSe;
-				}
-			}
-			cmndRstt = LocUtil.getBoolean(rstt);
-			cmndCorr = !LocUtil.getBoolean(noSvd);	// True when noSvd is false
-			restart = LocUtil.getBoolean(moved);
-			
-			// Get the pick information.
-			while(scan.hasNext()) {
-				// Get the station information.
-				dbID = scan.next();
-				staCode = scan.next();
-				chaCode = scan.next();
-				netCode = scan.next();
-				locCode = scan.next();
-				lat = scan.nextDouble();
-				lon = scan.nextDouble();
-				elev = scan.nextDouble();
-				// Create the station.
-				staID = new StationID(staCode, locCode, netCode);
-				station = new Station(staID, lat, lon, elev);
-				// Get the rest of the pick information.  Note that some 
-				// fiddling is required as some of the positional arguments 
-				// are sometimes omitted.
-				qual = scan.nextDouble();
-				if(scan.hasNextDouble()) {
-					curPh = "";
-				} else {
-					curPh = scan.next();
-				}
-				arrival = scan.nextDouble();
-				cmndUse = scan.next().charAt(0);
-				auth = scan.nextInt();
-				if(scan.hasNextInt() || !scan.hasNext()) {
-					obsPh = "";
-					aff = 0d;
-				} else if(scan.hasNext(affinity)) {
-					obsPh = "";
-					aff = scan.nextDouble();
-				} else {
-					obsPh = scan.next();
-					if(scan.hasNext(affinity)) {
-						aff = scan.nextDouble();
-					} else {
-						aff = 0d;
-					}
-				}
-				// Create the pick.
-				pick = new Pick(station, chaCode, arrival, 
-						LocUtil.getBoolean(cmndUse), curPh);
-				pick.addIdAids(" ", dbID, qual, obsPh, LocUtil.getAuthCode(auth), 
-						aff);
-				picks.add(pick);
-			}
-			scan.close();
-			in.close();
-		} catch (IOException e) {
-			e.printStackTrace();
-			return false;
-		}
-		// Take care of some event initialization.
-		initEvent();
-		return true;
-	}*/
 	
 	/**
 	 * Initialize the commands, changed flag, pick and station counts, 

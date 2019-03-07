@@ -232,4 +232,51 @@ public class LocOutput extends LocationData {
 				pick.getAzimuth(), LocUtil.getBoolChar(pick.getUse()),
 				pick.getWeight(), pick.getImportance()));
 	}
+
+/**
+	 * Print an NEIC style web output.
+	 */
+	/*public void printNEIC() {
+		// Print the hypocenter.
+		System.out.format("\nLocation:             %-7s %-8s ±%6.1f km\n", 
+				LocUtil.niceLat(hypo.latitude), LocUtil.niceLon(hypo.longitude), 
+				errH);
+		System.out.format("Depth:                %5.1f ±%6.1f km\n", 
+				hypo.depth, errZ);
+		System.out.format("Origin Time:          %23s UTC\n", 
+				LocUtil.getNEICdate(hypo.originTime));
+		System.out.format("Number of Stations:     %4d\n", staAssoc);
+		System.out.format("Number of Phases:       %4d\n", phAssoc);
+		System.out.format("Minimum Distance:     %6.1f\n", delMin);
+		System.out.format("Travel Time Residual:  %5.2f\n", seTime);
+		System.out.format("Azimuthal Gap:           %3.0f\n", azimGap);
+		System.out.println("\n    Channel     Distance Azimuth Phase  "+
+				"   Arrival Time Status    Residual Weight");
+		// Sort the pick groups by distance.
+		groups.sort(new GroupComp());
+		// Print the picks.
+		for(int j=0; j<groups.size(); j++) {
+			groups.get(j).printNEIC();
+		}
+	}*/
+
+	/**
+	 * Print out picks in the group in a way similar to the NEIC web format.
+	 */
+	/*public void printNEIC() {
+		switch(authorType) {
+			case CONTRIB_HUMAN: case LOCAL_HUMAN:
+				System.out.format("%-2s %-5s %-3s %-2s  %5.1f     %3.0f   %-8s %12s "+
+						" manual    %6.1f    %4.2f\n", networkCode, stationCode, 
+						componentCode, locationCode, delta, azimuth, locatorPhase, 
+						LocUtil.getNEICtime(pickTime), residual, weight);
+				break;
+			default:
+				System.out.format("%-2s %-5s %-3s %-2s  %5.1f     %3.0f   %-8s %12s "+
+						" automatic  %6.1f    %4.2f\n", networkCode, stationCode, 
+						componentCode, locationCode, delta, azimuth, locatorPhase, 
+						LocUtil.getNEICtime(pickTime), residual, weight);
+				break;
+		}
+	}*/
 }
