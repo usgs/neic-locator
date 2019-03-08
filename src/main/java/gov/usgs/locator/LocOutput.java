@@ -15,10 +15,9 @@ import gov.usgs.processingformats.*;
  * @author Ray Buland
  *
  */
-public class LocOutput extends LocationData {
-	int exitCode;						// Exit code
+public class LocOutput extends LocationResult {
 
-	public LocOutput() {
+  public LocOutput() {
 		super();
 	}
 	
@@ -46,7 +45,7 @@ public class LocOutput extends LocationData {
 		// create subobjects
 		setHypocenter(new gov.usgs.processingformats.Hypocenter());
 		setErrorEllipse(new gov.usgs.processingformats.ErrorEllipse());
-		setAssociatedData(new ArrayList<gov.usgs.processingformats.Pick>());
+		setSupportingData(new ArrayList<gov.usgs.processingformats.Pick>());
 
 		// fill in information
 		getHypocenter().setTime(new Date(originTime));
@@ -83,13 +82,18 @@ public class LocOutput extends LocationData {
 	public void addErrors(double timeError, double latError, double lonError, 
 			double depthError, double stdError, double errh, double errz, 
 			double avh, double bayesDepth, double bayesSpread, double depthImport, 
-			EllipAxis[] ellipsoid, int exitCode) {
+			EllipAxis[] ellipsoid, LocStatus exitCode) {
 
 		getHypocenter().setTimeError(timeError);
 		getHypocenter().setLatitudeError(latError);
 		getHypocenter().setLongitudeError(lonError);
-		getHypocenter().setDepthError(depthError);
-		setRms(stdError);
+    getHypocenter().setDepthError(depthError);
+    
+    setRms(stdError);
+		setBayesianDepth(bayesDepth);
+		setBayesianRange(bayesSpread);
+    setDepthImportance(depthImport);
+
 		getErrorEllipse().setMaximumHorizontalProjection(errh);
 		getErrorEllipse().setMaximumVerticalProjection(errz);
 		getErrorEllipse().setEquivalentHorizontalRadius(avh);
@@ -102,11 +106,19 @@ public class LocOutput extends LocationData {
 		getErrorEllipse().setE2Error(ellipsoid[2].semiLen);
 		getErrorEllipse().setE2Azimuth(ellipsoid[2].azimuth);
 		getErrorEllipse().setE2Dip(ellipsoid[2].plunge);
-		setBayesianDepth(bayesDepth);
-		setBayesianRange(bayesSpread);
-		setDepthImportance(depthImport);
-
-		this.exitCode = exitCode;
+    
+    // exit code conversion
+    if (exitCode == LocStatus.SUCESSFUL_LOCATION) {
+      setLocatorExitCode("Success");
+    } else if (exitCode == LocStatus.DID_NOT_MOVE) {
+      setLocatorExitCode("DidNotMove");
+    } else if (exitCode == LocStatus.ERRORS_NOT_COMPUTED) {
+      setLocatorExitCode("ErrorsNotComputed");
+    } else if (exitCode == LocStatus.LOCATION_FAILED) {
+      setLocatorExitCode("Failed");
+    } else {
+      setLocatorExitCode("Unknown");
+    }
 	}
 	
 	/**
@@ -143,7 +155,7 @@ public class LocOutput extends LocationData {
 			double stationElevation, long pickTime, String locatorPhase, 
 			String originalPhase, double residual, double delta, double azimuth, 
 			double weight, double pickImport, boolean useFlag, 
-			double pickAffinity, double pickQuality, String errorCode) {
+			double pickAffinity, double pickQuality) {
 	
 		// source conversion
 		String[] sourceArray = source.split("\\|", -1);
@@ -174,7 +186,7 @@ public class LocOutput extends LocationData {
     }
 
 		// note no place for pick quality or pick error code
-		getAssociatedData().add(new gov.usgs.processingformats.Pick(pickID, 
+		getSupportingData().add(new gov.usgs.processingformats.Pick(pickID, 
 			stationCode, componentCode, networkCode, locationCode, 
 			stationLatitude, stationLongitude, stationElevation, sourceArray[0], 
 			sourceArray[1], typeString, new Date(pickTime), pickAffinity, 
@@ -215,8 +227,8 @@ public class LocOutput extends LocationData {
 			fileWriter.format("%3.0f\n", 0.0); //lestGap); LocationDat does not have Robust (L-estimator) azimuthal gap  
 
 			// picks
-			for(int j=0; j<getAssociatedData().size(); j++) {
-				fileWriter.print(writeHydraPick(getAssociatedData().get(j)));
+			for(int j=0; j<getSupportingData().size(); j++) {
+				fileWriter.print(writeHydraPick(getSupportingData().get(j)));
 			}
 
 			// done with file

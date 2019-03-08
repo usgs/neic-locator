@@ -222,21 +222,24 @@ public class PickGroup {
 	 */
 	public void printNEIC() {
 		Pick pick;
-		
+    String locCode = station.staID.locCode;
+    if (locCode == null) {
+      locCode = "";
+    }
 		for(int j=0; j<picks.size(); j++) {
 			pick = picks.get(j);
 			switch(pick.authType) {
 				case CONTRIB_HUMAN: case LOCAL_HUMAN:
 					System.out.format("%-2s %-5s %-3s %-2s  %5.1f     %3.0f   %-8s %12s "+
 							" manual    %6.1f    %4.2f\n", station.staID.netCode, 
-							station.staID.staCode, pick.chaCode, station.staID.locCode, 
+							station.staID.staCode, pick.chaCode, locCode, 
 							delta, azimuth, pick.phCode, LocUtil.getNEICtime(pick.arrivalTime), 
 							pick.residual, pick.weight);
 					break;
 				default:
 					System.out.format("%-2s %-5s %-3s %-2s  %5.1f     %3.0f   %-8s %12s  "+
 							"automatic %6.1f    %4.2f\n", station.staID.netCode, 
-							station.staID.staCode, pick.chaCode, station.staID.locCode, 
+							station.staID.staCode, pick.chaCode, locCode, 
 							delta, azimuth, pick.phCode, LocUtil.getNEICtime(pick.arrivalTime), 
 							pick.residual, pick.weight);
 					break;

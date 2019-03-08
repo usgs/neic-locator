@@ -40,7 +40,7 @@ public class Event {
 	double lestGap;				// Robust (L-estimator) azimuthal gap in degrees
 	double delMin;				// Minimum station distance in degrees
 	String quality;				// Summary event quality flags for the analysts
-	int exitCode;					// Exit code
+	LocStatus exitCode;					// Exit code
 	// Statistics:
 	double seTime;				// Standard error in the origin time in seconds
 	double seLat;					// Standard error in latitude in kilometers
@@ -224,7 +224,7 @@ public class Event {
 					pick.station.elevation, LocUtil.toJavaTime(pick.arrivalTime), 
 					pick.phCode, pick.obsCode, pick.residual, group.delta, 
 					group.azimuth, pick.weight, pick.importance, pick.used, 
-					pick.affinity, pick.quality, "");
+					pick.affinity, pick.quality);
 			}
 		}
 
@@ -602,16 +602,20 @@ public class Event {
 			case DID_NOT_CONVERGE:
 			case UNSTABLE_SOLUTION:
 				if(hypo.delH > LocUtil.DELTATOL || hypo.delZ > LocUtil.DEPTHTOL) 
-					exitCode = LocStatus.SUCESSFUL_LOCATION.status();
-				else exitCode = LocStatus.DID_NOT_MOVE.status();
+					exitCode = LocStatus.SUCESSFUL_LOCATION;
+        else exitCode = LocStatus.DID_NOT_MOVE;
+        break;
 			case SINGULAR_MATRIX:
 			case ELLIPSOID_FAILED:
-				exitCode = LocStatus.ERRORS_NOT_COMPUTED.status();
+        exitCode = LocStatus.ERRORS_NOT_COMPUTED;
+        break;
 			case INSUFFICIENT_DATA:
 			case BAD_DEPTH:
-				exitCode = LocStatus.LOCATION_FAILED.status();
+        exitCode = LocStatus.LOCATION_FAILED;
+        break;
 			default:
-				exitCode = LocStatus.UNKNOWN_STATUS.status();
+        exitCode = LocStatus.UNKNOWN_STATUS;
+        break;
 		}
 	}
 	
