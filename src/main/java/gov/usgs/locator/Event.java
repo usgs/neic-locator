@@ -214,7 +214,7 @@ public class Event {
 					pick.station.elevation, LocUtil.toJavaTime(pick.arrivalTime), 
 					pick.phCode, pick.obsCode, pick.residual, group.delta, 
 					group.azimuth, pick.weight, pick.importance, pick.used, 
-					pick.affinity, pick.quality, "");
+					pick.affinity, pick.quality);
 			}
 		}
 
