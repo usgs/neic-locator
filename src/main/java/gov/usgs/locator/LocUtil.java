@@ -268,16 +268,6 @@ public class LocUtil {
 	private static long sysTime;
 	
 	/**
-	 * Build a path to an event file.
-	 * 
-	 * @param eventID Hydra style event file ID number
-	 * @return Event file path
-	 */
-	public static String event(String eventID) {
-		return eventPath+"RayLocInput"+eventID+".txt";
-	}
-	
-	/**
 	 * Compute the source-receiver distance and the receiver azimuth.  
 	 * An historically significant subroutine from deep time (1962)!  This 
 	 * routine was written by Bob Engdahl in Fortran (actually in the days 
