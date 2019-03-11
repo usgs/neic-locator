@@ -32,7 +32,12 @@ public class AuxLocRef {
 	String serName = "locaux.ser";					// Serialized file name
 	String[] fileNames = {"cratons.txt", "zonekey.dat", 
 			"zonestat.dat"};										// Raw input file names
-	
+  
+	/**
+	 * Path for model files.
+	 */
+	public static String modelPath = "./models/";      
+
 	/**
 	 * Read the cratons and zone statistics files and make the data available 
 	 * to the Locator.
@@ -56,18 +61,18 @@ public class AuxLocRef {
 		FileLock lock;
 		
 		if (modelPath != null) {
-			LocUtil.modelPath = modelPath;
+			modelPath = modelPath;
 		}
 
 		// Create absolute path names.
 		absNames = new String[fileNames.length];
 		for(int j=0; j<fileNames.length; j++) {
-			absNames[j] = LocUtil.model(fileNames[j]);
+			absNames[j] = modelPath+fileNames[j];
 		}
 		
 		// If any of the raw input files have changed, regenerate the 
 		// serialized file.
-		if(FileChanged.isChanged(LocUtil.model(serName), absNames)) {
+		if(FileChanged.isChanged(modelPath+serName, absNames)) {
 //		time = System.currentTimeMillis();
 			// Open and read the cratons file.
 			inCratons = new BufferedInputStream(new FileInputStream(absNames[0]));
@@ -92,7 +97,7 @@ public class AuxLocRef {
 			inZones.close();
 			
 			// Write out the serialized file.
-			serOut = new FileOutputStream(LocUtil.model(serName));
+			serOut = new FileOutputStream(modelPath+serName);
 			objOut = new ObjectOutputStream(serOut);
 			// Wait for an exclusive lock for writing.
 			lock = serOut.getChannel().lock();
@@ -117,7 +122,7 @@ public class AuxLocRef {
 		} else {
 			// Read in the serialized file.
 //		time = System.currentTimeMillis();
-			serIn = new FileInputStream(LocUtil.model(serName));
+			serIn = new FileInputStream(modelPath+serName);
 			objIn = new ObjectInputStream(serIn);
 			// Wait for a shared lock for reading.
 			lock = serIn.getChannel().lock(0, Long.MAX_VALUE, true);

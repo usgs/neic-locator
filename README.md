@@ -39,6 +39,19 @@ Using
 Once you are able to build the neic-locator jar, simply include the jar
 file in your application, or call using the LocMain class.
 
+A set of model files used by the locator is stored in the models/ directory.
+The locator also requires traveltime model files. These files are copied into
+build/models/ as part of the gradle build.
+
+An example legacy input file (LocOutput1000010563_23.txt) is provided in the
+examples directory.
+
+To run this example, run the command  `java -jar neic-locator -0.1.0.jar ./models/ ./LocOutput1000010563_23.txt`
+
+This example assumes that a sub-directory containing the locator and traveltime 
+model files, as well as the example input file are located in the same directory
+as the locator jar file.
+
 Further Information and Documentation
 ------
 For further information and documentation please check out the [neic-locator Documentation Site](https://usgs.github.io/neic-locator/).

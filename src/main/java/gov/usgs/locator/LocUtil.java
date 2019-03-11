@@ -223,10 +223,6 @@ public class LocUtil {
 	// methods below:
 	
 	/**
-	 * Path for model files s.
-	 */
-	public static String modelPath = "./models/";
-	/**
 	 * Path for Hydra style event files 
 	 */
 	public static String eventPath = "./";
@@ -275,16 +271,6 @@ public class LocUtil {
 	 * Variable needed by timer.
 	 */
 	private static long sysTime;
-	
-	/**
-	 * Build a path to a model file.
-	 * 
-	 * @param modelFile Model file name
-	 * @return Model file path
-	 */
-	public static String model(String modelFile) {
-		return modelPath+modelFile;
-	}
 	
 	/**
 	 * Build a path to an event file.
