@@ -27,7 +27,6 @@ public class Event {
 	boolean heldLoc;			// True if the hypocenter will be held constant
 	boolean heldDepth;		// True if the depth will be held constant
 	boolean prefDepth;		// True if the Bayesian depth was set by an analyst
-	boolean cmndRstt;			// True if regional phases will use the RSTT model
 	boolean cmndCorr;			// True to use the decorrelation algorithm
 	boolean restart;			// True if the hypocenter has been moved externally
 	// Outputs:
@@ -140,7 +139,6 @@ public class Event {
 			bayesDepth = in.getBayesianDepth();
 			bayesSpread = in.getBayesianSpread();
 		}
-		cmndRstt = in.getUseRSTT();
 		cmndCorr = in.getUseSVD();		// True when noSvd is false
 		restart = in.getIsLocationNew();
 		
@@ -697,9 +695,9 @@ public class Event {
 	 */
 	public void printIn() {
 		System.out.format("\n%22s %8.4f %9.4f %6.2f %5b %5b %5b "+
-				"%5.1f %5.1f %5b %5b\n", LocUtil.getRayDate(hypo.originTime), 
+				"%5.1f %5.1f %5b\n", LocUtil.getRayDate(hypo.originTime), 
 				hypo.latitude, hypo.longitude, hypo.depth, heldLoc, heldDepth, 
-				prefDepth, hypo.bayesDepth, hypo.bayesSpread, cmndRstt, cmndCorr);
+				prefDepth, hypo.bayesDepth, hypo.bayesSpread, cmndCorr);
 		System.out.println();
 		for(int j=0; j<groups.size(); j++) {
 			groups.get(j).printIn();

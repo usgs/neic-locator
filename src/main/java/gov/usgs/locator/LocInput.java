@@ -39,7 +39,6 @@ public class LocInput extends LocationRequest {
 		setIsBayesianDepth(request.getIsBayesianDepth());
 		setBayesianDepth(request.getBayesianDepth());
 		setBayesianSpread(request.getBayesianSpread());
-		setUseRSTT(request.getUseRSTT());
 		setUseSVD(request.getIsLocationNew());
 		setOutputData(request.getOutputData());
 	}
@@ -82,7 +81,7 @@ public class LocInput extends LocationRequest {
 			prefDep = scan.next().charAt(0);
 			bDep = scan.nextDouble();
 			bSe = scan.nextDouble();
-			rstt = scan.next().charAt(0);
+			rstt = scan.next().charAt(0); // (not used)
 			noSvd = scan.next().charAt(0);
 			// Fiddle because the last flag is omitted in earlier data.
 			if(scan.hasNextInt()) {
@@ -101,7 +100,6 @@ public class LocInput extends LocationRequest {
 			setIsBayesianDepth(LocUtil.getBoolean(prefDep));
 			setBayesianDepth(bDep);
 			setBayesianSpread(bSe);
-			setUseRSTT(LocUtil.getBoolean(rstt));
 			setUseSVD(!LocUtil.getBoolean(noSvd)); // True when noSvd is false
 			setIsLocationNew(LocUtil.getBoolean(moved));
 			

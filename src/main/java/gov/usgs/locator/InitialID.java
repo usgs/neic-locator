@@ -71,11 +71,11 @@ public class InitialID {
 		if(LocUtil.server) {
 			session = TTSessionPool.getTravelTimeSession(event.earthModel, hypo.depth, 
 					LocUtil.PHLIST, hypo.latitude, hypo.longitude, LocUtil.ALLPHASES,
-					LocUtil.BACKBRN, LocUtil.tectonic, LocUtil.rstt, false);
+					LocUtil.BACKBRN, LocUtil.tectonic, false, false);
 		} else {
 			ttLocal.newSession(event.earthModel, hypo.depth, LocUtil.PHLIST, hypo.latitude, 
 					hypo.longitude, LocUtil.ALLPHASES, LocUtil.BACKBRN, LocUtil.tectonic, 
-					LocUtil.rstt);
+					false);
 		}
 		
     // Loop over picks in the groups.

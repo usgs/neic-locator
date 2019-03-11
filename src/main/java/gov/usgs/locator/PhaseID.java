@@ -87,12 +87,12 @@ public class PhaseID {
 		if(LocUtil.server) {
 			session = TTSessionPool.getTravelTimeSession(event.earthModel, hypo.depth, 
 					LocUtil.PHLIST, hypo.latitude, hypo.longitude, LocUtil.ALLPHASES,
-					LocUtil.BACKBRN, LocUtil.tectonic, LocUtil.rstt, false);
+					LocUtil.BACKBRN, LocUtil.tectonic, false, false);
 			if(auxTT == null) auxTT = session.getAuxTT();
 		} else {
 			ttLocal.newSession(event.earthModel, hypo.depth, LocUtil.PHLIST, 
 					hypo.latitude, hypo.longitude, LocUtil.ALLPHASES, LocUtil.BACKBRN, 
-					LocUtil.tectonic, LocUtil.rstt);
+					LocUtil.tectonic, false);
 		}
 		
     // Do the travel-time calculation.

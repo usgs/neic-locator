@@ -190,11 +190,6 @@ public class LocUtil {
 	 */
 	public static boolean deCorrelate = false;
 	/**
-	 * If true use the RSTT 2.5D model for local phases.  Note that 
-	 * it is never used in the initial pass, hence the default.
-	 */
-	public static boolean rstt = false;
-	/**
 	 * If false the event is in a craton with a well defined Conrad 
 	 * discontinuity and distinct Pb and Sb phases.  If true, the 
 	 * event is in a tectonic area where Pb and Sb are extensions 

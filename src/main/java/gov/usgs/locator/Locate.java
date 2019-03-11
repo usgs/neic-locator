@@ -37,7 +37,6 @@ public class Locate {
 		initialID = new InitialID(event, ttLocal, phaseID, stepper);
 		close = new CloseOut(event);
 		LocUtil.deCorrelate = false;
-		LocUtil.rstt = false;
 	}
 	
 	/**
@@ -62,9 +61,8 @@ public class Locate {
 		try {
 			// Handle a held solution.
 			if(event.heldLoc) {
-				// Allow RSTT if requested and reidentify and reweight phases.
+				// Rreidentify and reweight phases.
 				LocUtil.deCorrelate = event.cmndCorr;
-				LocUtil.rstt = event.cmndRstt;
 				stepper.setInitDir(0.1d, 1d, true, true);
 				close.endStats(LocStatus.HELD_HYPOCENTER);
 				return LocStatus.SUCCESS;
@@ -88,8 +86,7 @@ public class Locate {
 						if(!event.restart) {
 							initialID.resetUseFlags();
 						}
-						// Allow RSTT and force decorrelation.
-						LocUtil.rstt = event.cmndRstt;
+						// Force decorrelation.
 						LocUtil.deCorrelate = true;
 						// Do a looser phase identification.
 						status = stepper.setInitDir(0.1d, 1.0d, true, true);

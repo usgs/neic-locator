@@ -12,7 +12,7 @@ import gov.usgs.processingformats.*;
  * all parameters resulting from a Locator pass.  An object of this class should 
  * be handed to the output routines to be returned to the caller.
  * 
- * @author Ray Buland
+ * @author jpatton@usgs.gov
  *
  */
 public class LocOutput extends LocationResult {
@@ -224,7 +224,7 @@ public class LocOutput extends LocationResult {
 			getErrorEllipse().getE1Azimuth(), getErrorEllipse().getE1Dip());
 			fileWriter.format("%6.1f %3.0f %3.0f  ", getErrorEllipse().getE2Error(), 
 			getErrorEllipse().getE1Azimuth(), getErrorEllipse().getE2Dip());
-			fileWriter.format("%3.0f\n", 0.0); //lestGap); LocationDat does not have Robust (L-estimator) azimuthal gap  
+			fileWriter.format("%3.0f\n", getSecondaryGap());
 
 			// picks
 			for(int j=0; j<getSupportingData().size(); j++) {
