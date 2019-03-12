@@ -183,11 +183,11 @@ public class DeCorr {
 				}
 				if(LocUtil.deBugLevel > 0) System.out.format(
 						"\tTriage: eliminate %3d %s\n", i, corrSums.get(i));
-				k = corrSums.get(i).row;
+				k = corrSums.get(i).getRowIndex();
 				corrSums.remove(i);
 				// Now compensate the sums for the row and column eliminated.
 				for(int j=0; j<corrSums.size(); j++) {
-					l = corrSums.get(j).row;
+					l = corrSums.get(j).getRowIndex();
 					if(k != l) corrSums.get(j).decSum(cov[l][k]);
 				}
 				// And re-sort.
@@ -202,7 +202,7 @@ public class DeCorr {
 			// Finally remove the most highly correlated rows and columns.
 			keep = new int[corrSums.size()];
 			for(int j=0; j<keep.length; j++) {
-				keep[j] = corrSums.get(j).row;
+				keep[j] = corrSums.get(j).getRowIndex();
 			}
 	//	LocUtil.printMatrix(keep, "Keep rows");
 			// Use the JAMA Matrix to eliminate the most correlated rows and 

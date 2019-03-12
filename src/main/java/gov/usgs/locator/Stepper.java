@@ -31,8 +31,8 @@ public class Stepper {
 		this.event = event;
 		hypo = event.hypo;
 		this.auxLoc = auxLoc;
-		cratons = auxLoc.cratons;
-		zones = auxLoc.zoneStats;
+		cratons = auxLoc.getCratons();
+		zones = auxLoc.getZoneStats();
 		this.phaseID = phaseID;
 		rEstRaw = event.rEstRaw;
 		rEstProj = event.rEstProj;
@@ -261,7 +261,7 @@ public class Stepper {
 		
 		// Set the tectonic flag.  Note that everything outside cratons 
 		// is considered tectonic.
-		if(auxLoc.cratons.isCraton(hypo.latitude, hypo.longitude)) {
+		if(auxLoc.getCratons().isCraton(hypo.latitude, hypo.longitude)) {
 			LocUtil.tectonic = false;
 		} else {
 			LocUtil.tectonic = true;

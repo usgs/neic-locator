@@ -54,7 +54,7 @@ public class Locate {
 		
 		// Bail on insufficient data.
 		if(event.staUsed < 3) {
-			close.endStats(LocStatus.INSUFFICIENT_DATA);
+			close.computeFinalStatistics(LocStatus.INSUFFICIENT_DATA);
 			return LocStatus.INSUFFICIENT_DATA;
 		}
 		
@@ -64,7 +64,7 @@ public class Locate {
 				// Rreidentify and reweight phases.
 				LocUtil.deCorrelate = event.cmndCorr;
 				stepper.setInitDir(0.1d, 1d, true, true);
-				close.endStats(LocStatus.HELD_HYPOCENTER);
+				close.computeFinalStatistics(LocStatus.HELD_HYPOCENTER);
 				return LocStatus.SUCCESS;
 			}
 			
@@ -98,7 +98,7 @@ public class Locate {
 				}
 				// Be sure we still have enough data.
 				if(status == LocStatus.INSUFFICIENT_DATA) {
-					close.endStats(status);
+					close.computeFinalStatistics(status);
 					return status;
 				}
 				// Initialize for iteration zero.
@@ -111,7 +111,7 @@ public class Locate {
 					switch(status) {
 					// Bail on insufficient data.
 					case INSUFFICIENT_DATA:
-						close.endStats(status);
+						close.computeFinalStatistics(status);
 						return status;
 					// If the damping failed, go to the next stage.
 					case NEARLY_CONVERGED:
@@ -144,7 +144,7 @@ public class Locate {
 					event.addAudit(stage, iter, status);
 					System.out.println("\nFinal wrapup:");
 					event.printAudit();
-					status = close.endStats(status);
+					status = close.computeFinalStatistics(status);
 					return status;
 				// Otherwise, create the stage level audit.
 				} else {

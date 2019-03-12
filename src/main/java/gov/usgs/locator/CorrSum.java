@@ -1,63 +1,96 @@
 package gov.usgs.locator;
 
 /**
- * Support the triage algorithm by holding the sum of 
- * correlations among picks for one pick in a sortable 
- * way.
+ * The CorrSum class supports the triage algorithm by holding the sum of 
+ * correlations among picks for one pick in a sortable way.
  * 
  * @author Ray Buland
  *
  */
 public class CorrSum implements Comparable<CorrSum> {
-	int row;					// Index of the row in the covariance matrix
-	double sum;				// Sum of correlations in the row
-	double sort;			// Variable to sort on
-	
-	/**
-	 * Set up this correlation sum element.
-	 * 
-	 * @param row Row of the covariance matrix
-	 * @param sum Sum of correlations in the row
-	 */
-	public CorrSum(int row, double sum) {
-		this.row = row;
-		this.sum = sum;
-		sort = sum;
-	}
-	
-	/**
-	 * Decrement the correlation sum.
-	 * 
-	 * @param dec Decrement value
-	 */
-	public void decSum(double dec) {
-		sum -= dec;
-		sort = sum;
-	}
-	
-	/**
-	 * Change the sort variable so that we can sort back into 
-	 * the original order.
-	 */
-	public void rowSort() {
-		sort = (double)row;
-	}
-	
-	/**
-	 * Print the contents of this correlation sum element.
-	 */
-	@Override
-	public String toString() {
-		return String.format("%4d %7.2f", row, sum);
-	}
+  /**
+   * A int double containing the row index in the covariance matrix.
+   */
+  private int rowIndex; 
 
-	/**
-	 * Sort on the sort variable.
-	 */
-	@Override
-	public int compareTo(CorrSum corrSum) {
-		if(sort > corrSum.sort) return +1;
-		else if(sort < corrSum.sort) return -1;
-		else return 0;
-	}
+  /** 
+   * A double value containing the correlation sum for the row identified by
+   * rowIndex.
+   */
+  private double correlationSum; 
+
+  /** 
+   * A double value containing the index used when sorting.
+   */
+  private double sortIndex; 
+
+  /**
+   * The CorrSum constructor. This constructor initializes the internal varibles
+   * to the provided values. Note that sortIndex is initialized to be equal to
+   * sum.
+   * 
+   * @param row An integer containing the row index of the covariance matrix
+   * @param sum A double value containing the sum of correlations in the row
+   */
+  public CorrSum(int row, double sum) {
+    this.rowIndex = row;
+    this.correlationSum = sum;
+    this.sortIndex = sum;
+  }
+  
+  /**
+   * This function decrements the correlation sum amd sort index.
+   * 
+   * @param decrementValue Decrement value
+   */
+  public void decSum(double decrementValue) {
+    correlationSum -= decrementValue;
+    sortIndex = correlationSum;
+  }
+  
+  /**
+   * This function changes the sortIndex variable to the row index so that the 
+   * sort can be restored to the original order.
+   */
+  public void rowSort() {
+    sortIndex = (double)rowIndex;
+  }
+  
+  /**
+   * This function prints the contents of this CorrSum object.
+   * @return A String containing the contents of this CorrSum object.
+   */
+  @Override
+  public String toString() {
+    return String.format("%4d %7.2f", rowIndex, correlationSum);
+  }
+
+  /**
+   * This function compares this CorrSum object sortIndex varible to the  
+   * provided CorrSum object sortIndex varible.
+   * 
+   * @param corrSum A CorrSum object to compare to
+   * @return +1 if this CorrSum object sortIndex varible is greater than the 
+   *         provided CorrSum object sortIndex varible; -1 if this CorrSum  
+   *         object sortIndex varible is less than the provided CorrSum object 
+   *         sortIndex varible; and 0 if  this CorrSum object sortIndex varible
+   *         is equal to the provided CorrSum object sortIndex varible;
+   */
+  @Override
+  public int compareTo(CorrSum corrSum) {
+    if (sortIndex > corrSum.sortIndex) {
+      return +1;
+    } else if (sortIndex < corrSum.sortIndex) {
+      return -1;
+    } else {
+      return 0;
+    }
+  }
+
+  /**
+   * Function to return the row index.
+   **/ 
+  public int getRowIndex() {
+    return rowIndex;
+  }
 }
