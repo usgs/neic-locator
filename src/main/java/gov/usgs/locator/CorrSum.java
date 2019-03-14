@@ -14,8 +14,8 @@ public class CorrSum implements Comparable<CorrSum> {
   private int rowIndex; 
 
   /** 
-   * A double value containing the correlation sum for the row identified by
-   * rowIndex.
+   * A double value containing the correlation sum for the covariance matrix row 
+   * identified by rowIndex.
    */
   private double correlationSum; 
 
@@ -39,9 +39,11 @@ public class CorrSum implements Comparable<CorrSum> {
   }
   
   /**
-   * This function decrements the correlation sum amd sort index.
+   * This function decrements the correlation sum and sets the sort index
+   * to the new correlation sum.
    * 
-   * @param decrementValue Decrement value
+   * @param decrementValue A double containing the value to decrement the 
+   * correlationSum by.
    */
   public void decSum(double decrementValue) {
     correlationSum -= decrementValue;

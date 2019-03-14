@@ -314,8 +314,8 @@ public class CloseOut {
       ellip[2] = new EllipAxis(0d, 0d, 0d);
 
       // Do aveH (the equivalent radius of the error ellipse).
-      event.aveH = LocUtil.PERPT1D * Math.sqrt(ellip[0].semiLen
-          * ellip[1].semiLen) / LocUtil.PERPT2D;
+      event.aveH = LocUtil.PERPT1D * Math.sqrt(ellip[0].getSemiLen()
+          * ellip[1].getSemiLen()) / LocUtil.PERPT2D;
     } else {
       // Otherwise, do the error ellipsoid.
       double confidenceInterval = LocUtil.PERPT3D / compFactor;

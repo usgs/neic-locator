@@ -540,11 +540,11 @@ public class Event {
 					summary = 'C';
 				else summary = 'D';
 				// Revise the quality down if the error ellipse aspect ration is large.
-				if(summary == 'A' && errEllip[0].semiLen > LocUtil.AQUALIM[0]) 
+				if(summary == 'A' && errEllip[0].getSemiLen() > LocUtil.AQUALIM[0]) 
 					summary = 'B';
-				if((summary == 'A' || summary == 'B') && errEllip[0].semiLen > 
+				if((summary == 'A' || summary == 'B') && errEllip[0].getSemiLen() > 
 					LocUtil.AQUALIM[1]) summary = 'C';
-				if(errEllip[0].semiLen > LocUtil.AQUALIM[2]) summary = 'D';
+				if(errEllip[0].getSemiLen() > LocUtil.AQUALIM[2]) summary = 'D';
 			}
 				
 			// Set the epicenter quality based on aveH.

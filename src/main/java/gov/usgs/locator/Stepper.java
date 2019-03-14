@@ -104,7 +104,7 @@ public class Stepper {
 					"%8.4f\n", medianRes);
 			// Decorrelate the raw data.
 			if(event.changed) deCorr.deCorr();
-			deCorr.project();
+			deCorr.projectPicks();
 			// Get the median of the projected data.
 			medianProj = rEstProj.median();
 			// Demedian the projected design matrix.

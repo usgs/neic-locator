@@ -180,7 +180,7 @@ public class LinearStep {
 		// Finish up.
 		if(LocUtil.deCorrelate) {
 			// If we're decorrelating, we have more to do.
-			deCorr.estProject();
+			deCorr.projectEstimatedPicks();
 			rEstProj.estMedian();
 			dispProj = rEstProj.estPenalty();
 			if(LocUtil.deBugLevel > 0) System.out.format("Estlin: x dsp = "+
