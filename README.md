@@ -46,7 +46,7 @@ build/models/ as part of the gradle build.
 An example legacy input file (LocOutput1000010563_23.txt) is provided in the
 examples directory.
 
-To run this example, run the command  `java -jar neic-locator -0.1.0.jar ./models/ ./LocOutput1000010563_23.txt`
+To run this example, run the command  `java -jar neic-locator-0.1.0.jar --modelPath=./models/ --eventFile=./`
 
 This example assumes that a sub-directory containing the locator and traveltime 
 model files, as well as the example input file are located in the same directory
