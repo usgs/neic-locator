@@ -60,7 +60,7 @@ public class LocMain {
 				// get model path
         modelPath = arg.replace(MODELPATH_ARGUMENT, "");
         System.out.println(modelPath);
-			} else if (arg.equals(EVENTPATH_ARGUMENT)) {
+			} else if (arg.startsWith(EVENTPATH_ARGUMENT)) {
         // get event path
         eventPath = arg.replace(EVENTPATH_ARGUMENT, "");
         System.out.println(eventPath);
