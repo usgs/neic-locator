@@ -25,9 +25,14 @@ public class LocMain {
 	public static final String MODELPATH_ARGUMENT = "--modelPath=";
 
   /** 
-   * A String containing the argument for specifying the event input file.  
+   * A String containing the argument for specifying the input file path.  
    */
-	public static final String EVENTPATH_ARGUMENT = "--eventFile=";
+	public static final String FILEPATH_ARGUMENT = "--filePath=";
+
+/** 
+   * A String containing the argument for specifying the input file type.  
+   */
+	public static final String FILETYPE_ARGUMENT = "--fileType=";
 
   /** 
    * A String containing the argument for requesting the locator version.  
@@ -41,32 +46,43 @@ public class LocMain {
    */
   public static void main(String[] args) {
     if (args == null || args.length == 0) {
-      System.out.println("Usage: neic-locator" 
-          + " <modelPath> <filePath> <fileType> ");
-      System.exit(1);
+      System.out
+      .println("Usage: neic-locator" + 
+        " --modelPath=[model path] --filePath=[file path] --fileType=[file type]");
+      System.exit(1);    
     }
 
-    // get model path
+    // Default paths
     String modelPath = null;
-    if (args != null && args.length >= 1) {
-      modelPath = args[0];
-    }
-
-    // get file path
     String filePath = null;
-    if (args != null && args.length >= 2) {
-      filePath = args[1];
-    }
-
-    // get file type
     String fileType = "hydra";
-    if (args != null && args.length >= 3) {
-      fileType = args[2];
-    }
+
+    // process arguments
+    StringBuffer argumentList = new StringBuffer();
+    for (String arg : args) {
+      // save arguments for logging
+      argumentList.append(arg).append(" ");
+      
+			if (arg.startsWith(MODELPATH_ARGUMENT)) {
+				// get model path
+        modelPath = arg.replace(MODELPATH_ARGUMENT, "");
+			} else if (arg.startsWith(FILEPATH_ARGUMENT)) {
+        // get file path
+        filePath = arg.replace(FILEPATH_ARGUMENT, "");
+      } else if (arg.startsWith(FILETYPE_ARGUMENT)) {
+        // get file type
+        fileType = arg.replace(FILETYPE_ARGUMENT, "");
+			} else if (arg.equals(VERSION_ARGUMENT)) {
+        // print version
+				System.err.println("neic-locator");
+				System.err.println("v0.1.0");
+				System.exit(0);
+			}
+		}
 
     // print out args
-    System.out.println("neic-locator " + modelPath + " " + filePath + " "
-        + fileType);
+    System.out.println("Command line arguments: " 
+        + argumentList.toString().trim());
 
     // set up service
     LocService service = new LocService(modelPath);
@@ -275,7 +291,6 @@ public class LocMain {
 		
 		// Exit.
 		System.exit(event.exitCode);
-*/
-	}
+  }
 }
 */
