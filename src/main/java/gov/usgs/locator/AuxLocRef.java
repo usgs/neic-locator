@@ -33,10 +33,15 @@ public class AuxLocRef {
 	String[] fileNames = {"cratons.txt", "zonekey.dat", 
 			"zonestat.dat"};										// Raw input file names
   
+  /**
+	 * Default path for model files.
+	 */
+  public static final String DEFAULT_MODEL_PATH = "./models/";
+
 	/**
 	 * Path for model files.
 	 */
-	public static String modelPath = "./models/";      
+	public String modelPath;      
 
 	/**
 	 * Read the cratons and zone statistics files and make the data available 
@@ -60,9 +65,11 @@ public class AuxLocRef {
 		ObjectOutputStream objOut;
 		FileLock lock;
 		
-		if (modelPath != null) {
-			modelPath = modelPath;
-		}
+		if (modelPath == null) {
+			this.modelPath = DEFAULT_MODEL_PATH;
+		} else {
+      this.modelPath = modelPath;
+    }
 
 		// Create absolute path names.
 		absNames = new String[fileNames.length];

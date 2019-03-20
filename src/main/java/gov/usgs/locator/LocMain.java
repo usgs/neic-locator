@@ -11,6 +11,20 @@ import gov.usgs.traveltime.*;
  *
  */
 public class LocMain {
+  /** 
+   * A String containing the argument for specifying the model file path. 
+   */
+	public static final String MODELPATH_ARGUMENT = "--modelPath=";
+
+  /** 
+   * A String containing the argument for specifying the event input file.  
+   */
+	public static final String EVENTPATH_ARGUMENT = "--eventFile=";
+
+  /** 
+   * A String containing the argument for requesting the locator version.  
+   */
+  public static final String VERSION_ARGUMENT = "--version";
 
 	/**
 	 * Main program for testing the locator.
@@ -22,7 +36,8 @@ public class LocMain {
 		if (args == null || args.length == 0) {
 			System.out
 					.println("Usage: neic-locator" + 
-						" <modelPath> <eventPath>");
+            " --modelPath=[model path] --eventFile=[event file path]");
+      System.exit(0);    
 		}
 
 		// Set up the earth model.
@@ -32,17 +47,33 @@ public class LocMain {
 		String eventID = "1000010563_23";
 		// Objects we'll need.
 
-		// get model path
-		String modelPath = null;
-		if (args != null && args.length >= 1) {
-			modelPath = args[0];
+    // Default paths
+    String modelPath = null;
+		String eventPath = null;
+
+    // process arguments
+    StringBuffer argumentList = new StringBuffer();
+    for (String arg : args) {
+      argumentList.append(arg).append(" ");
+      
+			if (arg.startsWith(MODELPATH_ARGUMENT)) {
+				// get model path
+        modelPath = arg.replace(MODELPATH_ARGUMENT, "");
+        System.out.println(modelPath);
+			} else if (arg.equals(EVENTPATH_ARGUMENT)) {
+        // get event path
+        eventPath = arg.replace(EVENTPATH_ARGUMENT, "");
+        System.out.println(eventPath);
+			} else if (arg.equals(VERSION_ARGUMENT)) {
+        // print version
+				System.err.println("neic-locator");
+				System.err.println("v0.1.0");
+				System.exit(0);
+			}
 		}
 
-		// get event path
-		String eventPath = null;
-		if (args != null && args.length >= 2) {
-			eventPath = args[1];
-		}		
+    System.out.println("Command line arguments: " 
+        + argumentList.toString().trim());
 
 		LocInput in = null;
 		LocOutput out = null;
