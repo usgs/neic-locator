@@ -84,6 +84,9 @@ public class LocMain {
     System.out.println("Command line arguments: " 
         + argumentList.toString().trim());
 
+		// Set the debug level.
+		LocUtil.deBugLevel = 1;
+
     // set up service
     LocService service = new LocService(modelPath);
 
