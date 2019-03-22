@@ -21,14 +21,41 @@ import gov.usgs.processingformats.*;
  *
  */
 public class Event {
-	// Informational:
-	String earthModel;		// Earth model being used
-	// Commands:
-	boolean heldLoc;			// True if the hypocenter will be held constant
-	boolean heldDepth;		// True if the depth will be held constant
-	boolean prefDepth;		// True if the Bayesian depth was set by an analyst
-	boolean cmndCorr;			// True to use the decorrelation algorithm
-	boolean restart;			// True if the hypocenter has been moved externally
+	/** 
+	 * A String containing the earth model used for this event.
+	 */
+	private String earthModel;
+
+	/** 
+	 * A boolean flag that if true indicates that the hypocenter will be held
+	 * constant.
+	 */
+	private boolean isLocationHeld;
+	
+
+	/**
+	 * A boolean flag that if true indicates that the depth will be held constant.
+	 */
+	private boolean isDepthHeld;
+	
+	/** 
+	 * A boolean flag that if true indicates that the Bayesian depth was set by
+	 * an analyst.
+	 */
+	private boolean isDepthManual;
+	
+	/** 
+	 * A boolean flag that if true indicates that this event should use the 
+	 * decorrelation algorithm.
+	 */
+	private boolean useDecorrelation; 
+	
+	/** 
+	 * A boolean flag that if true indicates that the location has been moved 
+	 * externally. 
+	 */
+	private boolean isLocationRestarted;
+	
 	// Outputs:
 	int staAssoc;					// Number of stations associated
 	int staUsed;					// Number of stations used
@@ -69,42 +96,105 @@ public class Event {
 	Restimator rEstProj;
 	DeCorr deCorr;
 	StationID maxID = new StationID("~", "", "");
+
+	/**
+	 * Function to return the event hypocenter object.
+	 * 
+	 * @return A Hypocenter object containing the hypocenter information
+	 */
+	public Hypocenter getHypo() {
+		return hypo;
+	}
 	
 	/**
-	 * Getter for the hypocenter object.
+	 * Function to return the event origin time.
 	 * 
-	 * @return Hypocenter information
+	 * @return A double containing the event origin time in double precision 
+	 *				 seconds since the epoch
 	 */
-	public Hypocenter getHypo() {return hypo;}
+	public double getOriginTime() {
+		return hypo.originTime;
+	}
 	
 	/**
-	 * Getter for the origin time.
+	 * Function to return the event latitude.
 	 * 
-	 * @return Origin time in double precision seconds since the epoch
+	 * @return A double containing the epicenter geographic latitude in degrees
 	 */
-	public double getOriginTime() {return hypo.originTime;}
+	public double getLatitude() {
+		return hypo.latitude;
+	}
 	
 	/**
-	 * Getter for the latitude.
+	 * Function to return the event longitude.
 	 * 
-	 * @return The epicenter geographic latitude in degrees
+	 * @return A double containing the epicenter geographic longitude in degrees
 	 */
-	public double getLatitude() {return hypo.latitude;}
+	public double getLongitude() {
+		return hypo.longitude;
+	}
 	
 	/**
-	 * Getter for the longitude.
+	 * Function to return the event depth.
 	 * 
-	 * @return The epicenter geographic longitude in degrees
+	 * @return A double containing the hypocenter depth in kilometers
 	 */
-	public double getLongitude() {return hypo.longitude;}
-	
+	public double getDepth() {
+		return hypo.depth;
+	}
+
 	/**
-	 * Getter for depth.
+	 * Function to return the earth model name
 	 * 
-	 * @return The hypocenter depth in kilometers
+	 * @return A String containing the earth model name
 	 */
-	public double getDepth() {return hypo.depth;}
-	
+	public String getEarthModel() {
+		return earthModel;
+	}
+
+	/**
+	 * Function to return whether the hypocenter for this event will be held
+	 * constant.
+	 * 
+	 * @return A boolean flag indicating whether the hypocenter for this event 
+	 * will be held constant.
+	 */
+	public boolean getIsLocationHeld() {
+		return isLocationHeld;
+	}
+
+	/**
+	 * Function to return whether to use decorrelation
+	 * 
+	 * @return A boolean flag indicating whether to use decorrelation
+	 */
+	public boolean getUseDecorrelation() {
+		return useDecorrelation;
+	}
+
+	/**
+	 * Function to return whether the Bayesian depth was set by an analyst.
+	 * 
+	 * @return A boolean flag indicating whether the Bayesian depth was set by an 
+	 * analyst.
+	 */
+	public boolean getIsDepthManual() {
+		return isDepthManual;
+	}
+
+	/**
+	 * Function to return whether the location has been moved externally. 
+	 * 
+	 * @return A boolean flag indicating whether the location has been moved 
+	 * externally. 
+	 */
+	public boolean getIsLocationRestarted() {
+		return isLocationRestarted;
+	}	
+
+
+
+  
 	/**
 	 * Allocate some storage.
 	 * 
@@ -132,16 +222,15 @@ public class Event {
 				in.getSourceLatitude(), in.getSourceLongitude(), 
 				in.getSourceDepth());
 		// Get the analyst commands.
-		heldLoc = in.getIsLocationHeld();
-		heldDepth = in.getIsDepthHeld();
-		prefDepth = in.getIsBayesianDepth();
-		if(prefDepth) {
+		isLocationHeld = in.getIsLocationHeld();
+		isDepthHeld = in.getIsDepthHeld();
+		isDepthManual = in.getIsBayesianDepth();
+		if(isDepthManual) {
 			bayesDepth = in.getBayesianDepth();
 			bayesSpread = in.getBayesianSpread();
 		}
-		cmndRstt = in.getUseRSTT();
-		cmndCorr = in.getUseSVD();		// True when noSvd is false
-		restart = in.getIsLocationNew();
+		useDecorrelation = in.getUseSVD();		// True when noSvd is false
+		isLocationRestarted = in.getIsLocationNew();
 		
 		// Do the pick data.
 		for(int j=0; j<in.getInputData().size(); j++) {
@@ -163,6 +252,16 @@ public class Event {
 			else if (typeString == "LocalHuman")
 				authorType = 4; // NEIC analyst
 
+			// make sure phCode and obsCode are not null
+			String phCode = "";
+			if (pickIn.getPickedPhase() != null) {
+				phCode = pickIn.getPickedPhase();
+			}
+			String obsCode = "";
+			if (pickIn.getAssociatedPhase() != null) {
+				obsCode = pickIn.getAssociatedPhase();
+			}
+
 			// Create the station.
 			StationID staID = new StationID(pickIn.getSite().getStation(), 
 					pickIn.getSite().getLocation(), 
@@ -172,9 +271,9 @@ public class Event {
 					pickIn.getSite().getElevation());
 			Pick pick = new Pick(station, pickIn.getSite().getChannel(), 
 					LocUtil.toHydraTime(pickIn.getTime().getTime()), 
-					pickIn.getUse(), pickIn.getLocatedPhase());
+					pickIn.getUse(), phCode);
 			pick.addIdAids(source, pickIn.getID(), pickIn.getQuality(), 
-					pickIn.getAssociatedPhase(), 
+					obsCode, 
 					LocUtil.getAuthCode(authorType), 
 					pickIn.getAffinity());
 			picks.add(pick);
@@ -222,44 +321,6 @@ public class Event {
 	}
 
 	/**
-	 * JSON output.  Populate a LocOutput object for the JSON 
-	 * output, it will be packed here after the relocation.
-	 * 
-	 * @return out Location output information
-	 */
-	public LocOutput serverOut() {
-		LocOutput out;
-		PickGroup group;
-		Pick pick;
-		StationID staID;
-		
-		out = new LocOutput(LocUtil.toJavaTime(hypo.originTime), hypo.latitude, 
-				hypo.longitude, hypo.depth, staAssoc, phAssoc, staUsed, phUsed, 
-				azimGap, lestGap, delMin, quality);
-		out.addErrors(seTime, seLat, seLon, seDepth, seResid, errH, errZ, aveH, 
-				hypo.bayesDepth, hypo.bayesSpread, bayesImport, errEllip, exitCode);
-		// Sort the pick groups by distance.
-		groups.sort(new GroupComp());
-		// Pack up the picks.
-		for(int i=0; i<groups.size(); i++) {
-			group = groups.get(i);
-			for(int j=0; j<group.picks.size(); j++) {
-				pick = group.picks.get(j);
-				staID = pick.station.staID;
-				out.addPick(pick.source, pick.authType, pick.dbID, staID.staCode, 
-					pick.chaCode, staID.netCode, staID.locCode, 
-					pick.station.latitude, pick.station.longitude, 
-					pick.station.elevation, LocUtil.toJavaTime(pick.arrivalTime), 
-					pick.phCode, pick.obsCode, pick.residual, group.delta, 
-					group.azimuth, pick.weight, pick.importance, pick.used, 
-					pick.affinity, pick.quality);
-			}
-		}
-
-		return out;
-	}
-	
-	/**
 	 * Initialize the commands, changed flag, pick and station counts, 
 	 * etc., and compute distances and azimuths.  This routine needs to be 
 	 * called for any new event, no matter how it's created.
@@ -278,17 +339,17 @@ public class Event {
 		 * estimation reasons.  The free depth spread assumes that the held 
 		 * location is from a crustal event located by a regional network.
 		 */
-		if(heldLoc) {
-			prefDepth = true;
+		if(isLocationHeld) {
+			isDepthManual = true;
 			bayesDepth = hypo.depth;
-			if(heldDepth) bayesSpread = LocUtil.HELDEPSE;
+			if(isDepthHeld) bayesSpread = LocUtil.HELDEPSE;
 			else bayesSpread = LocUtil.DEFDEPSE;
 		/*
 		 * Although a held depth will actually hold the depth, simulate a 
 		 * Bayesian depth for error computation reasons.
 		 */
-		} else if(heldDepth) {
-			prefDepth = true;
+		} else if(isDepthHeld) {
+			isDepthManual = true;
 			bayesDepth = hypo.depth;
 			bayesSpread = LocUtil.HELDEPSE;
 		}
@@ -298,16 +359,16 @@ public class Event {
 		 * the analysts get carried away and try to set the Bayesian 
 		 * spread smaller than the default for a held depth.
 		 */
-		if(prefDepth) {
+		if(isDepthManual) {
 			if(bayesSpread > 0d) {
 				bayesSpread = Math.max(bayesSpread, LocUtil.HELDEPSE);
 				hypo.addBayes(bayesDepth, bayesSpread);
 			} else {
-				prefDepth = false;		// Trap a bad command
+				isDepthManual = false;		// Trap a bad command
 			}
 		}
 		// If we're decorrelating, instantiate some more classes.
-		if(cmndCorr) {
+		if(useDecorrelation) {
 			wResProj = new ArrayList<Wresidual>();
 			rEstProj = new Restimator(wResProj);
 			deCorr = new DeCorr(this);
@@ -331,7 +392,7 @@ public class Event {
 		}
 		
 		// Initialize the solution degrees-of-freedom.
-		hypo.setDegrees(heldLoc, heldDepth);
+		hypo.setDegrees(isLocationHeld, isDepthHeld);
 		// Initialize changed and the depth importance.
 		changed = false;
 		bayesImport = 0d;
@@ -417,7 +478,7 @@ public class Event {
 	 */
 	@SuppressWarnings("unchecked")
 	public void saveWres() {
-		if(cmndCorr) {
+		if(useDecorrelation) {
 			wResOrg = (ArrayList<Wresidual>) wResRaw.clone();
 		}
 	}
@@ -557,7 +618,7 @@ public class Event {
 			else summary = '!';
 				
 			// Set the depth quality based on seDepth.
-			if(heldDepth) {
+			if(isDepthHeld) {
 				depth = 'G';
 			} else {
 				if(seDepth <= LocUtil.VQUALIM[0] && phUsed > LocUtil.NQUALIM[0]) 
@@ -726,8 +787,8 @@ public class Event {
 	public void printIn() {
 		System.out.format("\n%22s %8.4f %9.4f %6.2f %5b %5b %5b "+
 				"%5.1f %5.1f %5b\n", LocUtil.getRayDate(hypo.originTime), 
-				hypo.latitude, hypo.longitude, hypo.depth, heldLoc, heldDepth, 
-				prefDepth, hypo.bayesDepth, hypo.bayesSpread, cmndCorr);
+				hypo.latitude, hypo.longitude, hypo.depth, isLocationHeld, isDepthHeld, 
+				isDepthManual, hypo.bayesDepth, hypo.bayesSpread, useDecorrelation);
 		System.out.println();
 		for(int j=0; j<groups.size(); j++) {
 			groups.get(j).printIn();

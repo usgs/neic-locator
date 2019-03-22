@@ -60,9 +60,9 @@ public class Locate {
 		
 		try {
 			// Handle a held solution.
-			if(event.heldLoc) {
+			if(event.getIsLocationHeld()) {
 				// Rreidentify and reweight phases.
-				LocUtil.deCorrelate = event.cmndCorr;
+				LocUtil.deCorrelate = event.getUseDecorrelation();
 				stepper.setInitDir(0.1d, 1d, true, true);
 				close.computeFinalStatistics(LocStatus.HELD_HYPOCENTER);
 				return LocStatus.SUCCESS;
@@ -83,7 +83,7 @@ public class Locate {
 						break;
 					case 1:
 						// Unless this is a restart, allow phases initially removed.
-						if(!event.restart) {
+						if(!event.getIsLocationRestarted()) {
 							initialID.resetUseFlags();
 						}
 						// Force decorrelation.

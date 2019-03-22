@@ -69,11 +69,11 @@ public class InitialID {
 		
 		// Set up a new travel-time session if the depth has changed.
 		if(LocUtil.server) {
-			session = TTSessionPool.getTravelTimeSession(event.earthModel, hypo.depth, 
+			session = TTSessionPool.getTravelTimeSession(event.getEarthModel(), hypo.depth, 
 					LocUtil.PHLIST, hypo.latitude, hypo.longitude, LocUtil.ALLPHASES,
 					LocUtil.BACKBRN, LocUtil.tectonic, false, false);
 		} else {
-			ttLocal.newSession(event.earthModel, hypo.depth, LocUtil.PHLIST, hypo.latitude, 
+			ttLocal.newSession(event.getEarthModel(), hypo.depth, LocUtil.PHLIST, hypo.latitude, 
 					hypo.longitude, LocUtil.ALLPHASES, LocUtil.BACKBRN, LocUtil.tectonic, 
 					false);
 		}
@@ -171,7 +171,7 @@ public class InitialID {
     
 		// On a restart, reidentify all phases to be consistent with the new hypocenter.  
     // Note that we still needed the logic above to reset the origin time.
-		if(event.restart) {
+		if(event.getIsLocationRestarted()) {
 			stepper.setEnviron();
 			phaseID.doID(0.1d, 1d, true, true);
 			event.staStats();

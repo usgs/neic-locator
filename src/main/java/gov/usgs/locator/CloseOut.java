@@ -102,7 +102,7 @@ public class CloseOut {
     // Compensate for the effective number of data.  This is needed to 
     // make the errors for events comparable whether they have been 
     // decorrelated or not.
-    if (event.cmndCorr) {
+    if (event.getUseDecorrelation()) {
       compFactor = 1d;
     } else {
       compFactor = Math.sqrt(LocUtil.EFFOFFSET - LocUtil.EFFSLOPE 

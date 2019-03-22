@@ -268,14 +268,14 @@ public class Stepper {
 		}
 		if(LocUtil.deBugLevel > 0) System.out.println("\n\tTectonic = "+
 				LocUtil.tectonic);
-		if(!event.prefDepth) {
+		if(!event.getIsDepthManual()) {
 			// Update the Bayesian depth if it wasn't set by the analyst.
 			bayesDepth = zones.bayesDepth(hypo.latitude, hypo.longitude);
 			bayesSpread = zones.bayesSpread();
 			hypo.updateBayes(bayesDepth, bayesSpread);
 		}
 		if(LocUtil.deBugLevel > 0) System.out.format("\tBayes: %5.1f %5.3f %b\n", 
-				hypo.bayesDepth, hypo.depthWeight, event.prefDepth);
+				hypo.bayesDepth, hypo.depthWeight, event.getIsDepthManual());
 	}
 	
 	/**

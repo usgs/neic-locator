@@ -94,6 +94,7 @@ public class LocService implements LocationService {
 
     // print results for debugging
     System.out.println("\nResults:");
+    event.printHydra();
     event.printNEIC();
     System.out.println("");
 

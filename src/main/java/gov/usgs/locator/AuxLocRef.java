@@ -42,14 +42,19 @@ public class AuxLocRef {
   private int numberOfYears = -1;
   
   /**
-	 * Default path for model files.
-	 */
+   * Default path for model files.
+   */
   public static final String DEFAULT_MODEL_PATH = "./models/";
 
-	/**
-	 * Path for model files.
-	 */
-	public String modelPath;      
+  /**
+   * Path for model files.
+   */
+  public String modelPath;      
+
+  /**
+   * A String containing the serialized file name.
+   */
+  private String serializedFileName = "locaux.ser";
 
   /**
    * An array of String objets containing the raw input model file names.
@@ -58,30 +63,36 @@ public class AuxLocRef {
                                       "zonekey.dat", 
                                       "zonestat.dat" };
 
-	/**
-	 * Read the cratons and zone statistics files and make the data available 
-	 * to the Locator.
-	 * 
-	 * @param modelPath If not null, path to model files
-	 * 
-	 * @throws IOException On any read error
-	 * @throws ClassNotFoundException In input serialization is hosed
-	 */
-	public AuxLocRef(String modelPath) throws IOException, ClassNotFoundException {
-		int[][] zoneKeys;
-		String[] absNames;
-		ZoneStat[] stats;
-		BufferedInputStream inCratons;
-		RandomAccessFile inZones;
-		FileInputStream serIn;
-		FileOutputStream serOut;
-		ObjectInputStream objIn;
-		ObjectOutputStream objOut;
-		FileLock lock;
-		
-		if (modelPath == null) {
-			this.modelPath = DEFAULT_MODEL_PATH;
-		} else {
+  /**
+   * A Scanner object used to read continental craton boundaries and 
+   * earthquake statistics by geographic location.
+   */
+  private Scanner scan;
+
+  /**
+   * Read the cratons and zone statistics files and make the data available 
+   * to the Locator.
+   * 
+   * @param modelPath If not null, path to model files
+   * 
+   * @throws IOException On any read error
+   * @throws ClassNotFoundException In input serialization is hosed
+   */
+  public AuxLocRef(String modelPath) throws IOException, ClassNotFoundException {
+    int[][] zoneKeys;
+    String[] absNames;
+    ZoneStat[] stats;
+    BufferedInputStream inCratons;
+    RandomAccessFile inZones;
+    FileInputStream serIn;
+    FileOutputStream serOut;
+    ObjectInputStream objIn;
+    ObjectOutputStream objOut;
+    FileLock lock;
+    
+    if (modelPath == null) {
+      this.modelPath = DEFAULT_MODEL_PATH;
+    } else {
       this.modelPath = modelPath;
     }
 
