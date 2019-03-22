@@ -83,7 +83,8 @@ public class LocService implements LocationService {
     // setup the event
     Event event = new Event(in.getEarthModel());
     event.serverIn(in);
-
+    event.printIn();
+    
     // setup the locator
     Locate loc = new Locate(event, ttLocal, auxLoc);;
     

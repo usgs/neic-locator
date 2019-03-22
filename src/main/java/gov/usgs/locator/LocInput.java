@@ -130,13 +130,13 @@ public class LocInput extends LocationRequest {
 				arrival = scan.nextDouble();
 				cmndUse = scan.next().charAt(0);
 				auth = scan.nextInt();
-				if (auth == 0) {
+				if (auth == 1) {
 					authType = "ContributedAutomatic";
-				} else if (auth == 1) {
-					authType = "LocalAutomatic";
 				} else if (auth == 2) {
-					authType = "ContributedHuman";
+					authType = "LocalAutomatic";
 				} else if (auth == 3) {
+					authType = "ContributedHuman";
+				} else if (auth == 4) {
 					authType = "LocalHuman";
 				} else {
 					authType = "ContributedAutomatic";
