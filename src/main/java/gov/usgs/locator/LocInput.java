@@ -12,8 +12,8 @@ import java.util.Date;
 import gov.usgs.processingformats.*;
 
 /**
- * Locator inputs needed to relocate an event.  This class is designed to contain 
- * all inputs needed for a location pass.  An object of this class should be 
+ * Locator inputs needed to relocate an event.	This class is designed to contain 
+ * all inputs needed for a location pass.	An object of this class should be 
  * created from the users inputs and will drive subsequent processing.
  * 
  * @author Ray Buland
@@ -44,7 +44,7 @@ public class LocInput extends LocationRequest {
 	}
 
 	/**
-	 * Read a Bulletin Hydra style event input file.  File open and 
+	 * Read a Bulletin Hydra style event input file.	File open and 
 	 * read exceptions are trapped.
 	 * 
 	 * @param filePath path to hydra file
@@ -118,7 +118,7 @@ public class LocInput extends LocationRequest {
 				lat = scan.nextDouble();
 				lon = scan.nextDouble();
 				elev = scan.nextDouble();
-				// Get the rest of the pick information.  Note that some 
+				// Get the rest of the pick information.	Note that some 
 				// fiddling is required as some of the positional arguments 
 				// are sometimes omitted.
 				qual = scan.nextDouble();
@@ -130,6 +130,9 @@ public class LocInput extends LocationRequest {
 				arrival = scan.nextDouble();
 				cmndUse = scan.next().charAt(0);
 				auth = scan.nextInt();
+				// convert author type 
+				// 1 = automatic contributed, 2 = automatic NEIC, 
+				// 3 = analyst contributed, 4 = NEIC analyst.
 				if (auth == 1) {
 					authType = "ContributedAutomatic";
 				} else if (auth == 2) {
