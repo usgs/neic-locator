@@ -80,7 +80,7 @@ public class InitialID {
 		
     // Loop over picks in the groups.
 		if(LocUtil.deBugLevel > 1) System.out.println();
-    for (int j = 0; j < event.noStations(); j++) {
+    for (int j = 0; j < event.getNumStations(); j++) {
       group = event.getPickGroupList().get(j);
       if (group.picksUsed() > 0) {
         // For the first pick in the group, get the travel times.
@@ -174,7 +174,7 @@ public class InitialID {
 		if(event.getIsLocationRestarted()) {
 			stepper.setEnviron();
 			phaseID.doID(0.1d, 1d, true, true);
-			event.staStats();
+			event.computeStationStats();
 			return;
 		}
 		
@@ -199,7 +199,7 @@ public class InitialID {
 		String phCode;
 		
 		// Loop over groups assessing automatic picks.
-    for (int j = 0; j < event.noStations(); j++) {
+    for (int j = 0; j < event.getNumStations(); j++) {
       group = event.getPickGroupList().get(j);
       if (group.picksUsed() > 0) {
       	pick = group.picks.get(0);
@@ -238,7 +238,7 @@ public class InitialID {
 		TTime ttList;
 		
 		// Loop over groups forcing automatic phases to conform.
-    for (int j = 0; j < event.noStations(); j++) {
+    for (int j = 0; j < event.getNumStations(); j++) {
       group = event.getPickGroupList().get(j);
       if (group.picksUsed() > 0) {
       	pick = group.picks.get(0);
@@ -299,7 +299,7 @@ public class InitialID {
 		Pick pick;
 		
 		// This simply resets no-used phases back to their initial input state.
-		for(int j=0; j<event.noStations(); j++) {
+		for(int j=0; j<event.getNumStations(); j++) {
 			group = event.getPickGroupList().get(j);
 			for(int i=0; i<group.noPicks(); i++) {
 				pick = group.picks.get(i);
@@ -318,7 +318,7 @@ public class InitialID {
 		Pick pick;
 		
 		System.out.println("\nInitial phase identification:");
-		for(int j=0; j<event.noStations(); j++) {
+		for(int j=0; j<event.getNumStations(); j++) {
 			group = event.getPickGroupList().get(j);
       if (group.picksUsed() > 0) {
       	station = group.station;

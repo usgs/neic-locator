@@ -83,19 +83,19 @@ public class LocService implements LocationService {
     // setup the event
     Event event = new Event(in.getEarthModel());
     event.input(in);
-    event.printIn();
+    event.printHydraInput();
 
     // setup the locator
     Locate loc = new Locate(event, ttLocal, auxLoc);;
     
     // perform the location
     LocStatus status = loc.doLoc();
-    event.setExitCode(status);
+    event.setLocatorExitCode(status);
 
     // print results for debugging
     System.out.println("\nResults:");
-    event.printHydra();
-    event.printNEIC();
+    event.printHydraOutput();
+    event.printNEICOutput();
     System.out.println("");
 
     // get the output

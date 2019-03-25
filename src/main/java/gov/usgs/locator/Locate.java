@@ -143,7 +143,7 @@ public class Locate {
 							Math.pow(hypo.delZ,2d));
 					event.addAudit(stage, iter, status);
 					System.out.println("\nFinal wrapup:");
-					event.printAudit();
+					event.printHypoAudit();
 					status = close.computeFinalStatistics(status);
 					return status;
 				// Otherwise, create the stage level audit.

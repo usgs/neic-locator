@@ -96,7 +96,7 @@ public class DeCorr {
     weightedResidualsOrg = event.getOriginalWeightedResiduals();
 
     if (LocUtil.deBugLevel > 1) { 
-      event.printWres("Org", true);
+      event.printWeightedResiduals("Org", true);
     }
 
     // We'll use the dimension of the picks a lot!
@@ -169,7 +169,7 @@ public class DeCorr {
     weightedResidualsProjOrg = 
       (ArrayList<Wresidual>)weightedResidualsProj.clone();
     if (LocUtil.deBugLevel > 2) {
-      event.printWres("Proj", true);
+      event.printWeightedResiduals("Proj", true);
     }
   }
   
@@ -325,7 +325,7 @@ public class DeCorr {
       numPickData = numData - 1;
 
       if (LocUtil.deBugLevel > 1) {
-        event.printWres("Org", true);
+        event.printWeightedResiduals("Org", true);
       }
     } else {
       // We're OK.  Just create the correlation matrix in a form 
