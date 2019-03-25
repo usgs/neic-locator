@@ -69,12 +69,12 @@ public class InitialID {
 		
 		// Set up a new travel-time session if the depth has changed.
 		if(LocUtil.server) {
-			session = TTSessionPool.getTravelTimeSession(event.getEarthModel(), hypo.depth, 
-					LocUtil.PHLIST, hypo.latitude, hypo.longitude, LocUtil.ALLPHASES,
+			session = TTSessionPool.getTravelTimeSession(event.getEarthModel(), hypo.getDepth(), 
+					LocUtil.PHLIST, hypo.getLatitude(), hypo.getLongitude(), LocUtil.ALLPHASES,
 					LocUtil.BACKBRN, LocUtil.tectonic, false, false);
 		} else {
-			ttLocal.newSession(event.getEarthModel(), hypo.depth, LocUtil.PHLIST, hypo.latitude, 
-					hypo.longitude, LocUtil.ALLPHASES, LocUtil.BACKBRN, LocUtil.tectonic, 
+			ttLocal.newSession(event.getEarthModel(), hypo.getDepth(), LocUtil.PHLIST, hypo.getLatitude(), 
+					hypo.getLongitude(), LocUtil.ALLPHASES, LocUtil.BACKBRN, LocUtil.tectonic, 
 					false);
 		}
 		
@@ -157,7 +157,7 @@ public class InitialID {
       }
     }
     // Add in the Bayesian depth because the R-estimator code expects it.
-    wResiduals.add(new Wresidual(null, hypo.depthRes, hypo.depthWeight, true, 
+    wResiduals.add(new Wresidual(null, hypo.getBayesianDepthResidual(), hypo.getBayesianDepthWeight(), true, 
     		0d, 0d, 0d));
   	/*
   	 * Update the hypocenter origin time based on the residuals and weights pushed 
@@ -167,7 +167,7 @@ public class InitialID {
     double median = rEst.median();
     event.updateOrigin(median);
     if(LocUtil.deBugLevel > 0) System.out.format("\nUpdate origin: %f %f %f %d\n", 
-    		hypo.originTime, median, hypo.originTime+median, badPs);
+    		hypo.getOriginTime(), median, hypo.getOriginTime()+median, badPs);
     
 		// On a restart, reidentify all phases to be consistent with the new hypocenter.  
     // Note that we still needed the logic above to reset the origin time.

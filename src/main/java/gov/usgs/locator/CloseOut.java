@@ -408,7 +408,7 @@ public class CloseOut {
     }
 
     // Do the Bayesian depth data importance separately.
-    event.setBayesianDepthDataImportance(correlationMatrix[2][2] * Math.pow(hypo.depthWeight, 2d));
+    event.setBayesianDepthDataImportance(correlationMatrix[2][2] * Math.pow(hypo.getBayesianDepthWeight(), 2d));
 
     if (LocUtil.deBugLevel > 0) {
       System.out.format("Normeq: qsum qsum+ "

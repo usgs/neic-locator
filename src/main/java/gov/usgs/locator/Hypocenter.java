@@ -9,67 +9,421 @@ import gov.usgs.traveltime.TauUtil;
  *
  */
 public class Hypocenter {
-	// Input/Outputs:
-	double originTime;		// Origin time in seconds since the epoch
-	double latitude;			// Geographic latitude in degrees
-	double longitude;			// Longitude in degrees
-	double depth;					// Depth in kilometers
-	double bayesDepth;		// Bayesian depth in kilometers
-	double bayesSpread;		// Bayesian uncertainty in kilometers
-	// Internal use:
-	int degOfFreedom;			// Degrees of freedom
-	double coLat;					// Geocentric colatitude in degrees
-	double sinLat;				// Sine of the geocentric colatitude
-	double cosLat;				// Cosine of the geocentric colatitude
-	double sinLon;				// Sine of the longitude
-	double cosLon;				// Cosine of the longitude
-	double depthRes;			// Bayesian depth residual in kilometers
-	double depthWeight;		// Bayesian depth weight
-	// Iteration parameters:
-	int noDamp;						// Number of times step length damping has been applied
-	double medianRes;			// Linear estimate of the origin time shift in seconds
-	double chiSq;					// R-estimator dispersion or penalty value
-	double rms;						// R-estimator equivalent of the least squares RMS
-	double stepLen;				// Step length in kilometers
-	double delH;					// Horizontal (tangential) step length in kilometers
-	double delZ;					// Vertical (depth) step length in kilometers
-	double[] stepDir;			// Spatial local Cartesian step direction unit vector
+	/** 
+   * A double containing the origin time in seconds since the epoch.
+   */
+	private double originTime; 
+	
+	/** 
+   * A double containing the geographic latitude in degrees.
+   */
+  private double latitude; 
+
+  /**
+   * A double containing the geographic longitude in degrees.
+   */
+  private double longitude;
+
+  /**
+   * A double containing the depth in kilometers.
+   */  
+	private double depth;
+	
+  /** 
+   * A double containing the Bayesian depth in kilometers.
+   */
+	private double bayesianDepth; 
+	
+  /** 
+   * A double containing the Bayesian depth spread in kilometers.
+   */
+	private double bayesianDepthSpread;
+	
+  /**
+   * A double containing the bayesian depth residual in kilometers
+   */	
+	private double bayesianDepthResidual;
+
+	  /**
+   * A double containing the bayesian depth weight
+   */	
+	private double bayesianDepthWeight;
+
+	/**
+	 * An int containing the degrees of freedom
+	 */
+	private int degreesOfFreedom;
+	
+  /**
+   * A double containing the geocentric colatitude in degrees.
+   */
+  private double coLatitude;
+
+  /**
+   * A double containing the sine of the geocentric colatitude in degrees.
+   */
+  private double coLatitudeSine; 
+
+  /**
+   * A double containing the cosine of the geocentric colatitude in degrees.
+   */
+  private double coLatitudeCosine; 
+
+  /**
+   * A double containing the sine of the geocentric longitude in degrees.
+   */
+  private double longitudeSine; 
+
+  /**
+   * A double containing the cosine of the geocentric longitude in degrees.
+   */
+	private double longitudeCosine; 
 	
 	/**
-	 * Getter for origin time.
-	 * 
-	 * @return Event origin time as double precision seconds since the epoch
-	 */
-	public double getOrigin() { return originTime;}
+   * An int containing the number of times step length damping has been applied.
+   */
+	private int numOfTimesStepLengthDampening;
+
+	/**
+   * A double containing the linear estimate of the origin time shift in seconds.
+   */
+	private double linearTimeShiftEstimate;
+
+  /**
+   * A double containing the R-estimator dispersion or penalty value
+   */	
+	private double estimatorDispersionValue;
+
+  /**
+   * A double containing the R-estimator equivalent of the least squares RMS
+   */		
+	private double estimatorRMSEquivalent;	
+
+	/**
+   * A double containing the step length in kilometers
+   */
+	private double stepLength;
+
+	/**
+   * A double containing the horizontal (tangential) step length in kilometers
+   */	
+	private double horizontalStepLength;
+
+	/**
+   * A double containing the vertical (depth) step length in kilometers
+   */		
+	private double verticalStepLength;
+
+	/**
+   * A double array containing the spatial local Cartesian step direction unit 
+	 * vector
+   */		
+	private double[] stepDirectionUnitVector;
 	
 	/**
-	 * Getter for latitude.
-	 * 
-	 * @return The epicenter geographic latitude in degrees
+   * Function to return the origin time.
+   * 
+   * @return A double containing the origin time in double precision 
+   *         seconds since the epoch
 	 */
-	public double getLatitude() {return latitude;}
+	public double getOriginTime() { 
+		return originTime;
+	}
 	
 	/**
-	 * Getter for longitude.
-	 * 
-	 * @return The epicenter geographic longitude in degrees
+   * Function to return the latitude.
+   * 
+   * @return A double containing the epicenter geographic latitude in degrees
+   */
+	public double getLatitude() {
+		return latitude;
+	}
+	
+	/**
+   * Function to return the longitude.
+   * 
+   * @return A double containing the epicenter geographic longitude in degrees
 	 */
-  public double getLongitude() {return longitude;}
+  public double getLongitude() {
+		return longitude;
+	}
   
   /**
-   * Getter for depth.
+   * Function to return the depth.
    * 
-   * @return The hypocenter depth in kilometers
+   * @return A double containing the hypocenter depth in kilometers
    */
-  public double getDepth() {return depth;}
-  
+  public double getDepth() {
+		return depth;
+	}
+	
+  /**
+   * Function to return the bayesian depth.
+   * 
+   * @return A double containing the hypocenter bayesian depth in kilometers
+   */	
+	public double getBayesianDepth() {
+		return bayesianDepth;
+	}
+
+  /**
+   * Function to return the bayesian depth. spread
+   * 
+   * @return A double containing the hypocenter bayesian depth spread in 
+	 * 				 kilometers
+   */	
+	public double getBayesianDepthSpread() {
+		return bayesianDepthSpread;
+	}
+
+  /**
+   * Function to return the bayesian depth residual.
+   * 
+   * @return A double containing the hypocenter bayesian depth residual in kilometers
+   */	
+	public double getBayesianDepthResidual() {
+		return bayesianDepthResidual;
+	}
+
 	/**
-	 * Initializes a hypocenter with enough information to start a location pass.
+   * Function to return the bayesian depth weight.
+   * 
+   * @return A double containing the hypocenter bayesian depth weight
+   */	
+	public double getBayesianDepthWeight() {
+		return bayesianDepthWeight;
+	}
+
+  /**
+   * Function to return the degrees of freedom for this hypocenter
+   * 
+   * @return An int containing the degrees of freedom
+   */	
+	public int getDegreesOfFreedom() {
+		return degreesOfFreedom;
+	}
+
+	/**
+   * Function to return the colatitude.
+   * 
+   * @return A double containing the colatitude in degrees
+   */
+  public double getCoLatitude() {
+    return coLatitude;
+  }
+
+ 	/**
+   * Function to return the sine of the colatitude.
+   * 
+   * @return A double containing the sine of the colatitude in degrees
+   */
+  public double getCoLatitudeSine() {
+    return coLatitudeSine;
+  }
+
+  /**
+   * Function to return the cosine of the colatitude.
+   * 
+   * @return A double containing the cosine of the colatitude in degrees
+   */
+  public double getCoLatitudeCosine() {
+    return coLatitudeCosine;
+  }
+
+  /**
+   * Function to return the sine of the longitude.
+   * 
+   * @return A double containing the sine of the longitude in degrees
+   */
+  public double getLongitudeSine() {
+    return longitudeSine;
+  }
+
+  /**
+   * Function to return the cosine of the longitude.
+   * 
+   * @return A double containing the cosine of the longitude in degrees
+   */
+  public double getLongitudeCosine() {
+    return longitudeCosine;
+  }
+
+	/**
+   * Function to get the number of times step length damping has been 
+	 * applied.
+   * 
+   * @return An int containing the number of times step length damping has been 
+	 * 				 applied.
+   */	
+	public int getNumOfTimesStepLengthDampening() {
+		return numOfTimesStepLengthDampening;
+	}
+
+  /**
+   * Function to return the linear estimate of the origin time shift
+   * 
+   * @return A double containing the linear estimate of the origin time shift in 
+	 * 				 seconds.
+   */
+  public double getLinearTimeShiftEstimate() {
+    return linearTimeShiftEstimate;
+  }
+
+  /**
+   * Function to return the R-estimator dispersion or penalty value
+   * 
+   * @return A double containing the R-estimator dispersion or penalty value
+   */
+  public double getEstimatorDispersionValue() {
+    return estimatorDispersionValue;
+  }
+
+  /**
+   * Function to return the R-estimator equivalent of the least squares RMS
+   * 
+   * @return A double containing the R-estimator equivalent of the least squares 
+	 * 				 RMS
+   */
+  public double getEstimatorRMSEquivalent() {
+    return estimatorRMSEquivalent;
+	}
+
+ 	/**
+   * Function to return the step length
+   * 
+   * @return A double containing the step length in kilometers
+   */
+  public double getStepLength() {
+    return stepLength;
+  }
+
+ 	/**
+   * Function to return the horizontal (tangential) step length
+   * 
+   * @return A double containing the horizontal (tangential) step length in 
+	 * 				 kilometers
+   */
+  public double getHorizontalStepLength() {
+    return horizontalStepLength;
+  }
+
+ 	/**
+   * Function to return the vertical (depth) step length
+   * 
+   * @return A double containing the vertical (depth) step length in kilometers
+   */
+  public double getVerticalStepLength() {
+    return verticalStepLength;
+  }	
+
+ 	/**
+   * Function to return the spatial local Cartesian step direction unit vector
+   * 
+   * @return A double[] the spatial local Cartesian step direction unit vector
+   */
+  public double[] getStepDirectionUnitVector() {
+    return stepDirectionUnitVector;
+  }	
+
+	/**
+   * Function to set the bayesian depth weight.
+   * 
+   * @param bayesianDepthWeight A double containing the hypocenter bayesian 
+	 * 														depth weight
+   */	
+	public void setBayesianDepthWeight(double bayesianDepthWeight) {
+		this.bayesianDepthWeight = bayesianDepthWeight;
+	}
+
+	/**
+   * Function to set the number of times step length damping has been 
+	 * applied.
+   * 
+   * @param numOfTimesStepLengthDampening An int containing the number of times 
+	 * 																		 step length damping has been applied.
+   */	
+	public void setNumOfTimesStepLengthDampening(int numOfTimesStepLengthDampening) {
+		this.numOfTimesStepLengthDampening = numOfTimesStepLengthDampening;
+	}
+
+/**
+   * Function to set the linear estimate of the origin time shift
+   * 
+   * @param linearTimeShiftEstimate A double containing the linear estimate of 
+	 * 				 												the origin time shift in seconds.
+   */
+  public void setLinearTimeShiftEstimate(double linearTimeShiftEstimate) {
+    this.linearTimeShiftEstimate = linearTimeShiftEstimate;
+  }
+
+  /**
+   * Function to set the R-estimator dispersion or penalty value
+   * 
+   * @param estimatorDispersionValue A double containing the R-estimator 
+	 * 																 dispersion or penalty value
+   */
+  public void setEstimatorDispersionValue(double estimatorDispersionValue) {
+    this.estimatorDispersionValue = estimatorDispersionValue;
+  }
+
+  /**
+   * Function to set the R-estimator equivalent of the least squares RMS
+   * 
+   * @param estimatorRMSEquivalent A double containing the R-estimator 
+	 * 															 equivalent of the least squares RMS
+   */
+  public void setEstimatorRMSEquivalent(double estimatorRMSEquivalent) {
+    this.estimatorRMSEquivalent = estimatorRMSEquivalent;
+	}
+
+	/**
+   * Function to set the step length
+   * 
+   * @param stepLength A double containing tthe step length in kilometers
+   */
+  public void setStepLength(double stepLength) {
+    this.stepLength = stepLength;
+  }
+
+	/**
+   * Function to set the horizontal (tangential) step length
+   * 
+   * @param horizontalStepLength A double containing the horizontal (tangential) 
+	 * 														 step length in kilometers
+   */
+  public void setHorizontalStepLength(double horizontalStepLength) {
+    this.horizontalStepLength = horizontalStepLength;
+  }
+
+ 	/**
+   * Function to set the vertical (depth) step length
+   * 
+   * @param verticalStepLength A double containing the vertical (depth) step 
+	 * 													 length in kilometers
+   */
+  public void setVerticalStepLength(double verticalStepLength) {
+    this.verticalStepLength = verticalStepLength;
+  }	
+
+	/**
+   * Function to set the spatial local Cartesian step direction unit vector
+   * 
+   * @param stepDirectionUnitVector A double[] the spatial local Cartesian step 
+	 * 																direction unit vector
+   */	
+	public void setStepDirectionUnitVector(double[] stepDirectionUnitVector) {
+		this.stepDirectionUnitVector = stepDirectionUnitVector;
+	}
+
+	/**
+	 * The Hypocenter constructor. Initializes a hypocenter with enough 
+	 * information to start a location pass.
 	 * 
-	 * @param originTime Origin time in seconds
-	 * @param latitude Geographic latitude in degrees
-	 * @param longitude Longitude in degrees
-	 * @param depth Depth in kilometers
+	 * @param originTime A double containing the origin time in seconds since the 
+	 * 									 epoch
+	 * @param latitude A double containing the geographic latitude in degrees
+	 * @param longitude A double containing the geographic longitude in degrees
+	 * @param depth A double containing the depth in kilometers
 	 */
 	public Hypocenter(double originTime, double latitude, double longitude, 
 			double depth) {
@@ -77,43 +431,52 @@ public class Hypocenter {
 		depth = Math.min(Math.max(depth, LocUtil.DEPTHMIN), 
 				LocUtil.DEPTHMAX);
 		updateHypo(originTime, latitude, longitude, depth);
+
 		// Set defaults for the rest.
-		bayesDepth = Double.NaN;
-		bayesSpread = Double.NaN;
-		depthRes = Double.NaN;
-		depthWeight = Double.NaN;
-		medianRes = 0d;
-		stepLen = 0d;
-		delH = 0d;
-		delZ = 0d;
+		bayesianDepth = Double.NaN;
+		bayesianDepthSpread = Double.NaN;
+		bayesianDepthResidual = Double.NaN;
+		bayesianDepthWeight = Double.NaN;
+		linearTimeShiftEstimate = 0d;
+		stepLength = 0d;
+		horizontalStepLength = 0d;
+		verticalStepLength = 0d;
 	}
 	
 	/**
-	 * Set an analyst requested Bayesian depth.  Note that this forces 
-	 * the event starting depth to the Bayesian depth.
+	 * This functino sets an analyst requested Bayesian depth.  Note that this 
+	 * forces the event starting depth to the Bayesian depth.
 	 * 
-	 * @param bayesDepth Bayesian depth in kilometers
-	 * @param bayesSpread Uncertainty of the Bayesian depth in kilometers
+	 * @param bayesianDepth A double containing the Bayesian depth in kilometers
+	 * @param bayesianDepthSpread A double containing the uncertainty of the 
+	 * 														Bayesian depth in kilometers
 	 */
-	public void addBayes(double bayesDepth, double bayesSpread) {
-		this.bayesDepth = Math.min(Math.max(bayesDepth, LocUtil.DEPTHMIN), 
+	public void addBayes(double bayesianDepth, double bayesianDepthSpread) {
+		this.bayesianDepth = Math.min(Math.max(bayesianDepth, LocUtil.DEPTHMIN), 
 				LocUtil.DEPTHMAX);
-		this.bayesSpread = bayesSpread;
-		depth = bayesDepth;
-		depthRes = 0d;
-		depthWeight = 3d/bayesSpread;
+		this.bayesianDepthSpread = bayesianDepthSpread;
+
+		depth = bayesianDepth;
+		bayesianDepthResidual = 0d;
+		bayesianDepthWeight = 3d / bayesianDepthSpread;
 	}
 	
 	/**
-	 * Set the number of event degrees of freedom to be determined.
+	 * This function sets the number of event degrees of freedom to be determined.
 	 * 
-	 * @param heldLoc True if the hypocenter will be held constant
-	 * @param heldDepth True if the depth will be held constant
+	 * @param heldLoc A boolean flag, true if the hypocenter will be held constant
+	 * @param heldDepth A boolean flag, true if the depth will be held constant
 	 */
-	public void setDegrees(boolean heldLoc, boolean heldDepth) {
-		if(heldDepth) degOfFreedom = 2;
-		else degOfFreedom = 3;
-		if(degOfFreedom > 0) stepDir = new double[degOfFreedom];
+	public void setDegreesOfFreedom(boolean heldLoc, boolean heldDepth) {
+		if(heldDepth) {
+			degreesOfFreedom = 2;
+		} else {
+			degreesOfFreedom = 3;
+		}
+
+		if(degreesOfFreedom > 0) {
+			stepDirectionUnitVector = new double[degreesOfFreedom];
+		}
 	}
 	
 	/**
@@ -132,37 +495,37 @@ public class Hypocenter {
 		this.longitude = longitude;
 		this.depth = depth;
 		// Update the sines and cosines.
-		coLat = TauUtil.geoCen(latitude);
+		coLatitude = TauUtil.geoCen(latitude);
 		updateSines();
 		// Update the Bayesian depth residual.
-		if(!Double.isNaN(bayesDepth)) depthRes = bayesDepth-depth;
+		if(!Double.isNaN(bayesianDepth)) bayesianDepthResidual = bayesianDepth-depth;
 	}
 	
 	/**
 	 * Move the hypocenter based on the linearized optimal step.
 	 * 
-	 * @param stepLen Step length in kilometers
+	 * @param stepLength Step length in kilometers
 	 * @param dT Origin time shift in seconds
 	 */
-	public void updateHypo(double stepLen, double dT) {
+	public void updateHypo(double stepLength, double dT) {
 		double tmpDepth;
 		
 		// Save the convergence variable.
-		this.stepLen = stepLen;
+		this.stepLength = stepLength;
 		// Update the origin time.
 		originTime += dT;
 		// Compute the tangential step length for tracking purposes.
-		delH = Math.sqrt(Math.pow(stepLen*stepDir[0], 2d)+
-				Math.pow(stepLen*stepDir[1], 2d));
+		horizontalStepLength = Math.sqrt(Math.pow(stepLength*stepDirectionUnitVector[0], 2d)+
+				Math.pow(stepLength*stepDirectionUnitVector[1], 2d));
 		// Update the colatitude and longitude.
-		coLat += stepLen*stepDir[0]/LocUtil.DEG2KM;
-		longitude += stepLen*stepDir[1]/(LocUtil.DEG2KM*sinLat);
+		coLatitude += stepLength*stepDirectionUnitVector[0]/LocUtil.DEG2KM;
+		longitude += stepLength*stepDirectionUnitVector[1]/(LocUtil.DEG2KM*coLatitudeSine);
 		// Make sure the colatitude is legal.
-		if(coLat < 0d) {
-			coLat = Math.abs(coLat);
+		if(coLatitude < 0d) {
+			coLatitude = Math.abs(coLatitude);
 			longitude += 180d;
-		} else if(coLat > 180d) {
-			coLat = 360d-coLat;
+		} else if(coLatitude > 180d) {
+			coLatitude = 360d-coLatitude;
 			longitude += 180d;
 		}
 		// Make sure the longitude is legal.
@@ -172,28 +535,28 @@ public class Hypocenter {
 			longitude -= 360d;
 		}
 		// Deal with depth separately.
-		if(degOfFreedom > 2) {
-			tmpDepth = Math.min(Math.max(depth+stepLen*stepDir[2], 
+		if(degreesOfFreedom > 2) {
+			tmpDepth = Math.min(Math.max(depth+stepLength*stepDirectionUnitVector[2], 
 					LocUtil.DEPTHMIN), LocUtil.DEPTHMAX);
-			delZ = tmpDepth-depth;
+			verticalStepLength = tmpDepth-depth;
 			depth = tmpDepth;
 		}
 		// Compute the geographic latitude.
-		latitude = TauUtil.geoLat(coLat);
+		latitude = TauUtil.geoLat(coLatitude);
 		// Update the sines and cosines.
 		updateSines();
 		// Update the Bayesian depth residual.
-		if(!Double.isNaN(bayesDepth)) depthRes = bayesDepth-depth;
+		if(!Double.isNaN(bayesianDepth)) bayesianDepthResidual = bayesianDepth-depth;
 	}
 	
 	/**
 	 * Compute the sines and cosines of colatitude and longitude.
 	 */
 	private void updateSines() {
-		sinLat = Math.sin(Math.toRadians(coLat));
-		cosLat = Math.cos(Math.toRadians(coLat));
-		sinLon = Math.sin(Math.toRadians(longitude));
-		cosLon = Math.cos(Math.toRadians(longitude));
+		coLatitudeSine = Math.sin(Math.toRadians(coLatitude));
+		coLatitudeCosine = Math.cos(Math.toRadians(coLatitude));
+		longitudeSine = Math.sin(Math.toRadians(longitude));
+		longitudeCosine = Math.cos(Math.toRadians(longitude));
 	}
 	
 	/**
@@ -208,15 +571,15 @@ public class Hypocenter {
 	/**
 	 * Update the Bayesian depth (if not set by an analyst).
 	 * 
-	 * @param bayesDepth Bayesian depth in kilometers
-	 * @param bayesSpread Uncertainty of the Bayesian depth in kilometers
+	 * @param bayesianDepth Bayesian depth in kilometers
+	 * @param bayesianDepthSpread Uncertainty of the Bayesian depth in kilometers
 	 */
-	public void updateBayes(double bayesDepth, double bayesSpread) {
-		this.bayesDepth = bayesDepth;
-		this.bayesSpread = bayesSpread;
-		depthRes = bayesDepth-depth;
+	public void updateBayes(double bayesianDepth, double bayesianDepthSpread) {
+		this.bayesianDepth = bayesianDepth;
+		this.bayesianDepthSpread = bayesianDepthSpread;
+		bayesianDepthResidual = bayesianDepth-depth;
 		// The Bayesian spread is actually taken as a 90th percentile.
-		depthWeight = 3d/bayesSpread;
+		bayesianDepthWeight = 3d/bayesianDepthSpread;
 	}
 	
 	/**
@@ -226,10 +589,10 @@ public class Hypocenter {
 	 * @param backup Hypocenter audit record
 	 */
 	public void resetHypo(HypoAudit backup) {
-		originTime = backup.originTime;
-		latitude = backup.latitude;
-		longitude = backup.longitude;
-		depth = backup.depth;
+		originTime = backup.getOriginTime();
+		latitude = backup.getLatitude();
+		longitude = backup.getLongitude();
+		depth = backup.getDepth();
 	}
 	
 	/**

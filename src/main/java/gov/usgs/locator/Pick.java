@@ -125,7 +125,7 @@ public class Pick implements Comparable<Pick> {
 	 * @param hypo Hypocenter information
 	 */
 	public void updateTt(Hypocenter hypo) {
-		tt = arrivalTime-hypo.originTime;
+		tt = arrivalTime-hypo.getOriginTime();
 	}
 	
 	/**

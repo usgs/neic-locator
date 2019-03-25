@@ -85,13 +85,13 @@ public class PhaseID {
 
 		// Set up a new travel-time session.
 		if(LocUtil.server) {
-			session = TTSessionPool.getTravelTimeSession(event.getEarthModel(), hypo.depth, 
-					LocUtil.PHLIST, hypo.latitude, hypo.longitude, LocUtil.ALLPHASES,
+			session = TTSessionPool.getTravelTimeSession(event.getEarthModel(), hypo.getDepth(), 
+					LocUtil.PHLIST, hypo.getLatitude(), hypo.getLongitude(), LocUtil.ALLPHASES,
 					LocUtil.BACKBRN, LocUtil.tectonic, false, false);
 			if(auxTT == null) auxTT = session.getAuxTT();
 		} else {
-			ttLocal.newSession(event.getEarthModel(), hypo.depth, LocUtil.PHLIST, 
-					hypo.latitude, hypo.longitude, LocUtil.ALLPHASES, LocUtil.BACKBRN, 
+			ttLocal.newSession(event.getEarthModel(), hypo.getDepth(), LocUtil.PHLIST, 
+					hypo.getLatitude(), hypo.getLongitude(), LocUtil.ALLPHASES, LocUtil.BACKBRN, 
 					LocUtil.tectonic, false);
 		}
 		
@@ -125,7 +125,7 @@ public class PhaseID {
     if(group.updateID(reWeight, wResiduals)) changed = true;
     }
     // Add the Bayesian depth.
-    wResiduals.add(new Wresidual(null, hypo.depthRes, hypo.depthWeight, true, 
+    wResiduals.add(new Wresidual(null, hypo.getBayesianDepthResidual(), hypo.getBayesianDepthWeight(), true, 
     		0d, 0d, 1d));
     // Save a copy of wResiduals in the original order.
     event.saveWeightedResiduals();

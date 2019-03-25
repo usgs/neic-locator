@@ -102,7 +102,7 @@ public class Locate {
 					return status;
 				}
 				// Initialize for iteration zero.
-				hypo.stepLen = LocUtil.INITSTEP;
+				hypo.setStepLength(LocUtil.INITSTEP);
 				bail = false;
 				// Iterate to convergence (or to the iteration limit).
 				for(iter = 0; iter < LocUtil.ITERLIM[stage]; iter++) {
@@ -125,22 +125,22 @@ public class Locate {
 						break;
 					}
 					// Check for convergence.
-					if(hypo.stepLen <= LocUtil.CONVLIM[stage] || bail) break;
+					if(hypo.getStepLength() <= LocUtil.CONVLIM[stage] || bail) break;
 				}
 				// We're done with this stage.  Collect information for a stage 
 				// level audit instance.
 				if(iter >= LocUtil.ITERLIM[stage]) status = LocStatus.FULL_ITERATIONS;
-				hypo.delH = LocUtil.delStep(hypo, audit.get(audit.size()-1));
-				hypo.delZ = Math.abs(hypo.depth-audit.get(audit.size()-1).depth);
-				hypo.stepLen = Math.sqrt(Math.pow(hypo.delH,2d)+
-						Math.pow(hypo.delZ,2d));
+				hypo.setHorizontalStepLength(LocUtil.delStep(hypo, audit.get(audit.size()-1)));
+				hypo.setVerticalStepLength(Math.abs(hypo.getDepth()-audit.get(audit.size()-1).getDepth()));
+				hypo.setStepLength(Math.sqrt(Math.pow(hypo.getHorizontalStepLength(),2d)+
+						Math.pow(hypo.getVerticalStepLength(),2d)));
 				
 				// If we've converged, create a final location level audit.
-				if(stage > 0 && hypo.stepLen <= LocUtil.CONVLIM[stage]) {
-					hypo.delH = LocUtil.delStep(hypo, audit.get(0));
-					hypo.delZ = Math.abs(hypo.depth-audit.get(0).depth);
-					hypo.stepLen = Math.sqrt(Math.pow(hypo.delH,2d)+
-							Math.pow(hypo.delZ,2d));
+				if(stage > 0 && hypo.getStepLength() <= LocUtil.CONVLIM[stage]) {
+					hypo.setHorizontalStepLength(LocUtil.delStep(hypo, audit.get(0)));
+					hypo.setVerticalStepLength(Math.abs(hypo.getDepth()-audit.get(0).getDepth()));
+					hypo.setStepLength(Math.sqrt(Math.pow(hypo.getHorizontalStepLength(),2d)+
+							Math.pow(hypo.getVerticalStepLength(),2d)));
 					event.addAudit(stage, iter, status);
 					System.out.println("\nFinal wrapup:");
 					event.printHypoAudit();

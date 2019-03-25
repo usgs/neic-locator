@@ -244,8 +244,6 @@ public class Event {
    */
   private DeCorr decorrelator;
   
-
-
   /**
    * Function to return the event hypocenter object.
    * 
@@ -262,7 +260,7 @@ public class Event {
    *         seconds since the epoch
    */
   public double getOriginTime() {
-    return hypo.originTime;
+    return hypo.getOriginTime();
   }
   
   /**
@@ -271,7 +269,7 @@ public class Event {
    * @return A double containing the epicenter geographic latitude in degrees
    */
   public double getLatitude() {
-    return hypo.latitude;
+    return hypo.getLatitude();
   }
   
   /**
@@ -280,7 +278,7 @@ public class Event {
    * @return A double containing the epicenter geographic longitude in degrees
    */
   public double getLongitude() {
-    return hypo.longitude;
+    return hypo.getLongitude();
   }
   
   /**
@@ -289,7 +287,7 @@ public class Event {
    * @return A double containing the hypocenter depth in kilometers
    */
   public double getDepth() {
-    return hypo.depth;
+    return hypo.getDepth();
   }
 
   /**
@@ -678,15 +676,16 @@ public class Event {
    * @return A LocOutput object containing Location output information
    */
   public LocOutput output() {
-    LocOutput out = new LocOutput(LocUtil.toJavaTime(hypo.originTime), 
-        hypo.latitude, hypo.longitude, hypo.depth, numStationsAssociated, 
-        numPhasesAssociated, numStationsUsed, numPhasesUsed, azimuthalGap, 
-        azimuthalGapLEst, minStationDistance, qualityFlags);
+    LocOutput out = new LocOutput(LocUtil.toJavaTime(hypo.getOriginTime()), 
+        hypo.getLatitude(), hypo.getLongitude(), hypo.getDepth(), 
+        numStationsAssociated, numPhasesAssociated, numStationsUsed, 
+        numPhasesUsed, azimuthalGap, azimuthalGapLEst, minStationDistance, 
+        qualityFlags);
     out.addErrors(timeStandardError, latitudeStandardError, 
         longitudeStandardError, depthStandardError, residualsStandardError, 
         maxHorizontalError, maxVerticalError, equivalentErrorRadius, 
-        hypo.bayesDepth, hypo.bayesSpread, bayesianDepthDataImportance, 
-        errorEllipse, locatorExitCode);
+        hypo.getBayesianDepth(), hypo.getBayesianDepthSpread(), 
+        bayesianDepthDataImportance, errorEllipse, locatorExitCode);
     
     // Sort the pick groups (stations) by distance.
     pickGroupList.sort(new GroupComp());
@@ -729,7 +728,7 @@ public class Event {
     // location is from a crustal event located by a regional network.
     if (isLocationHeld) {
       isDepthManual = true;
-      bayesianDepth = hypo.depth;
+      bayesianDepth = hypo.getDepth();
 
       if (isDepthHeld) {
         bayesianDepthSpread = LocUtil.HELDEPSE;
@@ -740,7 +739,7 @@ public class Event {
       // Although a held depth will actually hold the depth, simulate a 
       // Bayesian depth for error computation reasons.
       isDepthManual = true;
-      bayesianDepth = hypo.depth;
+      bayesianDepth = hypo.getDepth();
       bayesianDepthSpread = LocUtil.HELDEPSE;
     }
 
@@ -1112,7 +1111,7 @@ public class Event {
    * importances cannot be computed.
    */
   public void zeroOutWeights() {
-    hypo.depthWeight = 0d;
+    hypo.setBayesianDepthWeight(0d);
 
     for (int j = 0; j < pickList.size(); j++) {
       pickList.get(j).weight = 0d;
@@ -1132,7 +1131,7 @@ public class Event {
       case NEARLY_CONVERGED:
       case DID_NOT_CONVERGE:
       case UNSTABLE_SOLUTION:
-        if ((hypo.delH > LocUtil.DELTATOL) || (hypo.delZ > LocUtil.DEPTHTOL)) {
+        if ((hypo.getHorizontalStepLength() > LocUtil.DELTATOL) || (hypo.getVerticalStepLength() > LocUtil.DEPTHTOL)) {
           locatorExitCode = LocStatus.SUCESSFUL_LOCATION;
         } else {
           locatorExitCode = LocStatus.DID_NOT_MOVE;
@@ -1233,10 +1232,10 @@ public class Event {
    */
   public void printHydraInput() {
     System.out.format("\n%22s %8.4f %9.4f %6.2f %5b %5b %5b "
-        + "%5.1f %5.1f %5b\n", LocUtil.getRayDate(hypo.originTime), 
-        hypo.latitude, hypo.longitude, hypo.depth, isLocationHeld, isDepthHeld, 
-        isDepthManual, hypo.bayesDepth, hypo.bayesSpread, 
-        useDecorrelation);
+        + "%5.1f %5.1f %5b\n", LocUtil.getRayDate(hypo.getOriginTime()), 
+        hypo.getLatitude(), hypo.getLongitude(), hypo.getDepth(), isLocationHeld, 
+        isDepthHeld, isDepthManual, hypo.getBayesianDepth(), 
+        hypo.getBayesianDepthSpread(), useDecorrelation);
     System.out.println();
 
     for (int j = 0; j < pickGroupList.size(); j++) {
@@ -1246,18 +1245,19 @@ public class Event {
   
   /**
    * This function prints the output event information in a format similar to a
-   * Bulletin Hydra style output file to the scree .
+   * Bulletin Hydra style output file to the screen.
    */
   public void printHydraOutput() {
     System.out.format("\n%14.3f %8.4f %9.4f %6.2f %4d %4d %4d %4d %3.0f "
-        + "%8.4f\n", hypo.originTime, hypo.latitude, hypo.longitude, 
-        hypo.depth, numStationsAssociated, numPhasesAssociated, numStationsUsed, 
+        + "%8.4f\n", hypo.getOriginTime(), hypo.getLatitude(), hypo.getLongitude(), 
+        hypo.getDepth(), numStationsAssociated, numPhasesAssociated, numStationsUsed, 
         numPhasesUsed, azimuthalGap, minStationDistance);
     System.out.format("%6.2f %6.1f %6.1f %6.1f %6.2f %6.1f %6.1f %6.1f "
         + "%3s %5.1f %5.1f %6.4f\n", timeStandardError, latitudeStandardError, 
         longitudeStandardError, depthStandardError, residualsStandardError, 
         maxHorizontalError, maxVerticalError, equivalentErrorRadius, qualityFlags, 
-        hypo.bayesDepth, hypo.bayesSpread, bayesianDepthDataImportance);
+        hypo.getBayesianDepth(), hypo.getBayesianDepthSpread(), 
+        bayesianDepthDataImportance);
     System.out.format("%14s %14s %14s  %3.0f\n", errorEllipse[0], errorEllipse[1], 
         errorEllipse[2], azimuthalGapLEst);
 
@@ -1272,12 +1272,12 @@ public class Event {
   public void printNEICOutput() {
     // Print the hypocenter.
     System.out.format("\nLocation:             %-7s %-8s ±%6.1f km\n", 
-        LocUtil.niceLat(hypo.latitude), LocUtil.niceLon(hypo.longitude), 
+        LocUtil.niceLat(hypo.getLatitude()), LocUtil.niceLon(hypo.getLongitude()), 
         maxHorizontalError);
     System.out.format("Depth:                %5.1f ±%6.1f km\n", 
-        hypo.depth, maxVerticalError);
+        hypo.getDepth(), maxVerticalError);
     System.out.format("Origin Time:          %23s UTC\n", 
-        LocUtil.getNEICdate(hypo.originTime));
+        LocUtil.getNEICdate(hypo.getOriginTime()));
     System.out.format("Number of Stations:     %4d\n", numStationsAssociated);
     System.out.format("Number of Phases:       %4d\n", numPhasesAssociated);
     System.out.format("Minimum Distance:     %6.1f\n", minStationDistance);

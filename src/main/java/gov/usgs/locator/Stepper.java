@@ -62,7 +62,7 @@ public class Stepper {
 		LocStatus status;
 		
 		status = setDir(otherWeight, stickyWeight, reID, reWeight);
-		if(status == LocStatus.SUCCESS) hypo.chiSq = result.chiSq;
+		if(status == LocStatus.SUCCESS) hypo.setEstimatorDispersionValue(result.chiSq);
 		return status;
 	}
 	
@@ -114,7 +114,7 @@ public class Stepper {
 			if(LocUtil.deBugLevel > 0) System.out.format("Lsrt: ST av chisq"+
 					" = %8.4f %10.4f\n", medianProj, chiSq);
 			// Get the steepest descent direction.
-			hypo.stepDir = rEstProj.steepest(hypo.degOfFreedom);
+			hypo.setStepDirectionUnitVector(rEstProj.steepest(hypo.getDegreesOfFreedom()));
 		} else {
 			// Demedian the raw residuals.
 			medianRes = rEstRaw.median();
@@ -126,13 +126,13 @@ public class Stepper {
 			if(LocUtil.deBugLevel > 0) System.out.format("Lsrt: ST av chisq"+
 					" = %8.4f %10.4f\n", medianRes, chiSq);
 			// Get the steepest descent direction.
-			hypo.stepDir = rEstRaw.steepest(hypo.degOfFreedom);
+			hypo.setStepDirectionUnitVector(rEstRaw.steepest(hypo.getDegreesOfFreedom()));
 		}
 		
 		if(LocUtil.deBugLevel > 0) {
 			System.out.print("Adder: b =");
-			for(int j=0; j<hypo.stepDir.length; j++) {
-				System.out.format(" %7.4f", hypo.stepDir[j]);
+			for(int j=0; j<hypo.getStepDirectionUnitVector().length; j++) {
+				System.out.format(" %7.4f", hypo.getStepDirectionUnitVector()[j]);
 			}
 			System.out.println();
 		}
@@ -159,23 +159,23 @@ public class Stepper {
 		lastHypo = new HypoAudit(hypo, 0, 0, event.getNumPhasesUsed(), status);
 		
 		// Get the linearized step.
-		hypo.noDamp = 0;
+		hypo.setNumOfTimesStepLengthDampening(0);
 		damp = LocUtil.dampFactor();
-		hypo.stepLen = Math.max(hypo.stepLen, 2d*LocUtil.CONVLIM[stage]);
-		result = linStep.stepLength(hypo.stepDir, hypo.stepLen, 
-				LocUtil.CONVLIM[stage], LocUtil.STEPLIM[stage], hypo.chiSq);
+		hypo.setStepLength(Math.max(hypo.getStepLength(), 2d*LocUtil.CONVLIM[stage]));
+		result = linStep.stepLength(hypo.getStepDirectionUnitVector(), hypo.getStepLength(), 
+				LocUtil.CONVLIM[stage], LocUtil.STEPLIM[stage], hypo.getEstimatorDispersionValue());
 		// This weird special case appears once in a while.
-		if(result.chiSq >= hypo.chiSq && result.stepLen < 
+		if(result.chiSq >= hypo.getEstimatorDispersionValue() && result.stepLen < 
 				LocUtil.CONVLIM[stage]) {
-			hypo.stepLen = result.stepLen;
-			hypo.delH = 0d;
-			hypo.delZ = 0d;
+			hypo.setStepLength(result.stepLen);
+			hypo.setHorizontalStepLength(0d);
+			hypo.setVerticalStepLength(0d);
 			logStep("Step", stage, iter, status);
 			return status;
 		}
 		
 		// Update the hypocenter.
-		hypo.medianRes = result.median;
+		hypo.setLinearTimeShiftEstimate(result.median);
 		event.updateHypo(result.stepLen, result.median);
 		// Reidentify phases and get the non-linear R-estimator parameters 
 		// for the new hypocenter.
@@ -185,15 +185,15 @@ public class Stepper {
 		event.updateOrigin(result.median);
 		// If the phase identification has changed, we have to start over.
 		if(event.getHasPhaseIdChanged()) {
-			hypo.chiSq = result.chiSq;
+			hypo.setEstimatorDispersionValue(result.chiSq);
 			status = LocStatus.PHASEID_CHANGED;
 			logStep("ReID", stage, iter, status);
 			return status;
 		}
 		
 		// If we're headed down hill, this iteration is done.
-		if(result.chiSq < hypo.chiSq) {
-			hypo.chiSq = result.chiSq;
+		if(result.chiSq < hypo.getEstimatorDispersionValue()) {
+			hypo.setEstimatorDispersionValue(result.chiSq);
 			logStep("Step", stage, iter, status);
 			return status;
 		}
@@ -210,16 +210,16 @@ public class Stepper {
 		 */
 		do {
 			// Trap a failed damping strategy.
-			if(damp*hypo.stepLen <= LocUtil.CONVLIM[stage] || (hypo.noDamp > 0 && 
+			if(damp*hypo.getStepLength() <= LocUtil.CONVLIM[stage] || (hypo.getNumOfTimesStepLengthDampening() > 0 && 
 					LocUtil.hypoCompare(hypo, lastHypo))) {
 				// We've damped the solution into oblivion.  Give up.
 				hypo.resetHypo(lastHypo);
-				hypo.delH = 0d;
-				hypo.delZ = 0d;
+				hypo.setHorizontalStepLength(0d);
+				hypo.setVerticalStepLength(0d);
 				// Set the exit status.
-				if(result.chiSq <= LocUtil.ALMOST*hypo.chiSq && hypo.stepLen <= 
+				if(result.chiSq <= LocUtil.ALMOST*hypo.getEstimatorDispersionValue() && hypo.getStepLength() <= 
 						LocUtil.CONVLIM[stage]) status = LocStatus.NEARLY_CONVERGED;
-				else if(hypo.stepLen <= LocUtil.STEPTOL) status = 
+				else if(hypo.getStepLength() <= LocUtil.STEPTOL) status = 
 						LocStatus.DID_NOT_CONVERGE;
 				else status = LocStatus.UNSTABLE_SOLUTION;
 				logStep("Fail", stage, iter, status);
@@ -227,12 +227,12 @@ public class Stepper {
 			}
 			
 			// Do the damping.
-			hypo.noDamp++;
+			hypo.setNumOfTimesStepLengthDampening(hypo.getNumOfTimesStepLengthDampening() + 1);
 			hypo.resetHypo(lastHypo);
-			hypo.stepLen *= damp;
-			hypo.medianRes *= damp;
+			hypo.setStepLength(hypo.getStepLength() * damp);
+			hypo.setLinearTimeShiftEstimate(hypo.getLinearTimeShiftEstimate() * damp);
 			// Update the hypocenter.
-			event.updateHypo(hypo.stepLen, hypo.medianRes);
+			event.updateHypo(hypo.getStepLength(), hypo.getLinearTimeShiftEstimate());
 			// Reidentify phases and get the non-linear R-estimator parameters 
 			// for the new hypocenter.
 			if(setDir(0.01d, 5d, false, false) == LocStatus.INSUFFICIENT_DATA) {
@@ -241,13 +241,13 @@ public class Stepper {
 			event.updateOrigin(result.median);
 			// If the phase identification has changed, we have to start over.
 			if(event.getHasPhaseIdChanged()) {
-				hypo.chiSq = result.chiSq;
+				hypo.setEstimatorDispersionValue(result.chiSq);
 				status = LocStatus.PHASEID_CHANGED;
 				logStep("ReID", stage, iter, status);
 				return status;
 			}
 			logStep("Damp", stage, iter, status);
-		} while(result.chiSq >= hypo.chiSq);
+		} while(result.chiSq >= hypo.getEstimatorDispersionValue());
 		
 		return status;
 	}
@@ -261,7 +261,7 @@ public class Stepper {
 		
 		// Set the tectonic flag.  Note that everything outside cratons 
 		// is considered tectonic.
-		if(auxLoc.getCratons().isCraton(hypo.latitude, hypo.longitude)) {
+		if(auxLoc.getCratons().isCraton(hypo.getLatitude(), hypo.getLongitude())) {
 			LocUtil.tectonic = false;
 		} else {
 			LocUtil.tectonic = true;
@@ -270,12 +270,12 @@ public class Stepper {
 				LocUtil.tectonic);
 		if(!event.getIsDepthManual()) {
 			// Update the Bayesian depth if it wasn't set by the analyst.
-			bayesDepth = zones.bayesDepth(hypo.latitude, hypo.longitude);
+			bayesDepth = zones.bayesDepth(hypo.getLatitude(), hypo.getLongitude());
 			bayesSpread = zones.bayesSpread();
 			hypo.updateBayes(bayesDepth, bayesSpread);
 		}
 		if(LocUtil.deBugLevel > 0) System.out.format("\tBayes: %5.1f %5.3f %b\n", 
-				hypo.bayesDepth, hypo.depthWeight, event.getIsDepthManual());
+				hypo.getBayesianDepth(), hypo.getBayesianDepthWeight(), event.getIsDepthManual());
 	}
 	
 	/**
@@ -294,12 +294,12 @@ public class Stepper {
 		
 		if(LocUtil.deCorrelate) used = event.getNumProjectedPhasesUsed();
 		else used = event.getNumPhasesUsed();
-		if(used >= hypo.degOfFreedom) hypo.rms = hypo.chiSq/
-				(used-hypo.degOfFreedom+1);
-		else hypo.rms = 0d;
+		if(used >= hypo.getDegreesOfFreedom()) hypo.setEstimatorRMSEquivalent(hypo.getEstimatorDispersionValue() /
+				(used-hypo.getDegreesOfFreedom() + 1));
+		else hypo.setEstimatorRMSEquivalent(0d);
 		if(LocUtil.deBugLevel > 0) System.out.format("\n%s: %1d %2d %5d %8.4f "+
 				"%8.4f %6.2f del= %5.1f %6.1f rms= %6.2f %s\n", tag, stage, iter, 
-				used, hypo.latitude, hypo.longitude, hypo.depth, hypo.delH, 
-				hypo.delZ, hypo.rms, status);
+				used, hypo.getLatitude(), hypo.getLongitude(), hypo.getDepth(), hypo.getHorizontalStepLength(), 
+				hypo.getVerticalStepLength(), hypo.getEstimatorRMSEquivalent(), status);
 	}
 }

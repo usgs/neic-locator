@@ -207,13 +207,13 @@ public class LinearStep {
 			trialVector[j] = stepLen*stepDir[j];
 		}
 		// Make sure the depth is OK.
-		if(hypo.degOfFreedom > 2) {
+		if(hypo.getDegreesOfFreedom() > 2) {
 			// Trap air quakes.
-			if(hypo.depth+trialVector[2] < LocUtil.DEPTHMIN) 
-				trialVector[2] = LocUtil.DEPTHMIN-hypo.depth;
+			if(hypo.getDepth()+trialVector[2] < LocUtil.DEPTHMIN) 
+				trialVector[2] = LocUtil.DEPTHMIN-hypo.getDepth();
 			// Trap lower mantle quakes.
-			else if(hypo.depth+trialVector[2] > LocUtil.DEPTHMAX) 
-				trialVector[2] = LocUtil.DEPTHMAX-hypo.depth;
+			else if(hypo.getDepth()+trialVector[2] > LocUtil.DEPTHMAX) 
+				trialVector[2] = LocUtil.DEPTHMAX-hypo.getDepth();
 		}
 	}
 }
