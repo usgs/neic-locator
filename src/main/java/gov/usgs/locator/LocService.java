@@ -82,7 +82,7 @@ public class LocService implements LocationService {
 
     // setup the event
     Event event = new Event(in.getEarthModel());
-    event.serverIn(in);
+    event.input(in);
     event.printIn();
 
     // setup the locator
@@ -99,7 +99,7 @@ public class LocService implements LocationService {
     System.out.println("");
 
     // get the output
-    LocOutput out = event.serverOut();
+    LocOutput out = event.output();
 
     // check output
     if (out.isValid() == false) {

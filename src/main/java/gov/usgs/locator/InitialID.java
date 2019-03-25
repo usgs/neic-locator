@@ -40,11 +40,11 @@ public class InitialID {
 	public InitialID(Event event, TTSessionLocal ttLocal, PhaseID phaseID, 
 			Stepper stepper) {
 		this.event = event;
-		hypo = event.hypo;
+		hypo = event.getHypo();
 		this.ttLocal = ttLocal;
 		this.phaseID = phaseID;
-		wResiduals = event.wResRaw;
-		rEst = event.rEstRaw;
+		wResiduals = event.getRawWeightedResiduals();
+		rEst = event.getRawRankSumEstimator();
 		this.stepper = stepper;
 	}
 	
@@ -81,7 +81,7 @@ public class InitialID {
     // Loop over picks in the groups.
 		if(LocUtil.deBugLevel > 1) System.out.println();
     for (int j = 0; j < event.noStations(); j++) {
-      group = event.groups.get(j);
+      group = event.getPickGroupList().get(j);
       if (group.picksUsed() > 0) {
         // For the first pick in the group, get the travel times.
         station = group.station;
@@ -180,7 +180,7 @@ public class InitialID {
 		
     // Based on the number of probably misidentified first arrivals:
 		if(LocUtil.deBugLevel > 1) System.out.println();
-		if(badPs < LocUtil.BADRATIO*event.staUsed) {
+		if(badPs < LocUtil.BADRATIO*event.getNumStationsUsed()) {
 			// Just make the obvious re-identifications (i.e., autos).
 			doIdEasy();
 		} else {
@@ -200,7 +200,7 @@ public class InitialID {
 		
 		// Loop over groups assessing automatic picks.
     for (int j = 0; j < event.noStations(); j++) {
-      group = event.groups.get(j);
+      group = event.getPickGroupList().get(j);
       if (group.picksUsed() > 0) {
       	pick = group.picks.get(0);
       	// If the first arrival is automatic and not a crust or mantle P, don't use it.
@@ -239,7 +239,7 @@ public class InitialID {
 		
 		// Loop over groups forcing automatic phases to conform.
     for (int j = 0; j < event.noStations(); j++) {
-      group = event.groups.get(j);
+      group = event.getPickGroupList().get(j);
       if (group.picksUsed() > 0) {
       	pick = group.picks.get(0);
       	// If the first arrival is automatic and might be a misidentified first arrival, 
@@ -300,7 +300,7 @@ public class InitialID {
 		
 		// This simply resets no-used phases back to their initial input state.
 		for(int j=0; j<event.noStations(); j++) {
-			group = event.groups.get(j);
+			group = event.getPickGroupList().get(j);
 			for(int i=0; i<group.noPicks(); i++) {
 				pick = group.picks.get(i);
 				if(!pick.used) pick.used = pick.cmndUse;
@@ -319,7 +319,7 @@ public class InitialID {
 		
 		System.out.println("\nInitial phase identification:");
 		for(int j=0; j<event.noStations(); j++) {
-			group = event.groups.get(j);
+			group = event.getPickGroupList().get(j);
       if (group.picksUsed() > 0) {
       	station = group.station;
 				for(int i=0; i<group.noPicks(); i++) {

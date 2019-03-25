@@ -84,7 +84,7 @@ public class DeCorr {
    */
   public DeCorr(Event event) {
     this.event = event;
-    this.weightedResidualsProj = event.wResProj;
+    this.weightedResidualsProj = event.getProjectedWeightedResiduals();
   }
   
   /**
@@ -93,7 +93,7 @@ public class DeCorr {
   public void deCorr() {
     // We can't remember the original sort of the raw residuals 
     // because it keeps changing when cloned.
-    weightedResidualsOrg = event.wResOrg;
+    weightedResidualsOrg = event.getOriginalWeightedResiduals();
 
     if (LocUtil.deBugLevel > 1) { 
       event.printWres("Org", true);
@@ -123,7 +123,7 @@ public class DeCorr {
     Wresidual weightedResiduals;
     
     // Get rid of triaged picks.
-    weightedResidualsOrg = event.wResOrg;
+    weightedResidualsOrg = event.getOriginalWeightedResiduals();
     for (int j = weightedResidualsOrg.size() - 2; j >= 0; j--) {
       if (weightedResidualsOrg.get(j).pick.isTriage) {
         weightedResidualsOrg.remove(j);
@@ -142,7 +142,7 @@ public class DeCorr {
         weightedResiduals.proj(weightedResidualsOrg.get(j), eigenvectors[j][i]);
       }
       
-      if (event.changed) {
+      if (event.getHasPhaseIdChanged()) {
         // See if the eigenvector is backwards.
         if (!checkEigenSigns(i, weightedResiduals)) {
           // If so, fix the residual and derivatives.
@@ -158,7 +158,7 @@ public class DeCorr {
     }
 
     // Set the projected or virtual number of picks.
-    event.vPhUsed = weightedResidualsProj.size();
+    event.setNumProjectedPhasesUsed(weightedResidualsProj.size());
 
     // Add the Bayesian depth here since it doesn't correlate with 
     // anything else.

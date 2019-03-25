@@ -30,10 +30,10 @@ public class LinearStep {
 	public LinearStep(Event event) {
 		this.event = event;
 		hypo = event.getHypo();
-		wResRaw = event.wResRaw;
-		rEstRaw = event.rEstRaw;
-		rEstProj = event.rEstProj;
-		deCorr = event.deCorr;
+		wResRaw = event.getRawWeightedResiduals();
+		rEstRaw = event.getRawRankSumEstimator();
+		rEstProj = event.getProjectedRankSumEstimator();
+		deCorr = event.getDecorrelator();
 	}
 	
 	/**

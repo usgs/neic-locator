@@ -65,10 +65,10 @@ public class CloseOut {
    */
   public CloseOut(Event event) {
     this.event = event;
-    hypo = event.hypo;
-    rawWeightedResiduals = event.wResRaw;
-    projectedWeightedResiduals = event.wResProj;
-    rankSumEstimator = event.rEstRaw;
+    hypo = event.getHypo();
+    rawWeightedResiduals = event.getRawWeightedResiduals();
+    projectedWeightedResiduals = event.getProjectedWeightedResiduals();
+    rankSumEstimator = event.getRawRankSumEstimator();
   }
 
   /**
@@ -93,7 +93,7 @@ public class CloseOut {
     }
     
     // Get the residual spread.
-    event.seResid = rankSumEstimator.spread();
+    event.setResidualsStandardError(rankSumEstimator.spread());
     
     // Force the number of degrees of freedom, pretending everything 
     // was always free.
@@ -106,7 +106,7 @@ public class CloseOut {
       compFactor = 1d;
     } else {
       compFactor = Math.sqrt(LocUtil.EFFOFFSET - LocUtil.EFFSLOPE 
-        * Math.log10((double)(event.phUsed + 1)));
+        * Math.log10((double)(event.getNumPhasesUsed() + 1)));
     }
 
     // For the parameter errors, we need a "normal" matrix using the 
@@ -180,13 +180,13 @@ public class CloseOut {
 
     // Do the marginal confidence intervals.
     double confidenceInterval = LocUtil.PERPT1D / compFactor;
-    event.seTime = confidenceInterval * event.seResid;
-    event.seLat = confidenceInterval 
-      * Math.sqrt(Math.max(correlationMatrix[0][0], 0d));
-    event.seLon = confidenceInterval 
-      * Math.sqrt(Math.max(correlationMatrix[1][1], 0d));
-    event.seDepth = confidenceInterval 
-      * Math.sqrt(Math.max(correlationMatrix[2][2], 0d));
+    event.setTimeStandardError(confidenceInterval * event.getResidualsStandardError());
+    event.setLatitudeStandardError(confidenceInterval 
+      * Math.sqrt(Math.max(correlationMatrix[0][0], 0d)));
+    event.setLongitudeStandardError(confidenceInterval 
+      * Math.sqrt(Math.max(correlationMatrix[1][1], 0d)));
+    event.setDepthStandardError(confidenceInterval 
+      * Math.sqrt(Math.max(correlationMatrix[2][2], 0d)));
     
     try {
       // Do the error ellipsoid.
@@ -269,7 +269,7 @@ public class CloseOut {
    * @param correlationMatrix A Matrix object containing the correlation matrix
    */
   private void computeErrorEllipsoid(Matrix correlationMatrix) {
-    EllipAxis[] ellip = event.errEllip;
+    EllipAxis[] ellip = event.getErrorEllipse();
     
     // Do the eigenvalue/vector decomposition.
     EigenvalueDecomposition eigen = correlationMatrix.eig();
@@ -314,8 +314,8 @@ public class CloseOut {
       ellip[2] = new EllipAxis(0d, 0d, 0d);
 
       // Do aveH (the equivalent radius of the error ellipse).
-      event.aveH = LocUtil.PERPT1D * Math.sqrt(ellip[0].getSemiLen()
-          * ellip[1].getSemiLen()) / LocUtil.PERPT2D;
+      event.setEquivalentErrorRadius(LocUtil.PERPT1D * Math.sqrt(ellip[0].getSemiLen()
+          * ellip[1].getSemiLen()) / LocUtil.PERPT2D);
     } else {
       // Otherwise, do the error ellipsoid.
       double confidenceInterval = LocUtil.PERPT3D / compFactor;
@@ -359,8 +359,8 @@ public class CloseOut {
       eigenvalues = eigen.getRealEigenvalues();
 
       // Finally, get the equivalent radius of the error ellipse.
-      event.aveH = LocUtil.PERPT1D * Math.sqrt(Math.sqrt(Math.max(eigenvalues[0] 
-          * eigenvalues[1], 0d))) / compFactor;
+      event.setEquivalentErrorRadius(LocUtil.PERPT1D * Math.sqrt(Math.sqrt(Math.max(eigenvalues[0] 
+          * eigenvalues[1], 0d))) / compFactor);
     }
 
     // Sort the error ellipsoid axis by semiLen.
@@ -408,11 +408,11 @@ public class CloseOut {
     }
 
     // Do the Bayesian depth data importance separately.
-    event.bayesImport = correlationMatrix[2][2] * Math.pow(hypo.depthWeight, 2d);
+    event.setBayesianDepthDataImportance(correlationMatrix[2][2] * Math.pow(hypo.depthWeight, 2d));
 
     if (LocUtil.deBugLevel > 0) {
       System.out.format("Normeq: qsum qsum+ "
-          + "= %4.2f %4.2f\n", sumImportance, sumImportance + event.bayesImport);
+          + "= %4.2f %4.2f\n", sumImportance, sumImportance + event.getBayesianDepthDataImportance());
     }
   }
 }

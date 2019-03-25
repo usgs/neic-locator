@@ -41,14 +41,14 @@ public class PhaseID {
    */
   public PhaseID(Event event, TTSessionLocal ttLocal) {
     this.event = event;
-    hypo = event.hypo;
+    hypo = event.getHypo();
     this.ttLocal = ttLocal;
     if(ttLocal != null) {
     	this.auxTT = ttLocal.getAuxTT();
     } else {
     	this.auxTT = null;
     }
-    wResiduals = event.wResRaw;
+    wResiduals = event.getRawWeightedResiduals();
   }
 
   /**
@@ -97,7 +97,7 @@ public class PhaseID {
 		
     // Do the travel-time calculation.
     for (int j = 0; j < event.noStations(); j++) {
-      group = event.groups.get(j);
+      group = event.getPickGroupList().get(j);
       // For the first pick in the group, get the travel times.
       station = group.station;
       if(LocUtil.deBugLevel > 1) System.out.format("PhaseID: %-5s %6.2f "+

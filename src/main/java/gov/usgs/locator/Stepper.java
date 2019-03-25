@@ -29,15 +29,15 @@ public class Stepper {
 	 */
 	public Stepper(Event event, PhaseID phaseID, AuxLocRef auxLoc) {
 		this.event = event;
-		hypo = event.hypo;
+		hypo = event.getHypo();
 		this.auxLoc = auxLoc;
 		cratons = auxLoc.getCratons();
 		zones = auxLoc.getZoneStats();
 		this.phaseID = phaseID;
-		rEstRaw = event.rEstRaw;
-		rEstProj = event.rEstProj;
+		rEstRaw = event.getRawRankSumEstimator();
+		rEstProj = event.getProjectedRankSumEstimator();
 		linStep = new LinearStep(event);
-		deCorr = event.deCorr;
+		deCorr = event.getDecorrelator();
 	}
 	
 	/**
@@ -92,9 +92,9 @@ public class Stepper {
 		if(reWeight) setEnviron();
 		
 		// Reidentify phases.
-		event.changed = phaseID.doID(otherWeight, stickyWeight, reID, reWeight);
+		event.setHasPhaseIdChanged(phaseID.doID(otherWeight, stickyWeight, reID, reWeight));
 		// Bail on insufficient data.
-		if(event.staUsed < 3) return LocStatus.INSUFFICIENT_DATA;
+		if(event.getNumStationsUsed() < 3) return LocStatus.INSUFFICIENT_DATA;
 		
 		if(LocUtil.deCorrelate) {
 			// Demedian the raw residuals.
@@ -103,7 +103,7 @@ public class Stepper {
 			if(LocUtil.deBugLevel > 0) System.out.format("Lsrt: EL av = "+
 					"%8.4f\n", medianRes);
 			// Decorrelate the raw data.
-			if(event.changed) deCorr.deCorr();
+			if(event.getHasPhaseIdChanged()) deCorr.deCorr();
 			deCorr.projectPicks();
 			// Get the median of the projected data.
 			medianProj = rEstProj.median();
@@ -156,7 +156,7 @@ public class Stepper {
 		LocStatus status = LocStatus.SUCCESS;
 		
 		// Save the current hypocenter as a reference for the step length damping.
-		lastHypo = new HypoAudit(hypo, 0, 0, event.phUsed, status);
+		lastHypo = new HypoAudit(hypo, 0, 0, event.getNumPhasesUsed(), status);
 		
 		// Get the linearized step.
 		hypo.noDamp = 0;
@@ -184,7 +184,7 @@ public class Stepper {
 		}
 		event.updateOrigin(result.median);
 		// If the phase identification has changed, we have to start over.
-		if(event.changed) {
+		if(event.getHasPhaseIdChanged()) {
 			hypo.chiSq = result.chiSq;
 			status = LocStatus.PHASEID_CHANGED;
 			logStep("ReID", stage, iter, status);
@@ -240,7 +240,7 @@ public class Stepper {
 			}
 			event.updateOrigin(result.median);
 			// If the phase identification has changed, we have to start over.
-			if(event.changed) {
+			if(event.getHasPhaseIdChanged()) {
 				hypo.chiSq = result.chiSq;
 				status = LocStatus.PHASEID_CHANGED;
 				logStep("ReID", stage, iter, status);
@@ -292,8 +292,8 @@ public class Stepper {
 	private void logStep(String tag, int stage, int iter, LocStatus status) {
 		int used;
 		
-		if(LocUtil.deCorrelate) used = event.vPhUsed;
-		else used = event.phUsed;
+		if(LocUtil.deCorrelate) used = event.getNumProjectedPhasesUsed();
+		else used = event.getNumPhasesUsed();
 		if(used >= hypo.degOfFreedom) hypo.rms = hypo.chiSq/
 				(used-hypo.degOfFreedom+1);
 		else hypo.rms = 0d;

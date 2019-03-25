@@ -29,8 +29,8 @@ public class Locate {
 	 */
 	public Locate(Event event, TTSessionLocal ttLocal, AuxLocRef auxLoc) {
 		this.event = event;
-		hypo = event.hypo;
-		audit = event.audit;
+		hypo = event.getHypo();
+		audit = event.getHypoAuditList();
 		this.ttLocal = ttLocal;
 		phaseID = new PhaseID(event, ttLocal);
 		stepper = new Stepper(event, phaseID, auxLoc);
@@ -53,7 +53,7 @@ public class Locate {
 		event.addAudit(0, 0, LocStatus.INITIAL_HYPOCENTER);
 		
 		// Bail on insufficient data.
-		if(event.staUsed < 3) {
+		if(event.getNumStationsUsed() < 3) {
 			close.computeFinalStatistics(LocStatus.INSUFFICIENT_DATA);
 			return LocStatus.INSUFFICIENT_DATA;
 		}
