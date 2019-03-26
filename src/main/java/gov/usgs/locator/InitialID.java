@@ -67,7 +67,6 @@ public class InitialID {
     */
   private Stepper stepper;
 
-
   /**
    * The InitialID constructor. This constructor sets the event, tt session, 
    * phase identification logic, and rank-sum estimator to the provided values.
