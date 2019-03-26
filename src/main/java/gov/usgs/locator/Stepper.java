@@ -182,7 +182,7 @@ public class Stepper {
 		if(setDir(0.01d, 5d, false, false) == LocStatus.INSUFFICIENT_DATA) {
 			return LocStatus.INSUFFICIENT_DATA;
 		}
-		event.updateOrigin(result.median);
+		event.updateOriginTime(result.median);
 		// If the phase identification has changed, we have to start over.
 		if(event.getHasPhaseIdChanged()) {
 			hypo.setEstimatorDispersionValue(result.chiSq);
@@ -238,7 +238,7 @@ public class Stepper {
 			if(setDir(0.01d, 5d, false, false) == LocStatus.INSUFFICIENT_DATA) {
 				return LocStatus.INSUFFICIENT_DATA;
 			}
-			event.updateOrigin(result.median);
+			event.updateOriginTime(result.median);
 			// If the phase identification has changed, we have to start over.
 			if(event.getHasPhaseIdChanged()) {
 				hypo.setEstimatorDispersionValue(result.chiSq);

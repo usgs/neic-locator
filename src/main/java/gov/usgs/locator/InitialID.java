@@ -165,7 +165,7 @@ public class InitialID {
   	 * ensures that succeeding phase identifications have a chance.
   	 */
     double median = rEst.median();
-    event.updateOrigin(median);
+    event.updateOriginTime(median);
     if(LocUtil.deBugLevel > 0) System.out.format("\nUpdate origin: %f %f %f %d\n", 
     		hypo.getOriginTime(), median, hypo.getOriginTime()+median, badPs);
     

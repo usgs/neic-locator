@@ -786,7 +786,7 @@ public class Event {
     }
     
     // Initialize the solution degrees-of-freedom.
-    hypo.setDegrees(isLocationHeld, isDepthHeld);
+    hypo.setDegreesOfFreedom(isDepthHeld);
 
     // Initialize changed and the depth importance.
     hasPhaseIdChanged = false;
@@ -852,9 +852,9 @@ public class Event {
    * @param timeShift A double containing the shift in the origin time in 
    *                  seconds
    */
-  public void updateOrigin(double timeShift) {
+  public void updateOriginTime(double timeShift) {
     // update the origin time
-    hypo.updateOrigin(timeShift);
+    hypo.updateOriginTime(timeShift);
 
     // Update the picks.
     // Note that we don't need to recompute the distance and azimuth.
