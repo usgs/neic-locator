@@ -69,7 +69,7 @@ public class Locate {
 			}
 			
 			// Prepare the event for relocation.
-			initialID.survey();
+			initialID.phaseID();
 			if(LocUtil.deBugLevel > 3) initialID.printInitialID();
 			
 			/*
