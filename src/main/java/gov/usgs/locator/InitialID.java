@@ -2,49 +2,89 @@ package gov.usgs.locator;
 
 import java.util.ArrayList;
 
+import gov.usgs.traveltime.session.TTSession;
+import gov.usgs.traveltime.session.TTSessionPool;
 import gov.usgs.traveltime.TTSessionLocal;
 import gov.usgs.traveltime.TTime;
 import gov.usgs.traveltime.TTimeData;
-import gov.usgs.traveltime.session.TTSession;
-import gov.usgs.traveltime.session.TTSessionPool;
 
 /**
- * Before any location iteration or real phase identification 
- * takes place, this initial pass ensures that we have something 
- * reasonable to work with by emphasizing crust and mantle P 
- * waves and manually identified phases.  If there are a lot of 
- * apparently misidentified first arrivals, the algorithm gets 
- * even more draconian.
+ * The InitialID class performs an initial phase identification before any 
+ * location iterations or real phase identification takes place. This initial 
+ * pass ensures that we have something reasonable to work with by emphasizing 
+ * crust and mantle P waves and manually identified phases.  If there are a lot 
+ * of apparently misidentified first arrivals, the algorithm gets even more 
+ * draconian.
  * 
  * @author Ray Buland
  *
  */
 public class InitialID {
-	Event event;
-	Hypocenter hypo;
-	TTSessionLocal ttLocal;
-	PhaseID phaseID;
-  ArrayList<Wresidual> wResiduals;
-  Restimator rEst;
-  Stepper stepper;
-  TTSession session;
+	/**
+	 * An Event object containing the event to perform initial phase 
+	 * identification upon.
+	 */
+	private Event event;
+
+	/**
+	 * A Hypocenter object containing the hypocenter of event to perform initial  
+	 * phase identification upon.
+	 */	
+	private Hypocenter hypo;
+
+	/**
+	 * A TTSessionLocal object containing a local travel-time manager used to  
+	 * perform initial phase identification. Unused if LocUtil.server is true.
+	 */		
+	private TTSessionLocal ttLocalSession;
+
+	/**
+	 * A TTSession object containing the local travel-time manager used to  
+	 * perform initial phase identification. Unused if LocUtil.server is false
+	 */		
+	private TTSession ttSession;
+
+	/**
+	 * A PhaseID object containing Phase identification logic used in  
+	 * performing initial phase identification.
+	 */	
+	private PhaseID phaseID;
+
+  /** 
+   * An ArrayList of Wresidual objects containing the weighted residuals of the 
+	 * event picks.
+   */	
+	private ArrayList<Wresidual> weightedResiduals;
+	
+	/**
+   * A Restimator object used for the rank-sum estimation of the picks to 
+	 * refine the initial phase identification.
+   */
+	private Restimator rankSumEstimator;
+	
+	/**
+	 * A Stepper object used to manage the rank-sum estimation logic needed to 
+	 * refine the initial phase identification.
+ 	 */
+  private Stepper stepper;
+
 
 	/**
 	 * Remember the event and travel times.
 	 * 
 	 * @param event Event information
-	 * @param ttLocal Local travel-time manager
+	 * @param ttLocalSession Local travel-time manager
 	 * @param phaseID Phase identification logic
 	 * @param stepper R-estimator driver logic
 	 */
-	public InitialID(Event event, TTSessionLocal ttLocal, PhaseID phaseID, 
+	public InitialID(Event event, TTSessionLocal ttLocalSession, PhaseID phaseID, 
 			Stepper stepper) {
 		this.event = event;
 		hypo = event.getHypo();
-		this.ttLocal = ttLocal;
+		this.ttLocalSession = ttLocalSession;
 		this.phaseID = phaseID;
-		wResiduals = event.getRawWeightedResiduals();
-		rEst = event.getRawRankSumEstimator();
+		weightedResiduals = event.getRawWeightedResiduals();
+		rankSumEstimator = event.getRawRankSumEstimator();
 		this.stepper = stepper;
 	}
 	
@@ -65,15 +105,15 @@ public class InitialID {
     TTimeData tTime;
 		
 		// Reinitialize the weighted residual storage.
-		if(wResiduals.size() > 0) wResiduals.clear();
+		if(weightedResiduals.size() > 0) weightedResiduals.clear();
 		
 		// Set up a new travel-time session if the depth has changed.
 		if(LocUtil.server) {
-			session = TTSessionPool.getTravelTimeSession(event.getEarthModel(), hypo.getDepth(), 
+			ttSession = TTSessionPool.getTravelTimeSession(event.getEarthModel(), hypo.getDepth(), 
 					LocUtil.PHLIST, hypo.getLatitude(), hypo.getLongitude(), LocUtil.ALLPHASES,
 					LocUtil.BACKBRN, LocUtil.tectonic, false, false);
 		} else {
-			ttLocal.newSession(event.getEarthModel(), hypo.getDepth(), LocUtil.PHLIST, hypo.getLatitude(), 
+			ttLocalSession.newSession(event.getEarthModel(), hypo.getDepth(), LocUtil.PHLIST, hypo.getLatitude(), 
 					hypo.getLongitude(), LocUtil.ALLPHASES, LocUtil.BACKBRN, LocUtil.tectonic, 
 					false);
 		}
@@ -89,10 +129,10 @@ public class InitialID {
         		station+":");
         // Do the travel-time calculation.
         if(LocUtil.server) {
-        	ttList = session.getTT(station.latitude, station.longitude,
+        	ttList = ttSession.getTT(station.latitude, station.longitude,
         			station.elevation, group.delta, group.azimuth);
         } else {
-	        ttList = ttLocal.getTT(station.latitude, station.longitude,
+	        ttList = ttLocalSession.getTT(station.latitude, station.longitude,
 	            station.elevation, group.delta, group.azimuth);
         }
         // Print them.
@@ -145,7 +185,7 @@ public class InitialID {
 	        						"%-8s -> %-8s human\n", phCode, tTime.getPhCode());
 	        			}
 	        		}
-	        		wResiduals.add(new Wresidual(pick, pick.residual, pick.weight, false, 
+	        		weightedResiduals.add(new Wresidual(pick, pick.residual, pick.weight, false, 
 	        				0d, 0d, 0d));
 	        		if(LocUtil.deBugLevel > 1) System.out.format("InitialID push: "+
 	        				"%-5s %-8s %5.2f %7.4f %5.2f %5.2f\n", pick.station.staID.staCode, 
@@ -157,14 +197,14 @@ public class InitialID {
       }
     }
     // Add in the Bayesian depth because the R-estimator code expects it.
-    wResiduals.add(new Wresidual(null, hypo.getBayesianDepthResidual(), hypo.getBayesianDepthWeight(), true, 
+    weightedResiduals.add(new Wresidual(null, hypo.getBayesianDepthResidual(), hypo.getBayesianDepthWeight(), true, 
     		0d, 0d, 0d));
   	/*
   	 * Update the hypocenter origin time based on the residuals and weights pushed 
   	 * by the survey method.  Adjusting the origin time to something reasonable 
   	 * ensures that succeeding phase identifications have a chance.
   	 */
-    double median = rEst.median();
+    double median = rankSumEstimator.median();
     event.updateOriginTime(median);
     if(LocUtil.deBugLevel > 0) System.out.format("\nUpdate origin: %f %f %f %d\n", 
     		hypo.getOriginTime(), median, hypo.getOriginTime()+median, badPs);
@@ -256,10 +296,10 @@ public class InitialID {
         		if(LocUtil.deBugLevel > 1) System.out.println("" + station + ":");
             // Do the travel-time calculation.
             if(LocUtil.server) {
-            	ttList = session.getTT(station.latitude, station.longitude,
+            	ttList = ttSession.getTT(station.latitude, station.longitude,
             			station.elevation, group.delta, group.azimuth);
             } else {
-    	        ttList = ttLocal.getTT(station.latitude, station.longitude,
+    	        ttList = ttLocalSession.getTT(station.latitude, station.longitude,
     	            station.elevation, group.delta, group.azimuth);
             }
         		// Print them.
