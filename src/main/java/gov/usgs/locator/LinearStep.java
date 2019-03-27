@@ -237,7 +237,7 @@ public class LinearStep {
     double dispRaw = rawRankSumEstimator.estPenalty();
     
     // Finish up.
-    if (LocUtil.deCorrelate) {
+    if (LocUtil.useDecorrelation) {
       // If we're decorrelating, we have more to do.
       decorrelator.projectEstimatedPicks();
       projectedRankSumEstimator.estMedian();

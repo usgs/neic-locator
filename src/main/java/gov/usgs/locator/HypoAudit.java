@@ -148,7 +148,7 @@ public class HypoAudit {
   public String toString() {
     return String.format("Audit: %1d %2d %4d %22s %8.4f %9.4f %6.2f " 
         + "del = %6.1f %6.1f %6.1f timeStandardError = %6.2f %s\n", stage, 
-        iteration, numPicksUsed, LocUtil.getRayDate(originTime), latitude, 
+        iteration, numPicksUsed, LocUtil.getDateTimeString(originTime), latitude, 
         longitude, depth, epicentralChange, depthChange, hypocentralChange, 
         timeStandardError, locationStatus);
   }

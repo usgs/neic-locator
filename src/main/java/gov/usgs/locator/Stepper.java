@@ -96,7 +96,7 @@ public class Stepper {
 		// Bail on insufficient data.
 		if(event.getNumStationsUsed() < 3) return LocStatus.INSUFFICIENT_DATA;
 		
-		if(LocUtil.deCorrelate) {
+		if(LocUtil.useDecorrelation) {
 			// Demedian the raw residuals.
 			medianRes = rEstRaw.median();
 			rEstRaw.deMedianRes();
@@ -160,13 +160,13 @@ public class Stepper {
 		
 		// Get the linearized step.
 		hypo.setNumOfTimesStepLengthDampening(0);
-		damp = LocUtil.dampFactor();
-		hypo.setStepLength(Math.max(hypo.getStepLength(), 2d*LocUtil.CONVLIM[stage]));
+		damp = LocUtil.computeDampeningFactor();
+		hypo.setStepLength(Math.max(hypo.getStepLength(), 2d*LocUtil.CONVERGENCESTAGELIMITS[stage]));
 		result = linStep.stepLength(hypo.getStepDirectionUnitVector(), hypo.getStepLength(), 
-				LocUtil.CONVLIM[stage], LocUtil.STEPLIM[stage], hypo.getEstimatorDispersionValue());
+				LocUtil.CONVERGENCESTAGELIMITS[stage], LocUtil.STEPLENSTAGELIMITS[stage], hypo.getEstimatorDispersionValue());
 		// This weird special case appears once in a while.
 		if(result.chiSq >= hypo.getEstimatorDispersionValue() && result.stepLen < 
-				LocUtil.CONVLIM[stage]) {
+				LocUtil.CONVERGENCESTAGELIMITS[stage]) {
 			hypo.setStepLength(result.stepLen);
 			hypo.setHorizontalStepLength(0d);
 			hypo.setVerticalStepLength(0d);
@@ -210,16 +210,16 @@ public class Stepper {
 		 */
 		do {
 			// Trap a failed damping strategy.
-			if(damp*hypo.getStepLength() <= LocUtil.CONVLIM[stage] || (hypo.getNumOfTimesStepLengthDampening() > 0 && 
-					LocUtil.hypoCompare(hypo, lastHypo))) {
+			if(damp*hypo.getStepLength() <= LocUtil.CONVERGENCESTAGELIMITS[stage] || (hypo.getNumOfTimesStepLengthDampening() > 0 && 
+					LocUtil.compareHypos(hypo, lastHypo))) {
 				// We've damped the solution into oblivion.  Give up.
 				hypo.resetHypo(lastHypo);
 				hypo.setHorizontalStepLength(0d);
 				hypo.setVerticalStepLength(0d);
 				// Set the exit status.
-				if(result.chiSq <= LocUtil.ALMOST*hypo.getEstimatorDispersionValue() && hypo.getStepLength() <= 
-						LocUtil.CONVLIM[stage]) status = LocStatus.NEARLY_CONVERGED;
-				else if(hypo.getStepLength() <= LocUtil.STEPTOL) status = 
+				if(result.chiSq <= LocUtil.ALMOSTCONVERGED*hypo.getEstimatorDispersionValue() && hypo.getStepLength() <= 
+						LocUtil.CONVERGENCESTAGELIMITS[stage]) status = LocStatus.NEARLY_CONVERGED;
+				else if(hypo.getStepLength() <= LocUtil.STEPTOLERANCE) status = 
 						LocStatus.DID_NOT_CONVERGE;
 				else status = LocStatus.UNSTABLE_SOLUTION;
 				logStep("Fail", stage, iter, status);
@@ -262,12 +262,12 @@ public class Stepper {
 		// Set the tectonic flag.  Note that everything outside cratons 
 		// is considered tectonic.
 		if(auxLoc.getCratons().isCraton(hypo.getLatitude(), hypo.getLongitude())) {
-			LocUtil.tectonic = false;
+			LocUtil.isTectonic = false;
 		} else {
-			LocUtil.tectonic = true;
+			LocUtil.isTectonic = true;
 		}
 		if(LocUtil.deBugLevel > 0) System.out.println("\n\tTectonic = "+
-				LocUtil.tectonic);
+				LocUtil.isTectonic);
 		if(!event.getIsDepthManual()) {
 			// Update the Bayesian depth if it wasn't set by the analyst.
 			bayesDepth = zones.bayesDepth(hypo.getLatitude(), hypo.getLongitude());
@@ -292,7 +292,7 @@ public class Stepper {
 	private void logStep(String tag, int stage, int iter, LocStatus status) {
 		int used;
 		
-		if(LocUtil.deCorrelate) used = event.getNumProjectedPhasesUsed();
+		if(LocUtil.useDecorrelation) used = event.getNumProjectedPhasesUsed();
 		else used = event.getNumPhasesUsed();
 		if(used >= hypo.getDegreesOfFreedom()) hypo.setEstimatorRMSEquivalent(hypo.getEstimatorDispersionValue() /
 				(used-hypo.getDegreesOfFreedom() + 1));

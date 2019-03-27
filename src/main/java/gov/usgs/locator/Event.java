@@ -659,8 +659,7 @@ public class Event {
           LocUtil.toHydraTime(pickIn.getTime().getTime()), 
           pickIn.getUse(), phCode);
       pick.addIdAids(source, pickIn.getID(), pickIn.getQuality(), 
-          obsCode, 
-          LocUtil.getAuthCode(authorType), 
+          obsCode, LocUtil.getAuthCodeFromNumericCode(authorType), 
           pickIn.getAffinity());
       pickList.add(pick);
     }
@@ -731,16 +730,16 @@ public class Event {
       bayesianDepth = hypo.getDepth();
 
       if (isDepthHeld) {
-        bayesianDepthSpread = LocUtil.HELDEPSE;
+        bayesianDepthSpread = LocUtil.HELDDEPTHSE;
       } else {
-        bayesianDepthSpread = LocUtil.DEFDEPSE;
+        bayesianDepthSpread = LocUtil.DEFAULTDEPTHSE;
       }
     } else if (isDepthHeld) {
       // Although a held depth will actually hold the depth, simulate a 
       // Bayesian depth for error computation reasons.
       isDepthManual = true;
       bayesianDepth = hypo.getDepth();
-      bayesianDepthSpread = LocUtil.HELDEPSE;
+      bayesianDepthSpread = LocUtil.HELDDEPTHSE;
     }
 
     // Treat analyst and simulated Bayesian depth commands the same.  
@@ -749,7 +748,7 @@ public class Event {
     // spread smaller than the default for a held depth.
     if (isDepthManual) {
       if (bayesianDepthSpread > 0d) {
-        bayesianDepthSpread = Math.max(bayesianDepthSpread, LocUtil.HELDEPSE);
+        bayesianDepthSpread = Math.max(bayesianDepthSpread, LocUtil.HELDDEPTHSE);
         hypo.addBayes(bayesianDepth, bayesianDepthSpread);
       } else {
         isDepthManual = false;    // Trap a bad command
@@ -872,7 +871,7 @@ public class Event {
    * @param status A LocStatus object containing the status at this audit stage
    */
   public void addAudit(int stage, int iteration, LocStatus status) {
-    if (LocUtil.deCorrelate) {
+    if (LocUtil.useDecorrelation) {
       hypoAuditList.add(new HypoAudit(hypo, stage, iteration, 
           numProjectedPhasesUsed, status));
     } else {
@@ -922,7 +921,7 @@ public class Event {
       int picksUsedGrp = group.picksUsed();
       numPhasesUsed += picksUsedGrp;
 
-      if (group.delta <= LocUtil.DELTALOC) {
+      if (group.delta <= LocUtil.GT5LOCALDISTMAX) {
         numLocalPhasesUsed += picksUsedGrp;
       }
 
@@ -997,16 +996,16 @@ public class Event {
         summary = 'G';
       } else {
         // Otherwise, set the summary qualityFlags based on the errors.
-        if ((equivalentErrorRadius <= LocUtil.HQUALIM[0])  
-            && (depthStandardError <= LocUtil.VQUALIM[0])  
-            && (numPhasesUsed > LocUtil.NQUALIM[0])) {
+        if ((equivalentErrorRadius <= LocUtil.HORIZONTALQUALIMITS[0])  
+            && (depthStandardError <= LocUtil.VERTICALQUALIMITS[0])  
+            && (numPhasesUsed > LocUtil.NPHASESQUALIMITS[0])) {
           summary = 'A';
-        } else if ((equivalentErrorRadius <= LocUtil.HQUALIM[1])  
-            && (depthStandardError <= LocUtil.VQUALIM[1])  
-            && (numPhasesUsed > LocUtil.NQUALIM[1])) {
+        } else if ((equivalentErrorRadius <= LocUtil.HORIZONTALQUALIMITS[1])  
+            && (depthStandardError <= LocUtil.VERTICALQUALIMITS[1])  
+            && (numPhasesUsed > LocUtil.NPHASESQUALIMITS[1])) {
           summary = 'B';
-        } else if ((equivalentErrorRadius <= LocUtil.HQUALIM[2])  
-            && (depthStandardError <= LocUtil.VQUALIM[2])) {
+        } else if ((equivalentErrorRadius <= LocUtil.HORIZONTALQUALIMITS[2])  
+            && (depthStandardError <= LocUtil.VERTICALQUALIMITS[2])) {
           summary = 'C';
         } else { 
           summary = 'D';
@@ -1015,27 +1014,27 @@ public class Event {
         // Revise the summary flag down if the error ellipse aspect ration is 
         // large.
         if ((summary == 'A')  
-            && (errorEllipse[0].getSemiLen() > LocUtil.AQUALIM[0])) {
+            && (errorEllipse[0].getSemiLen() > LocUtil.SEMILENQUALIMITS[0])) {
           summary = 'B';
         }
         if (((summary == 'A') || (summary == 'B'))  
-            && (errorEllipse[0].getSemiLen() > LocUtil.AQUALIM[1])) {
+            && (errorEllipse[0].getSemiLen() > LocUtil.SEMILENQUALIMITS[1])) {
           summary = 'C';
         }
-        if (errorEllipse[0].getSemiLen() > LocUtil.AQUALIM[2]) {
+        if (errorEllipse[0].getSemiLen() > LocUtil.SEMILENQUALIMITS[2]) {
           summary = 'D';
         }
       }
         
       // Set the epicenter flag based on equivalentErrorRadius.
       char epicenter = '?';
-      if ((equivalentErrorRadius <= LocUtil.HQUALIM[0])  
-          && (numPhasesUsed > LocUtil.NQUALIM[0])) {
+      if ((equivalentErrorRadius <= LocUtil.HORIZONTALQUALIMITS[0])  
+          && (numPhasesUsed > LocUtil.NPHASESQUALIMITS[0])) {
         epicenter = ' ';
-      } else if ((equivalentErrorRadius <= LocUtil.HQUALIM[1])  
-          && (numPhasesUsed > LocUtil.NQUALIM[1])) { 
+      } else if ((equivalentErrorRadius <= LocUtil.HORIZONTALQUALIMITS[1])  
+          && (numPhasesUsed > LocUtil.NPHASESQUALIMITS[1])) { 
         epicenter = '*';
-      } else if (equivalentErrorRadius <= LocUtil.HQUALIM[2]) {
+      } else if (equivalentErrorRadius <= LocUtil.HORIZONTALQUALIMITS[2]) {
         epicenter = '?';
       } else {
         summary = '!';
@@ -1046,13 +1045,13 @@ public class Event {
       if (isDepthHeld) {
         depth = 'G';
       } else {
-        if ((depthStandardError <= LocUtil.VQUALIM[0])  
-            && (numPhasesUsed > LocUtil.NQUALIM[0])) {
+        if ((depthStandardError <= LocUtil.VERTICALQUALIMITS[0])  
+            && (numPhasesUsed > LocUtil.NPHASESQUALIMITS[0])) {
           depth = ' ';
-        } else if ((depthStandardError <= LocUtil.VQUALIM[1])  
-            && (numPhasesUsed > LocUtil.NQUALIM[1])) {
+        } else if ((depthStandardError <= LocUtil.VERTICALQUALIMITS[1])  
+            && (numPhasesUsed > LocUtil.NPHASESQUALIMITS[1])) {
           depth = '*';
-        } else if (depthStandardError <= LocUtil.VQUALIM[2]) { 
+        } else if (depthStandardError <= LocUtil.VERTICALQUALIMITS[2]) { 
           depth = '?';
         } else {
           depth = '!';
@@ -1131,7 +1130,8 @@ public class Event {
       case NEARLY_CONVERGED:
       case DID_NOT_CONVERGE:
       case UNSTABLE_SOLUTION:
-        if ((hypo.getHorizontalStepLength() > LocUtil.DELTATOL) || (hypo.getVerticalStepLength() > LocUtil.DEPTHTOL)) {
+        if ((hypo.getHorizontalStepLength() > LocUtil.DISTANCETOLERANCE) 
+            || (hypo.getVerticalStepLength() > LocUtil.DEPTHTOLERANCE)) {
           locatorExitCode = LocStatus.SUCESSFUL_LOCATION;
         } else {
           locatorExitCode = LocStatus.DID_NOT_MOVE;
@@ -1232,7 +1232,7 @@ public class Event {
    */
   public void printHydraInput() {
     System.out.format("\n%22s %8.4f %9.4f %6.2f %5b %5b %5b "
-        + "%5.1f %5.1f %5b\n", LocUtil.getRayDate(hypo.getOriginTime()), 
+        + "%5.1f %5.1f %5b\n", LocUtil.getDateTimeString(hypo.getOriginTime()), 
         hypo.getLatitude(), hypo.getLongitude(), hypo.getDepth(), isLocationHeld, 
         isDepthHeld, isDepthManual, hypo.getBayesianDepth(), 
         hypo.getBayesianDepthSpread(), useDecorrelation);
@@ -1249,17 +1249,18 @@ public class Event {
    */
   public void printHydraOutput() {
     System.out.format("\n%14.3f %8.4f %9.4f %6.2f %4d %4d %4d %4d %3.0f "
-        + "%8.4f\n", hypo.getOriginTime(), hypo.getLatitude(), hypo.getLongitude(), 
-        hypo.getDepth(), numStationsAssociated, numPhasesAssociated, numStationsUsed, 
-        numPhasesUsed, azimuthalGap, minStationDistance);
+        + "%8.4f\n", hypo.getOriginTime(), hypo.getLatitude(), 
+        hypo.getLongitude(), hypo.getDepth(), numStationsAssociated, 
+        numPhasesAssociated, numStationsUsed, numPhasesUsed, azimuthalGap, 
+        minStationDistance);
     System.out.format("%6.2f %6.1f %6.1f %6.1f %6.2f %6.1f %6.1f %6.1f "
         + "%3s %5.1f %5.1f %6.4f\n", timeStandardError, latitudeStandardError, 
         longitudeStandardError, depthStandardError, residualsStandardError, 
-        maxHorizontalError, maxVerticalError, equivalentErrorRadius, qualityFlags, 
-        hypo.getBayesianDepth(), hypo.getBayesianDepthSpread(), 
+        maxHorizontalError, maxVerticalError, equivalentErrorRadius, 
+        qualityFlags, hypo.getBayesianDepth(), hypo.getBayesianDepthSpread(), 
         bayesianDepthDataImportance);
-    System.out.format("%14s %14s %14s  %3.0f\n", errorEllipse[0], errorEllipse[1], 
-        errorEllipse[2], azimuthalGapLEst);
+    System.out.format("%14s %14s %14s  %3.0f\n", errorEllipse[0], 
+        errorEllipse[1], errorEllipse[2], azimuthalGapLEst);
 
     for (int j = 0; j < pickGroupList.size(); j++) {
       pickGroupList.get(j).printHydra();
@@ -1272,12 +1273,12 @@ public class Event {
   public void printNEICOutput() {
     // Print the hypocenter.
     System.out.format("\nLocation:             %-7s %-8s ±%6.1f km\n", 
-        LocUtil.niceLat(hypo.getLatitude()), LocUtil.niceLon(hypo.getLongitude()), 
-        maxHorizontalError);
+        LocUtil.formatLat(hypo.getLatitude()), 
+        LocUtil.formatLon(hypo.getLongitude()), maxHorizontalError);
     System.out.format("Depth:                %5.1f ±%6.1f km\n", 
         hypo.getDepth(), maxVerticalError);
     System.out.format("Origin Time:          %23s UTC\n", 
-        LocUtil.getNEICdate(hypo.getOriginTime()));
+        LocUtil.getNEICDateTimeString(hypo.getOriginTime()));
     System.out.format("Number of Stations:     %4d\n", numStationsAssociated);
     System.out.format("Number of Phases:       %4d\n", numPhasesAssociated);
     System.out.format("Minimum Distance:     %6.1f\n", minStationDistance);

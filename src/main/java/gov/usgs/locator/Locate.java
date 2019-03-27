@@ -75,7 +75,7 @@ public class Locate {
     stepper = new Stepper(event, phaseID, auxLoc);
     initialPhaseID = new InitialID(event, ttLocalSession, phaseID, stepper);
     close = new CloseOut(event);
-    LocUtil.deCorrelate = false;
+    LocUtil.useDecorrelation = false;
   }
   
   /**
@@ -97,7 +97,7 @@ public class Locate {
       // Handle a held solution.
       if (event.getIsLocationHeld()) {
         // Reidentify and reweight phases.
-        LocUtil.deCorrelate = event.getUseDecorrelation();
+        LocUtil.useDecorrelation = event.getUseDecorrelation();
         stepper.setInitDir(0.1d, 1d, true, true);
         close.computeFinalStatistics(LocStatus.HELD_HYPOCENTER);
         return LocStatus.SUCCESS;
@@ -112,7 +112,7 @@ public class Locate {
       
       // Now do the multistage iteration to refine the hypocenter.
       LocStatus status;
-      for (int stage = 0; stage < LocUtil.STAGELIM; stage++) {
+      for (int stage = 0; stage < LocUtil.STAGELIMIT; stage++) {
         // check the stage status
         switch (stage) {
           case 0:
@@ -131,7 +131,7 @@ public class Locate {
             // NOTE doesn't this mean that we can't ever turn off decorrelation
             // via the input configuration. It also explains why the locator
             // crashes when decorrelation is turned off
-            LocUtil.deCorrelate = true;
+            LocUtil.useDecorrelation = true;
 
             // Do a looser phase identification.
             status = stepper.setInitDir(0.1d, 1.0d, true, true);
@@ -150,12 +150,12 @@ public class Locate {
         }
 
         // Initialize for iteration zero.
-        hypo.setStepLength(LocUtil.INITSTEP);
+        hypo.setStepLength(LocUtil.INITIALSTEPLEN);
 
         // Iterate to convergence (or to the iteration limit).
         int iter = 0;
         boolean bail = false;
-        for (iter = 0; iter < LocUtil.ITERLIM[stage]; iter++) {
+        for (iter = 0; iter < LocUtil.ITERATIONSTAGELIMITS[stage]; iter++) {
           // Make a step.
           stepper.makeStep(stage, iter);
 
@@ -180,18 +180,18 @@ public class Locate {
           }
 
           // Check for convergence.
-          if (hypo.getStepLength() <= LocUtil.CONVLIM[stage] || bail) {
+          if (hypo.getStepLength() <= LocUtil.CONVERGENCESTAGELIMITS[stage] || bail) {
             break;
           }
         }
 
         // We're done with this stage.  Collect information for a stage 
         // level audit instance.
-        if (iter >= LocUtil.ITERLIM[stage]) {
+        if (iter >= LocUtil.ITERATIONSTAGELIMITS[stage]) {
           status = LocStatus.FULL_ITERATIONS;
         }
 
-        hypo.setHorizontalStepLength(LocUtil.delStep(hypo, 
+        hypo.setHorizontalStepLength(LocUtil.computeDistance(hypo, 
             hypoAuditList.get(hypoAuditList.size() - 1)));
         hypo.setVerticalStepLength(Math.abs(hypo.getDepth() 
             - hypoAuditList.get(hypoAuditList.size() - 1).getDepth()));
@@ -199,9 +199,10 @@ public class Locate {
             2d) + Math.pow(hypo.getVerticalStepLength(), 2d)));
         
         // check to see if we've converged
-        if (stage > 0 && hypo.getStepLength() <= LocUtil.CONVLIM[stage]) {
+        if (stage > 0 && hypo.getStepLength() 
+            <= LocUtil.CONVERGENCESTAGELIMITS[stage]) {
           // If we've converged, create a final location level audit.
-          hypo.setHorizontalStepLength(LocUtil.delStep(hypo, 
+          hypo.setHorizontalStepLength(LocUtil.computeDistance(hypo, 
               hypoAuditList.get(0)));
           hypo.setVerticalStepLength(Math.abs(hypo.getDepth() 
               - hypoAuditList.get(0).getDepth()));

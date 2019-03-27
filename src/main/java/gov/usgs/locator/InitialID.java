@@ -3,8 +3,6 @@ package gov.usgs.locator;
 import gov.usgs.traveltime.TTSessionLocal;
 import gov.usgs.traveltime.TTime;
 import gov.usgs.traveltime.TTimeData;
-import gov.usgs.traveltime.session.TTSession;
-import gov.usgs.traveltime.session.TTSessionPool;
 import java.util.ArrayList;
 
 /**
@@ -33,15 +31,9 @@ public class InitialID {
 
   /**
    * A TTSessionLocal object containing a local travel-time manager used to  
-   * perform initial phase identification. Unused if LocUtil.server is true.
+   * perform initial phase identification.
    */    
   private TTSessionLocal ttLocalSession;
-
-  /**
-   * A TTSession object containing the local travel-time manager used to  
-   * perform initial phase identification. Unused if LocUtil.server is false
-   */    
-  private TTSession ttSession;
 
   /**
    * A PhaseID object containing Phase identification logic used in  
@@ -106,17 +98,11 @@ public class InitialID {
     }
     
     // Set up a new travel-time session if the depth has changed.
-    if (LocUtil.server) {
-      ttSession = TTSessionPool.getTravelTimeSession(event.getEarthModel(), 
-          hypo.getDepth(), LocUtil.PHLIST, hypo.getLatitude(), 
-          hypo.getLongitude(), LocUtil.ALLPHASES, LocUtil.BACKBRN, 
-          LocUtil.tectonic, false, false);
-    } else {
-      ttLocalSession.newSession(event.getEarthModel(), hypo.getDepth(), 
-          LocUtil.PHLIST, hypo.getLatitude(), hypo.getLongitude(), 
-          LocUtil.ALLPHASES, LocUtil.BACKBRN, LocUtil.tectonic, false);
-    }
-    
+    ttLocalSession.newSession(event.getEarthModel(), hypo.getDepth(), 
+        LocUtil.PHASELIST, hypo.getLatitude(), hypo.getLongitude(), 
+        LocUtil.SUPRESSUNLIKELYPHASES, LocUtil.SUPRESSBACKBRANCHES, 
+        LocUtil.isTectonic, false);
+        
     // Loop over picks in the groups.
     if (LocUtil.deBugLevel > 1) {
       System.out.println();
@@ -133,14 +119,9 @@ public class InitialID {
         }
 
         // Do the travel-time calculation.
-        TTime ttList = null;
-        if (LocUtil.server) {
-          ttList = ttSession.getTT(station.latitude, station.longitude,
-              station.elevation, group.delta, group.azimuth);
-        } else {
-          ttList = ttLocalSession.getTT(station.latitude, station.longitude,
-              station.elevation, group.delta, group.azimuth);
-        }
+        TTime ttList = ttList = ttLocalSession.getTT(station.latitude, 
+            station.longitude, station.elevation, group.delta, group.azimuth);
+    
         
         // Print them.
         // ttList.print(event.hypo.depth, group.delta);
@@ -339,14 +320,9 @@ public class InitialID {
             }
 
             // Do the travel-time calculation.
-            TTime ttList;
-            if (LocUtil.server) {
-              ttList = ttSession.getTT(station.latitude, station.longitude,
-                  station.elevation, group.delta, group.azimuth);
-            } else {
-              ttList = ttLocalSession.getTT(station.latitude, station.longitude,
-                  station.elevation, group.delta, group.azimuth);
-            }
+            TTime ttList = ttLocalSession.getTT(station.latitude, 
+              station.longitude, station.elevation, group.delta, group.azimuth);
+            
             // Print them.
             // ttList.print(event.hypo.depth, group.delta);
             

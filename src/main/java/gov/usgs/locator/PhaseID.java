@@ -8,8 +8,6 @@ import gov.usgs.traveltime.TTime;
 import java.util.ArrayList;
 
 import gov.usgs.traveltime.TTimeData;
-import gov.usgs.traveltime.session.TTSession;
-import gov.usgs.traveltime.session.TTSessionPool;
 
 /**
  * Associate theoretical seismic phases with observed seismic picks.
@@ -27,7 +25,6 @@ public class PhaseID {
   PickGroup group;
   Pick lastPick = null;
   TTime ttList = null;
-  TTSession session;
   double otherWeight;				// Weight for phases that don't match
   double stickyWeight;			// Weight to resist changing identification
   boolean generic = false, primary = false;
@@ -84,17 +81,10 @@ public class PhaseID {
 		if(wResiduals.size() > 0) wResiduals.clear();
 
 		// Set up a new travel-time session.
-		if(LocUtil.server) {
-			session = TTSessionPool.getTravelTimeSession(event.getEarthModel(), hypo.getDepth(), 
-					LocUtil.PHLIST, hypo.getLatitude(), hypo.getLongitude(), LocUtil.ALLPHASES,
-					LocUtil.BACKBRN, LocUtil.tectonic, false, false);
-			if(auxTT == null) auxTT = session.getAuxTT();
-		} else {
-			ttLocal.newSession(event.getEarthModel(), hypo.getDepth(), LocUtil.PHLIST, 
-					hypo.getLatitude(), hypo.getLongitude(), LocUtil.ALLPHASES, LocUtil.BACKBRN, 
-					LocUtil.tectonic, false);
-		}
-		
+		ttLocal.newSession(event.getEarthModel(), hypo.getDepth(), LocUtil.PHASELIST, 
+				hypo.getLatitude(), hypo.getLongitude(), LocUtil.SUPRESSUNLIKELYPHASES, LocUtil.SUPRESSBACKBRANCHES, 
+				LocUtil.isTectonic, false);
+				
     // Do the travel-time calculation.
     for (int j = 0; j < event.getNumStations(); j++) {
       group = event.getPickGroupList().get(j);
@@ -102,14 +92,11 @@ public class PhaseID {
       station = group.station;
       if(LocUtil.deBugLevel > 1) System.out.format("PhaseID: %-5s %6.2f "+
       		"%6.2f %6.2f\n", station.staID.staCode, group.picks.get(0).tt, 
-      		group.delta, group.azimuth);
-      if(LocUtil.server) {
-      	ttList = session.getTT(station.latitude, station.longitude,
-      			station.elevation, group.delta, group.azimuth);
-      } else {
-	      ttList = ttLocal.getTT(station.latitude, station.longitude,
-	          station.elevation, group.delta, group.azimuth);
-      }
+          group.delta, group.azimuth);
+          
+      ttList = ttLocal.getTT(station.latitude, station.longitude,
+	        station.elevation, group.delta, group.azimuth);
+      
       // Print them.
   //  if(station.staID.staCode.equals("TX11")) {
   //  	ttList.print();
@@ -165,7 +152,7 @@ public class PhaseID {
       		}
       	}
       	// If it's not too out of whack, force the association.
-      	if(m >= 0 && (resMin <= LocUtil.ASSOCTOL || phCode.equals("Lg") || 
+      	if(m >= 0 && (resMin <= LocUtil.ASSOCTOLERANCE || phCode.equals("Lg") || 
       			phCode.equals("LR"))) {
       		pick.mapStat = ttList.get(m);
       		pick.fomStat = resMin;
@@ -190,7 +177,7 @@ public class PhaseID {
         		}
         	}
         	// If it's not too out of whack, force the association.
-        	if(m >= 0 && resMin <= LocUtil.ASSOCTOL) {
+        	if(m >= 0 && resMin <= LocUtil.ASSOCTOLERANCE) {
         		pick.mapStat = ttList.get(m);
         		pick.fomStat = resMin;
         		pick.forceStat = true;
@@ -304,7 +291,7 @@ public class PhaseID {
     }
 
     // Apply the distance correction to the first arriving phase.
-    double deltaCorr = LocUtil.deltaCorr(group.delta);
+    double deltaCorr = LocUtil.computeDistCorr(group.delta);
     if(deltaCorr > 1d) {
     	if(group.getPick(0).mapStat != null) 
     		group.getPick(0).fomStat /= deltaCorr;
@@ -368,7 +355,7 @@ public class PhaseID {
   				// We have both, now what?
   				if(j == 0) {
   					// Favor the alternate identification for the first arrival.
-  					if(pick.fomAlt <= 2d*LocUtil.validLim(pick.mapAlt.getSpread()) && 
+  					if(pick.fomAlt <= 2d*LocUtil.computeValidityLimit(pick.mapAlt.getSpread()) && 
   							pick.fomAlt < pick.fomStat-1d && pick.mapAlt.getPhGroup() == 
   							pick.mapStat.getPhGroup()) {
   						pick.mapStat = pick.mapAlt;
@@ -376,11 +363,11 @@ public class PhaseID {
   					// If that didn't work, see if the statistical identification is 
   					// acceptable.
   					} else if(pick.fomStat > 
-  							2d*LocUtil.validLim(pick.mapStat.getSpread())) {
+  							2d*LocUtil.computeValidityLimit(pick.mapStat.getSpread())) {
   						// If that that didn't work, go back to the alternate 
   						// identification.
   						if(pick.fomAlt <= 
-  								2d*LocUtil.validLim(pick.mapAlt.getSpread())) {
+  								2d*LocUtil.computeValidityLimit(pick.mapAlt.getSpread())) {
   	 						pick.mapStat = pick.mapAlt;
     						pick.fomStat = pick.fomAlt;
   						} else {
@@ -391,16 +378,16 @@ public class PhaseID {
   				// Treat later phases differently.
   				} else {
   					// Favor the alternate identification, but not quite as strictly.
-  					if(pick.fomAlt <= 2d*LocUtil.validLim(pick.mapAlt.getSpread()) && 
+  					if(pick.fomAlt <= 2d*LocUtil.computeValidityLimit(pick.mapAlt.getSpread()) && 
   							pick.fomAlt < pick.fomStat-0.5d) {
   						pick.mapStat = pick.mapAlt;
   						pick.fomStat = pick.fomAlt;
   					} else if(pick.fomStat > 
-								2d*LocUtil.validLim(pick.mapStat.getSpread())) {
+								2d*LocUtil.computeValidityLimit(pick.mapStat.getSpread())) {
 							// If that that didn't work, go back to the alternate 
   						// identification.
 							if(pick.fomAlt <= 
-									2d*LocUtil.validLim(pick.mapAlt.getSpread())) {
+									2d*LocUtil.computeValidityLimit(pick.mapAlt.getSpread())) {
 		 						pick.mapStat = pick.mapAlt;
 								pick.fomStat = pick.fomAlt;
 							} else {
@@ -411,12 +398,12 @@ public class PhaseID {
   				}
   			// We only have a statistical identification.
   			} else if(pick.fomStat > 
-								2d*LocUtil.validLim(pick.mapStat.getSpread())) {
+								2d*LocUtil.computeValidityLimit(pick.mapStat.getSpread())) {
   				pick.mapStat = null;
   			}
   		// We don't have a statistical identification, try the alternative.
   		} else if(pick.mapAlt != null) {
-				if(pick.fomAlt <= 2d*LocUtil.validLim(pick.mapAlt.getSpread())) {
+				if(pick.fomAlt <= 2d*LocUtil.computeValidityLimit(pick.mapAlt.getSpread())) {
 					pick.mapStat = pick.mapAlt;
 					pick.fomStat = pick.fomAlt;
 				} else {
@@ -583,7 +570,7 @@ public class PhaseID {
     for (int j = 0; j < ttClust.length; j++) {
     	if(!pickClust[j].surfWave) {
     		// Compute the figure-of-merit for the primary criteria.
-	      prob = LocUtil.ttResModel(pickClust[j].tt - ttClust[j].getTT(), 0d, 
+	      prob = LocUtil.computePDFResValue(pickClust[j].tt - ttClust[j].getTT(), 0d, 
 	      		ttClust[j].getSpread());
 	      amp = idAmplitude(pickClust[j], ttClust[j]);
 	      res = idResidual(pickClust[j], ttClust[j]);
@@ -592,7 +579,7 @@ public class PhaseID {
 	      cumFoM *= amp*prob;
 	      // Set up the alternative criteria at the same time.  Note, the 
 	      // Fortran version omitted the affinity in this test.
-	      if(ttClust[j].getObserv() >= LocUtil.OBSERVMIN && res < 
+	      if(ttClust[j].getObserv() >= LocUtil.OBSERVABILITYMIN && res < 
 	      		pickClust[j].fomAlt) {
 	      	// Make sure that the phase types match unless the pick is automatic.
 	      	if(pickClust[j].auto || TauUtil.arrivalType(pickClust[j].idCode)

@@ -198,7 +198,7 @@ public class Restimator {
 				stepDir[i] += scores[j]*wResidual.weight*wResidual.deDeriv[i];
 			}
 		}
-		return LocUtil.unitVector(stepDir);
+		return LocUtil.normalizeUnitVector(stepDir);
 	}
 	
 	/**

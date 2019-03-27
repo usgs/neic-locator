@@ -60,7 +60,7 @@ public class PickGroup {
 	 */
 	public void updateEvent(Hypocenter hypo) {
 		// Distance and azimuth are group level parameters.
-		delta = LocUtil.delAz(hypo, station);
+		delta = LocUtil.computeDistAzm(hypo, station);
 		azimuth = LocUtil.azimuth;
 		// Update travel times.
 		for(int j=0; j<picks.size(); j++) {
@@ -76,7 +76,7 @@ public class PickGroup {
 	 */
 	public void updateHypo(Hypocenter hypo) {
 		// Distance and azimuth are group level parameters.
-		delta = LocUtil.delAz(hypo, station);
+		delta = LocUtil.computeDistAzm(hypo, station);
 		azimuth = LocUtil.azimuth;
 	}
 	
@@ -176,7 +176,7 @@ public class PickGroup {
 					station.staID.staCode, pick.chaCode, station.staID.netCode, 
 					station.staID.locCode, station.latitude, station.longitude, 
 					station.elevation, pick.quality, pick.phCode, 
-					LocUtil.getRayTime(pick.arrivalTime), pick.cmndUse, 
+					LocUtil.getTimeString(pick.arrivalTime), pick.cmndUse, 
 					pick.authType, pick.obsCode, pick.affinity);
 		}
 	}
@@ -233,14 +233,14 @@ public class PickGroup {
 					System.out.format("%-2s %-5s %-3s %-2s  %5.1f     %3.0f   %-8s %12s "+
 							" manual    %6.1f    %4.2f\n", station.staID.netCode, 
 							station.staID.staCode, pick.chaCode, locCode, 
-							delta, azimuth, pick.phCode, LocUtil.getNEICtime(pick.arrivalTime), 
+							delta, azimuth, pick.phCode, LocUtil.getNEICTimeString(pick.arrivalTime), 
 							pick.residual, pick.weight);
 					break;
 				default:
 					System.out.format("%-2s %-5s %-3s %-2s  %5.1f     %3.0f   %-8s %12s  "+
 							"automatic %6.1f    %4.2f\n", station.staID.netCode, 
 							station.staID.staCode, pick.chaCode, locCode, 
-							delta, azimuth, pick.phCode, LocUtil.getNEICtime(pick.arrivalTime), 
+							delta, azimuth, pick.phCode, LocUtil.getNEICTimeString(pick.arrivalTime), 
 							pick.residual, pick.weight);
 					break;
 			}

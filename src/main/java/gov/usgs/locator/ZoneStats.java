@@ -113,22 +113,22 @@ public class ZoneStats implements Serializable {
 			if(minDepth >= maxDepth || meanDepth <= minDepth || 
 					meanDepth >= maxDepth) {
 				if(meanDepth < 400d) {		// There's nothing magic about 400 km.
-					minDepth = Math.max(meanDepth-0.5*LocUtil.DEFDEPSE, 
+					minDepth = Math.max(meanDepth-0.5*LocUtil.DEFAULTDEPTHSE, 
 							LocUtil.DEPTHMIN);
-					maxDepth = minDepth+LocUtil.DEFDEPSE;
+					maxDepth = minDepth+LocUtil.DEFAULTDEPTHSE;
 				} else {
-					maxDepth = Math.min(meanDepth+0.5*LocUtil.DEFDEPSE, 
+					maxDepth = Math.min(meanDepth+0.5*LocUtil.DEFAULTDEPTHSE, 
 							LocUtil.DEPTHMAX);
-					minDepth = maxDepth-LocUtil.DEFDEPSE;
+					minDepth = maxDepth-LocUtil.DEFAULTDEPTHSE;
 				}
 			}
 			// Compute the Bayesian depth and spread.
 			bayesSpread = Math.max(Math.max(maxDepth-meanDepth, 
-					meanDepth-minDepth), LocUtil.DEFDEPSE);
+					meanDepth-minDepth), LocUtil.DEFAULTDEPTHSE);
 			return meanDepth;
 		} else {
-			bayesSpread = LocUtil.DEFDEPSE;
-			return LocUtil.DEFDEPSE;
+			bayesSpread = LocUtil.DEFAULTDEPTHSE;
+			return LocUtil.DEFAULTDEPTHSE;
 		}
 	}
 	

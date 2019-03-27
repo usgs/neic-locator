@@ -216,7 +216,7 @@ public class DeCorr {
       pickI = weightedResidualsOrg.get(i).pick;
 
       for (int j = i; j < numPickData; j++) {
-        covMatrix[i][j] = LocUtil.covariance(pickI, 
+        covMatrix[i][j] = LocUtil.computeCovariance(pickI, 
             weightedResidualsOrg.get(j).pick);
         covMatrix[j][i] = covMatrix[i][j];
       }
@@ -228,7 +228,7 @@ public class DeCorr {
    * problem is a reasonable size.
    */
   private void triagePicks() {
-    if (weightedResidualsOrg.size() > LocUtil.MAXCORR) {
+    if (weightedResidualsOrg.size() > LocUtil.MAXPICKSTODECORRELATE) {
       if (LocUtil.deBugLevel > 2) { 
         LocUtil.printMatrix(covMatrix, "Raw Covariance Matrix");
       }
@@ -257,7 +257,7 @@ public class DeCorr {
       corrSums.sort(null);
       
       // Eliminate the biggest correlation sums.
-      for (int i = corrSums.size() - 1; i >= LocUtil.MAXCORR; i--) {
+      for (int i = corrSums.size() - 1; i >= LocUtil.MAXPICKSTODECORRELATE; i--) {
         if (LocUtil.deBugLevel > 2) {
           System.out.println("\nF:");
 
@@ -348,17 +348,17 @@ public class DeCorr {
   private void doEigen() {
     // Do the eigenvalue problem (and time it).
     if (LocUtil.deBugLevel > 0) {
-      LocUtil.timer();
+      LocUtil.startTimer();
     }
     EigenvalueDecomposition eig = covMatrixFinal.eig();
 
     if (LocUtil.deBugLevel > 0) {
-      LocUtil.timer("Eigenvalue");
+      LocUtil.endTimer("Eigenvalue");
     }
     eigenvalues = eig.getRealEigenvalues();
 
     if (LocUtil.deBugLevel > 0) {
-      LocUtil.printMatrix(eigenvalues, "Eigenvalues");
+      LocUtil.printVector(eigenvalues, "Eigenvalues");
     }
     eigenvectors = eig.getV().getArray();
 
@@ -382,8 +382,8 @@ public class DeCorr {
     double evMax = eigenvalues[numPickData - 1];
 
     // Now set the limits.
-    double evLim = LocUtil.EVLIM * evSum;
-    double evThresh = LocUtil.EVTHRESH * evMax;
+    double evLim = LocUtil.EIGENVALUESLIMIT * evSum;
+    double evThresh = LocUtil.EIGENVALUESTHRESH * evMax;
 
     // Find how many eigenvalues to keep.
     evSum = 0d;

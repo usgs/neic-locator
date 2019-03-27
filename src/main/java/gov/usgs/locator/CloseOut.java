@@ -121,7 +121,7 @@ public class CloseOut {
     }
 
     // Construct the lower half of the "normal" matrix.
-    if (LocUtil.deCorrelate) {
+    if (LocUtil.useDecorrelation) {
       // If we're decorrelating, use the projected pick data.
       for (int k = 0; k < projectedWeightedResiduals.size(); k++) {
         double[] derivatives = 

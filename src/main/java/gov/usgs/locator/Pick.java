@@ -171,12 +171,12 @@ public class Pick implements Comparable<Pick> {
 			}
 			// If this phase is still being used, set it for processing.
 			if(used && mapStat.canUse() && (fomStat <= 
-					LocUtil.validLim(mapStat.getSpread()) || forceStat)) {
+					LocUtil.computeValidityLimit(mapStat.getSpread()) || forceStat)) {
 				if(reWeight) weight = 1d/Math.max(mapStat.getSpread(), 0.2d);
 				// Add it to weighted residual storage.
 				wRes.reInit(this, residual, weight, false, 
-						LocUtil.dTdLat(mapStat.getDTdD(), azimuth), 
-						LocUtil.dTdLon(mapStat.getDTdD(), azimuth), mapStat.getDTdZ());
+						LocUtil.computeTTLatDerivative(mapStat.getDTdD(), azimuth), 
+						LocUtil.computeTTLonDerivative(mapStat.getDTdD(), azimuth), mapStat.getDTdZ());
 				wResiduals.add(wRes);
 				if(reID) changed = true;
 			} else {
