@@ -14,15 +14,9 @@ import java.util.Scanner;
 import java.util.regex.Pattern;
 
 /**
-<<<<<<< Updated upstream
- * Locator inputs needed to relocate an event.	This class is designed to contain 
- * all inputs needed for a location pass.	An object of this class should be 
- * created from the users inputs and will drive subsequent processing.
-=======
  * The LocInput class stores the inputs needed to relocate an event.  This class 
  * is designed to contain all inputs needed for a location pass.  An object of 
  * this class should be created from the users inputs and will drive subsequent processing.
->>>>>>> Stashed changes
  * 
  * @author jpatton@usgs.gov
  *
@@ -142,21 +136,21 @@ public class LocInput extends LocationRequest {
         newPick.setUse(LocUtil.getBoolean(scan.next().charAt(0)));
 
         // convert author type 
-				// 1 = automatic contributed, 2 = automatic NEIC, 
-				// 3 = analyst contributed, 4 = NEIC analyst.
+        // 1 = automatic contributed, 2 = automatic NEIC, 
+        // 3 = analyst contributed, 4 = NEIC analyst.
         int auth = scan.nextInt();
         String authType = null;
         if (auth == 1) {
-					authType = "ContributedAutomatic";
-				} else if (auth == 2) {
-					authType = "LocalAutomatic";
-				} else if (auth == 3) {
-					authType = "ContributedHuman";
-				} else if (auth == 4) {
-					authType = "LocalHuman";
-				} else {
-					authType = "ContributedAutomatic";
-				}
+          authType = "ContributedAutomatic";
+        } else if (auth == 2) {
+          authType = "LocalAutomatic";
+        } else if (auth == 3) {
+          authType = "ContributedHuman";
+        } else if (auth == 4) {
+          authType = "LocalHuman";
+        } else {
+          authType = "ContributedAutomatic";
+        }
         // make up agency/author because a hydra input file does not have that 
         // information, only author type
         gov.usgs.processingformats.Source newSource = 

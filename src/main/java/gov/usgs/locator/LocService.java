@@ -1,8 +1,8 @@
 package gov.usgs.locator;
 
-import gov.usgs.processingformats.LocationResult;
 import gov.usgs.processingformats.LocationException;
 import gov.usgs.processingformats.LocationRequest;
+import gov.usgs.processingformats.LocationResult;
 import gov.usgs.processingformats.LocationService;
 import gov.usgs.traveltime.TTSessionLocal;
 import java.io.IOException;
@@ -11,14 +11,22 @@ import java.util.Date;
 import java.util.Iterator;
 
 public class LocService implements LocationService {
-  String modelPath = null;
+  /** 
+   * A String containing the earth model path for the locator, null to use 
+   * default.
+   */
+  private String modelPath = null;
 
+  /**
+   * The LocService constructor. Sets up the earth model path
+   */
   public LocService(String modelPath) {
     this.modelPath = modelPath;
   }
 
   /**
-   * Implement the location service interface.
+   * Function to get a location using the provided input, implementing the 
+   * location service interface.
    * 
    * @param request a Final LocationRequest containing the location request
    * @return A LocationResult containing the resulting location
@@ -26,15 +34,15 @@ public class LocService implements LocationService {
   @Override
   public LocationResult getLocation(final LocationRequest request) 
       throws LocationException {    
-    // create locInput from LocationRequest via cast
+    // create locInput from LocationRequest
     LocInput in = new LocInput(request);
 
-    // return result as a LocationResult via cast
+    // return result as a LocationResult
     return (LocationResult)getLocation(in);
   }
   
   /**
-   * Get a location.
+   * Function to get a location using the provided input.
    * 
    * @param in a Final LocInput containing the location input
    * @return A LocOutput containing the resulting location output
