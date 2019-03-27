@@ -64,7 +64,7 @@ public class InitialID {
   /**
    * A Stepper object used to manage the rank-sum estimation logic needed to 
    * refine the initial phase identification.
-    */
+   */
   private Stepper stepper;
 
   /**

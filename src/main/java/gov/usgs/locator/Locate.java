@@ -1,164 +1,234 @@
 package gov.usgs.locator;
 
+import gov.usgs.traveltime.TTSessionLocal;
 import java.util.ArrayList;
 
-import gov.usgs.traveltime.TTSessionLocal;
-
 /**
- * Locate drives the location of one earthquake.
+ * The Locate class drives the location of one earthquake.
  * 
  * @author Ray Buland
  *
  */
 public class Locate {
-	Event event;
-	Hypocenter hypo;
-	ArrayList<HypoAudit> audit;
-	TTSessionLocal ttLocal;
-	InitialID initialID;
-	PhaseID phaseID;
-	Stepper stepper;
-	CloseOut close;
+  /**
+   * An Event object containing the event to locate.
+   */
+  private Event event;
+  
+  /**
+   * A Hypocenter object containing the hypocenter of event to locate.
+   */  
+  private Hypocenter hypo;
+  
+  /** 
+   * An ArrayList of HypoAudit objects containing the hypocenter auditing 
+   * information during this location.
+   */
+  private ArrayList<HypoAudit> hypoAuditList;
+  
+  /**
+   * A TTSessionLocal object containing a local travel-time manager used for
+   * this location process.
+   */    
+  private TTSessionLocal ttLocalSession;
+  
+  /** 
+   * A InitialID object used to perform initial phase identification before any 
+   * location iterations.
+   */
+  private InitialID initialPhaseID;
 
-	/**
-	 * Set up the machinery to locate one event.
-	 * 
-	 * @param event Event information
-	 * @param ttLocal Travel-time information for a local implementation
-	 * @param auxLoc Auxiliary location information
-	 */
-	public Locate(Event event, TTSessionLocal ttLocal, AuxLocRef auxLoc) {
-		this.event = event;
-		hypo = event.getHypo();
-		audit = event.getHypoAuditList();
-		this.ttLocal = ttLocal;
-		phaseID = new PhaseID(event, ttLocal);
-		stepper = new Stepper(event, phaseID, auxLoc);
-		initialID = new InitialID(event, ttLocal, phaseID, stepper);
-		close = new CloseOut(event);
-		LocUtil.deCorrelate = false;
-	}
-	
-	/**
-	 * Location driver.
-	 * 
-	 * @return Final location status
-	 */
-	public LocStatus doLoc() {
-		int stage = -1, iter = 0;		// Initialize for tracking purposes.
-		boolean bail;
-		LocStatus status;
-		
-		// Save the essentials of this event for comparison.
-		event.addAudit(0, 0, LocStatus.INITIAL_HYPOCENTER);
-		
-		// Bail on insufficient data.
-		if(event.getNumStationsUsed() < 3) {
-			close.computeFinalStatistics(LocStatus.INSUFFICIENT_DATA);
-			return LocStatus.INSUFFICIENT_DATA;
-		}
-		
-		try {
-			// Handle a held solution.
-			if(event.getIsLocationHeld()) {
-				// Rreidentify and reweight phases.
-				LocUtil.deCorrelate = event.getUseDecorrelation();
-				stepper.setInitDir(0.1d, 1d, true, true);
-				close.computeFinalStatistics(LocStatus.HELD_HYPOCENTER);
-				return LocStatus.SUCCESS;
-			}
-			
-			// Prepare the event for relocation.
-			initialID.phaseID();
-			if(LocUtil.deBugLevel > 3) initialID.printInitialID();
-			
-			/*
-			 * Do the multistage iteration to refine the hypocenter.
-			 */
-			for(stage = 0; stage < LocUtil.STAGELIM; stage++) {
-				switch(stage) {
-					case 0:
-						// Do the stage 0 phase identification (no reID, but re-weight).
-						status = stepper.setInitDir(0.01d,  5d, false, true);
-						break;
-					case 1:
-						// Unless this is a restart, allow phases initially removed.
-						if(!event.getIsLocationRestarted()) {
-							initialID.resetUseFlags();
-						}
-						// Force decorrelation.
-						LocUtil.deCorrelate = true;
-						// Do a looser phase identification.
-						status = stepper.setInitDir(0.1d, 1.0d, true, true);
-						break;
-					default:
-						// Continue using a looser phase identification.
-						status = stepper.setInitDir(0.1d, 1.0d, true, true);
-						break;
-				}
-				// Be sure we still have enough data.
-				if(status == LocStatus.INSUFFICIENT_DATA) {
-					close.computeFinalStatistics(status);
-					return status;
-				}
-				// Initialize for iteration zero.
-				hypo.setStepLength(LocUtil.INITSTEP);
-				bail = false;
-				// Iterate to convergence (or to the iteration limit).
-				for(iter = 0; iter < LocUtil.ITERLIM[stage]; iter++) {
-					// Step.
-					stepper.makeStep(stage, iter);
-					switch(status) {
-					// Bail on insufficient data.
-					case INSUFFICIENT_DATA:
-						close.computeFinalStatistics(status);
-						return status;
-					// If the damping failed, go to the next stage.
-					case NEARLY_CONVERGED:
-					case DID_NOT_CONVERGE:
-					case UNSTABLE_SOLUTION:
-						bail = true;
-						break;
-					// Otherwise, keep on trucking!  (This includes phase 
-					// re-identification).
-					default:
-						break;
-					}
-					// Check for convergence.
-					if(hypo.getStepLength() <= LocUtil.CONVLIM[stage] || bail) break;
-				}
-				// We're done with this stage.  Collect information for a stage 
-				// level audit instance.
-				if(iter >= LocUtil.ITERLIM[stage]) status = LocStatus.FULL_ITERATIONS;
-				hypo.setHorizontalStepLength(LocUtil.delStep(hypo, audit.get(audit.size()-1)));
-				hypo.setVerticalStepLength(Math.abs(hypo.getDepth()-audit.get(audit.size()-1).getDepth()));
-				hypo.setStepLength(Math.sqrt(Math.pow(hypo.getHorizontalStepLength(),2d)+
-						Math.pow(hypo.getVerticalStepLength(),2d)));
-				
-				// If we've converged, create a final location level audit.
-				if(stage > 0 && hypo.getStepLength() <= LocUtil.CONVLIM[stage]) {
-					hypo.setHorizontalStepLength(LocUtil.delStep(hypo, audit.get(0)));
-					hypo.setVerticalStepLength(Math.abs(hypo.getDepth()-audit.get(0).getDepth()));
-					hypo.setStepLength(Math.sqrt(Math.pow(hypo.getHorizontalStepLength(),2d)+
-							Math.pow(hypo.getVerticalStepLength(),2d)));
-					event.addAudit(stage, iter, status);
-					System.out.println("\nFinal wrapup:");
-					event.printHypoAudit();
-					status = close.computeFinalStatistics(status);
-					return status;
-				// Otherwise, create the stage level audit.
-				} else {
-					event.addAudit(stage, iter, status);
-				}
-			}
-			// If we go to full interations on the last stage, give up.
-			return LocStatus.DID_NOT_CONVERGE;
-			
-		} catch (Exception e) {
-			// This should never happen.
-			System.out.println("Source depth out of range");
-			e.printStackTrace();
-			return LocStatus.BAD_DEPTH;
-		}
-	}
+  /** 
+   * A PhaseID object containing Phase identification logic used in performing 
+   * phase identifications.
+   */  
+  private PhaseID phaseID;
+
+  /**
+   * A Stepper object used to manage the rank-sum estimation logic needed to 
+   * refine the phase identifications and location.
+   */
+  private Stepper stepper;
+  
+  /**
+   * A CloseOut object used to computes all the errors and heuristics used to 
+   * evaluate the location after an event is located.
+   */
+  private CloseOut close;
+
+  /**
+   * The Locate constructor. Sets up the class to locate a single event.
+   * 
+   * @param event An Event object containing the Event to locate
+   * @param ttLocalSession A TTSessionLocal object containing the travel-time 
+   *                       information for a local implementation to use in 
+   *                       computing the location
+   * @param auxLoc An AuxLocRef object containing zuxiliary location information
+   *               such as continental craton boundries and earthquake statistics
+   */
+  public Locate(Event event, TTSessionLocal ttLocalSession, AuxLocRef auxLoc) {
+    this.event = event;
+    hypo = event.getHypo();
+    hypoAuditList = event.getHypoAuditList();
+    this.ttLocalSession = ttLocalSession;
+    phaseID = new PhaseID(event, ttLocalSession);
+    stepper = new Stepper(event, phaseID, auxLoc);
+    initialPhaseID = new InitialID(event, ttLocalSession, phaseID, stepper);
+    close = new CloseOut(event);
+    LocUtil.deCorrelate = false;
+  }
+  
+  /**
+   * This function performs the location for the event.
+   * 
+   * @return A LocStatus object containing the final location status
+   */
+  public LocStatus doLocation() {
+    // Save the essentials of this event for comparison.
+    event.addAudit(0, 0, LocStatus.INITIAL_HYPOCENTER);
+    
+    // Bail on insufficient data.
+    if (event.getNumStationsUsed() < 3) {
+      close.computeFinalStatistics(LocStatus.INSUFFICIENT_DATA);
+      return LocStatus.INSUFFICIENT_DATA;
+    }
+    
+    try {
+      // Handle a held solution.
+      if (event.getIsLocationHeld()) {
+        // Reidentify and reweight phases.
+        LocUtil.deCorrelate = event.getUseDecorrelation();
+        stepper.setInitDir(0.1d, 1d, true, true);
+        close.computeFinalStatistics(LocStatus.HELD_HYPOCENTER);
+        return LocStatus.SUCCESS;
+      }
+      
+      // Prepare the event for relocation by performing an initial phase
+      // identification
+      initialPhaseID.phaseID();
+      if (LocUtil.deBugLevel > 3) {
+        initialPhaseID.printInitialID();
+      }
+      
+      // Now do the multistage iteration to refine the hypocenter.
+      LocStatus status;
+      for (int stage = 0; stage < LocUtil.STAGELIM; stage++) {
+        // check the stage status
+        switch (stage) {
+          case 0:
+            // Do the stage 0 phase identification (no reID, but re-weight).
+            status = stepper.setInitDir(0.01d,  5d, false, true);
+            break;
+
+          case 1:
+            // Unless this is a restart, allow phases initially removed to 
+            // be added back in.
+            if (!event.getIsLocationRestarted()) {
+              initialPhaseID.resetUseFlags();
+            }
+
+            // Force decorrelation.
+            // NOTE doesn't this mean that we can't ever turn off decorrelation
+            // via the input configuration. It also explains why the locator
+            // crashes when decorrelation is turned off
+            LocUtil.deCorrelate = true;
+
+            // Do a looser phase identification.
+            status = stepper.setInitDir(0.1d, 1.0d, true, true);
+            break;
+
+          default:
+            // Continue using a looser phase identification.
+            status = stepper.setInitDir(0.1d, 1.0d, true, true);
+            break;
+        }
+
+        // Be sure we still have enough data to continue. 
+        if (status == LocStatus.INSUFFICIENT_DATA) {
+          close.computeFinalStatistics(status);
+          return status;
+        }
+
+        // Initialize for iteration zero.
+        hypo.setStepLength(LocUtil.INITSTEP);
+
+        // Iterate to convergence (or to the iteration limit).
+        int iter = 0;
+        boolean bail = false;
+        for (iter = 0; iter < LocUtil.ITERLIM[stage]; iter++) {
+          // Make a step.
+          stepper.makeStep(stage, iter);
+
+          // check the iteration status
+          switch (status) {
+            case INSUFFICIENT_DATA:
+              // Bail on insufficient data.
+              close.computeFinalStatistics(status);
+              return status;
+
+            case NEARLY_CONVERGED:
+            case DID_NOT_CONVERGE:
+            case UNSTABLE_SOLUTION:
+              // If the damping failed, go to the next stage.
+              bail = true;
+              break;
+
+            default:
+              // Otherwise, keep on trucking!  (This includes phase 
+              // re-identification).
+              break;
+          }
+
+          // Check for convergence.
+          if (hypo.getStepLength() <= LocUtil.CONVLIM[stage] || bail) {
+            break;
+          }
+        }
+
+        // We're done with this stage.  Collect information for a stage 
+        // level audit instance.
+        if (iter >= LocUtil.ITERLIM[stage]) {
+          status = LocStatus.FULL_ITERATIONS;
+        }
+
+        hypo.setHorizontalStepLength(LocUtil.delStep(hypo, 
+            hypoAuditList.get(hypoAuditList.size() - 1)));
+        hypo.setVerticalStepLength(Math.abs(hypo.getDepth() 
+            - hypoAuditList.get(hypoAuditList.size() - 1).getDepth()));
+        hypo.setStepLength(Math.sqrt(Math.pow(hypo.getHorizontalStepLength(), 
+            2d) + Math.pow(hypo.getVerticalStepLength(), 2d)));
+        
+        // check to see if we've converged
+        if (stage > 0 && hypo.getStepLength() <= LocUtil.CONVLIM[stage]) {
+          // If we've converged, create a final location level audit.
+          hypo.setHorizontalStepLength(LocUtil.delStep(hypo, 
+              hypoAuditList.get(0)));
+          hypo.setVerticalStepLength(Math.abs(hypo.getDepth() 
+              - hypoAuditList.get(0).getDepth()));
+          hypo.setStepLength(Math.sqrt(Math.pow(hypo.getHorizontalStepLength(), 
+              2d) + Math.pow(hypo.getVerticalStepLength(),2d)));
+          event.addAudit(stage, iter, status);
+
+          System.out.println("\nFinal wrapup:");
+          event.printHypoAudit();
+
+          status = close.computeFinalStatistics(status);
+          return status;
+        } else {
+          // Otherwise, create the stage level audit.
+          event.addAudit(stage, iter, status);
+        }
+      }
+
+      // If we go to full interations on the last stage without converging, give 
+      // up.
+      return LocStatus.DID_NOT_CONVERGE;
+    } catch (Exception e) {
+      // This should never happen.
+      System.out.println("Source depth out of range");
+      e.printStackTrace();
+
+      return LocStatus.BAD_DEPTH;
+    }
+  }
 }

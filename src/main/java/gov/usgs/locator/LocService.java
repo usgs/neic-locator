@@ -89,7 +89,7 @@ public class LocService implements LocationService {
     Locate loc = new Locate(event, ttLocal, auxLoc);;
     
     // perform the location
-    LocStatus status = loc.doLoc();
+    LocStatus status = loc.doLocation();
     event.setLocatorExitCode(status);
 
     // print results for debugging
