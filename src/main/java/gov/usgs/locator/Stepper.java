@@ -18,7 +18,7 @@ public class Stepper {
 	LinearStep linStep;
 	RestResult result;
 	HypoAudit lastHypo;
-	DeCorr deCorr;
+	Decorrelator deCorr;
 
 	/**
 	 * Keep track of data needed.
@@ -92,7 +92,7 @@ public class Stepper {
 		if(reWeight) setEnviron();
 		
 		// Reidentify phases.
-		event.setHasPhaseIdChanged(phaseID.doID(otherWeight, stickyWeight, reID, reWeight));
+		event.setHasPhaseIdChanged(phaseID.phaseID(otherWeight, stickyWeight, reID, reWeight));
 		// Bail on insufficient data.
 		if(event.getNumStationsUsed() < 3) return LocStatus.INSUFFICIENT_DATA;
 		

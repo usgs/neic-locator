@@ -6,13 +6,13 @@ import gov.usgs.traveltime.TauUtil;
 import java.util.ArrayList;
 
 /**
- * The DeCorr class handles the decorrelation of the pick data.  This involves 
+ * The Decorrelator class handles the decorrelation of the pick data.  This involves 
  * a singular valued decomposition of the correlation matrix.
  * 
  * @author Ray Buland
  *
  */
-public class DeCorr {
+public class Decorrelator {
   /** 
    * An int containing the number of decorrelation data.
    */
@@ -77,12 +77,12 @@ public class DeCorr {
   private Matrix covMatrixFinal;
 
   /**
-   * The DeCorr constructor. This constructor initializes the event and 
+   * The Decorrelator constructor. This constructor initializes the event and 
    * projected residuals to the provided event and residuals.
    * 
    * @param event An Event object containing event information to decorrelate
    */
-  public DeCorr(Event event) {
+  public Decorrelator(Event event) {
     this.event = event;
     this.weightedResidualsProj = event.getProjectedWeightedResiduals();
   }

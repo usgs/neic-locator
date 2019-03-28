@@ -199,7 +199,7 @@ public class Event {
   private TreeMap<StationID, Station> stationList;
 
   /**
-   * An ArrayList of PickGroup objects, which group all thie picks observed at 
+   * An ArrayList of PickGroup objects, which group all the picks observed at 
    * a single station in this event.
    */
   private ArrayList<PickGroup> pickGroupList;
@@ -240,9 +240,9 @@ public class Event {
   private Restimator projectedRankSumEstimator;
   
   /**
-   * A DeCorr object used when decorrelating the event picks.
+   * A Decorrelator object used when decorrelating the event picks.
    */
-  private DeCorr decorrelator;
+  private Decorrelator decorrelator;
   
   /**
    * Function to return the event hypocenter object.
@@ -471,12 +471,12 @@ public class Event {
   }
   
   /**
-   * Function to get the DeCorr object used when decorrelating the event picks.
+   * Function to get the Decorrelator object used when decorrelating the event picks.
    * 
-   * @return A double containing DeCorr object used when decorrelating the event 
+   * @return A double containing Decorrelator object used when decorrelating the event 
    *         picks.
    */
-  public DeCorr getDecorrelator() {
+  public Decorrelator getDecorrelator() {
     return decorrelator;
   }  
 
@@ -759,7 +759,7 @@ public class Event {
     if (useDecorrelation) {
       projectedWeightedResiduals = new ArrayList<Wresidual>();
       projectedRankSumEstimator = new Restimator(projectedWeightedResiduals);
-      decorrelator = new DeCorr(this);
+      decorrelator = new Decorrelator(this);
     }
     
     // Sort the picks into "Hydra" input order.

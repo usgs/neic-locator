@@ -55,9 +55,9 @@ public class LinearStep {
   private Restimator projectedRankSumEstimator;
   
   /**
-   * A DeCorr object used when decorrelating the event picks.
+   * A Decorrelator object used when decorrelating the event picks.
    */
-  private DeCorr decorrelator;
+  private Decorrelator decorrelator;
   
   /**
    * The LinearStep constructor. This constructor sets the event (and thus the 

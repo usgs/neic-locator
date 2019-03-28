@@ -6,7 +6,7 @@ import gov.usgs.traveltime.TTimeData;
 import java.util.ArrayList;
 
 /**
- * The InitialID class performs an initial phase identification before any 
+ * The InitialPhaseID class performs an initial phase identification before any 
  * location iterations or real phase identification takes place. This initial 
  * pass ensures that we have something reasonable to work with by emphasizing 
  * crust and mantle P waves and manually identified phases.  If there are a lot 
@@ -16,7 +16,7 @@ import java.util.ArrayList;
  * @author Ray Buland
  *
  */
-public class InitialID {
+public class InitialPhaseID {
   /**
    * An Event object containing the event to perform initial phase 
    * identification upon.
@@ -60,7 +60,7 @@ public class InitialID {
   private Stepper stepper;
 
   /**
-   * The InitialID constructor. This constructor sets the event, tt session, 
+   * The InitialPhaseID constructor. This constructor sets the event, tt session, 
    * phase identification logic, and rank-sum estimator to the provided values.
    * 
    * @param event An Event object containing the information for the event to 
@@ -72,7 +72,7 @@ public class InitialID {
    * @param stepper A Restimator object containing the rank-sum estimation 
    *                 driver logic
    */
-  public InitialID(Event event, TTSessionLocal ttLocalSession, PhaseID phaseID, 
+  public InitialPhaseID(Event event, TTSessionLocal ttLocalSession, PhaseID phaseID, 
       Stepper stepper) {
     this.event = event;
     hypo = event.getHypo();
@@ -115,7 +115,7 @@ public class InitialID {
         // For the first pick in the group, get the travel times.
         Station station = group.station;
         if (LocUtil.deBugLevel > 1) {
-          System.out.println("InitialID: " + station + ":");
+          System.out.println("InitialPhaseID: " + station + ":");
         }
 
         // Do the travel-time calculation.
@@ -157,7 +157,7 @@ public class InitialID {
                 
                 if (LocUtil.deBugLevel > 1 
                     && !phCode.equals(travelTime.getPhCode())) {
-                  System.out.format("InitialID: %-8s -> %-8s auto\n", phCode, 
+                  System.out.format("InitialPhaseID: %-8s -> %-8s auto\n", phCode, 
                       travelTime.getPhCode());
                 }
               } else {
@@ -182,7 +182,7 @@ public class InitialID {
                   pick.weight = 1d / travelTime.getSpread();
                   
                   if (LocUtil.deBugLevel > 1) { 
-                    System.out.format("InitialID: "
+                    System.out.format("InitialPhaseID: "
                         + "%-8s -> %-8s human\n", phCode, travelTime.getPhCode());
                   }
                 }
@@ -192,7 +192,7 @@ public class InitialID {
                   pick.weight, false, 0d, 0d, 0d));
 
               if (LocUtil.deBugLevel > 1) {
-                System.out.format("InitialID push: %-5s %-8s %5.2f %7.4f %5.2f" 
+                System.out.format("InitialPhaseID push: %-5s %-8s %5.2f %7.4f %5.2f" 
                     + "%5.2f\n", pick.station.staID.staCode, pick.phCode, 
                     pick.residual, pick.weight, travelTime.getTT(), 
                     travelTime.getSpread());
@@ -222,7 +222,7 @@ public class InitialID {
     // Note that we still needed the logic above to reset the origin time.
     if (event.getIsLocationRestarted()) {
       stepper.setEnviron();
-      phaseID.doID(0.1d, 1d, true, true);
+      phaseID.phaseID(0.1d, 1d, true, true);
       event.computeStationStats();
       return;
     }

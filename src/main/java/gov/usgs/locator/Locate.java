@@ -33,10 +33,10 @@ public class Locate {
   private TTSessionLocal ttLocalSession;
   
   /** 
-   * A InitialID object used to perform initial phase identification before any 
+   * A InitialPhaseID object used to perform initial phase identification before any 
    * location iterations.
    */
-  private InitialID initialPhaseID;
+  private InitialPhaseID initialPhaseID;
 
   /** 
    * A PhaseID object containing Phase identification logic used in performing 
@@ -73,7 +73,7 @@ public class Locate {
     this.ttLocalSession = ttLocalSession;
     phaseID = new PhaseID(event, ttLocalSession);
     stepper = new Stepper(event, phaseID, auxLoc);
-    initialPhaseID = new InitialID(event, ttLocalSession, phaseID, stepper);
+    initialPhaseID = new InitialPhaseID(event, ttLocalSession, phaseID, stepper);
     close = new CloseOut(event);
     LocUtil.useDecorrelation = false;
   }
