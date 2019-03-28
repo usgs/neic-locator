@@ -696,15 +696,15 @@ public class Event {
       // for each pick in the group
       for (int j = 0; j < group.picks.size(); j++) {
         gov.usgs.locator.Pick pick = group.picks.get(j);
-        StationID staID = pick.station.staID;
+        StationID staID = pick.getStation().staID;
 
-        out.addPick(pick.source, pick.authType, pick.dbID, staID.staCode, 
-            pick.chaCode, staID.netCode, staID.locCode, 
-            pick.station.latitude, pick.station.longitude, 
-            pick.station.elevation, LocUtil.toJavaTime(pick.arrivalTime), 
+        out.addPick(pick.getSourceID(), pick.authType, pick.getPickID(), staID.staCode, 
+            pick.getChannelCode(), staID.netCode, staID.locCode, 
+            pick.getStation().latitude, pick.getStation().longitude, 
+            pick.getStation().elevation, LocUtil.toJavaTime(pick.getArrivalTime()), 
             pick.phCode, pick.obsCode, pick.residual, group.delta, 
             group.azimuth, pick.weight, pick.importance, pick.used, 
-            pick.affinity, pick.quality);
+            pick.affinity, pick.getQuality());
       }
     }
 
@@ -771,13 +771,13 @@ public class Event {
 
     for (int j = 0; j < pickList.size(); j++) {
       gov.usgs.locator.Pick pick = pickList.get(j);
-      if (!pick.station.staID.staID.equals(lastSta)) {
+      if (!pick.getStation().staID.staID.equals(lastSta)) {
         // Remember this station.
-        lastSta = pick.station.staID.staID;
-        stationList.put(pick.station.staID, pick.station);
+        lastSta = pick.getStation().staID.staID;
+        stationList.put(pick.getStation().staID, pick.getStation());
 
         // Initialize the pick group.
-        group = new PickGroup(pick.station, pick);
+        group = new PickGroup(pick.getStation(), pick);
         pickGroupList.add(group);
       } else {
         group.add(pick);

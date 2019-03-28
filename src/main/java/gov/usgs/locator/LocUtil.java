@@ -525,8 +525,8 @@ public class LocUtil {
     }
     
     // Otherwise, we have to compute it.
-    Station sta1 = pick1.station;
-    Station sta2 = pick2.station;
+    Station sta1 = pick1.getStation();
+    Station sta2 = pick2.getStation();
 
     // South Pole.
     double delta;

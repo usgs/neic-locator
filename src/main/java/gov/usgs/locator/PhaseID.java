@@ -250,7 +250,7 @@ public class PhaseID {
           
           if (LocUtil.deBugLevel > 1) { 
             System.out.format("NoReID: got it %-5s %-8s %6.2f %2d\n", 
-                pick.station.staID.staCode, phCode, minResidual, ttIndex);
+                pick.getStation().staID.staCode, phCode, minResidual, ttIndex);
           }
         } else {
           // If the easy way doesn't work, we have to try harder.
@@ -279,14 +279,14 @@ public class PhaseID {
             
             if (LocUtil.deBugLevel > 1) {
               System.out.format("NoReID: group %-5s %-8s -> %-8s %6.2f %2d\n", 
-                  pick.station.staID.staCode, phCode, 
+                  pick.getStation().staID.staCode, phCode, 
                   currentTTList.get(ttIndex).getPhCode(), minResidual, ttIndex);
             }
           } else {
             if (pick.used) {
               if (LocUtil.deBugLevel > 1) {
                 System.out.println("NoReID: give up " 
-                    + pick.station.staID.staCode);
+                    + pick.getStation().staID.staCode);
               }
 
               currentGroup.initFoM(j, j);

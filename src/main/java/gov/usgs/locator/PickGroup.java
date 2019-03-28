@@ -172,11 +172,11 @@ public class PickGroup {
 		for(int j=0; j<picks.size(); j++) {
 			pick = picks.get(j);
 			System.out.format("%10s %-5s %3s %2s %2s %8.4f %9.4f %5.2f "+
-					"%3.1f %-8s %12s %5b %-13s %-8s %3.1f\n", pick.dbID, 
-					station.staID.staCode, pick.chaCode, station.staID.netCode, 
+					"%3.1f %-8s %12s %5b %-13s %-8s %3.1f\n", pick.getPickID(), 
+					station.staID.staCode, pick.getChannelCode(), station.staID.netCode, 
 					station.staID.locCode, station.latitude, station.longitude, 
-					station.elevation, pick.quality, pick.phCode, 
-					LocUtil.getTimeString(pick.arrivalTime), pick.cmndUse, 
+					station.elevation, pick.getQuality(), pick.phCode, 
+					LocUtil.getTimeString(pick.getArrivalTime()), pick.cmndUse, 
 					pick.authType, pick.obsCode, pick.affinity);
 		}
 	}
@@ -210,8 +210,8 @@ public class PickGroup {
 		for(int j=0; j<picks.size(); j++) {
 			pick = picks.get(j);
 			System.out.format("%10s %-5s %-3s %-2s %-2s %-8s%6.1f %5.1f "+
-					"%3.0f %1s %4.2f %6.4f\n", pick.dbID, station.staID.staCode, 
-					pick.chaCode, station.staID.netCode, station.staID.locCode, 
+					"%3.0f %1s %4.2f %6.4f\n", pick.getPickID(), station.staID.staCode, 
+					pick.getChannelCode(), station.staID.netCode, station.staID.locCode, 
 					pick.phCode, pick.residual, delta, azimuth, 
 					LocUtil.getBoolChar(pick.used), pick.weight, pick.importance);
 		}
@@ -232,15 +232,15 @@ public class PickGroup {
 				case CONTRIB_HUMAN: case LOCAL_HUMAN:
 					System.out.format("%-2s %-5s %-3s %-2s  %5.1f     %3.0f   %-8s %12s "+
 							" manual    %6.1f    %4.2f\n", station.staID.netCode, 
-							station.staID.staCode, pick.chaCode, locCode, 
-							delta, azimuth, pick.phCode, LocUtil.getNEICTimeString(pick.arrivalTime), 
+							station.staID.staCode, pick.getChannelCode(), locCode, 
+							delta, azimuth, pick.phCode, LocUtil.getNEICTimeString(pick.getArrivalTime()), 
 							pick.residual, pick.weight);
 					break;
 				default:
 					System.out.format("%-2s %-5s %-3s %-2s  %5.1f     %3.0f   %-8s %12s  "+
 							"automatic %6.1f    %4.2f\n", station.staID.netCode, 
-							station.staID.staCode, pick.chaCode, locCode, 
-							delta, azimuth, pick.phCode, LocUtil.getNEICTimeString(pick.arrivalTime), 
+							station.staID.staCode, pick.getChannelCode(), locCode, 
+							delta, azimuth, pick.phCode, LocUtil.getNEICTimeString(pick.getArrivalTime()), 
 							pick.residual, pick.weight);
 					break;
 			}

@@ -193,7 +193,7 @@ public class InitialPhaseID {
 
               if (LocUtil.deBugLevel > 1) {
                 System.out.format("InitialPhaseID push: %-5s %-8s %5.2f %7.4f %5.2f" 
-                    + "%5.2f\n", pick.station.staID.staCode, pick.phCode, 
+                    + "%5.2f\n", pick.getStation().staID.staCode, pick.phCode, 
                     pick.residual, pick.weight, travelTime.getTT(), 
                     travelTime.getSpread());
               }

@@ -6,20 +6,43 @@ import gov.usgs.traveltime.TTimeData;
 import gov.usgs.traveltime.TauUtil;
 
 /**
- * Keep all the data for one pick together.
+ * The Pick class stores the data making up one pick.
  * 
  * @author Ray Buland
  *
  */
 public class Pick implements Comparable<Pick> {
-	// Hydra specific:
-	String dbID;							// Hydra aid to database update
-	// Inputs:
-	String source;				// Requester ID
-	Station station;			// Station
-	String chaCode;				// Channel code
-	double arrivalTime;		// Arrival time in seconds since the epoch
-	double quality;				// Pick quality (standard error) in seconds
+	/**
+	 * A String containing the pick ID.
+	 */
+	private String pickID;
+
+	/**
+	 * A String containing the ID of the source.
+	 */
+	private String sourceID;
+
+	/**
+	 * A Station object containing station the pick was generated at.
+	 */
+	private Station station;
+
+	/**
+	 * A String containing the code for the channel the pick was made on
+	 */
+	private String channelCode;	
+
+	/**
+	 * A double containing the pick arrival time in decimal seconds since the 
+	 * epoch
+	 */
+	private double arrivalTime;
+
+	/**
+	 * A double containing the pick quality (standard error) in seconds.
+	 */
+	private double quality;			
+
 	boolean cmndUse;			// If true, the phase may be used (analyst command)
 	String obsCode;				// Original phase identification
 	AuthorType authType;	// Author type for the original phase identification
@@ -46,25 +69,80 @@ public class Pick implements Comparable<Pick> {
 	// A reusable weighted residual object:
 	Wresidual wRes;
 	
+  /**
+   * Function to return the pick identifier.
+   * 
+   * @return A String containing the pick identifier
+   */
+  public String getPickID() {
+    return pickID;
+  }	
+
+  /**
+   * Function to return the pick source identifier.
+   * 
+   * @return A String containing the pick source identifier
+   */
+  public String getSourceID() {
+    return sourceID;
+  }	
+
+	/**
+   * Function to return the pick station.
+   * 
+   * @return A Station containing the pick station
+   */
+  public Station getStation() {
+    return station;
+  }	
+
+	/**
+   * Function to return the pick channel code.
+   * 
+   * @return A String containing the pick channel code
+   */
+  public String getChannelCode() {
+    return channelCode;
+  }	
+
+	/**
+   * Function to get the pick arrival time
+   * 
+   * @return A double containing the pick arrival time in decimal seconds since
+	 * 				 the epoch.
+   */
+  public double getArrivalTime() {
+    return arrivalTime;
+  }	
+
+	/**
+   * Function to get the pick quality
+   * 
+   * @return A double containing the pick quality
+   */
+  public double getQuality() {
+    return quality;
+  }	
+
 	/**
 	 * Create the pick with just enough information to be useful.
 	 * 
 	 * @param station Station information
-	 * @param chaCode Channel code
+	 * @param channelCode Channel code
 	 * @param arrivalTime Arrival time in seconds since the epoch
 	 * @param cmndUse If true, an analyst wants the pick to be used
 	 * @param phCode Current locator or associator phase code
 	 */
-	public Pick(Station station, String chaCode, double arrivalTime, 
+	public Pick(Station station, String channelCode, double arrivalTime, 
 			boolean cmndUse, String phCode) {
 		// Remember the inputs.
 		this.station = station;
-		this.chaCode = chaCode;
+		this.channelCode = channelCode;
 		this.arrivalTime = arrivalTime;
 		this.cmndUse = cmndUse;
 		this.phCode = phCode;
 		// Set defaults.
-		dbID = "0";
+		pickID = "0";
 		quality = 0d;
 		obsCode = null;
 		authType = null;
@@ -87,18 +165,18 @@ public class Pick implements Comparable<Pick> {
 	/**
 	 * Additional information to help in phase association or location.
 	 * 
-	 * @param source User created string identifying the server user
-	 * @param dbID Data base ID (convenience for Hydra)
+	 * @param sourceID User created string identifying the server user
+	 * @param pickID Data base ID (convenience for Hydra)
 	 * @param quality Pick uncertainty in seconds (not currently used)
 	 * @param obsCode Original pick identification (associator or analyst)
 	 * @param authType Type (e.g., human or auto) of the original phase 
 	 * identification
 	 * @param affinity Higher numbers make it harder to re-identify the phase
 	 */
-	public void addIdAids(String source, String dbID, double quality, 
+	public void addIdAids(String sourceID, String pickID, double quality, 
 			String obsCode, AuthorType authType, double affinity) {
-		this.source = source;
-		this.dbID = dbID;
+		this.sourceID = sourceID;
+		this.pickID = pickID;
 		this.quality = quality;
 		this.obsCode = obsCode;
 		this.authType = authType;
