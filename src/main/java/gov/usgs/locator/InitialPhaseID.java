@@ -111,20 +111,20 @@ public class InitialPhaseID {
     for (int j = 0; j < event.getNumStations(); j++) {
       PickGroup group = event.getPickGroupList().get(j);
       
-      if (group.picksUsed() > 0) {
+      if (group.getNumPicksUsed() > 0) {
         // For the first pick in the group, get the travel times.
-        Station station = group.station;
+        Station station = group.getStation();
         if (LocUtil.deBugLevel > 1) {
           System.out.println("InitialPhaseID: " + station + ":");
         }
 
         // Do the travel-time calculation.
         TTime ttList = ttList = ttLocalSession.getTT(station.latitude, 
-            station.longitude, station.elevation, group.delta, group.azimuth);
+            station.longitude, station.elevation, group.getDistance(), group.getAzimuth());
     
         
         // Print them.
-        // ttList.print(event.hypo.depth, group.delta);
+        // ttList.print(event.hypo.depth, group.getDistance());
         TTimeData travelTime = ttList.get(0);
         
         // Based on a tentative ID, just compute residuals and weights so 
@@ -133,8 +133,8 @@ public class InitialPhaseID {
         // not work correctly.  Note that only some of the first arrivals 
         // that are being used are considered and that the tentative ID is 
         // not remembered.
-        if (group.delta <= 100d) {
-          Pick pick = group.picks.get(0);
+        if (group.getDistance() <= 100d) {
+          Pick pick = group.getPicks().get(0);
           boolean found;
 
           if (pick.getIsUsed()) {
@@ -251,8 +251,8 @@ public class InitialPhaseID {
     for (int j = 0; j < event.getNumStations(); j++) {
       PickGroup group = event.getPickGroupList().get(j);
       
-      if (group.picksUsed() > 0) {
-        Pick pick = group.picks.get(0);
+      if (group.getNumPicksUsed() > 0) {
+        Pick pick = group.getPicks().get(0);
         
         // If the first arrival is automatic and not a crust or mantle P, don't 
         // use it.
@@ -265,21 +265,21 @@ public class InitialPhaseID {
             
             if (LocUtil.deBugLevel > 1) {
               System.out.format("\tIdEasy: don't use %-5s %-8s\n", 
-                  group.station.staID.staCode, pick.getCurrentPhaseCode());
+                  group.getStation().staID.staCode, pick.getCurrentPhaseCode());
             }
           }
         }
         
         // Don't use any secondary automatic phases.
-        for (int i = 1; i < group.noPicks(); i++) {
-          pick = group.picks.get(i);
+        for (int i = 1; i < group.getNumPicks(); i++) {
+          pick = group.getPicks().get(i);
           
           if (pick.getIsAutomatic() && pick.getIsUsed()) {
             pick.setIsUsed(false);
             
             if (LocUtil.deBugLevel > 1) {
               System.out.format("\tIdEasy: don't use %-5s %-8s\n", 
-                  group.station.staID.staCode, pick.getCurrentPhaseCode());
+                  group.getStation().staID.staCode, pick.getCurrentPhaseCode());
             }
           }
         }
@@ -299,21 +299,21 @@ public class InitialPhaseID {
     for (int j = 0; j < event.getNumStations(); j++) {
       PickGroup group = event.getPickGroupList().get(j);
       
-      if (group.picksUsed() > 0) {
-        Pick pick = group.picks.get(0);
+      if (group.getNumPicksUsed() > 0) {
+        Pick pick = group.getPicks().get(0);
         
         // If the first arrival is automatic and might be a misidentified first 
         // arrival, force it to be the first theoretical arrival.
         if (pick.getIsAutomatic() && pick.getIsUsed()) {
           String phCode = pick.getCurrentPhaseCode();
           
-          if (group.delta <= 100d && !phCode.substring(0,1).equals("PK") 
+          if (group.getDistance() <= 100d && !phCode.substring(0,1).equals("PK") 
               && !phCode.substring(0,1).equals("P'") 
               && !phCode.substring(0,1).equals("Sc") 
               && !phCode.equals("Sg") && !phCode.equals("Sb") 
               && !phCode.equals("Sn") && !phCode.equals("Lg")) {
             // For the first pick in the group, get the travel times.
-            station = group.station;
+            station = group.getStation();
             
             if (LocUtil.deBugLevel > 1) {
               System.out.println("" + station + ":");
@@ -321,17 +321,17 @@ public class InitialPhaseID {
 
             // Do the travel-time calculation.
             TTime ttList = ttLocalSession.getTT(station.latitude, 
-              station.longitude, station.elevation, group.delta, group.azimuth);
+              station.longitude, station.elevation, group.getDistance(), group.getAzimuth());
             
             // Print them.
-            // ttList.print(event.hypo.depth, group.delta);
+            // ttList.print(event.hypo.depth, group.getDistance());
             
             // Set the phase code.  The travel time was already set in phaseID.
             pick.updatePhaseIdentification(ttList.get(0).getPhCode());
             
             if (LocUtil.deBugLevel > 1) {
               System.out.format("\tIdHard: %-5s %-8s -> %-8s auto\n", 
-                  group.station.staID.staCode, phCode, 
+                  group.getStation().staID.staCode, phCode, 
                   ttList.get(0).getPhCode());
             }
           } else {
@@ -341,21 +341,21 @@ public class InitialPhaseID {
             
             if (LocUtil.deBugLevel > 1) { 
               System.out.format("\tIdHard: don't use %-5s %-8s\n", 
-                  group.station.staID.staCode, pick.getCurrentPhaseCode());
+                  group.getStation().staID.staCode, pick.getCurrentPhaseCode());
             }
           }
         }
         
         // Don't use any secondary automatic phases.
-        for (int i = 1; i < group.noPicks(); i++) {
-          pick = group.picks.get(i);
+        for (int i = 1; i < group.getNumPicks(); i++) {
+          pick = group.getPicks().get(i);
           
           if (pick.getIsAutomatic() && pick.getIsUsed()) {
             pick.setIsUsed(false);
             
             if (LocUtil.deBugLevel > 1) {
               System.out.format("\tIdHard: don't use %-5s %-8s\n", 
-                  group.station.staID.staCode, pick.getCurrentPhaseCode());
+                  group.getStation().staID.staCode, pick.getCurrentPhaseCode());
             }
           }
         }
@@ -374,8 +374,8 @@ public class InitialPhaseID {
     for (int j = 0; j < event.getNumStations(); j++) {
       PickGroup group = event.getPickGroupList().get(j);
 
-      for (int i = 0; i < group.noPicks(); i++) {
-        Pick pick = group.picks.get(i);
+      for (int i = 0; i < group.getNumPicks(); i++) {
+        Pick pick = group.getPicks().get(i);
         if (!pick.getIsUsed()) {
           pick.setIsUsed(pick.getExternalUse());
         }
@@ -394,16 +394,16 @@ public class InitialPhaseID {
     for (int j = 0; j < event.getNumStations(); j++) {
       PickGroup group = event.getPickGroupList().get(j);
       
-      if (group.picksUsed() > 0) {
-        Station station = group.station;
+      if (group.getNumPicksUsed() > 0) {
+        Station station = group.getStation();
         
-        for (int i = 0; i < group.noPicks(); i++) {
-          Pick pick = group.picks.get(i);
+        for (int i = 0; i < group.getNumPicks(); i++) {
+          Pick pick = group.getPicks().get(i);
 
           if (pick.getIsUsed()) {
             System.out.format("%-5s %-8s %6.1f %6.1f %3.0f %5.2f\n", 
-                station.staID.staCode, pick.getCurrentPhaseCode(), pick.getResidual(), group.delta, 
-                group.azimuth, pick.getWeight());
+                station.staID.staCode, pick.getCurrentPhaseCode(), pick.getResidual(), group.getDistance(), 
+                group.getAzimuth(), pick.getWeight());
           }
         }
       }

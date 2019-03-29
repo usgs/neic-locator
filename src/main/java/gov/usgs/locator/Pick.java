@@ -131,7 +131,6 @@ public class Pick implements Comparable<Pick> {
    */
   private boolean forceAssociation;
 
-  
   /**
    * A TTimeData object holding the theoretical arrival with the minimum 
    * alternateFoM used in phase identification.

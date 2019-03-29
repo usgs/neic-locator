@@ -164,17 +164,17 @@ public class PhaseID {
     // Do the travel-time calculation for each pick group
     for (int j = 0; j < event.getNumStations(); j++) {
       currentGroup = event.getPickGroupList().get(j);
-      Station station = currentGroup.station;
+      Station station = currentGroup.getStation();
       
       if (LocUtil.deBugLevel > 1) {
         System.out.format("PhaseID: %-5s %6.2f %6.2f %6.2f\n", 
-            station.staID.staCode, currentGroup.picks.get(0).getTravelTime(), 
-            currentGroup.delta, currentGroup.azimuth);
+            station.staID.staCode, currentGroup.getPicks().get(0).getTravelTime(), 
+            currentGroup.getDistance(), currentGroup.getAzimuth());
       }
       
       // For the first pick in the group, get the travel times.
       currentTTList = ttLocalSession.getTT(station.latitude, station.longitude,
-          station.elevation, currentGroup.delta, currentGroup.azimuth);
+          station.elevation, currentGroup.getDistance(), currentGroup.getAzimuth());
       
       // Print them.
       // if (station.staID.staCode.equals("TX11")) {
@@ -220,7 +220,7 @@ public class PhaseID {
   private void noReidentification() {
     // NOTE this depends on the current group being set by phaseID
     // Loop over picks in the group.
-    for (int j = 0; j < currentGroup.noPicks(); j++) {
+    for (int j = 0; j < currentGroup.getNumPicks(); j++) {
       Pick pick = currentGroup.getPick(j);
       String phCode = pick.getCurrentPhaseCode();
 
@@ -307,10 +307,10 @@ public class PhaseID {
    */
   private void reidentifyPhases() {
     // Initialize the figure-of-merit memory.
-    currentGroup.initializeFoM(0, currentGroup.picks.size());
+    currentGroup.initializeFoM(0, currentGroup.getNumPicks());
     
     // Pre-identify surface waves identified by trusted sources.
-    for (int j = 0; j < currentGroup.noPicks(); j++) {
+    for (int j = 0; j < currentGroup.getNumPicks(); j++) {
       Pick pick = currentGroup.getPick(j);
 
       if (pick.getIsSurfaceWave()) {
@@ -351,7 +351,7 @@ public class PhaseID {
       } else {
         // This theoretical cluster is done, now associate picks within 
         // the current pick group.
-        for (; i < currentGroup.noPicks(); i++) {
+        for (; i < currentGroup.getNumPicks(); i++) {
           Pick pick = currentGroup.getPick(i);
 
           if (pick.getTravelTime() <= maxTTWindow) {
@@ -376,14 +376,14 @@ public class PhaseID {
           }
 
           // Initialize the cumulative figure-of-merit.
-          currentGroup.fomMax = 0d;
+          currentGroup.setCumulativeFoM(0d);
           
           // Do the identification.
           genPhasePermutations(firstPhaseIndex, numPicks, firstTTIndex, numTT);
         }
 
         // Quit if we're out of picks.
-        if (i >= currentGroup.picks.size()) {
+        if (i >= currentGroup.getNumPicks()) {
           break;
         }
 
@@ -398,7 +398,7 @@ public class PhaseID {
     }
 
     // Apply the distance correction to the first arriving phase.
-    double distanceCorrection = LocUtil.computeDistCorr(currentGroup.delta);
+    double distanceCorrection = LocUtil.computeDistCorr(currentGroup.getDistance());
     if (distanceCorrection > 1d) {
       if (currentGroup.getPick(0).getTTStatisticalMinFoM() != null) {
         currentGroup.getPick(0).setStatisticalFoM(
@@ -425,7 +425,7 @@ public class PhaseID {
    * of possible null pointers.
    */
   private void printAssoc() {
-    for (int j = 0; j < currentGroup.noPicks(); j++) {
+    for (int j = 0; j < currentGroup.getNumPicks(); j++) {
       Pick pick = currentGroup.getPick(j);
       
       if (pick.getTTStatisticalMinFoM() != null) {
@@ -454,7 +454,7 @@ public class PhaseID {
    * Bayesian approach will eliminate the alternate phase identification.
    */
   private void fomMerge() {
-    for (int j = 0; j < currentGroup.noPicks(); j++) {
+    for (int j = 0; j < currentGroup.getNumPicks(); j++) {
       Pick pick = currentGroup.getPick(j);
       
       // The identification will be done using the statistical variables.  
@@ -530,11 +530,11 @@ public class PhaseID {
     
     // We're not quite done.  Now we need to eliminate duplicate 
     // identifications.
-    for (int j = 0; j < currentGroup.noPicks() - 1; j++) {
+    for (int j = 0; j < currentGroup.getNumPicks() - 1; j++) {
       Pick pick = currentGroup.getPick(j);
       
       if (pick.getTTStatisticalMinFoM() != null) {
-        for (int i = j + 1; i < currentGroup.noPicks(); i++) {
+        for (int i = j + 1; i < currentGroup.getNumPicks(); i++) {
           Pick pick2 = currentGroup.getPick(i);
           
           if (pick.getTTStatisticalMinFoM() == pick2.getTTStatisticalMinFoM()) {
@@ -559,7 +559,7 @@ public class PhaseID {
     // theoretical phases are at odds.  If we leave it, it can cause problems, 
     // so, just delete one of the identifications.
     Pick pick2 = currentGroup.getPick(0);
-    for (int j = 1; j < currentGroup.noPicks(); j++) {
+    for (int j = 1; j < currentGroup.getNumPicks(); j++) {
       Pick pick = pick2;
       pick2 = currentGroup.getPick(j);
       
@@ -606,7 +606,7 @@ public class PhaseID {
     // Set up some pointer arrays to work with internally.
     Pick[] obsPicks = new Pick[numPicks];
     for (int j = 0, i = firstPhaseIndex; j < numPicks; j++, i++) {
-      obsPicks[j] = currentGroup.picks.get(i);
+      obsPicks[j] = currentGroup.getPicks().get(i);
     }
 
     TTimeData[] ttArrivals = new TTimeData[numTT];
@@ -702,7 +702,7 @@ public class PhaseID {
    */
   private void computeCombinedFoM(Pick[] obsPicks, TTimeData[] ttArrivals) {
     // Make a pass computing the cumulative statistical figure-of-merit.
-    double cumFoM = 1d;
+    double cumulativeFoM = 1d;
     for (int j = 0; j < ttArrivals.length; j++) {
       if (!obsPicks[j].getIsSurfaceWave()) {
         // Compute the figure-of-merit for the primary criteria.
@@ -716,7 +716,7 @@ public class PhaseID {
               ttArrivals[j].getPhCode(), probability, observabilityAmp);
         }
 
-        cumFoM *= observabilityAmp * probability;
+        cumulativeFoM *= observabilityAmp * probability;
         
         // Set up the alternative criteria at the same time.  Note, the 
         // Fortran version omitted the affinity in this test.
@@ -736,13 +736,13 @@ public class PhaseID {
     }
     
     if (LocUtil.deBugLevel > 2) {
-      System.out.format("\tCum: %10.4e %10.4e\n", cumFoM, currentGroup.fomMax);
+      System.out.format("\tCum: %10.4e %10.4e\n", cumulativeFoM, currentGroup.getCumulativeFoM());
     }
 
     // Make a second pass if this is the highest figure-of-merit yet.  Note, 
     // the Fortran version has greater than or equal to.
-    if (cumFoM > currentGroup.fomMax) {
-      currentGroup.fomMax = cumFoM;
+    if (cumulativeFoM > currentGroup.getCumulativeFoM()) {
+      currentGroup.setCumulativeFoM(cumulativeFoM);
       
       for (int j = 0; j < ttArrivals.length; j++) {
         if (!obsPicks[j].getIsSurfaceWave()) {

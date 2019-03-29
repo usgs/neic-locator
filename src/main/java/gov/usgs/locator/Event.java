@@ -687,15 +687,15 @@ public class Event {
         bayesianDepthDataImportance, errorEllipse, locatorExitCode);
     
     // Sort the pick groups (stations) by distance.
-    pickGroupList.sort(new GroupComp());
+    pickGroupList.sort(new PickGroupComp());
 
     // Pack up the picks.
     for (int i = 0; i < pickGroupList.size(); i++) {
       PickGroup group = pickGroupList.get(i);
 
       // for each pick in the group
-      for (int j = 0; j < group.picks.size(); j++) {
-        gov.usgs.locator.Pick pick = group.picks.get(j);
+      for (int j = 0; j < group.getNumPicks(); j++) {
+        gov.usgs.locator.Pick pick = group.getPicks().get(j);
         StationID staID = pick.getStation().staID;
 
         out.addPick(pick.getSourceID(), pick.getOriginalAuthorType(), pick.getPickID(), 
@@ -704,7 +704,7 @@ public class Event {
             pick.getStation().latitude, pick.getStation().longitude, 
             pick.getStation().elevation, LocUtil.toJavaTime(pick.getArrivalTime()), 
             pick.getCurrentPhaseCode(), pick.getOriginalPhaseCode(), 
-            pick.getResidual(), group.delta, group.azimuth, pick.getWeight(), pick.getImportance(), pick.getIsUsed(), 
+            pick.getResidual(), group.getDistance(), group.getAzimuth(), pick.getWeight(), pick.getImportance(), pick.getIsUsed(), 
             pick.getOriginalPhaseAffinity(), pick.getQuality());
       }
     }
@@ -781,7 +781,7 @@ public class Event {
         group = new PickGroup(pick.getStation(), pick);
         pickGroupList.add(group);
       } else {
-        group.add(pick);
+        group.addPick(pick);
       }
     }
     
@@ -801,7 +801,7 @@ public class Event {
 
     // Do the initial delta-azimuth calculation.
     for (int j = 0; j < pickGroupList.size(); j++) {
-      pickGroupList.get(j).updateEvent(hypo);
+      pickGroupList.get(j).updateHypoAndTime(hypo);
     }
   }
   
@@ -822,8 +822,7 @@ public class Event {
 
     // Update the picks.
     for (int j = 0; j < pickGroupList.size(); j++) {
-      pickGroupList.get(j).updateHypo(hypo);
-      pickGroupList.get(j).updateOrigin(hypo);
+      pickGroupList.get(j).updateHypoAndTime(hypo);
     }
   }
   
@@ -841,8 +840,7 @@ public class Event {
 
     // Update the picks.
     for (int j = 0; j < pickGroupList.size(); j++) {
-      pickGroupList.get(j).updateHypo(hypo);
-      pickGroupList.get(j).updateOrigin(hypo);
+      pickGroupList.get(j).updateHypoAndTime(hypo);
     }
   }
   
@@ -859,7 +857,7 @@ public class Event {
     // Update the picks.
     // Note that we don't need to recompute the distance and azimuth.
     for (int j = 0; j < pickGroupList.size(); j++) {
-      pickGroupList.get(j).updateOrigin(hypo);
+      pickGroupList.get(j).updateTime(hypo);
     }
   }
   
@@ -918,17 +916,17 @@ public class Event {
 
     for (int j = 0; j < pickGroupList.size(); j++) {
       PickGroup group = pickGroupList.get(j);
-      numPhasesAssociated += group.picks.size();
-      int picksUsedGrp = group.picksUsed();
+      numPhasesAssociated += group.getNumPicks();
+      int picksUsedGrp = group.getNumPicksUsed();
       numPhasesUsed += picksUsedGrp;
 
-      if (group.delta <= LocUtil.GT5LOCALDISTMAX) {
+      if (group.getDistance() <= LocUtil.GT5LOCALDISTMAX) {
         numLocalPhasesUsed += picksUsedGrp;
       }
 
       if (picksUsedGrp > 0) {
         numStationsUsed++;
-        minStationDistance = Math.min(minStationDistance, group.delta);
+        minStationDistance = Math.min(minStationDistance, group.getDistance());
       }
     }
   }
@@ -949,8 +947,8 @@ public class Event {
     double[] azimuths = new double[numStationsUsed];
     int i = 0;
     for (int j = 0; j < pickGroupList.size(); j++) {
-      if (pickGroupList.get(j).picksUsed() > 0) {
-        azimuths[i++] = pickGroupList.get(j).azimuth;
+      if (pickGroupList.get(j).getNumPicksUsed() > 0) {
+        azimuths[i++] = pickGroupList.get(j).getAzimuth();
       }
     }
     Arrays.sort(azimuths);
@@ -1148,7 +1146,7 @@ public class Event {
       case BAD_DEPTH:
         locatorExitCode = LocStatus.LOCATION_FAILED;
         break;
-        
+
       default:
         locatorExitCode = LocStatus.UNKNOWN_STATUS;
         break;
@@ -1180,11 +1178,11 @@ public class Event {
    * @param first A boolean flag, if true only print the first arrival in each  
    *        pick group
    */
-  public void printArrivals(boolean first) {
+  public void printPicks(boolean first) {
     System.out.println();
 
     for (int j = 0; j < pickGroupList.size(); j++) {
-      pickGroupList.get(j).printArrivals(first);
+      pickGroupList.get(j).printPicks(first);
     }
   }
   
@@ -1243,7 +1241,7 @@ public class Event {
     System.out.println();
 
     for (int j = 0; j < pickGroupList.size(); j++) {
-      pickGroupList.get(j).printIn();
+      pickGroupList.get(j).printInputPicks();
     }
   }
   
@@ -1267,7 +1265,7 @@ public class Event {
         errorEllipse[1], errorEllipse[2], azimuthalGapLEst);
 
     for (int j = 0; j < pickGroupList.size(); j++) {
-      pickGroupList.get(j).printHydra();
+      pickGroupList.get(j).printOutputPicks();
     }
   }
   
@@ -1292,7 +1290,7 @@ public class Event {
         + "   Arrival Time Status    Residual Weight");
 
     // Sort the pick groups by distance.
-    pickGroupList.sort(new GroupComp());
+    pickGroupList.sort(new PickGroupComp());
 
     // Print the picks.
     for (int j = 0; j < pickGroupList.size(); j++) {
