@@ -3,14 +3,16 @@ package gov.usgs.locator;
 import java.util.ArrayList;
 
 /**
- * Rank-sum estimator implementation for the NEIC Locator.
+ * The RankSumEstimator class is the Rank-sum estimator implementation for the
+ * NEIC Locator.
  * 
  * @author Ray Buland
  *
  */
 public class RankSumEstimator {
 	int nLast = -1, length = -1, half = -1;
-	double median = 0d, estMedian = 0d;
+	private double residualsMedian;
+	private double linearEstimatesMedian;
 	double[] scores;
 	ArrayList<Wresidual> wResiduals;
 	
@@ -20,6 +22,8 @@ public class RankSumEstimator {
 	 * @param wResiduals residual storage
 	 */
 	public RankSumEstimator(ArrayList<Wresidual> wResiduals) {
+		residualsMedian = 0d;
+		linearEstimatesMedian = 0d;
 		this.wResiduals = wResiduals;
 	}
 	
@@ -49,13 +53,13 @@ public class RankSumEstimator {
 		length = wResiduals.size()-1;
 		half = length/2;
 		if(length%2 == 0) {
-			median = 0.5d*(wResiduals.get(half-1).residual+
+			residualsMedian = 0.5d*(wResiduals.get(half-1).residual+
 					wResiduals.get(half).residual);
-			return median;
+			return residualsMedian;
 		}
 		else {
-			median = wResiduals.get(half).residual;
-			return median;
+			residualsMedian = wResiduals.get(half).residual;
+			return residualsMedian;
 		}
 	}
 	
@@ -72,7 +76,7 @@ public class RankSumEstimator {
 		
 		// Set up for the spread.
 		for(int j=0; j<wResiduals.size(); j++) {
-			wResiduals.get(j).sortSpread(median);
+			wResiduals.get(j).sortSpread(residualsMedian);
 		}
 		wResiduals.sort(null);
 		
@@ -94,11 +98,11 @@ public class RankSumEstimator {
 	 */
 	public void deMedianRes() {
 		for(int j=0; j<wResiduals.size(); j++) {
-			wResiduals.get(j).deMedianRes(median);
+			wResiduals.get(j).deMedianRes(residualsMedian);
 		}
 		// Since we've already demedianed, we don't need to do it again 
 		// for the penalty function.
-		median = 0d;
+		residualsMedian = 0d;
 	}
 	
 	/**
@@ -141,7 +145,7 @@ public class RankSumEstimator {
 		
 		// Set up the penalty.
 		for(int j=0; j<wResiduals.size(); j++) {
-				wResiduals.get(j).sortDisp(median);
+				wResiduals.get(j).sortDisp(residualsMedian);
 		}
 		wResiduals.sort(null);
 		// Compute the penalty function.
@@ -228,13 +232,13 @@ public class RankSumEstimator {
 		length = wResiduals.size()-1;
 		half = length/2;
 		if(length%2 == 0) {
-			estMedian = 0.5d*(wResiduals.get(half-1).estResidual+
+			linearEstimatesMedian = 0.5d*(wResiduals.get(half-1).estResidual+
 					wResiduals.get(half).estResidual);
-			return estMedian;
+			return linearEstimatesMedian;
 		}
 		else {
-			estMedian = wResiduals.get(half).estResidual;
-			return estMedian;
+			linearEstimatesMedian = wResiduals.get(half).estResidual;
+			return linearEstimatesMedian;
 		}
 	}
 	
@@ -243,16 +247,16 @@ public class RankSumEstimator {
 	 */
 	public void deMedianEstRes() {
 		for(int j=0; j<wResiduals.size(); j++) {
-			wResiduals.get(j).deMedianEst(estMedian);
+			wResiduals.get(j).deMedianEst(linearEstimatesMedian);
 		}
 		// Since we've already demedianed, we don't need to do it again 
 		// for the penalty function.
-		estMedian = 0d;
+		linearEstimatesMedian = 0d;
 	}
 	
 	/**
 	 * Compute the R-estimator penalty function or dispersion.  Note that 
-	 * the median is remembered from the estMedian method.
+	 * the median is remembered from the linearEstimatesMedian method.
 	 * 
 	 * @return the R-estimator dispersion for the estimated residuals
 	 */
@@ -262,7 +266,7 @@ public class RankSumEstimator {
 		
 		// Set up the penalty.
 		for(int j=0; j<wResiduals.size(); j++) {
-				wResiduals.get(j).sortEstDisp(estMedian);
+				wResiduals.get(j).sortEstDisp(linearEstimatesMedian);
 		}
 		wResiduals.sort(null);
 		// Compute the penalty function.
