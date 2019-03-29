@@ -644,7 +644,7 @@ public class Event {
       }
 
       // source conversion
-      String source = pickIn.getSource().getAgencyID() + "|" 
+      String sourceStr = pickIn.getSource().getAgencyID() + "|" 
           + pickIn.getSource().getAuthor();
 
       // Create the station.
@@ -658,7 +658,7 @@ public class Event {
           pickIn.getSite().getChannel(), 
           LocUtil.toHydraTime(pickIn.getTime().getTime()), 
           pickIn.getUse(), phCode);
-      pick.addIdAids(source, pickIn.getID(), pickIn.getQuality(), 
+      pick.setPhaseIdInfo(sourceStr, pickIn.getID(), pickIn.getQuality(), 
           obsCode, LocUtil.getAuthCodeFromNumericCode(authorType), 
           pickIn.getAffinity());
       pickList.add(pick);
@@ -698,7 +698,7 @@ public class Event {
         gov.usgs.locator.Pick pick = group.picks.get(j);
         StationID staID = pick.getStation().staID;
 
-        out.addPick(pick.getSourceID(), pick.getAuthorType(), pick.getPickID(), 
+        out.addPick(pick.getSourceID(), pick.getOriginalAuthorType(), pick.getPickID(), 
             staID.staCode, 
             pick.getChannelCode(), staID.netCode, staID.locCode, 
             pick.getStation().latitude, pick.getStation().longitude, 
@@ -1138,14 +1138,17 @@ public class Event {
           locatorExitCode = LocStatus.DID_NOT_MOVE;
         }
         break;
+
       case SINGULAR_MATRIX:
       case ELLIPSOID_FAILED:
         locatorExitCode = LocStatus.ERRORS_NOT_COMPUTED;
         break;
+
       case INSUFFICIENT_DATA:
       case BAD_DEPTH:
         locatorExitCode = LocStatus.LOCATION_FAILED;
         break;
+        
       default:
         locatorExitCode = LocStatus.UNKNOWN_STATUS;
         break;

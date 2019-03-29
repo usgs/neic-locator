@@ -327,7 +327,7 @@ public class InitialPhaseID {
             // ttList.print(event.hypo.depth, group.delta);
             
             // Set the phase code.  The travel time was already set in phaseID.
-            pick.updateID(ttList.get(0).getPhCode());
+            pick.updatePhaseIdentification(ttList.get(0).getPhCode());
             
             if (LocUtil.deBugLevel > 1) {
               System.out.format("\tIdHard: %-5s %-8s -> %-8s auto\n", 

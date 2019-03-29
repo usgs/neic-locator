@@ -64,7 +64,7 @@ public class PickGroup {
 		azimuth = LocUtil.azimuth;
 		// Update travel times.
 		for(int j=0; j<picks.size(); j++) {
-			picks.get(j).updateTt(hypo);
+			picks.get(j).updateTravelTime(hypo);
 		}
 	}
 	
@@ -88,7 +88,7 @@ public class PickGroup {
 	 */
 	public void updateOrigin(Hypocenter hypo) {
 		for(int j=0; j<picks.size(); j++) {
-			picks.get(j).updateTt(hypo);
+			picks.get(j).updateTravelTime(hypo);
 		}
 	}
 	
@@ -100,14 +100,14 @@ public class PickGroup {
 	 * @return True if any used pick in the group has changed 
 	 * significantly
 	 */
-	public boolean updateID(boolean reWeight, 
+	public boolean updatePhaseIdentifications(boolean reWeight, 
 			ArrayList<Wresidual> wResiduals) {
 		boolean changed = false;
 		
-		if(picks.get(0).updateID(true, reWeight, azimuth, wResiduals)) 
+		if(picks.get(0).updatePhaseIdentification(true, reWeight, azimuth, wResiduals)) 
 			changed = true;
 		for(int j=1; j<picks.size(); j++) {
-			if(picks.get(j).updateID(false, reWeight, azimuth, wResiduals)) 
+			if(picks.get(j).updatePhaseIdentification(false, reWeight, azimuth, wResiduals)) 
 				changed = true;
 		}
 		return changed;
@@ -122,10 +122,10 @@ public class PickGroup {
 	 * @param pickEnd Index of the last pick in the group to be 
 	 * initialized
 	 */
-	public void initFoM(int pickBeg, int pickEnd) {
+	public void initializeFoM(int pickBeg, int pickEnd) {
 		fomMax = 0d;
 		for(int j=pickBeg; j<pickEnd; j++) {
-			picks.get(j).initFoM();
+			picks.get(j).initializeFoM();
 		}
 	}
 	
@@ -177,7 +177,7 @@ public class PickGroup {
 					station.staID.locCode, station.latitude, station.longitude, 
 					station.elevation, pick.getQuality(), pick.getCurrentPhaseCode(), 
 					LocUtil.getTimeString(pick.getArrivalTime()), pick.getExternalUse(), 
-					pick.getAuthorType(), pick.getOriginalPhaseCode(), 
+					pick.getOriginalAuthorType(), pick.getOriginalPhaseCode(), 
 					pick.getOriginalPhaseAffinity());
 		}
 	}
@@ -229,7 +229,7 @@ public class PickGroup {
     }
 		for(int j=0; j<picks.size(); j++) {
 			pick = picks.get(j);
-			switch(pick.getAuthorType()) {
+			switch(pick.getOriginalAuthorType()) {
 				case CONTRIB_HUMAN: case LOCAL_HUMAN:
 					System.out.format("%-2s %-5s %-3s %-2s  %5.1f     %3.0f   %-8s %12s "+
 							" manual    %6.1f    %4.2f\n", station.staID.netCode, 
