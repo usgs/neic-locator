@@ -162,9 +162,9 @@ public class Event {
   private double equivalentErrorRadius; 
   
   /** 
-   * An array of EllipAxis objects representing the error ellipse.
+   * An array of EllipseAxis objects representing the error ellipse.
    */
-  private EllipAxis[] errorEllipse; 
+  private EllipseAxis[] errorEllipse; 
   
   /** 
    * A double containing the Bayesian depth in kilometers.
@@ -229,15 +229,15 @@ public class Event {
   
 
   /**
-   * A Restimator object used for the rank-sum estimation of the raw picks.
+   * A RankSumEstimator object used for the rank-sum estimation of the raw picks.
    */
-  private Restimator rawRankSumEstimator;
+  private RankSumEstimator rawRankSumEstimator;
 
   /**
-   * A Restimator object used for the rank-sum estimation of the projected
+   * A RankSumEstimator object used for the rank-sum estimation of the projected
    * picks.
    */
-  private Restimator projectedRankSumEstimator;
+  private RankSumEstimator projectedRankSumEstimator;
   
   /**
    * A Decorrelator object used when decorrelating the event picks.
@@ -387,9 +387,9 @@ public class Event {
   /**
    * Function to return the event error ellipse.
    * 
-   * @return An array of EllipAxis objects containing the event error ellipse
+   * @return An array of EllipseAxis objects containing the event error ellipse
    */
-  public EllipAxis[] getErrorEllipse() {
+  public EllipseAxis[] getErrorEllipse() {
     return errorEllipse;
   }
 
@@ -455,18 +455,18 @@ public class Event {
   /**
    * Function to retrieve the event raw rank-sum estimator.
    * 
-   * @return A Restimator object containing the event raw rank-sum estimator
+   * @return A RankSumEstimator object containing the event raw rank-sum estimator
    */
-  public Restimator getRawRankSumEstimator() {
+  public RankSumEstimator getRawRankSumEstimator() {
     return rawRankSumEstimator;
   }
 
   /**
    * Function to retrieve the event projected rank-sum estimator.
    * 
-   * @return A Restimator object containing the event projected rank-sum estimator
+   * @return A RankSumEstimator object containing the event projected rank-sum estimator
    */
-  public Restimator getProjectedRankSumEstimator() {
+  public RankSumEstimator getProjectedRankSumEstimator() {
     return projectedRankSumEstimator;
   }
   
@@ -588,7 +588,7 @@ public class Event {
     pickList = new ArrayList<gov.usgs.locator.Pick>();
     hypoAuditList = new ArrayList<HypoAudit>();
     rawWeightedResiduals = new ArrayList<Wresidual>();
-    rawRankSumEstimator = new Restimator(rawWeightedResiduals);
+    rawRankSumEstimator = new RankSumEstimator(rawWeightedResiduals);
   }
   
   /**
@@ -759,7 +759,7 @@ public class Event {
     // If we're decorrelating, instantiate some more classes.
     if (useDecorrelation) {
       projectedWeightedResiduals = new ArrayList<Wresidual>();
-      projectedRankSumEstimator = new Restimator(projectedWeightedResiduals);
+      projectedRankSumEstimator = new RankSumEstimator(projectedWeightedResiduals);
       decorrelator = new Decorrelator(this);
     }
     
@@ -793,7 +793,7 @@ public class Event {
     bayesianDepthDataImportance = 0d;
 
     // Allocate storage for the error ellipsoid.
-    errorEllipse = new EllipAxis[3];
+    errorEllipse = new EllipseAxis[3];
 
     // Do the initial station/pick statistics.
     computeStationStats();
@@ -1096,7 +1096,7 @@ public class Event {
     equivalentErrorRadius = 0d;
 
     for (int j = 0; j < errorEllipse.length; j++) {
-      errorEllipse[j] = new EllipAxis(0d, 0d, 0d);
+      errorEllipse[j] = new EllipseAxis(0d, 0d, 0d);
     }
 
     if (all) {

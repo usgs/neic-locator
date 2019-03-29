@@ -238,7 +238,7 @@ public class Decorrelator {
 
       // We need to eliminate the most correlated data.  Create a list 
       // to help out.
-      ArrayList<CorrSum> corrSums = new ArrayList<CorrSum>();
+      ArrayList<CorrelationsSum> corrSums = new ArrayList<CorrelationsSum>();
 
       // Populate the list.
       for (int i = 0; i < covMatrix.length; i++) {
@@ -250,7 +250,7 @@ public class Decorrelator {
             sum += covMatrix[i][j];  
           }
         }
-        corrSums.add(new CorrSum(i, sum));
+        corrSums.add(new CorrelationsSum(i, sum));
       }
 
       // Sort on the correlation sums.

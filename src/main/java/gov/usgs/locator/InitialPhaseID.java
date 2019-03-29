@@ -48,10 +48,10 @@ public class InitialPhaseID {
   private ArrayList<Wresidual> weightedResiduals;
   
   /**
-   * A Restimator object used for the rank-sum estimation of the picks to 
+   * A RankSumEstimator object used for the rank-sum estimation of the picks to 
    * refine the initial phase identification.
    */
-  private Restimator rankSumEstimator;
+  private RankSumEstimator rankSumEstimator;
   
   /**
    * A Stepper object used to manage the rank-sum estimation logic needed to 
@@ -69,11 +69,11 @@ public class InitialPhaseID {
    *                        manager
    * @param phaseID A PhaseID object containing the phase identification logic 
    *                 for initial phase identification
-   * @param stepper A Restimator object containing the rank-sum estimation 
+   * @param stepper A RankSumEstimator object containing the rank-sum estimation 
    *                 driver logic
    */
-  public InitialPhaseID(Event event, TTSessionLocal ttLocalSession, PhaseID phaseID, 
-      Stepper stepper) {
+  public InitialPhaseID(Event event, TTSessionLocal ttLocalSession, 
+      PhaseID phaseID, Stepper stepper) {
     this.event = event;
     hypo = event.getHypo();
     this.ttLocalSession = ttLocalSession;

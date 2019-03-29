@@ -1,13 +1,13 @@
 package gov.usgs.locator;
 
 /**
- * The CorrSum class supports the triage algorithm by holding the sum of 
+ * The CorrelationsSum class supports the triage algorithm by holding the sum of 
  * correlations among picks for one pick in a sortable way.
  * 
  * @author Ray Buland
  *
  */
-public class CorrSum implements Comparable<CorrSum> {
+public class CorrelationsSum implements Comparable<CorrelationsSum> {
   /**
    * A int double containing the row index in the covariance matrix.
    */
@@ -25,14 +25,14 @@ public class CorrSum implements Comparable<CorrSum> {
   private double sortIndex; 
 
   /**
-   * The CorrSum constructor. This constructor initializes the internal varibles
+   * The CorrelationsSum constructor. This constructor initializes the internal varibles
    * to the provided values. Note that sortIndex is initialized to be equal to
    * sum.
    * 
    * @param row An integer containing the row index of the covariance matrix
    * @param sum A double value containing the sum of correlations in the row
    */
-  public CorrSum(int row, double sum) {
+  public CorrelationsSum(int row, double sum) {
     this.rowIndex = row;
     this.correlationSum = sum;
     this.sortIndex = sum;
@@ -59,8 +59,8 @@ public class CorrSum implements Comparable<CorrSum> {
   }
   
   /**
-   * This function prints the contents of this CorrSum object.
-   * @return A String containing the contents of this CorrSum object.
+   * This function prints the contents of this CorrelationsSum object.
+   * @return A String containing the contents of this CorrelationsSum object.
    */
   @Override
   public String toString() {
@@ -68,18 +68,18 @@ public class CorrSum implements Comparable<CorrSum> {
   }
 
   /**
-   * This function compares this CorrSum object sortIndex varible to the  
-   * provided CorrSum object sortIndex varible.
+   * This function compares this CorrelationsSum object sortIndex varible to the  
+   * provided CorrelationsSum object sortIndex varible.
    * 
-   * @param corrSum A CorrSum object to compare to
-   * @return +1 if this CorrSum object sortIndex varible is greater than the 
-   *         provided CorrSum object sortIndex varible; -1 if this CorrSum  
-   *         object sortIndex varible is less than the provided CorrSum object 
-   *         sortIndex varible; and 0 if  this CorrSum object sortIndex varible
-   *         is equal to the provided CorrSum object sortIndex varible;
+   * @param corrSum A CorrelationsSum object to compare to
+   * @return +1 if this CorrelationsSum object sortIndex varible is greater than the 
+   *         provided CorrelationsSum object sortIndex varible; -1 if this CorrelationsSum  
+   *         object sortIndex varible is less than the provided CorrelationsSum object 
+   *         sortIndex varible; and 0 if  this CorrelationsSum object sortIndex varible
+   *         is equal to the provided CorrelationsSum object sortIndex varible;
    */
   @Override
-  public int compareTo(CorrSum corrSum) {
+  public int compareTo(CorrelationsSum corrSum) {
     if (sortIndex > corrSum.sortIndex) {
       return +1;
     } else if (sortIndex < corrSum.sortIndex) {

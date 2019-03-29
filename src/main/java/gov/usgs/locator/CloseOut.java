@@ -52,10 +52,10 @@ public class CloseOut {
   private ArrayList<Wresidual> projectedWeightedResiduals;
 
   /** 
-   * An Restimator objects containing rank-sum exstimator of the event to 
+   * An RankSumEstimator objects containing rank-sum exstimator of the event to 
    * perform closeout calculations for.
    */
-  private Restimator rankSumEstimator;
+  private RankSumEstimator rankSumEstimator;
   
   /**
    * The CloseOut construtor. This constructor 
@@ -269,7 +269,7 @@ public class CloseOut {
    * @param correlationMatrix A Matrix object containing the correlation matrix
    */
   private void computeErrorEllipsoid(Matrix correlationMatrix) {
-    EllipAxis[] ellip = event.getErrorEllipse();
+    EllipseAxis[] ellip = event.getErrorEllipse();
     
     // Do the eigenvalue/vector decomposition.
     EigenvalueDecomposition eigen = correlationMatrix.eig();
@@ -307,11 +307,11 @@ public class CloseOut {
         }
 
         // set the axis
-        ellip[j] = new EllipAxis(semiLen, azimuth, 0d);
+        ellip[j] = new EllipseAxis(semiLen, azimuth, 0d);
       }
 
       // third axis is zero for error ellipse
-      ellip[2] = new EllipAxis(0d, 0d, 0d);
+      ellip[2] = new EllipseAxis(0d, 0d, 0d);
 
       // Do aveH (the equivalent radius of the error ellipse).
       event.setEquivalentErrorRadius(LocUtil.PERPT1D * Math.sqrt(ellip[0].getSemiLen()
@@ -348,7 +348,7 @@ public class CloseOut {
             Math.toDegrees(Math.asin(Math.min(signum * eigenvectors[2][j], 1d)));
 
         // set the axis
-        ellip[j] = new EllipAxis(semiLen, azimuth, plunge);
+        ellip[j] = new EllipseAxis(semiLen, azimuth, plunge);
       }
 
       // Do aveH.  First, extract the error ellipse.

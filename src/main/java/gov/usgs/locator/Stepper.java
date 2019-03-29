@@ -14,7 +14,7 @@ public class Stepper {
 	Cratons cratons;
 	ZoneStats zones;
 	PhaseID phaseID;
-	Restimator rEstRaw, rEstProj;
+	RankSumEstimator rEstRaw, rEstProj;
 	LinearStep linStep;
 	RestResult result;
 	HypoAudit lastHypo;

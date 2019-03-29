@@ -44,15 +44,15 @@ public class LinearStep {
   private ArrayList<Wresidual> rawWeightedResiduals;
 
   /**
-   * A Restimator object used for the rank-sum estimation of the raw picks.
+   * A RankSumEstimator object used for the rank-sum estimation of the raw picks.
    */
-  private Restimator rawRankSumEstimator;
+  private RankSumEstimator rawRankSumEstimator;
 
   /**
-   * A Restimator object used for the rank-sum estimation of the projected
+   * A RankSumEstimator object used for the rank-sum estimation of the projected
    * picks.
    */
-  private Restimator projectedRankSumEstimator;
+  private RankSumEstimator projectedRankSumEstimator;
   
   /**
    * A Decorrelator object used when decorrelating the event picks.

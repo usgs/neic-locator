@@ -8,7 +8,7 @@ import java.util.ArrayList;
  * @author Ray Buland
  *
  */
-public class Restimator {
+public class RankSumEstimator {
 	int nLast = -1, length = -1, half = -1;
 	double median = 0d, estMedian = 0d;
 	double[] scores;
@@ -19,7 +19,7 @@ public class Restimator {
 	 * 
 	 * @param wResiduals residual storage
 	 */
-	public Restimator(ArrayList<Wresidual> wResiduals) {
+	public RankSumEstimator(ArrayList<Wresidual> wResiduals) {
 		this.wResiduals = wResiduals;
 	}
 	

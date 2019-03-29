@@ -1,12 +1,12 @@
 package gov.usgs.locator;
 
 /**
- * The EllipAxis class describes of one axis of an error ellipse.
+ * The EllipseAxis class describes of one axis of an error ellipse.
  * 
  * @author Ray Buland
  *
  */
-public class EllipAxis implements Comparable<EllipAxis> {
+public class EllipseAxis implements Comparable<EllipseAxis> {
   /** 
    * A double containing the length of the axis in kilometers.
    */
@@ -25,7 +25,7 @@ public class EllipAxis implements Comparable<EllipAxis> {
   private double plunge;
   
   /**
-   * The EllipAxis constructor. Sets the values of one axis of an error ellipse.
+   * The EllipseAxis constructor. Sets the values of one axis of an error ellipse.
    * 
    * @param semiLen A double containing the length of the axis in kilometers
    * @param azimuth A double containing the azimuth of the axis in degrees 
@@ -33,7 +33,7 @@ public class EllipAxis implements Comparable<EllipAxis> {
    * @param plunge A double containing the plunge of the axis in degrees (down 
    *               from the horizontal)
    */
-  public EllipAxis(double semiLen, double azimuth, double plunge) {
+  public EllipseAxis(double semiLen, double azimuth, double plunge) {
     this.semiLen = semiLen;
     this.azimuth = azimuth;
     this.plunge = plunge;
@@ -70,15 +70,15 @@ public class EllipAxis implements Comparable<EllipAxis> {
   /**
    * Comparison function used to sort the axes into descending order of the half 
    * length.
-   * @param axis A EllipAxis to compare to
-   * @return +1 if this EllipAxis object semiLen varible is greater than the 
-   *         provided EllipAxis object semiLen varible; -1 if this EllipAxis  
-   *         object semiLen varible is less than the provided EllipAxis object 
-   *         semiLen varible; and 0 if this EllipAxis object semiLen varible
-   *         is equal to the provided EllipAxis object semiLen varible;
+   * @param axis A EllipseAxis to compare to
+   * @return +1 if this EllipseAxis object semiLen varible is greater than the 
+   *         provided EllipseAxis object semiLen varible; -1 if this EllipseAxis  
+   *         object semiLen varible is less than the provided EllipseAxis object 
+   *         semiLen varible; and 0 if this EllipseAxis object semiLen varible
+   *         is equal to the provided EllipseAxis object semiLen varible;
    */
   @Override
-  public int compareTo(EllipAxis axis) {
+  public int compareTo(EllipseAxis axis) {
     if (this.semiLen > axis.semiLen) {
       return -1;
     } else if (this.semiLen < axis.semiLen) {

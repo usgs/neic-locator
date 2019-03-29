@@ -102,7 +102,7 @@ public class LocOutput extends LocationResult {
    *                            kilometers.
    * @param bayesianDepthDataImportance A double containing the data importance 
    *                                    of the baysian depth.
-   * @param errorEllipse An array of EllipAxis objects representing the error 
+   * @param errorEllipse An array of EllipseAxis objects representing the error 
    *                     ellipse.
    * @param locatorExitCode A LocStatus object holding the final locator exit 
    *                        code. 
@@ -112,7 +112,7 @@ public class LocOutput extends LocationResult {
       double residualsStandardError, double maxHorizontalError, 
       double maxVerticalError, double equivalentErrorRadius, 
       double bayesianDepth, double bayesianDepthSpread, 
-      double bayesianDepthDataImportance, EllipAxis[] errorEllipse, 
+      double bayesianDepthDataImportance, EllipseAxis[] errorEllipse, 
       LocStatus locatorExitCode) {
 
     getHypocenter().setTimeError(timeStandardError);
