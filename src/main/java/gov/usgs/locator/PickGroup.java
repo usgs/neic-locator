@@ -147,7 +147,7 @@ public class PickGroup {
 	public int picksUsed() {
 		int noUsed = 0;
 		for(int j=0; j<picks.size(); j++) {
-			if(picks.get(j).used) noUsed++;
+			if(picks.get(j).getIsUsed()) noUsed++;
 		}
 		return noUsed;
 	}
@@ -175,9 +175,10 @@ public class PickGroup {
 					"%3.1f %-8s %12s %5b %-13s %-8s %3.1f\n", pick.getPickID(), 
 					station.staID.staCode, pick.getChannelCode(), station.staID.netCode, 
 					station.staID.locCode, station.latitude, station.longitude, 
-					station.elevation, pick.getQuality(), pick.phCode, 
-					LocUtil.getTimeString(pick.getArrivalTime()), pick.cmndUse, 
-					pick.authType, pick.obsCode, pick.affinity);
+					station.elevation, pick.getQuality(), pick.getCurrentPhaseCode(), 
+					LocUtil.getTimeString(pick.getArrivalTime()), pick.getExternalUse(), 
+					pick.getAuthorType(), pick.getOriginalPhaseCode(), 
+					pick.getOriginalPhaseAffinity());
 		}
 	}
 	
@@ -191,12 +192,12 @@ public class PickGroup {
 		
 		pick = picks.get(0);
 		System.out.format("%-5s %-8s %-8s %7.2f %6.2f %3.0f\n", 
-				station.staID.staCode, pick.phCode, pick.obsCode, pick.tt, 
+				station.staID.staCode, pick.getCurrentPhaseCode(), pick.getOriginalPhaseCode(), pick.getTravelTime(), 
 				delta, azimuth);
 		if(!first) {
 			for(int j=1; j<picks.size(); j++) {
-				System.out.format("      %-8s %-8s %7.2f\n", pick.phCode, 
-						pick.obsCode, pick.tt);
+				System.out.format("      %-8s %-8s %7.2f\n", pick.getCurrentPhaseCode(), 
+						pick.getOriginalPhaseCode(), pick.getTravelTime());
 			}
 		}
 	}
@@ -212,8 +213,8 @@ public class PickGroup {
 			System.out.format("%10s %-5s %-3s %-2s %-2s %-8s%6.1f %5.1f "+
 					"%3.0f %1s %4.2f %6.4f\n", pick.getPickID(), station.staID.staCode, 
 					pick.getChannelCode(), station.staID.netCode, station.staID.locCode, 
-					pick.phCode, pick.residual, delta, azimuth, 
-					LocUtil.getBoolChar(pick.used), pick.weight, pick.importance);
+					pick.getCurrentPhaseCode(), pick.getResidual(), delta, azimuth, 
+					LocUtil.getBoolChar(pick.getIsUsed()), pick.getWeight(), pick.getImportance());
 		}
 	}
 	
@@ -228,20 +229,20 @@ public class PickGroup {
     }
 		for(int j=0; j<picks.size(); j++) {
 			pick = picks.get(j);
-			switch(pick.authType) {
+			switch(pick.getAuthorType()) {
 				case CONTRIB_HUMAN: case LOCAL_HUMAN:
 					System.out.format("%-2s %-5s %-3s %-2s  %5.1f     %3.0f   %-8s %12s "+
 							" manual    %6.1f    %4.2f\n", station.staID.netCode, 
 							station.staID.staCode, pick.getChannelCode(), locCode, 
-							delta, azimuth, pick.phCode, LocUtil.getNEICTimeString(pick.getArrivalTime()), 
-							pick.residual, pick.weight);
+							delta, azimuth, pick.getCurrentPhaseCode(), LocUtil.getNEICTimeString(pick.getArrivalTime()), 
+							pick.getResidual(), pick.getWeight());
 					break;
 				default:
 					System.out.format("%-2s %-5s %-3s %-2s  %5.1f     %3.0f   %-8s %12s  "+
 							"automatic %6.1f    %4.2f\n", station.staID.netCode, 
 							station.staID.staCode, pick.getChannelCode(), locCode, 
-							delta, azimuth, pick.phCode, LocUtil.getNEICTimeString(pick.getArrivalTime()), 
-							pick.residual, pick.weight);
+							delta, azimuth, pick.getCurrentPhaseCode(), LocUtil.getNEICTimeString(pick.getArrivalTime()), 
+							pick.getResidual(), pick.getWeight());
 					break;
 			}
 		}

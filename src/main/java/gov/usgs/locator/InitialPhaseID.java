@@ -137,23 +137,23 @@ public class InitialPhaseID {
           Pick pick = group.picks.get(0);
           boolean found;
 
-          if (pick.used) {
-            String phCode = pick.phCode;
+          if (pick.getIsUsed()) {
+            String phCode = pick.getCurrentPhaseCode();
             
             if (!phCode.substring(0,1).equals("PK") 
                 && !phCode.substring(0,1).equals("P'") 
                 && !phCode.substring(0,1).equals("Sc") 
                 && !phCode.equals("Sg") && !phCode.equals("Sb") 
                 && !phCode.equals("Sn") && !phCode.equals("Lg")) {
-              if (pick.auto) {
+              if (pick.getIsAutomatic()) {
                 travelTime = ttList.get(0);
                 
                 if (!phCode.equals(travelTime.getPhCode())) {
                   badPs++;
                 }
 
-                pick.residual = pick.tt - travelTime.getTT();
-                pick.weight = 1d / travelTime.getSpread();
+                pick.setResidual(pick.getTravelTime() - travelTime.getTT());
+                pick.setWeight(1d / travelTime.getSpread());
                 
                 if (LocUtil.deBugLevel > 1 
                     && !phCode.equals(travelTime.getPhCode())) {
@@ -169,8 +169,8 @@ public class InitialPhaseID {
                   if (phCode.equals(travelTime.getPhCode())) {
                     // Note that this is slightly different from the Fortran 
                     // version where the weight is always from the first arrival.
-                    pick.residual = pick.tt - travelTime.getTT();
-                    pick.weight = 1d / travelTime.getSpread();
+                    pick.setResidual(pick.getTravelTime() - travelTime.getTT());
+                    pick.setWeight(1d / travelTime.getSpread());
                     found = true;
                     break;
                   }
@@ -178,8 +178,8 @@ public class InitialPhaseID {
                 
                 if (!found) {
                   travelTime = ttList.get(0);
-                  pick.residual = pick.tt - travelTime.getTT();
-                  pick.weight = 1d / travelTime.getSpread();
+                  pick.setResidual(pick.getTravelTime() - travelTime.getTT());
+                  pick.setWeight(1d / travelTime.getSpread());
                   
                   if (LocUtil.deBugLevel > 1) { 
                     System.out.format("InitialPhaseID: "
@@ -188,13 +188,13 @@ public class InitialPhaseID {
                 }
               }
               
-              weightedResiduals.add(new Wresidual(pick, pick.residual, 
-                  pick.weight, false, 0d, 0d, 0d));
+              weightedResiduals.add(new Wresidual(pick, pick.getResidual(), 
+                  pick.getWeight(), false, 0d, 0d, 0d));
 
               if (LocUtil.deBugLevel > 1) {
                 System.out.format("InitialPhaseID push: %-5s %-8s %5.2f %7.4f %5.2f" 
-                    + "%5.2f\n", pick.getStation().staID.staCode, pick.phCode, 
-                    pick.residual, pick.weight, travelTime.getTT(), 
+                    + "%5.2f\n", pick.getStation().staID.staCode, pick.getCurrentPhaseCode(), 
+                    pick.getResidual(), pick.getWeight(), travelTime.getTT(), 
                     travelTime.getSpread());
               }
             }
@@ -256,16 +256,16 @@ public class InitialPhaseID {
         
         // If the first arrival is automatic and not a crust or mantle P, don't 
         // use it.
-        if (pick.auto && pick.used) {
-          String phCode = pick.phCode;
+        if (pick.getIsAutomatic() && pick.getIsUsed()) {
+          String phCode = pick.getCurrentPhaseCode();
           
           if (!phCode.equals("Pg") && !phCode.equals("Pb") 
               && !phCode.equals("Pn") && !phCode.equals("P")) {
-            pick.used = false;
+            pick.setIsUsed(false);
             
             if (LocUtil.deBugLevel > 1) {
               System.out.format("\tIdEasy: don't use %-5s %-8s\n", 
-                  group.station.staID.staCode, pick.phCode);
+                  group.station.staID.staCode, pick.getCurrentPhaseCode());
             }
           }
         }
@@ -274,12 +274,12 @@ public class InitialPhaseID {
         for (int i = 1; i < group.noPicks(); i++) {
           pick = group.picks.get(i);
           
-          if (pick.auto && pick.used) {
-            pick.used = false;
+          if (pick.getIsAutomatic() && pick.getIsUsed()) {
+            pick.setIsUsed(false);
             
             if (LocUtil.deBugLevel > 1) {
               System.out.format("\tIdEasy: don't use %-5s %-8s\n", 
-                  group.station.staID.staCode, pick.phCode);
+                  group.station.staID.staCode, pick.getCurrentPhaseCode());
             }
           }
         }
@@ -303,9 +303,9 @@ public class InitialPhaseID {
         Pick pick = group.picks.get(0);
         
         // If the first arrival is automatic and might be a misidentified first 
-        // arrival,  force it to be the first theoretical arrival.
-        if (pick.auto && pick.used) {
-          String phCode = pick.phCode;
+        // arrival, force it to be the first theoretical arrival.
+        if (pick.getIsAutomatic() && pick.getIsUsed()) {
+          String phCode = pick.getCurrentPhaseCode();
           
           if (group.delta <= 100d && !phCode.substring(0,1).equals("PK") 
               && !phCode.substring(0,1).equals("P'") 
@@ -337,11 +337,11 @@ public class InitialPhaseID {
           } else {
             // If it's a core phase or not a common mis-identification, just 
             // don't use it.
-            pick.used = false;
+            pick.setIsUsed(false);
             
             if (LocUtil.deBugLevel > 1) { 
               System.out.format("\tIdHard: don't use %-5s %-8s\n", 
-                  group.station.staID.staCode, pick.phCode);
+                  group.station.staID.staCode, pick.getCurrentPhaseCode());
             }
           }
         }
@@ -350,12 +350,12 @@ public class InitialPhaseID {
         for (int i = 1; i < group.noPicks(); i++) {
           pick = group.picks.get(i);
           
-          if (pick.auto && pick.used) {
-            pick.used = false;
+          if (pick.getIsAutomatic() && pick.getIsUsed()) {
+            pick.setIsUsed(false);
             
             if (LocUtil.deBugLevel > 1) {
               System.out.format("\tIdHard: don't use %-5s %-8s\n", 
-                  group.station.staID.staCode, pick.phCode);
+                  group.station.staID.staCode, pick.getCurrentPhaseCode());
             }
           }
         }
@@ -376,8 +376,8 @@ public class InitialPhaseID {
 
       for (int i = 0; i < group.noPicks(); i++) {
         Pick pick = group.picks.get(i);
-        if (!pick.used) {
-          pick.used = pick.cmndUse;
+        if (!pick.getIsUsed()) {
+          pick.setIsUsed(pick.getExternalUse());
         }
       }
     }
@@ -400,10 +400,10 @@ public class InitialPhaseID {
         for (int i = 0; i < group.noPicks(); i++) {
           Pick pick = group.picks.get(i);
 
-          if (pick.used) {
+          if (pick.getIsUsed()) {
             System.out.format("%-5s %-8s %6.1f %6.1f %3.0f %5.2f\n", 
-                station.staID.staCode, pick.phCode, pick.residual, group.delta, 
-                group.azimuth, pick.weight);
+                station.staID.staCode, pick.getCurrentPhaseCode(), pick.getResidual(), group.delta, 
+                group.azimuth, pick.getWeight());
           }
         }
       }

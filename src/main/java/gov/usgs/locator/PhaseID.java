@@ -168,7 +168,7 @@ public class PhaseID {
       
       if (LocUtil.deBugLevel > 1) {
         System.out.format("PhaseID: %-5s %6.2f %6.2f %6.2f\n", 
-            station.staID.staCode, currentGroup.picks.get(0).tt, 
+            station.staID.staCode, currentGroup.picks.get(0).getTravelTime(), 
             currentGroup.delta, currentGroup.azimuth);
       }
       
@@ -222,7 +222,7 @@ public class PhaseID {
     // Loop over picks in the group.
     for (int j = 0; j < currentGroup.noPicks(); j++) {
       Pick pick = currentGroup.getPick(j);
-      String phCode = pick.phCode;
+      String phCode = pick.getCurrentPhaseCode();
 
       if (!phCode.equals("")) {
         // If we have a non-blank phase code, find the phase of the same name 
@@ -234,9 +234,9 @@ public class PhaseID {
           TTimeData travelTime = currentTTList.get(i);
           
           if (phCode.equals(travelTime.getPhCode())) {
-            if (Math.abs(pick.tt - travelTime.getTT()) < minResidual) {
+            if (Math.abs(pick.getTravelTime() - travelTime.getTT()) < minResidual) {
               ttIndex = i;
-              minResidual = Math.abs(pick.tt - travelTime.getTT());
+              minResidual = Math.abs(pick.getTravelTime() - travelTime.getTT());
             }
           }
         }
@@ -244,8 +244,8 @@ public class PhaseID {
         // If it's not too out of whack, force the association.
         if (ttIndex >= 0 && (minResidual <= LocUtil.ASSOCTOLERANCE 
             || phCode.equals("Lg") || phCode.equals("LR"))) {
-          pick.mapStat = currentTTList.get(ttIndex);
-          pick.fomStat = minResidual;
+          pick.setStatisticalMinFoMTT(currentTTList.get(ttIndex));
+          pick.setStatisticalFoM(minResidual);
           pick.forceStat = true;
           
           if (LocUtil.deBugLevel > 1) { 
@@ -264,17 +264,17 @@ public class PhaseID {
             TTimeData travelTime = currentTTList.get(i);
             
             if (phaseGroupName.equals(travelTime.getPhGroup())) {
-              if (Math.abs(pick.tt - travelTime.getTT()) < minResidual) {
+              if (Math.abs(pick.getTravelTime() - travelTime.getTT()) < minResidual) {
                 ttIndex = i;
-                minResidual = Math.abs(pick.tt - travelTime.getTT());
+                minResidual = Math.abs(pick.getTravelTime() - travelTime.getTT());
               }
             }
           }
           
           // If it's not too out of whack, force the association.
           if (ttIndex >= 0 && minResidual <= LocUtil.ASSOCTOLERANCE) {
-            pick.mapStat = currentTTList.get(ttIndex);
-            pick.fomStat = minResidual;
+            pick.setStatisticalMinFoMTT(currentTTList.get(ttIndex));
+            pick.setStatisticalFoM(minResidual);
             pick.forceStat = true;
             
             if (LocUtil.deBugLevel > 1) {
@@ -283,7 +283,7 @@ public class PhaseID {
                   currentTTList.get(ttIndex).getPhCode(), minResidual, ttIndex);
             }
           } else {
-            if (pick.used) {
+            if (pick.getIsUsed()) {
               if (LocUtil.deBugLevel > 1) {
                 System.out.println("NoReID: give up " 
                     + pick.getStation().staID.staCode);
@@ -292,7 +292,7 @@ public class PhaseID {
               currentGroup.initFoM(j, j);
               reidentifyPhases();
             } else {
-              pick.mapStat = null;
+              pick.setStatisticalMinFoMTT(null);
             }
           }
         } // end else phase out of wack
@@ -315,8 +315,8 @@ public class PhaseID {
 
       if (pick.surfWave) {
         for (int i = 0; i < currentTTList.size(); i++) {
-          if (pick.idCode.equals(currentTTList.get(i).getPhCode())) {
-            pick.mapStat = currentTTList.get(i);
+          if (pick.getBestPhaseCode().equals(currentTTList.get(i).getPhCode())) {
+            pick.setStatisticalMinFoMTT(currentTTList.get(i));
             pick.forceStat = true;
             break;
           }
@@ -354,8 +354,8 @@ public class PhaseID {
         for (; i < currentGroup.noPicks(); i++) {
           Pick pick = currentGroup.getPick(i);
 
-          if (pick.tt <= maxTTWindow) {
-            if (pick.tt >= minTTWindow) {
+          if (pick.getTravelTime() <= maxTTWindow) {
+            if (pick.getTravelTime() >= minTTWindow) {
               if (numPicks == 0) {
                 firstPhaseIndex = i;
               }
@@ -400,8 +400,9 @@ public class PhaseID {
     // Apply the distance correction to the first arriving phase.
     double distanceCorrection = LocUtil.computeDistCorr(currentGroup.delta);
     if (distanceCorrection > 1d) {
-      if (currentGroup.getPick(0).mapStat != null) {
-        currentGroup.getPick(0).fomStat /= distanceCorrection;
+      if (currentGroup.getPick(0).getStatisticalMinFoMTT() != null) {
+        currentGroup.getPick(0).setStatisticalFoM(
+              currentGroup.getPick(0).getStatisticalFoM() / distanceCorrection);
       }
 
       if (currentGroup.getPick(0).mapAlt != null) {
@@ -426,14 +427,14 @@ public class PhaseID {
     for (int j = 0; j < currentGroup.noPicks(); j++) {
       Pick pick = currentGroup.getPick(j);
       
-      if (pick.mapStat != null) {
+      if (pick.getStatisticalMinFoMTT() != null) {
         if (pick.mapAlt != null) {
           System.out.format("  Sel: %1d %-8s %-8s %5.2f %5.2f\n", j, 
-              pick.mapStat.getPhCode(), pick.mapAlt.getPhCode(), pick.fomStat, 
+              pick.getStatisticalMinFoMTT().getPhCode(), pick.mapAlt.getPhCode(), pick.getStatisticalFoM(), 
               pick.fomAlt);
         } else {
           System.out.format("  Sel: %1d %-8s null     %5.2f\n", j, 
-              pick.mapStat.getPhCode(), pick.fomStat);
+              pick.getStatisticalMinFoMTT().getPhCode(), pick.getStatisticalFoM());
         }
       } else {
         if (pick.mapAlt != null) {
@@ -458,30 +459,30 @@ public class PhaseID {
       // The identification will be done using the statistical variables.  
       // Therefore, we only need to change the statistical variables if the 
       // alternative identification looks better.
-      if (pick.mapStat != null) {
+      if (pick.getStatisticalMinFoMTT() != null) {
         if (pick.mapAlt != null) {
           // We have both, now what?
           if (j == 0) {
             // Favor the alternate identification for the first arrival.
             if (pick.fomAlt <= 2d 
                 * LocUtil.computeValidityLimit(pick.mapAlt.getSpread())  
-                && pick.fomAlt < pick.fomStat - 1d && pick.mapAlt.getPhGroup()
-                == pick.mapStat.getPhGroup()) {
-              pick.mapStat = pick.mapAlt;
-              pick.fomStat = pick.fomAlt;
+                && pick.fomAlt < pick.getStatisticalFoM() - 1d && pick.mapAlt.getPhGroup()
+                == pick.getStatisticalMinFoMTT().getPhGroup()) {
+              pick.setStatisticalMinFoMTT(pick.mapAlt);
+              pick.setStatisticalFoM(pick.fomAlt);
             // If that didn't work, see if the statistical identification is 
             // acceptable.
-            } else if (pick.fomStat > 2d 
-                * LocUtil.computeValidityLimit(pick.mapStat.getSpread())) {
+            } else if (pick.getStatisticalFoM() > 2d 
+                * LocUtil.computeValidityLimit(pick.getStatisticalMinFoMTT().getSpread())) {
               // If that that didn't work, go back to the alternate 
               // identification.
               if (pick.fomAlt <= 2d 
                   * LocUtil.computeValidityLimit(pick.mapAlt.getSpread())) {
-                pick.mapStat = pick.mapAlt;
-                pick.fomStat = pick.fomAlt;
+                pick.setStatisticalMinFoMTT(pick.mapAlt);
+                pick.setStatisticalFoM(pick.fomAlt);
               } else {
                 // If all else fails, give up.
-                pick.mapStat = null;
+                pick.setStatisticalMinFoMTT(null);
               }
             }
           // Treat later phases differently.
@@ -489,40 +490,40 @@ public class PhaseID {
             // Favor the alternate identification, but not quite as strictly.
             if (pick.fomAlt <= 2d 
                 * LocUtil.computeValidityLimit(pick.mapAlt.getSpread())
-                && pick.fomAlt < pick.fomStat - 0.5d) {
-              pick.mapStat = pick.mapAlt;
-              pick.fomStat = pick.fomAlt;
-            } else if (pick.fomStat > 2d 
-                * LocUtil.computeValidityLimit(pick.mapStat.getSpread())) {
+                && pick.fomAlt < pick.getStatisticalFoM() - 0.5d) {
+              pick.setStatisticalMinFoMTT(pick.mapAlt);
+              pick.setStatisticalFoM(pick.fomAlt);
+            } else if (pick.getStatisticalFoM() > 2d 
+                * LocUtil.computeValidityLimit(pick.getStatisticalMinFoMTT().getSpread())) {
               // If that that didn't work, go back to the alternate 
               // identification.
               if (pick.fomAlt <= 2d 
                   * LocUtil.computeValidityLimit(pick.mapAlt.getSpread())) {
-                pick.mapStat = pick.mapAlt;
-                pick.fomStat = pick.fomAlt;
+                pick.setStatisticalMinFoMTT(pick.mapAlt);
+                pick.setStatisticalFoM(pick.fomAlt);
               } else {
                 // If all else fails, give up.
-                pick.mapStat = null;
+                pick.setStatisticalMinFoMTT(null);
               }
             }
           }
         // We only have a statistical identification.
-        } else if (pick.fomStat > 2d 
-            * LocUtil.computeValidityLimit(pick.mapStat.getSpread())) {
-          pick.mapStat = null;
+        } else if (pick.getStatisticalFoM() > 2d 
+            * LocUtil.computeValidityLimit(pick.getStatisticalMinFoMTT().getSpread())) {
+          pick.setStatisticalMinFoMTT(null);
         }
       // We don't have a statistical identification, try the alternative.
       } else if (pick.mapAlt != null) {
         if (pick.fomAlt <= 2d 
             * LocUtil.computeValidityLimit(pick.mapAlt.getSpread())) {
-          pick.mapStat = pick.mapAlt;
-          pick.fomStat = pick.fomAlt;
+          pick.setStatisticalMinFoMTT(pick.mapAlt);
+          pick.setStatisticalFoM(pick.fomAlt);
         } else {
-          pick.mapStat = null;
+          pick.setStatisticalMinFoMTT(null);
         }
       // Neither method found a match.  Give up.
       } else {
-        pick.mapStat = null;
+        pick.setStatisticalMinFoMTT(null);
       }
     }
     
@@ -531,20 +532,20 @@ public class PhaseID {
     for (int j = 0; j < currentGroup.noPicks() - 1; j++) {
       Pick pick = currentGroup.getPick(j);
       
-      if (pick.mapStat != null) {
+      if (pick.getStatisticalMinFoMTT() != null) {
         for (int i = j + 1; i < currentGroup.noPicks(); i++) {
           Pick pick2 = currentGroup.getPick(i);
           
-          if (pick.mapStat == pick2.mapStat) {
+          if (pick.getStatisticalMinFoMTT() == pick2.getStatisticalMinFoMTT()) {
             if (j == 0) {
-              pick2.mapStat = null;
+              pick2.setStatisticalMinFoMTT(null);
             } else {
               // The alternative figure-of-merits have to exist for this 
               // problem to occur.
-              if (pick.fomStat <= pick2.fomStat) {
-                pick2.mapStat = null;
+              if (pick.getStatisticalFoM() <= pick2.getStatisticalFoM()) {
+                pick2.setStatisticalMinFoMTT(null);
               } else {
-                pick.mapStat = null;
+                pick.setStatisticalMinFoMTT(null);
                 break;
               }
             }
@@ -561,18 +562,18 @@ public class PhaseID {
       Pick pick = pick2;
       pick2 = currentGroup.getPick(j);
       
-      if (pick.mapStat != null && pick2.mapStat != null) {
-        if (pick.mapStat.getTT() > pick2.mapStat.getTT()) {
-          if (pick.mapStat.getObserv() >= pick2.mapStat.getObserv()) {
+      if (pick.getStatisticalMinFoMTT() != null && pick2.getStatisticalMinFoMTT() != null) {
+        if (pick.getStatisticalMinFoMTT().getTT() > pick2.getStatisticalMinFoMTT().getTT()) {
+          if (pick.getStatisticalMinFoMTT().getObserv() >= pick2.getStatisticalMinFoMTT().getObserv()) {
             // Apparently, we don't care if Lg or LR are out of order.
-            if (!pick2.mapStat.getPhCode().equals("Lg")  
-                && !pick2.mapStat.getPhCode().equals("LR")) {
-              pick2.mapStat = null;
+            if (!pick2.getStatisticalMinFoMTT().getPhCode().equals("Lg")  
+                && !pick2.getStatisticalMinFoMTT().getPhCode().equals("LR")) {
+              pick2.setStatisticalMinFoMTT(null);
             }
           } else {
-            if (!pick.mapStat.getPhCode().equals("Lg")  
-                && !pick.mapStat.getPhCode().equals("LR")) {
-              pick.mapStat = null;
+            if (!pick.getStatisticalMinFoMTT().getPhCode().equals("Lg")  
+                && !pick.getStatisticalMinFoMTT().getPhCode().equals("LR")) {
+              pick.setStatisticalMinFoMTT(null);
             }
           }
         }
@@ -704,13 +705,13 @@ public class PhaseID {
     for (int j = 0; j < ttArrivals.length; j++) {
       if (!obsPicks[j].surfWave) {
         // Compute the figure-of-merit for the primary criteria.
-        double probability = LocUtil.computePDFResValue(obsPicks[j].tt 
+        double probability = LocUtil.computePDFResValue(obsPicks[j].getTravelTime() 
             - ttArrivals[j].getTT(), 0d, ttArrivals[j].getSpread());
         double observabilityAmp = computeObsAmplitude(obsPicks[j], ttArrivals[j]);
         double residual = computeResidual(obsPicks[j], ttArrivals[j]);
         
         if (LocUtil.deBugLevel > 1) {
-          System.out.format("\t%8s %8s: %10.4e %10.4e\n", obsPicks[j].idCode,
+          System.out.format("\t%8s %8s: %10.4e %10.4e\n", obsPicks[j].getBestPhaseCode(),
               ttArrivals[j].getPhCode(), probability, observabilityAmp);
         }
 
@@ -721,7 +722,7 @@ public class PhaseID {
         if (ttArrivals[j].getObserv() >= LocUtil.OBSERVABILITYMIN && residual 
             < obsPicks[j].fomAlt) {
           // Make sure that the phase types match unless the pick is automatic.
-          if (obsPicks[j].auto || TauUtil.arrivalType(obsPicks[j].idCode)
+          if (obsPicks[j].getIsAutomatic() || TauUtil.arrivalType(obsPicks[j].getBestPhaseCode())
               == TauUtil.arrivalType(ttArrivals[j].getPhCode())) {
             obsPicks[j].setFomAlt(ttArrivals[j], residual);
             
@@ -770,12 +771,12 @@ public class PhaseID {
     // Note depends on the lastPick class varible being set
     if (pick != lastPick) {
       lastPick = pick;
-      currPhaseGroupName = auxiliaryTTInfo.findGroup(pick.idCode, 
-          (pick.authType == AuthorType.CONTRIB_AUTO));
+      currPhaseGroupName = auxiliaryTTInfo.findGroup(pick.getBestPhaseCode(), 
+          (pick.getAuthorType() == AuthorType.CONTRIB_AUTO));
       isPrimary = auxiliaryTTInfo.isPrimary();
 
       if (currPhaseGroupName.equals("Any") 
-          || pick.idCode.equals(currPhaseGroupName)) {
+          || pick.getBestPhaseCode().equals(currPhaseGroupName)) {
         isGeneric = true;
       } else {
         isGeneric = false;
@@ -809,7 +810,7 @@ public class PhaseID {
 
     // Do the group logic.  If the phase codes match drop through 
     // unless the phase might be generic.
-    if ((!pick.idCode.equals(travelTime.getPhCode()) || isGeneric)
+    if ((!pick.getBestPhaseCode().equals(travelTime.getPhCode()) || isGeneric)
             && !currPhaseGroupName.equals("Any")) {
       // Handle primary groups differently for generic phase codes.
       if (isGeneric && isPrimary) {
@@ -836,7 +837,7 @@ public class PhaseID {
 
           // If we trust the phase identification and the arrival types 
           // of the phases don't match, make re-identifying even harder
-          if (!pick.auto && TauUtil.arrivalType(currPhaseGroupName)
+          if (!pick.getIsAutomatic() && TauUtil.arrivalType(currPhaseGroupName)
               != TauUtil.arrivalType(travelTime.getPhCode())) {
             observabilityAmp *= LocUtil.TYPEWEIGHT;
 
@@ -866,7 +867,7 @@ public class PhaseID {
 
           // If we trust the phase identification and the arrival types 
           // of the phases don't match, make re-identifying even harder
-          if (!pick.auto && TauUtil.arrivalType(currPhaseGroupName)
+          if (!pick.getIsAutomatic() && TauUtil.arrivalType(currPhaseGroupName)
                   != TauUtil.arrivalType(travelTime.getPhCode())) {
             observabilityAmp *= LocUtil.TYPEWEIGHT;
 
@@ -879,8 +880,8 @@ public class PhaseID {
     }
 
     // Account for the affinity.
-    if (pick.idCode.equals(travelTime.getPhCode())) {
-      observabilityAmp *= pick.affinity;
+    if (pick.getBestPhaseCode().equals(travelTime.getPhCode())) {
+      observabilityAmp *= pick.getOriginalPhaseAffinity();
 
       if (LocUtil.deBugLevel > 2) {
         System.out.print(" Aff");
@@ -888,7 +889,7 @@ public class PhaseID {
     }
 
     // Make the existing identification harder to change.
-    if (pick.phCode.equals(travelTime.getPhCode())) {
+    if (pick.getCurrentPhaseCode().equals(travelTime.getPhCode())) {
       observabilityAmp *= stickyWeight;
 
       if (LocUtil.deBugLevel > 2) {
@@ -912,10 +913,10 @@ public class PhaseID {
    * @return A double containing the affinity weighted residual
    */
   private double computeResidual(Pick pick, TTimeData travelTime) {
-    if (pick.idCode.equals(travelTime.getPhCode())) {
-      return Math.abs(pick.tt - travelTime.getTT()) / pick.affinity;
+    if (pick.getBestPhaseCode().equals(travelTime.getPhCode())) {
+      return Math.abs(pick.getTravelTime() - travelTime.getTT()) / pick.getOriginalPhaseAffinity();
     } else {
-      return Math.abs(pick.tt - travelTime.getTT()) / LocUtil.NULLAFFINITY;
+      return Math.abs(pick.getTravelTime() - travelTime.getTT()) / LocUtil.NULLAFFINITY;
     }
   }
 }

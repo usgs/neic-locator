@@ -292,7 +292,7 @@ public class Wresidual implements Comparable<Wresidual>{
 	 * @param importance Pick data importance
 	 */
 	public void updateImport(double importance) {
-		if(pick != null) pick.importance = importance;
+		if(pick != null) pick.setImportance(importance);
 	}
 	
 	/**

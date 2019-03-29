@@ -516,11 +516,11 @@ public class LocUtil {
   public static double computeCovariance(Pick pick1, Pick pick2) {
     // Do the autocorrelation.
     if (pick1 == pick2) {
-      return 1d / (pick1.weight * pick2.weight);
+      return 1d / (pick1.getWeight() * pick2.getWeight());
     }
     
     // Assume the correlation between different phases is zero.
-    if (!pick1.phCode.equals(pick2.phCode)) {
+    if (!pick1.getCurrentPhaseCode().equals(pick2.getCurrentPhaseCode())) {
       return 0d;
     }
     
@@ -555,7 +555,7 @@ public class LocUtil {
 
     // Compute covariance.
     double covariance = (1d - Math.pow(delta / (Math.abs(delta - COVOFFSET)
-        + COVCONST), COVPOWER)) / (pick1.weight * pick2.weight);
+        + COVCONST), COVPOWER)) / (pick1.getWeight() * pick2.getWeight());
 
     return covariance;
   }

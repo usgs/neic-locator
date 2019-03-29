@@ -698,13 +698,14 @@ public class Event {
         gov.usgs.locator.Pick pick = group.picks.get(j);
         StationID staID = pick.getStation().staID;
 
-        out.addPick(pick.getSourceID(), pick.authType, pick.getPickID(), staID.staCode, 
+        out.addPick(pick.getSourceID(), pick.getAuthorType(), pick.getPickID(), 
+            staID.staCode, 
             pick.getChannelCode(), staID.netCode, staID.locCode, 
             pick.getStation().latitude, pick.getStation().longitude, 
             pick.getStation().elevation, LocUtil.toJavaTime(pick.getArrivalTime()), 
-            pick.phCode, pick.obsCode, pick.residual, group.delta, 
-            group.azimuth, pick.weight, pick.importance, pick.used, 
-            pick.affinity, pick.getQuality());
+            pick.getCurrentPhaseCode(), pick.getOriginalPhaseCode(), 
+            pick.getResidual(), group.delta, group.azimuth, pick.getWeight(), pick.getImportance(), pick.getIsUsed(), 
+            pick.getOriginalPhaseAffinity(), pick.getQuality());
       }
     }
 
@@ -899,7 +900,7 @@ public class Event {
    */
   public void resetTriage() {
     for (int j = 0; j < pickList.size(); j++) {
-      pickList.get(j).isTriage = false;
+      pickList.get(j).setIsTriage(false);
     }
   }
   
@@ -1113,7 +1114,7 @@ public class Event {
     hypo.setBayesianDepthWeight(0d);
 
     for (int j = 0; j < pickList.size(); j++) {
-      pickList.get(j).weight = 0d;
+      pickList.get(j).setWeight(0d);
     }
   }
   

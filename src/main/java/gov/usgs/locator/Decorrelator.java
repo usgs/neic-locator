@@ -125,7 +125,7 @@ public class Decorrelator {
     // Get rid of triaged picks.
     weightedResidualsOrg = event.getOriginalWeightedResiduals();
     for (int j = weightedResidualsOrg.size() - 2; j >= 0; j--) {
-      if (weightedResidualsOrg.get(j).pick.isTriage) {
+      if (weightedResidualsOrg.get(j).pick.getIsTriage()) {
         weightedResidualsOrg.remove(j);
       }
     }
@@ -314,7 +314,7 @@ public class Decorrelator {
       int k = keep.length - 1;
       for (int j = weightedResidualsOrg.size() - 2; j >= 0; j--) {
         if (j != keep[k]) {
-          weightedResidualsOrg.get(j).pick.isTriage = true;
+          weightedResidualsOrg.get(j).pick.setIsTriage(true);
           weightedResidualsOrg.remove(j);
         } else {
           k--;

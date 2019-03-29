@@ -43,25 +43,88 @@ public class Pick implements Comparable<Pick> {
 	 */
 	private double quality;			
 
-	boolean cmndUse;			// If true, the phase may be used (analyst command)
-	String obsCode;				// Original phase identification
-	AuthorType authType;	// Author type for the original phase identification
-	double affinity;			// Higher numbers make it harder to re-identify the phase
-	// Input/Output:
-	String phCode;				// Current phase identification
-	// Outputs:
-	double residual;			// Observed-theoretical arrival time in seconds
-	boolean used;					// True if the pick is being used in the location
-	double weight;				// Pick weight
-	double importance;		// Pick data importance
-	// Internal use:
-	String idCode;				// Best code to use for phase identification
-	double tt;						// Travel-time
-	boolean auto;					// True if this is an automatic pick
-	boolean isTriage;			// True if this pick was eliminated by the triage method
-	// Phase identification use:
-	TTimeData mapStat;		// Theoretical arrival with the minimum fomStat
-	double fomStat;				// Statistical figure-of-merit
+	/**
+	 * A boolean indicating whether the pick may be used in the location (external 
+	 * command)
+	 */
+	private boolean externalUse;
+
+	/**
+	 * A String containing the original phase identification for this pick
+	 */
+	private String originalPhaseCode;
+
+	/**
+	 * An AuthorType object containing the author type for the original phase 
+	 * identification
+	 */
+	private AuthorType authorType;
+	
+	/**
+	 * A double containing the affinity (strength) of the original phase
+	 * identification. Higher numbers make it harder to re-identify the phase.
+	 */
+	private double originalPhaseAffinity;
+
+	/**
+	 * A String containing the current phase identification for this pick
+	 */
+	private String currentPhaseCode;
+
+	/**
+	 * A double containing the observed-theoretical arrival time in seconds for the
+	 * current phase identification
+	 */	
+	private double residual;
+
+	/**
+	 * A boolean indicating whether the pick is currently used in the location.
+	 */
+	private boolean isUsed;
+
+	/**
+	 * A double containing the pick weight in the location for the current phase 
+	 * identification
+	 */	
+	private double weight;	
+
+	/**
+	 * A double containing the pick data importance to the location for the 
+	 * current phase identification
+	 */	
+	private double importance;
+
+	/**
+	 * A String containing the best code to use for phase identification
+	 */
+	private String bestPhaseCode;		
+
+	/**
+	 * A double containing the current pick travel time in seconds
+	 */	
+	private double travelTime;				
+	
+	/**
+	 * A boolean flag indicating whether the pick was automaticially made
+	 */
+	private boolean isAutomatic;
+
+	/**
+	 * A boolean flag indicating this pick was eliminated by the triage method
+	 */
+	private boolean isTriage;
+	
+	/**
+	 * A TTimeData object holding the theoretical arrival with the minimum 
+	 * statisticalFoM
+	 */
+	private TTimeData statisticalMinFoMTT;
+
+	/**
+	 * A double containing the current statistical figure-of-merit
+	 */	
+	private double statisticalFoM;			
+
 	boolean forceStat;		// If true, force the association
 	TTimeData mapAlt;			// Theoretical arrival with the minimum fomAlt
 	double fomAlt;				// Alternate figure-of-merit
@@ -125,39 +188,261 @@ public class Pick implements Comparable<Pick> {
   }	
 
 	/**
+   * Function to get the pick external use flag
+   * 
+   * @return A boolean indicating whether the pick should be used or not 
+	 * (external) command
+   */
+  public boolean getExternalUse() {
+    return externalUse;
+  }	
+	
+	/**
+   * Function to return the original phase code for the pick 
+   * 
+   * @return A String containing  the original phase code for the pick 
+   */
+  public String getOriginalPhaseCode() {
+    return originalPhaseCode;
+  }	
+
+	/**
+   * Function to get the pick author type
+   * 
+   * @return A AuthorType object holding the pick author type
+	 */
+  public AuthorType getAuthorType() {
+    return authorType;
+  }
+
+	/**
+   * Function to get the original phase affinity
+   * 
+   * @return A double containing the affinity (strength) of the original 
+	 * 				 phase identification. Higher numbers make it harder to re-identify 
+	 * 				 the phase.
+   */
+  public double getOriginalPhaseAffinity() {
+    return originalPhaseAffinity;
+  }	
+
+	/**
+   * Function to return the current phase code for the pick 
+   * 
+   * @return A String containing the current phase code for the pick 
+   */
+  public String getCurrentPhaseCode() {
+    return currentPhaseCode;
+  }	
+
+	/**
+   * Function to get the observed-theoretical arrival time in seconds
+   * 
+   * @return A double containing the observed-theoretical arrival time in 
+	 * 				 seconds for the current phase identification
+   */
+  public double getResidual() {
+    return residual;
+  }	
+
+	/**
+   * Function to get whether the pick is currently used
+   * 
+   * @return A boolean indicating whether the pick is currenty used or not
+   */
+  public boolean getIsUsed() {
+    return isUsed;
+  }	
+	
+	/**
+   * Function to get the pick weight in the location
+   * 
+   * @return A double containing the pick weight in the location for the current 
+	 * 				 phase identification
+   */
+  public double getWeight() {
+    return weight;
+  }	
+
+	/**
+   * Function to get the pick data importance to the location
+   * 
+   * @return A double containing the pick data importance to the location for the 
+	 * 				 current phase identification
+   */
+  public double getImportance() {
+    return importance;
+  }	
+
+	/**
+   * Function to return the best phase code for the pick 
+   * 
+   * @return A String containing the best phase code for the pick 
+   */
+  public String getBestPhaseCode() {
+    return bestPhaseCode;
+  }	
+
+	/**
+   * Function to get the current pick travel time in seconds
+   * 
+   * @return A double containing the current pick travel time in seconds
+   */
+  public double getTravelTime() {
+    return travelTime;
+  }	
+
+	/**
+   * Function to get whether the pick was automaticially made
+   * 
+   * @return A boolean flag indicating whether the pick was automaticially made
+   */
+  public boolean getIsAutomatic() {
+    return isAutomatic;
+  }	
+	
+	/**
+   * Function to get whether the pick was eliminated by the triage method
+   * 
+   * @return A boolean flag indicating whether the pick was eliminated by the 
+	 * 			   triage method
+   */
+  public boolean getIsTriage() {
+    return isTriage;
+  }	
+	
+	/**
+   * Function to get the theoretical arrival object with the minimum 
+	 * statisticalFoM
+   * 
+   * @return A TTimeData object holding the theoretical arrival with the minimum 
+	 * 				 statisticalFoM
+   */
+  public TTimeData getStatisticalMinFoMTT() {
+    return statisticalMinFoMTT;
+	}	
+	
+	/**
+   * Function to get the current statistical figure-of-merit
+   * 
+   * @return A double containing the current statistical figure-of-merit
+   */
+  public double getStatisticalFoM() {
+    return statisticalFoM;
+  }	
+	
+
+
+
+
+
+	/**
+   * Function to set the observed-theoretical arrival time in seconds
+   * 
+   * @param residual A double containing the observed-theoretical arrival time in 
+	 * 				 				 seconds for the current phase identification
+   */
+  public void setResidual(double residual) {
+    this.residual = residual;
+  }	
+
+	/**
+   * Function to set whether the pick is currently used
+   * 
+   * @param isUsed A boolean indicating whether the pick is currenty used or not
+   */
+  public void setIsUsed(boolean isUsed) {
+    this.isUsed = isUsed;
+  }	
+
+	/**
+   * Function to set the pick weight in the location
+   * 
+   * @param weight A double containing the pick weight in the location for the 
+	 * 							 current phase identification
+   */
+  public void setWeight(double weight) {
+    this.weight = weight;
+  }	
+
+	/**
+   * Function to set the pick data importance to the location
+   * 
+   * @param importance A double containing the pick data importance to the 
+	 * 									 location for the current phase identification
+   */
+  public void setImportance(double importance) {
+    this.importance = importance;
+  }	
+
+	/**
+   * Function to set whether the pick was eliminated by the triage method
+   * 
+   * @param isTriage A boolean flag indicating whether the pick was eliminated
+	 * 								 by the triage method
+   */
+  public void setIsTriage(boolean isTriage) {
+    this.isTriage = isTriage;
+  }	
+
+
+	/**
+   * Function to set the theoretical arrival object with the minimum 
+	 * statisticalFoM
+   * 
+   * @param statisticalMinFoMTT A TTimeData object holding the theoretical 
+	 * 														arrival with the minimum statisticalFoM
+   */
+  public void setStatisticalMinFoMTT(TTimeData statisticalMinFoMTT) {
+    this.statisticalMinFoMTT = statisticalMinFoMTT;
+	}	
+	
+	/**
+   * Function to set the current statistical figure-of-merit
+   * 
+   * @param statisticalFoM A double containing the current statistical 
+	 * figure-of-merit
+   */
+  public void setStatisticalFoM(double statisticalFoM) {
+    this.statisticalFoM = statisticalFoM;
+  }	
+
+	/**
 	 * Create the pick with just enough information to be useful.
 	 * 
 	 * @param station Station information
 	 * @param channelCode Channel code
 	 * @param arrivalTime Arrival time in seconds since the epoch
-	 * @param cmndUse If true, an analyst wants the pick to be used
-	 * @param phCode Current locator or associator phase code
+	 * @param externalUse If true, an analyst wants the pick to be used
+	 * @param currentPhaseCode Current locator or associator phase code
 	 */
 	public Pick(Station station, String channelCode, double arrivalTime, 
-			boolean cmndUse, String phCode) {
+			boolean externalUse, String currentPhaseCode) {
 		// Remember the inputs.
 		this.station = station;
 		this.channelCode = channelCode;
 		this.arrivalTime = arrivalTime;
-		this.cmndUse = cmndUse;
-		this.phCode = phCode;
+		this.externalUse = externalUse;
+		this.currentPhaseCode = currentPhaseCode;
 		// Set defaults.
 		pickID = "0";
 		quality = 0d;
-		obsCode = null;
-		authType = null;
-		affinity = 3d;
-		used = cmndUse;
+		originalPhaseCode = null;
+		authorType = null;
+		originalPhaseAffinity = 3d;
+		isUsed = externalUse;
 		residual = Double.NaN;
 		weight = 0d;
 		importance = 0d;
+
 		// Initialize internal variables too.
-		idCode = phCode;
-		tt = Double.NaN;
-		auto = true;
+		bestPhaseCode = currentPhaseCode;
+		travelTime = Double.NaN;
+		isAutomatic = true;
 		surfWave = false;
 		isTriage = false;
 		initFoM();
+
 		// Create an empty weighted residual.
 		wRes = new Wresidual();
 	}
@@ -168,31 +453,31 @@ public class Pick implements Comparable<Pick> {
 	 * @param sourceID User created string identifying the server user
 	 * @param pickID Data base ID (convenience for Hydra)
 	 * @param quality Pick uncertainty in seconds (not currently used)
-	 * @param obsCode Original pick identification (associator or analyst)
-	 * @param authType Type (e.g., human or auto) of the original phase 
+	 * @param originalPhaseCode Original pick identification (associator or analyst)
+	 * @param authorType Type (e.g., human or auto) of the original phase 
 	 * identification
-	 * @param affinity Higher numbers make it harder to re-identify the phase
+	 * @param originalPhaseAffinity Higher numbers make it harder to re-identify the phase
 	 */
 	public void addIdAids(String sourceID, String pickID, double quality, 
-			String obsCode, AuthorType authType, double affinity) {
+			String originalPhaseCode, AuthorType authorType, double originalPhaseAffinity) {
 		this.sourceID = sourceID;
 		this.pickID = pickID;
 		this.quality = quality;
-		this.obsCode = obsCode;
-		this.authType = authType;
-		this.affinity = authType.affinity(affinity);
+		this.originalPhaseCode = originalPhaseCode;
+		this.authorType = authorType;
+		this.originalPhaseAffinity = authorType.affinity(originalPhaseAffinity);
 		// Use an enum for the author type.
-		switch(authType) {
+		switch(authorType) {
 			case CONTRIB_HUMAN: case LOCAL_HUMAN:
-				phCode = obsCode;
-				idCode = obsCode;
-				auto = false;
+				currentPhaseCode = originalPhaseCode;
+				bestPhaseCode = originalPhaseCode;
+				isAutomatic = false;
 				break;
 			default:
-				idCode = phCode;
+				bestPhaseCode = currentPhaseCode;
 				break;
 		}
-    if ((idCode.equals("Lg") || idCode.equals("LR")) && !auto) 
+    if ((bestPhaseCode.equals("Lg") || bestPhaseCode.equals("LR")) && !isAutomatic) 
     	surfWave = true;
 	}
 	
@@ -203,18 +488,18 @@ public class Pick implements Comparable<Pick> {
 	 * @param hypo Hypocenter information
 	 */
 	public void updateTt(Hypocenter hypo) {
-		tt = arrivalTime-hypo.getOriginTime();
+		travelTime = arrivalTime-hypo.getOriginTime();
 	}
 	
 	/**
 	 * Update the phase code.  This abbreviated version is only used for 
 	 * the initial phase ID.
 	 * 
-	 * @param phCode New phase code
+	 * @param currentPhaseCode New phase code
 	 */
-	public void updateID(String phCode) {
-		this.phCode = phCode;
-		if(auto) idCode = phCode;
+	public void updateID(String currentPhaseCode) {
+		this.currentPhaseCode = currentPhaseCode;
+		if(isAutomatic) bestPhaseCode = currentPhaseCode;
 	}
 	
 	/**
@@ -234,38 +519,38 @@ public class Pick implements Comparable<Pick> {
 		boolean changed = false, reID = false;
 		String ttCode;
 		
-		if(mapStat != null) {
+		if(statisticalMinFoMTT != null) {
 			// We have an identification.  Set up some key variables.
-			ttCode = mapStat.getPhCode();
-			if(!phCode.equals(ttCode)) reID = true;
+			ttCode = statisticalMinFoMTT.getPhCode();
+			if(!currentPhaseCode.equals(ttCode)) reID = true;
 			if(LocUtil.deBugLevel > 0 && reID) System.out.format("=====> Phase "+
-					"re-ID: %-5s %-8s -> %-8s\n", station.staID.staCode, phCode, ttCode);
-			phCode = ttCode;
-			if(auto) idCode = phCode;
-			if(!phCode.equals("LR")) {
-				residual = tt-mapStat.getTT();
+					"re-ID: %-5s %-8s -> %-8s\n", station.staID.staCode, currentPhaseCode, ttCode);
+			currentPhaseCode = ttCode;
+			if(isAutomatic) bestPhaseCode = currentPhaseCode;
+			if(!currentPhaseCode.equals("LR")) {
+				residual = travelTime-statisticalMinFoMTT.getTT();
 			} else {
 				residual = 0d;
 			}
 			// If this phase is still being used, set it for processing.
-			if(used && mapStat.canUse() && (fomStat <= 
-					LocUtil.computeValidityLimit(mapStat.getSpread()) || forceStat)) {
-				if(reWeight) weight = 1d/Math.max(mapStat.getSpread(), 0.2d);
+			if(isUsed && statisticalMinFoMTT.canUse() && (statisticalFoM <= 
+					LocUtil.computeValidityLimit(statisticalMinFoMTT.getSpread()) || forceStat)) {
+				if(reWeight) weight = 1d/Math.max(statisticalMinFoMTT.getSpread(), 0.2d);
 				// Add it to weighted residual storage.
 				wRes.reInit(this, residual, weight, false, 
-						LocUtil.computeTTLatDerivative(mapStat.getDTdD(), azimuth), 
-						LocUtil.computeTTLonDerivative(mapStat.getDTdD(), azimuth), mapStat.getDTdZ());
+						LocUtil.computeTTLatDerivative(statisticalMinFoMTT.getDTdD(), azimuth), 
+						LocUtil.computeTTLonDerivative(statisticalMinFoMTT.getDTdD(), azimuth), statisticalMinFoMTT.getDTdZ());
 				wResiduals.add(wRes);
 				if(reID) changed = true;
 			} else {
 				// Otherwise, see if it was used before.
-				if(used) {
+				if(isUsed) {
 					if(LocUtil.deBugLevel > 0) System.out.format("=====> Phase no "+
 							"use set (wt): %-5s %-8s %5b %5.2f\n", station.staID.staCode, 
-							phCode, mapStat.canUse(), mapStat.getSpread());
-					used = false;
+							currentPhaseCode, statisticalMinFoMTT.canUse(), statisticalMinFoMTT.getSpread());
+					isUsed = false;
 				  // Prevents initially identified first arrivals from coming back.
-					if(first) cmndUse = false; 
+					if(first) externalUse = false; 
 					changed = true;
 				}
 				weight = 0d;
@@ -273,27 +558,27 @@ public class Pick implements Comparable<Pick> {
 			
 		} else {
 			// We don't have an identification.
-			if(LocUtil.deBugLevel > 0 && !phCode.equals("")) {
+			if(LocUtil.deBugLevel > 0 && !currentPhaseCode.equals("")) {
 				System.out.format("=====> Phase re-ID: %-5s %-8s -> null\n", 
-						station.staID.staCode, phCode);
+						station.staID.staCode, currentPhaseCode);
 			}
 			// See if it was used before.
-			if(used) {
+			if(isUsed) {
 				if(LocUtil.deBugLevel > 0) System.out.format("=====> Phase no "+
-						"use set (no ID): %-5s %-8s\n", station.staID.staCode, phCode);
-				used = false;
+						"use set (no ID): %-5s %-8s\n", station.staID.staCode, currentPhaseCode);
+				isUsed = false;
 			  // Prevents initially identified first arrivals from coming back.
-				if(first) cmndUse = false; 
+				if(first) externalUse = false; 
 				changed = true;
 			}
 			// Close it out.
-			phCode = "";
+			currentPhaseCode = "";
 			residual = 0d;
 			weight = 0d;
 		}
 		if(LocUtil.deBugLevel > 1) System.out.format("  IDphas: %-5s %-8s "+
-				"%6.2f %7.4f %b\n", station.staID.staCode, phCode, residual, weight, 
-				used);
+				"%6.2f %7.4f %b\n", station.staID.staCode, currentPhaseCode, residual, weight, 
+				isUsed);
 		return changed;
 	}
 	
@@ -301,8 +586,8 @@ public class Pick implements Comparable<Pick> {
 	 * Initialize figure-of-merit variables.
 	 */
 	public void initFoM() {
-		fomStat = 0d;
-		mapStat = null;
+		statisticalFoM = 0d;
+		statisticalMinFoMTT = null;
 		forceStat = false;
 		fomAlt = TauUtil.DMAX;
 		mapAlt = null;
@@ -312,11 +597,11 @@ public class Pick implements Comparable<Pick> {
 	 * Set the statistical figure-of-merit variables.
 	 * 
 	 * @param tTime Travel-time information
-	 * @param fomStat Figure-of-merit metric
+	 * @param statisticalFoM Figure-of-merit metric
 	 */
-	public void setFomStat(TTimeData tTime, double fomStat) {
-		mapStat = tTime;
-		this.fomStat = fomStat;
+	public void setFomStat(TTimeData tTime, double statisticalFoM) {
+		statisticalMinFoMTT = tTime;
+		this.statisticalFoM = statisticalFoM;
 	}
 	
 	/**
@@ -336,7 +621,7 @@ public class Pick implements Comparable<Pick> {
 	@Override
 	public String toString() {
 		return String.format("%-5s %-8s %6.2f %b", station.staID.staCode, 
-				phCode, residual, used);
+				currentPhaseCode, residual, isUsed);
 	}
 
 	/**
@@ -345,8 +630,12 @@ public class Pick implements Comparable<Pick> {
 	@Override
 	public int compareTo(Pick pick) {
 		// Sort into arrival time order.
-		if(this.tt < pick.tt) return -1;
-		else if(this.tt == pick.tt) return 0;
-		else return +1;
+		if(this.travelTime < pick.travelTime) {
+			return -1;
+		}	else if(this.travelTime == pick.travelTime) {
+			return 0;
+		}	else {
+			return +1;
+		}
 	}
 }
