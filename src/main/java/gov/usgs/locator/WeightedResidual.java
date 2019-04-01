@@ -5,16 +5,15 @@ import java.util.Arrays;
 import gov.usgs.traveltime.TauUtil;
 
 /**
- * This weighted residuals storage combines the residuals and weights 
- * for picks and the Bayesian depth, while providing storage for the 
- * dispersion calculation and the spatial derivatives.  Note that the 
- * residuals and weights are kept separate as some calculations depend 
- * only on the residuals.
+ * The WeightedResidual class combines the residuals and weights for picks and 
+ * the Bayesian depth, while providing storage for the dispersion calculation 
+ * and the spatial derivatives.  Note that the residuals and weights are kept 
+ * separate as some calculations depend only on the residuals.
  * 
  * @author Ray Buland
  *
  */
-public class Wresidual implements Comparable<Wresidual>{
+public class WeightedResidual implements Comparable<WeightedResidual>{
 	boolean isDepth;		// True if this is the Bayesian depth residual
 	double residual;		// Residual in seconds for picks or kilometers for depth
 	double estResidual;	// Linearly estimated residual
@@ -28,7 +27,7 @@ public class Wresidual implements Comparable<Wresidual>{
 	/**
 	 * Create the object with no initial information.
 	 */
-	public Wresidual() {
+	public WeightedResidual() {
 		estResidual = 0d;
 		dNorm = Double.NaN;
 		sortValue = Double.NaN;
@@ -49,7 +48,7 @@ public class Wresidual implements Comparable<Wresidual>{
 	 * @param dTdDepth Derivative of travel time with respect to depth 
 	 * in seconds/kilometers
 	 */
-	public Wresidual(Pick pick, double residual, double weight, boolean isDepth, 
+	public WeightedResidual(Pick pick, double residual, double weight, boolean isDepth, 
 			double dTdLat, double dTdLon, double dTdDepth) {
 		this.pick = pick;
 		this.residual = residual;
@@ -206,7 +205,7 @@ public class Wresidual implements Comparable<Wresidual>{
 	 * @param wRes Projected weighted residual
 	 * @param v Eigenvector element
 	 */
-	public void proj(Wresidual wRes, double v) {
+	public void proj(WeightedResidual wRes, double v) {
 		residual += v*wRes.residual;
 		for(int j=0; j<deriv.length; j++) {
 			deriv[j] += v*wRes.deriv[j];
@@ -219,7 +218,7 @@ public class Wresidual implements Comparable<Wresidual>{
 	 * @param wRes Projected weighted residual
 	 * @param v Eigenvector element
 	 */
-	public void estProj(Wresidual wRes, double v) {
+	public void estProj(WeightedResidual wRes, double v) {
 		estResidual += v*wRes.estResidual;
 	}
 	
@@ -252,7 +251,7 @@ public class Wresidual implements Comparable<Wresidual>{
 	 * @param wRes Weighted residual information to correlate against
 	 * @return Correlation between the horizontal derivatives of two picks
 	 */
-	public double derivCorr(Wresidual wRes) {
+	public double derivCorr(WeightedResidual wRes) {
 		return (deriv[0]*wRes.deriv[0]+deriv[1]*wRes.deriv[1])/
 				(derivNorm()*wRes.derivNorm());
 	}
@@ -315,7 +314,7 @@ public class Wresidual implements Comparable<Wresidual>{
 	 * Sort so that the current sort values are in ascending order.
 	 */
 	@Override
-	public int compareTo(Wresidual wRes) {
+	public int compareTo(WeightedResidual wRes) {
 		// Sort into value order.
 		if(this.sortValue < wRes.sortValue) return -1;
 		else if(this.sortValue > wRes.sortValue) return +1;

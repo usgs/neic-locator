@@ -200,12 +200,12 @@ public class PickGroup {
    * 
    * @param reweightResiduals A boolean indicating whether to recompute the 
    *                          residual weights
-   * @param weightedResiduals ArrayList of Wresidual objects containing the 
+   * @param weightedResiduals ArrayList of WeightedResidual objects containing the 
    *                          weighted residuals
    * @return True if any used pick in the group has changed significantly
    */
   public boolean updatePhaseIdentifications(boolean reweightResiduals, 
-      ArrayList<Wresidual> weightedResiduals) {
+      ArrayList<WeightedResidual> weightedResiduals) {
     boolean isChanged = false;
     
     if (picks.get(0).updatePhaseIdentification(true, reweightResiduals, azimuth, 

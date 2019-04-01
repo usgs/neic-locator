@@ -39,17 +39,17 @@ public class CloseOut {
   private Hypocenter hypo;
 
   /** 
-   * An ArrayList of Wresidual objects containing the raw (sorted) weighted 
+   * An ArrayList of WeightedResidual objects containing the raw (sorted) weighted 
    * residuals of the event picks to perform closeout calculations with.
    */
-  private ArrayList<Wresidual> rawWeightedResiduals;
+  private ArrayList<WeightedResidual> rawWeightedResiduals;
 
   /** 
-   * An ArrayList of Wresidual objects containing the projected weighted 
+   * An ArrayList of WeightedResidual objects containing the projected weighted 
    * residuals of the event picks to perform closeout calculations with when 
    * decorrelating.
    */
-  private ArrayList<Wresidual> projectedWeightedResiduals;
+  private ArrayList<WeightedResidual> projectedWeightedResiduals;
 
   /** 
    * An RankSumEstimator objects containing rank-sum exstimator of the event to 

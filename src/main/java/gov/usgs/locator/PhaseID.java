@@ -39,10 +39,10 @@ public class PhaseID {
   private AuxTtRef auxiliaryTTInfo;
 
   /** 
-   * An ArrayList of Wresidual objects containing the weighted residuals of the 
+   * An ArrayList of WeightedResidual objects containing the weighted residuals of the 
    * event picks.
    */  
-  private ArrayList<Wresidual> weightedResiduals;
+  private ArrayList<WeightedResidual> weightedResiduals;
 
   /**
    * A PickGroup object, which holds the current pick group being processed by 
@@ -199,7 +199,7 @@ public class PhaseID {
     }
 
     // Add the Bayesian depth.
-    weightedResiduals.add(new Wresidual(null, hypo.getBayesianDepthResidual(), 
+    weightedResiduals.add(new WeightedResidual(null, hypo.getBayesianDepthResidual(), 
         hypo.getBayesianDepthWeight(), true, 0d, 0d, 1d));
     
     // Save a copy of weightedResiduals in the original order.

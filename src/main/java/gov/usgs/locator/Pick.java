@@ -150,9 +150,9 @@ public class Pick implements Comparable<Pick> {
   private boolean isSurfaceWave;
 
   /** 
-   * A Wresidual object containing the weighted residual for this picks.
+   * A WeightedResidual object containing the weighted residual for this picks.
    */
-  private Wresidual weightedResidual;
+  private WeightedResidual weightedResidual;
   
   /**
    * Function to return the pick identifier.
@@ -544,7 +544,7 @@ public class Pick implements Comparable<Pick> {
     initializeFoM();
 
     // Create an empty weighted residual.
-    weightedResidual = new Wresidual();
+    weightedResidual = new WeightedResidual();
   }
   
   /**
@@ -627,7 +627,7 @@ public class Pick implements Comparable<Pick> {
    *                        recomputed
    * @param azimuth A double holding the azimuth of the station from the source 
    *                 in degrees
-   * @param weightedResiduals An ArrayList of Wresidual objects conatining the
+   * @param weightedResiduals An ArrayList of WeightedResidual objects conatining the
    *                           weighted residual information used in the Rank-Sum 
    *                           routines.
    * @return True if a used phase has changed identification or is no longer 
@@ -635,7 +635,7 @@ public class Pick implements Comparable<Pick> {
    */
   public boolean updatePhaseIdentification(boolean isFirstPhase, 
       boolean shouldReweight, double azimuth, 
-      ArrayList<Wresidual> weightedResiduals) {
+      ArrayList<WeightedResidual> weightedResiduals) {
     boolean idChanged = false;
     
     if (ttStatisticalMinFoM != null) {

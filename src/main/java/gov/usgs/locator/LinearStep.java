@@ -38,10 +38,10 @@ public class LinearStep {
   private Hypocenter hypo;
     
   /** 
-   * An ArrayList of Wresidual objects containing the raw (sorted) weighted 
+   * An ArrayList of WeightedResidual objects containing the raw (sorted) weighted 
    * residuals of the picks.
    */
-  private ArrayList<Wresidual> rawWeightedResiduals;
+  private ArrayList<WeightedResidual> rawWeightedResiduals;
 
   /**
    * A RankSumEstimator object used for the rank-sum estimation of the raw picks.

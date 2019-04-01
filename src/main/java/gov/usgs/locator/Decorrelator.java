@@ -54,22 +54,22 @@ public class Decorrelator {
   private Event event;
 
   /** 
-   * An ArrayList of Wresidual objects containing the original weighted
+   * An ArrayList of WeightedResidual objects containing the original weighted
    * residuals.
    */
-  private ArrayList<Wresidual> weightedResidualsOrg;
+  private ArrayList<WeightedResidual> weightedResidualsOrg;
 
   /** 
-   * An ArrayList of Wresidual objects containing the projected weighted 
+   * An ArrayList of WeightedResidual objects containing the projected weighted 
    * residuals.
    */
-  private ArrayList<Wresidual> weightedResidualsProj;
+  private ArrayList<WeightedResidual> weightedResidualsProj;
 
   /** 
-   * An ArrayList of Wresidual objects containing the projected weighted 
+   * An ArrayList of WeightedResidual objects containing the projected weighted 
    * residuals in their original order.
    */
-  private ArrayList<Wresidual> weightedResidualsProjOrg;
+  private ArrayList<WeightedResidual> weightedResidualsProjOrg;
 
   /** 
    * A Jama.Matrix object containing the final covariance matrix.
@@ -120,7 +120,7 @@ public class Decorrelator {
    */
   @SuppressWarnings("unchecked")
   public void projectPicks() {
-    Wresidual weightedResiduals;
+    WeightedResidual weightedResiduals;
     
     // Get rid of triaged picks.
     weightedResidualsOrg = event.getOriginalWeightedResiduals();
@@ -135,7 +135,7 @@ public class Decorrelator {
       weightedResidualsProj.clear();
     }
     for (int i = numProjectedData; i < numPickData; i++) {
-      weightedResiduals = new Wresidual(null, 0d, 
+      weightedResiduals = new WeightedResidual(null, 0d, 
           projectedWeights[i - numProjectedData], false, 0d, 0d, 0d);
       
       for (int j = 0; j < numPickData; j++) {
@@ -167,7 +167,7 @@ public class Decorrelator {
     // Because the weighted residuals get sorted, we need a copy in 
     // the original order to project the estimated residuals.
     weightedResidualsProjOrg = 
-      (ArrayList<Wresidual>)weightedResidualsProj.clone();
+      (ArrayList<WeightedResidual>)weightedResidualsProj.clone();
     if (LocUtil.deBugLevel > 2) {
       event.printWeightedResiduals("Proj", true);
     }
@@ -178,7 +178,7 @@ public class Decorrelator {
    * decorrelated virtual estimated residuals.
    */
   public void projectEstimatedPicks() {
-    Wresidual weightedResiduals;
+    WeightedResidual weightedResiduals;
     
     // Project the pick data.
     if (weightedResidualsProj.size() > 0) {
@@ -424,11 +424,11 @@ public class Decorrelator {
    * wreak havoc on the location.
    * 
    * @param index An int containing the index of the eigenvector
-   * @param weightedResiduals A Wresidual object containing the weighted 
+   * @param weightedResiduals A WeightedResidual object containing the weighted 
    *                          residual storage for the projected pick
    * @return True if the sign is OK, false otherwise
    */
-  private boolean checkEigenSigns(int index, Wresidual weightedResiduals) {
+  private boolean checkEigenSigns(int index, WeightedResidual weightedResiduals) {
     double corrMax = -1d;
     double corrMin = 1d;
     double depthSum = 0d;

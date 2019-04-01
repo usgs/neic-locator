@@ -47,19 +47,19 @@ public class RankSumEstimator {
   private double[] scores;
 
   /** 
-   * An ArrayList of Wresidual objects containing the weighted residuals of the 
+   * An ArrayList of WeightedResidual objects containing the weighted residuals of the 
    * picks.
    */  
-  private ArrayList<Wresidual> weightedResiduals;
+  private ArrayList<WeightedResidual> weightedResiduals;
   
   /**
    * The RankSumEstimator constructor. Initializes various cached variables, 
    * and stores the weighted residuals.
    * 
-   * @param weightedResiduals An ArrayList of Wresidual objects containing the 
+   * @param weightedResiduals An ArrayList of WeightedResidual objects containing the 
    *                           weighted residuals of the picks.
    */
-  public RankSumEstimator(ArrayList<Wresidual> weightedResiduals) {
+  public RankSumEstimator(ArrayList<WeightedResidual> weightedResiduals) {
     lastIndex = -1;
     halfIndex = -1;
     weightedResidualsLength = -1;
@@ -254,7 +254,7 @@ public class RankSumEstimator {
     // We have to process the weighted residuals in sort order for the 
     // scores to get the right direction.
     for (int j = 0; j < weightedResiduals.size(); j++) {
-      Wresidual weightedResidual = weightedResiduals.get(j);
+      WeightedResidual weightedResidual = weightedResiduals.get(j);
 
       for (int i = 0; i < degreesOfFreedom; i++) {
         stepUnitVector[i] += scores[j] * weightedResidual.weight

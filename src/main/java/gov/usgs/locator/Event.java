@@ -210,22 +210,22 @@ public class Event {
   private ArrayList<gov.usgs.locator.Pick> pickList;
   
   /** 
-   * An ArrayList of Wresidual objects containing the raw (sorted) weighted 
+   * An ArrayList of WeightedResidual objects containing the raw (sorted) weighted 
    * residuals of the picks.
    */
-  private ArrayList<Wresidual> rawWeightedResiduals = null;
+  private ArrayList<WeightedResidual> rawWeightedResiduals = null;
 
   /** 
-   * An ArrayList of Wresidual objects containing the original weighted 
+   * An ArrayList of WeightedResidual objects containing the original weighted 
    * residuals of the picks.
    */
-  private ArrayList<Wresidual> originalWeightedResiduals = null;
+  private ArrayList<WeightedResidual> originalWeightedResiduals = null;
 
   /** 
-   * An ArrayList of Wresidual objects containing the projected weighted 
+   * An ArrayList of WeightedResidual objects containing the projected weighted 
    * residuals of the picks.
    */
-  private ArrayList<Wresidual> projectedWeightedResiduals = null;
+  private ArrayList<WeightedResidual> projectedWeightedResiduals = null;
   
 
   /**
@@ -425,30 +425,30 @@ public class Event {
   /**
    * Function to return the event list of raw weighted residuals.
    * 
-   * @return An ArrayList of Wresidual objects containing the raw weighted 
+   * @return An ArrayList of WeightedResidual objects containing the raw weighted 
    *         residuals
    */
-  public ArrayList<Wresidual> getRawWeightedResiduals() {
+  public ArrayList<WeightedResidual> getRawWeightedResiduals() {
     return rawWeightedResiduals;
   }
 
   /**
    * Function to return the event list of original weighted residuals.
    * 
-   * @return An ArrayList of Wresidual objects containing the original weighted 
+   * @return An ArrayList of WeightedResidual objects containing the original weighted 
    *         residuals
    */
-  public ArrayList<Wresidual> getOriginalWeightedResiduals() {
+  public ArrayList<WeightedResidual> getOriginalWeightedResiduals() {
     return originalWeightedResiduals;
   }
 
   /**
    * Function to return the event list of projected weighted residuals.
    * 
-   * @return An ArrayList of Wresidual objects containing the projected weighted 
+   * @return An ArrayList of WeightedResidual objects containing the projected weighted 
    *         residuals
    */
-  public ArrayList<Wresidual> getProjectedWeightedResiduals() {
+  public ArrayList<WeightedResidual> getProjectedWeightedResiduals() {
     return projectedWeightedResiduals;
   }
   
@@ -587,7 +587,7 @@ public class Event {
     pickGroupList = new ArrayList<PickGroup>();
     pickList = new ArrayList<gov.usgs.locator.Pick>();
     hypoAuditList = new ArrayList<HypoAudit>();
-    rawWeightedResiduals = new ArrayList<Wresidual>();
+    rawWeightedResiduals = new ArrayList<WeightedResidual>();
     rawRankSumEstimator = new RankSumEstimator(rawWeightedResiduals);
   }
   
@@ -758,7 +758,7 @@ public class Event {
 
     // If we're decorrelating, instantiate some more classes.
     if (useDecorrelation) {
-      projectedWeightedResiduals = new ArrayList<Wresidual>();
+      projectedWeightedResiduals = new ArrayList<WeightedResidual>();
       projectedRankSumEstimator = new RankSumEstimator(projectedWeightedResiduals);
       decorrelator = new Decorrelator(this);
     }
@@ -888,7 +888,7 @@ public class Event {
   public void saveWeightedResiduals() {
     if (useDecorrelation) {
       originalWeightedResiduals = 
-          (ArrayList<Wresidual>) rawWeightedResiduals.clone();
+          (ArrayList<WeightedResidual>) rawWeightedResiduals.clone();
     }
   }
   

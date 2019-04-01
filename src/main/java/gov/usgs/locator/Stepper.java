@@ -36,7 +36,7 @@ public class Stepper {
   /**
    * A ZoneStats object containing earthquake statistics by geographic location.
    **/ 
-  private ZoneStats zones;
+  private ZoneStats zoneStats;
 
   /**
    * A PhaseID object containing the phase identification logic.
@@ -90,7 +90,7 @@ public class Stepper {
     hypo = event.getHypo();
     this.auxLoc = auxLoc;
     cratons = auxLoc.getCratons();
-    zones = auxLoc.getZoneStats();
+    zoneStats = auxLoc.getZoneStats();
     this.phaseIDLogic = phaseIDLogic;
     rawRankSumEstimator = event.getRawRankSumEstimator();
     projectedRankSumEstimator = event.getProjectedRankSumEstimator();
@@ -395,9 +395,9 @@ public class Stepper {
 
     if (!event.getIsDepthManual()) {
       // Update the Bayesian depth if it wasn't set by the analyst.
-      double bayesDepth = zones.bayesDepth(hypo.getLatitude(), 
+      double bayesDepth = zoneStats.getBayesDepth(hypo.getLatitude(), 
           hypo.getLongitude());
-      double bayesSpread = zones.bayesSpread();
+      double bayesSpread = zoneStats.getBayesSpread();
       hypo.updateBayes(bayesDepth, bayesSpread);
     }
     if (LocUtil.deBugLevel > 0) {

@@ -42,10 +42,10 @@ public class InitialPhaseID {
   private PhaseID phaseID;
 
   /** 
-   * An ArrayList of Wresidual objects containing the weighted residuals of the 
+   * An ArrayList of WeightedResidual objects containing the weighted residuals of the 
    * event picks.
    */  
-  private ArrayList<Wresidual> weightedResiduals;
+  private ArrayList<WeightedResidual> weightedResiduals;
   
   /**
    * A RankSumEstimator object used for the rank-sum estimation of the picks to 
@@ -188,7 +188,7 @@ public class InitialPhaseID {
                 }
               }
               
-              weightedResiduals.add(new Wresidual(pick, pick.getResidual(), 
+              weightedResiduals.add(new WeightedResidual(pick, pick.getResidual(), 
                   pick.getWeight(), false, 0d, 0d, 0d));
 
               if (LocUtil.deBugLevel > 1) {
@@ -204,7 +204,7 @@ public class InitialPhaseID {
     }
     
     // Add in the Bayesian depth because the R-estimator code expects it.
-    weightedResiduals.add(new Wresidual(null, hypo.getBayesianDepthResidual(), 
+    weightedResiduals.add(new WeightedResidual(null, hypo.getBayesianDepthResidual(), 
         hypo.getBayesianDepthWeight(), true, 0d, 0d, 0d));
     
     // Update the hypocenter origin time based on the residuals and weights 
