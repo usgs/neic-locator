@@ -47,7 +47,7 @@ public class AuxLocRef {
   public static final String DEFAULT_MODEL_PATH = "./models/";
 
   /**
-   * Path for model files.
+   * A String containing the path for the model files.
    */
   public String modelPath;      
 

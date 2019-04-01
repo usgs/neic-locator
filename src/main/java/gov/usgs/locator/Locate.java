@@ -98,7 +98,7 @@ public class Locate {
       if (event.getIsLocationHeld()) {
         // Reidentify and reweight phases.
         LocUtil.useDecorrelation = event.getUseDecorrelation();
-        stepper.setInitDir(0.1d, 1d, true, true);
+        stepper.doPhaseIdentification(0.1d, 1d, true, true);
         close.computeFinalStatistics(LocStatus.HELD_HYPOCENTER);
         return LocStatus.SUCCESS;
       }
@@ -117,7 +117,7 @@ public class Locate {
         switch (stage) {
           case 0:
             // Do the stage 0 phase identification (no reID, but re-weight).
-            status = stepper.setInitDir(0.01d,  5d, false, true);
+            status = stepper.doPhaseIdentification(0.01d,  5d, false, true);
             break;
 
           case 1:
@@ -134,12 +134,12 @@ public class Locate {
             LocUtil.useDecorrelation = true;
 
             // Do a looser phase identification.
-            status = stepper.setInitDir(0.1d, 1.0d, true, true);
+            status = stepper.doPhaseIdentification(0.1d, 1.0d, true, true);
             break;
 
           default:
             // Continue using a looser phase identification.
-            status = stepper.setInitDir(0.1d, 1.0d, true, true);
+            status = stepper.doPhaseIdentification(0.1d, 1.0d, true, true);
             break;
         }
 

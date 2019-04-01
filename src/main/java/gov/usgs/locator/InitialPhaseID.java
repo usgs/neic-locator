@@ -221,7 +221,7 @@ public class InitialPhaseID {
     // On a restart, reidentify all phases to be consistent with the new hypocenter.  
     // Note that we still needed the logic above to reset the origin time.
     if (event.getIsLocationRestarted()) {
-      stepper.setEnviron();
+      stepper.setLocEnvironment();
       phaseID.phaseID(0.1d, 1d, true, true);
       event.computeStationStats();
       return;
