@@ -82,14 +82,14 @@ public class RankSumEstimator {
       if (weightedResiduals.size() == 0) {
         return 0d;
       }  else if (weightedResiduals.size() == 1 
-          && weightedResiduals.get(0).isDepth) {
+          && weightedResiduals.get(0).getIsBayesianDepth()) {
         return 0d;
       }
     }
     
     // Set up for the median.
     for (int j = 0; j < weightedResiduals.size(); j++) {
-      weightedResiduals.get(j).sortRes();
+      weightedResiduals.get(j).setSortValue();
     }
 
     // Sort the travel-time residuals.
@@ -100,11 +100,12 @@ public class RankSumEstimator {
     halfIndex = weightedResidualsLength / 2;
 
     if (weightedResidualsLength % 2 == 0) {
-      residualsMedian = 0.5d * (weightedResiduals.get(halfIndex - 1).residual
-          + weightedResiduals.get(halfIndex).residual);
+      residualsMedian = 0.5d 
+          * (weightedResiduals.get(halfIndex - 1).getResidual()
+          + weightedResiduals.get(halfIndex).getResidual());
       return residualsMedian;
     } else {
-      residualsMedian = weightedResiduals.get(halfIndex).residual;
+      residualsMedian = weightedResiduals.get(halfIndex).getResidual();
       return residualsMedian;
     }
   }
@@ -125,7 +126,7 @@ public class RankSumEstimator {
     
     // Set up for the spread.
     for (int j = 0; j < weightedResiduals.size(); j++) {
-      weightedResiduals.get(j).sortSpread(residualsMedian);
+      weightedResiduals.get(j).setSortValueSpread(residualsMedian);
     }
     weightedResiduals.sort(null);
     
@@ -134,10 +135,10 @@ public class RankSumEstimator {
     halfIndex = weightedResidualsLength / 2;
     if (weightedResidualsLength % 2 == 0) {
       return LocUtil.MADNORM * 0.5d 
-          * (weightedResiduals.get(halfIndex - 1).sortValue
-          + weightedResiduals.get(halfIndex).sortValue);
+          * (weightedResiduals.get(halfIndex - 1).getSortValue()
+          + weightedResiduals.get(halfIndex).getSortValue());
     } else {
-      return LocUtil.MADNORM * weightedResiduals.get(halfIndex).sortValue;
+      return LocUtil.MADNORM * weightedResiduals.get(halfIndex).getSortValue();
     }
   }
   
@@ -147,7 +148,7 @@ public class RankSumEstimator {
    */
   public void deMedianResiduals() {
     for (int j = 0; j < weightedResiduals.size(); j++) {
-      weightedResiduals.get(j).deMedianRes(residualsMedian);
+      weightedResiduals.get(j).deMedianResiduals(residualsMedian);
     }
 
     // Since we've already demedianed, we don't need to do it again 
@@ -169,18 +170,18 @@ public class RankSumEstimator {
     // Set up the medians.
     if (weightedResidualsLength % 2 == 0) {
       for (int i = 0; i < medianValues.length; i++) {
-        medianValues[i] = 0.5d * (weightedResiduals.get(halfIndex - 1).deriv[i]
-            + weightedResiduals.get(halfIndex).deriv[i]);
+        medianValues[i] = 0.5d * (weightedResiduals.get(halfIndex - 1).getSpatialDerivatives()[i]
+            + weightedResiduals.get(halfIndex).getSpatialDerivatives()[i]);
       }
     } else {
       for (int i = 0; i < medianValues.length; i++) {
-        medianValues[i] = weightedResiduals.get(halfIndex).deriv[i];
+        medianValues[i] = weightedResiduals.get(halfIndex).getSpatialDerivatives()[i];
       }
     }
 
     // Remove the median values from the matrix.
     for (int j = 0; j < weightedResiduals.size(); j++) {
-      weightedResiduals.get(j).deMedianDeriv(medianValues);
+      weightedResiduals.get(j).deMedianDerivatives(medianValues);
     }
   }
   
@@ -199,7 +200,7 @@ public class RankSumEstimator {
     
     // Set up the computeDispersionValue.
     for (int j = 0; j < weightedResiduals.size(); j++) {
-      weightedResiduals.get(j).sortDisp(residualsMedian);
+      weightedResiduals.get(j).setSortValueDispersion(residualsMedian);
     }
 
     weightedResiduals.sort(null);
@@ -226,7 +227,7 @@ public class RankSumEstimator {
 
     // The dispersion is just a dot product.
     for (int j = 0; j < lastIndex; j++) {
-      dispersion += scores[j] * weightedResiduals.get(j).sortValue;
+      dispersion += scores[j] * weightedResiduals.get(j).getSortValue();
     }
 
     return dispersion;
@@ -257,8 +258,8 @@ public class RankSumEstimator {
       WeightedResidual weightedResidual = weightedResiduals.get(j);
 
       for (int i = 0; i < degreesOfFreedom; i++) {
-        stepUnitVector[i] += scores[j] * weightedResidual.weight
-            * weightedResidual.deDeriv[i];
+        stepUnitVector[i] += scores[j] * weightedResidual.getWeight()
+            * weightedResidual.getDeMedSpaDerivatives()[i];
       }
     }
 
@@ -278,7 +279,7 @@ public class RankSumEstimator {
       if (weightedResiduals.size() == 0) {
         return 0d;
       }  else if (weightedResiduals.size() == 1 
-          && weightedResiduals.get(0).isDepth) {
+          && weightedResiduals.get(0).getIsBayesianDepth()) {
         return 0d;
       }
     }
@@ -286,7 +287,7 @@ public class RankSumEstimator {
     // Set up for the median.
     weightedResidualsLength = 0;
     for (int j = 0; j < weightedResiduals.size(); j++) {
-      weightedResiduals.get(j).sortEst();
+      weightedResiduals.get(j).setSortValueLinEstRes();
     }
 
     // Sort the estimated travel-time residuals.
@@ -298,11 +299,12 @@ public class RankSumEstimator {
     
     if (weightedResidualsLength % 2 == 0) {
       linearEstimatesMedian = 0.5d 
-          * (weightedResiduals.get(halfIndex - 1).estResidual
-          + weightedResiduals.get(halfIndex).estResidual);
+          * (weightedResiduals.get(halfIndex - 1).getLinEstResidual()
+          + weightedResiduals.get(halfIndex).getLinEstResidual());
       return linearEstimatesMedian;
     } else {
-      linearEstimatesMedian = weightedResiduals.get(halfIndex).estResidual;
+      linearEstimatesMedian = 
+          weightedResiduals.get(halfIndex).getLinEstResidual();
       return linearEstimatesMedian;
     }
   }
@@ -312,7 +314,7 @@ public class RankSumEstimator {
    */
   public void deMedianEstResiduals() {
     for (int j = 0; j < weightedResiduals.size(); j++) {
-      weightedResiduals.get(j).deMedianEst(linearEstimatesMedian);
+      weightedResiduals.get(j).deMedianEstResiduals(linearEstimatesMedian);
     }
 
     // Since we've already demedianed, we don't need to do it again 
@@ -334,7 +336,7 @@ public class RankSumEstimator {
     
     // Set up the penalty.
     for (int j = 0; j < weightedResiduals.size(); j++) {
-      weightedResiduals.get(j).sortEstDisp(linearEstimatesMedian);
+      weightedResiduals.get(j).setSortValueLinEstDisp(linearEstimatesMedian);
     }
 
     weightedResiduals.sort(null);

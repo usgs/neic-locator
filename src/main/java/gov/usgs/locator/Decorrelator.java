@@ -125,7 +125,7 @@ public class Decorrelator {
     // Get rid of triaged picks.
     weightedResidualsOrg = event.getOriginalWeightedResiduals();
     for (int j = weightedResidualsOrg.size() - 2; j >= 0; j--) {
-      if (weightedResidualsOrg.get(j).pick.getIsTriage()) {
+      if (weightedResidualsOrg.get(j).getPick().getIsTriage()) {
         weightedResidualsOrg.remove(j);
       }
     }
@@ -139,7 +139,8 @@ public class Decorrelator {
           projectedWeights[i - numProjectedData], false, 0d, 0d, 0d);
       
       for (int j = 0; j < numPickData; j++) {
-        weightedResiduals.proj(weightedResidualsOrg.get(j), eigenvectors[j][i]);
+        weightedResiduals.project(weightedResidualsOrg.get(j), 
+            eigenvectors[j][i]);
       }
       
       if (event.getHasPhaseIdChanged()) {
@@ -186,10 +187,10 @@ public class Decorrelator {
     }
     for (int i = numProjectedData; i < numPickData; i++) {
       weightedResiduals = weightedResidualsProjOrg.get(i - numProjectedData);
-      weightedResiduals.estResidual = 0d;
+      weightedResiduals.setLinEstResidual(0d);
 
       for (int j = 0; j < numPickData; j++) {
-        weightedResiduals.estProj(weightedResidualsOrg.get(j), 
+        weightedResiduals.projectEstimated(weightedResidualsOrg.get(j), 
             eigenvectors[j][i]);
       }
 
@@ -213,11 +214,11 @@ public class Decorrelator {
     // Do the pick covariance.
     covMatrix = new double[numPickData][numPickData];
     for (int i = 0; i < numPickData; i++) {
-      pickI = weightedResidualsOrg.get(i).pick;
+      pickI = weightedResidualsOrg.get(i).getPick();
 
       for (int j = i; j < numPickData; j++) {
         covMatrix[i][j] = LocUtil.computeCovariance(pickI, 
-            weightedResidualsOrg.get(j).pick);
+            weightedResidualsOrg.get(j).getPick());
         covMatrix[j][i] = covMatrix[i][j];
       }
     }
@@ -314,7 +315,7 @@ public class Decorrelator {
       int k = keep.length - 1;
       for (int j = weightedResidualsOrg.size() - 2; j >= 0; j--) {
         if (j != keep[k]) {
-          weightedResidualsOrg.get(j).pick.setIsTriage(true);
+          weightedResidualsOrg.get(j).getPick().setIsTriage(true);
           weightedResidualsOrg.remove(j);
         } else {
           k--;
@@ -411,7 +412,7 @@ public class Decorrelator {
     }
 
     projectedWeights[numPickData - numProjectedData] = 
-        weightedResidualsOrg.get(numPickData).weight;
+        weightedResidualsOrg.get(numPickData).getWeight();
   }
   
   /**
@@ -435,10 +436,10 @@ public class Decorrelator {
     
     for (int j = 0; j < numPickData; j++) {
       if (Math.abs(eigenvectors[j][index]) > TauUtil.DTOL) {
-        double corr = weightedResidualsOrg.get(j).derivCorr(weightedResiduals);
+        double corr = weightedResidualsOrg.get(j).calculateCorrelation(weightedResiduals);
         corrMax = Math.max(corrMax, corr);
         corrMin = Math.min(corrMin, corr);
-        depthSum += weightedResidualsOrg.get(j).deriv[2];
+        depthSum += weightedResidualsOrg.get(j).getSpatialDerivatives()[2];
       }
     }
     
@@ -446,7 +447,7 @@ public class Decorrelator {
     // have the same sign.
     if (corrMax * corrMin >= 0d) {
       // If the depth derivatives agree, we're probably OK.
-      if (depthSum * weightedResiduals.deriv[2] >= 0d) {
+      if (depthSum * weightedResiduals.getSpatialDerivatives()[2] >= 0d) {
         return true;
       } else {
         return false;
@@ -456,13 +457,13 @@ public class Decorrelator {
     // Otherwise, see if the azimuth needs to be flipped 180 degrees.
     if (corrMax > -corrMin) {
       // If the depth derivatives agree, we're probably OK.
-      if (depthSum * weightedResiduals.deriv[2] >= 0d) {
+      if (depthSum * weightedResiduals.getSpatialDerivatives()[2] >= 0d) {
         return true;
       } else {
         // See if the correlations are small.
         if (Math.abs(corrMax + corrMin) < 0.05d) {
           // If so, the results are problematic.
-          if (Math.abs(weightedResiduals.deriv[2]) > 1e-4d) {
+          if (Math.abs(weightedResiduals.getSpatialDerivatives()[2]) > 1e-4d) {
             return false;
           } else {
             return true;
@@ -475,13 +476,13 @@ public class Decorrelator {
     // Otherwise, the sign is probably wrong.
     } else {
       // If the depth derivatives disagree, the sign is probably wrong.
-      if (depthSum * weightedResiduals.deriv[2] <= 0d) {
+      if (depthSum * weightedResiduals.getSpatialDerivatives()[2] <= 0d) {
         return false;
       } else {
         // See if the correlations are small.
         if (Math.abs(corrMax + corrMin) < 0.05d) {
           // If so, the results are problematic.
-          if (Math.abs(weightedResiduals.deriv[2]) > 1e-4d) {
+          if (Math.abs(weightedResiduals.getSpatialDerivatives()[2]) > 1e-4d) {
             return true;
           } else {
             return false;

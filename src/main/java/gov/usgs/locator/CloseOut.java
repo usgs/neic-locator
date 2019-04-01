@@ -125,7 +125,8 @@ public class CloseOut {
       // If we're decorrelating, use the projected pick data.
       for (int k = 0; k < projectedWeightedResiduals.size(); k++) {
         double[] derivatives = 
-          projectedWeightedResiduals.get(k).getWdeDeriv(degreesOfFreedom);
+            projectedWeightedResiduals.get(k).calculateWeightedDeMedDeriv(
+            degreesOfFreedom);
         for (int i = 0; i < degreesOfFreedom; i++) {
           for (int j = 0; j < degreesOfFreedom; j++) {
             correlationMatrix[i][j] += derivatives[i] * derivatives[j];
@@ -136,7 +137,8 @@ public class CloseOut {
       // Otherwise, use the raw pick data.
       for (int k = 0; k < rawWeightedResiduals.size(); k++) {
         double[] derivatives = 
-          rawWeightedResiduals.get(k).getWdeDeriv(degreesOfFreedom);
+            rawWeightedResiduals.get(k).calculateWeightedDeMedDeriv(
+            degreesOfFreedom);
         for (int i = 0; i < degreesOfFreedom; i++) {
           for (int j = 0; j < degreesOfFreedom; j++) {
             correlationMatrix[i][j] += derivatives[i] * derivatives[j];
@@ -212,7 +214,7 @@ public class CloseOut {
 
     // Construct the lower half of the "normal" matrix.
     for (int k = 0; k < rawWeightedResiduals.size(); k++) {
-      double[] derivatives = rawWeightedResiduals.get(k).getWderiv(degreesOfFreedom);
+      double[] derivatives = rawWeightedResiduals.get(k).calculateWeightedDeriv(degreesOfFreedom);
       for (int i = 0; i < degreesOfFreedom; i++) {
         for (int j = 0; j < degreesOfFreedom; j++) {
           correlationMatrix[i][j] += derivatives[i] * derivatives[j];
@@ -381,9 +383,9 @@ public class CloseOut {
     // The data importances are just the inner product of the derivative 
     // vector with the correlation matrix.
     for (int k = 0; k < rawWeightedResiduals.size(); k++) {
-      if (!rawWeightedResiduals.get(k).isDepth) {
+      if (!rawWeightedResiduals.get(k).getIsBayesianDepth()) {
         double[] weightedDerivatives 
-            = rawWeightedResiduals.get(k).getWderiv(degreesOfFreedom);
+            = rawWeightedResiduals.get(k).calculateWeightedDeriv(degreesOfFreedom);
         double[] dotProduct = new double[degreesOfFreedom];
 
         for (int i = 0; i < degreesOfFreedom; i++) {
@@ -403,7 +405,7 @@ public class CloseOut {
 
         // add to summary importance
         sumImportance += importance;
-        rawWeightedResiduals.get(k).updateImport(importance);
+        rawWeightedResiduals.get(k).updateImportance(importance);
       }
     }
 

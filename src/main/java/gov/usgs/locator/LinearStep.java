@@ -21,9 +21,9 @@ public class LinearStep {
   private double[] stepDirectionUnitVector;
   
   /**
-   * A double[] containing the trial spatial vector in kilometers.
+   * A double[] containing the trial step vector in kilometers.
    */
-  private double[] trialVector;
+  private double[] trialStepVector;
 
   /**
    * An Event object containing the event to use when calculating the linear 
@@ -103,7 +103,7 @@ public class LinearStep {
     }
     
     // The trial vector has to be the same size as the step vector.
-    trialVector = new double[stepDirectionUnitVector.length];
+    trialStepVector = new double[stepDirectionUnitVector.length];
     
     // Initialize the bisection.
     this.stepDirectionUnitVector = stepDirectionUnitVector; 
@@ -207,13 +207,13 @@ public class LinearStep {
   }
   
   /**
-   * This function gets the final trial vector.  The current hypocenter will be 
-   * moved by this much for this iteration.
+   * This function gets the final trial step vector.  The current hypocenter
+   *  will be  moved by this much for this iteration.
    * 
-   * @return A double[] containing the trial spatial vector in kilometers
+   * @return A double[] containing the trial step vector in kilometers
    */
-  public double[] getTrialVector() {
-    return trialVector;
+  public double[] getTrialStepVector() {
+    return trialStepVector;
   }
   
   /**
@@ -229,7 +229,7 @@ public class LinearStep {
     // Do the initial pass to project and demean the correlated residuals.
     createTrialStepVector(currentStepLen);
     for (int j = 0; j < rawWeightedResiduals.size(); j++) {
-      rawWeightedResiduals.get(j).updateEst(trialVector);
+      rawWeightedResiduals.get(j).updateEstResiduals(trialStepVector);
     }
 
     double median = rawRankSumEstimator.computeLinEstMedian();
@@ -271,17 +271,17 @@ public class LinearStep {
   private void createTrialStepVector(double currentStepLen) {
     // Make the trial step vector.
     for (int j = 0; j < stepDirectionUnitVector.length; j++) {
-      trialVector[j] = currentStepLen * stepDirectionUnitVector[j];
+      trialStepVector[j] = currentStepLen * stepDirectionUnitVector[j];
     }
 
     // Make sure the depth is OK.
     if (hypo.getDegreesOfFreedom() > 2) {
-      if (hypo.getDepth() + trialVector[2] < LocUtil.DEPTHMIN) {
+      if (hypo.getDepth() + trialStepVector[2] < LocUtil.DEPTHMIN) {
         // Trap air quakes.
-        trialVector[2] = LocUtil.DEPTHMIN - hypo.getDepth();
-      } else if (hypo.getDepth() + trialVector[2] > LocUtil.DEPTHMAX) {
+        trialStepVector[2] = LocUtil.DEPTHMIN - hypo.getDepth();
+      } else if (hypo.getDepth() + trialStepVector[2] > LocUtil.DEPTHMAX) {
         // Trap lower mantle quakes.
-        trialVector[2] = LocUtil.DEPTHMAX - hypo.getDepth();
+        trialStepVector[2] = LocUtil.DEPTHMAX - hypo.getDepth();
       }
     }
   }

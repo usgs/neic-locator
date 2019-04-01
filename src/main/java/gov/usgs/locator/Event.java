@@ -1200,21 +1200,21 @@ public class Event {
 
       for (int j = 0; j < rawWeightedResiduals.size(); j++) {
         System.out.format("%4d ", j);
-        rawWeightedResiduals.get(j).printWres(full);
+        rawWeightedResiduals.get(j).printWeightedResiduals(full);
       }
     } else if (type.equals("Proj")) {
       System.out.println("\nwResProj:");
 
       for (int j = 0; j < projectedWeightedResiduals.size(); j++) {
         System.out.format("%4d ", j);
-        projectedWeightedResiduals.get(j).printWres(full);
+        projectedWeightedResiduals.get(j).printWeightedResiduals(full);
       }
     } else {
       System.out.println("\nwResOrg:");
 
       for (int j = 0; j < originalWeightedResiduals.size(); j++) {
         System.out.format("%4d ", j);
-        originalWeightedResiduals.get(j).printWres(full);
+        originalWeightedResiduals.get(j).printWeightedResiduals(full);
       }
     }
   }
