@@ -93,7 +93,7 @@ public class CloseOut {
     }
     
     // Get the residual spread.
-    event.setResidualsStandardError(rankSumEstimator.spread());
+    event.setResidualsStandardError(rankSumEstimator.computeSpread());
     
     // Force the number of degrees of freedom, pretending everything 
     // was always free.

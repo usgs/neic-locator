@@ -83,7 +83,7 @@ public class PickGroup {
   /**
    * Get the number of picks in the group.
    * 
-   * @return Number of picks in the group
+   * @return An int containing the number of picks for this group
    */
   public int getNumPicks() {
     return picks.size();

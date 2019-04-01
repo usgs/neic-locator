@@ -232,16 +232,16 @@ public class LinearStep {
       rawWeightedResiduals.get(j).updateEst(trialVector);
     }
 
-    double median = rawRankSumEstimator.estMedian();
-    rawRankSumEstimator.deMedianEstRes();
-    double dispRaw = rawRankSumEstimator.estPenalty();
+    double median = rawRankSumEstimator.computeLinEstMedian();
+    rawRankSumEstimator.deMedianEstResiduals();
+    double dispRaw = rawRankSumEstimator.computeEstDispersionValue();
     
     // Finish up.
     if (LocUtil.useDecorrelation) {
       // If we're decorrelating, we have more to do.
       decorrelator.projectEstimatedPicks();
-      projectedRankSumEstimator.estMedian();
-      double dispProj = projectedRankSumEstimator.estPenalty();
+      projectedRankSumEstimator.computeLinEstMedian();
+      double dispProj = projectedRankSumEstimator.computeEstDispersionValue();
     
       if (LocUtil.deBugLevel > 0) {
         System.out.format("Estlin: x dsp = %7.3f %9.4f %9.4f %5.2f\n", 

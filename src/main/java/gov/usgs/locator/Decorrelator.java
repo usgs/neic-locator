@@ -90,7 +90,7 @@ public class Decorrelator {
   /**
    * This function performs the decorrelation.
    */
-  public void deCorr() {
+  public void decorrelate() {
     // We can't remember the original sort of the raw residuals 
     // because it keeps changing when cloned.
     weightedResidualsOrg = event.getOriginalWeightedResiduals();

@@ -98,35 +98,35 @@ public class Stepper {
 		
 		if(LocUtil.useDecorrelation) {
 			// Demedian the raw residuals.
-			medianRes = rEstRaw.median();
-			rEstRaw.deMedianRes();
+			medianRes = rEstRaw.computeMedian();
+			rEstRaw.deMedianResiduals();
 			if(LocUtil.deBugLevel > 0) System.out.format("Lsrt: EL av = "+
 					"%8.4f\n", medianRes);
 			// Decorrelate the raw data.
-			if(event.getHasPhaseIdChanged()) deCorr.deCorr();
+			if(event.getHasPhaseIdChanged()) deCorr.decorrelate();
 			deCorr.projectPicks();
 			// Get the median of the projected data.
-			medianProj = rEstProj.median();
+			medianProj = rEstProj.computeMedian();
 			// Demedian the projected design matrix.
-			rEstProj.deMedianDesign();
+			rEstProj.deMedianDesignMatrix();
 			// Get the R-estimator dispersion of the projected data.
-			chiSq = rEstProj.penalty();
+			chiSq = rEstProj.computeDispersionValue();
 			if(LocUtil.deBugLevel > 0) System.out.format("Lsrt: ST av chisq"+
 					" = %8.4f %10.4f\n", medianProj, chiSq);
 			// Get the steepest descent direction.
-			hypo.setStepDirectionUnitVector(rEstProj.steepest(hypo.getDegreesOfFreedom()));
+			hypo.setStepDirectionUnitVector(rEstProj.compSteepestDescDir(hypo.getDegreesOfFreedom()));
 		} else {
 			// Demedian the raw residuals.
-			medianRes = rEstRaw.median();
-			rEstRaw.deMedianRes();
+			medianRes = rEstRaw.computeMedian();
+			rEstRaw.deMedianResiduals();
 			// Demedian the raw design matrix.
-			rEstRaw.deMedianDesign();
+			rEstRaw.deMedianDesignMatrix();
 			// Get the R-estimator dispersion of the raw data.
-			chiSq = rEstRaw.penalty();
+			chiSq = rEstRaw.computeDispersionValue();
 			if(LocUtil.deBugLevel > 0) System.out.format("Lsrt: ST av chisq"+
 					" = %8.4f %10.4f\n", medianRes, chiSq);
 			// Get the steepest descent direction.
-			hypo.setStepDirectionUnitVector(rEstRaw.steepest(hypo.getDegreesOfFreedom()));
+			hypo.setStepDirectionUnitVector(rEstRaw.compSteepestDescDir(hypo.getDegreesOfFreedom()));
 		}
 		
 		if(LocUtil.deBugLevel > 0) {
@@ -200,7 +200,7 @@ public class Stepper {
 		
 		/* 
 		 * Damp the solution.  Damping is necessary if the linearized step 
-		 * increases the R-estimator dispersion (variously called penalty and 
+		 * increases the R-estimator dispersion (variously called computeDispersionValue and 
 		 * chi-squared here).  However, it is observed to be highly unstable, 
 		 * hence the complicated factor to determine the damping factor and 
 		 * the elaborate means to trap a failure.  Note that the damping 

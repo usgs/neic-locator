@@ -210,7 +210,7 @@ public class InitialPhaseID {
     // Update the hypocenter origin time based on the residuals and weights 
     // pushed by the phaseID method.  Adjusting the origin time to something  
     // reasonable ensures that succeeding phase identifications have a chance.
-    double median = rankSumEstimator.median();
+    double median = rankSumEstimator.computeMedian();
     event.updateOriginTime(median);
     
     if (LocUtil.deBugLevel > 0) {
