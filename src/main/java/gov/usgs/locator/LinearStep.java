@@ -91,11 +91,11 @@ public class LinearStep {
    *                   step length is greater than the maximum, give up
    * @param currentDispersionValue A double containing the current R-estimator 
    *                               dispersion value
-   * @return A RestResult containing the step length in kilometers needed to  
+   * @return A RSumEstResult containing the step length in kilometers needed to  
    *         reach the minimum dispersion
    * @throws Exception If the bisection doesn't make sense
    */
-  public RestResult stepLength(double[] stepDirectionUnitVector, 
+  public RSumEstResult stepLength(double[] stepDirectionUnitVector, 
       double startStepLen, double minStepLen, double maxStepLen, 
       double currentDispersionValue) throws Exception {
     if (LocUtil.deBugLevel > 0) {
@@ -111,25 +111,25 @@ public class LinearStep {
     double currentStepLen = startStepLen;
 
     // Make a default step.
-    RestResult[] sample = new RestResult[3]; 
-    sample[0] = new RestResult(0d, 0d, 0d, currentDispersionValue);
+    RSumEstResult[] sample = new RSumEstResult[3]; 
+    sample[0] = new RSumEstResult(0d, 0d, 0d, currentDispersionValue);
     sample[1] = estDispersionValue(currentStepLen);
     
     // Do some preliminary hunting to surround the minimum.
-    if (sample[0].chiSq >= sample[1].chiSq) {
+    if (sample[0].getDispersion() >= sample[1].getDispersion()) {
       // If the trial step was too short, keep doubling it.
       currentStepLen = 2d * currentStepLen;
       sample[2] = estDispersionValue(currentStepLen);
 
       // Keep stepping until the penalty gets bigger.
-      while (sample[1].chiSq >= sample[2].chiSq) {
+      while (sample[1].getDispersion() >= sample[2].getDispersion()) {
         // If we've gone too far, return what we've got.
-        if (sample[2].stepLen >= maxStepLen) {
-          createTrialStepVector(sample[2].stepLen);
+        if (sample[2].getStepLength() >= maxStepLen) {
+          createTrialStepVector(sample[2].getStepLength());
 
           if (LocUtil.deBugLevel > 0) {
             System.out.format("Lintry: x dsp = %6.2f %9.4f %5.2f\n", 
-                sample[2].stepLen, sample[2].chiSq, sample[2].median);
+                sample[2].getStepLength(), sample[2].getDispersion(), sample[2].getMedianResidual());
           }
           return sample[2];
         }
@@ -139,7 +139,7 @@ public class LinearStep {
         
         // The steps keep getting bigger.
         initialStepLen *= 2d;
-        currentStepLen = Math.min(sample[1].stepLen + initialStepLen, 
+        currentStepLen = Math.min(sample[1].getStepLength() + initialStepLen, 
             maxStepLen);
         sample[2] = estDispersionValue(currentStepLen);
       }
@@ -147,40 +147,40 @@ public class LinearStep {
       // If trial step was too long, find a lower limit.
       do {
         sample[2] = sample[1];
-        currentStepLen = 0.5 * (sample[0].stepLen + sample[2].stepLen);
+        currentStepLen = 0.5 * (sample[0].getStepLength() + sample[2].getStepLength());
         sample[1] = estDispersionValue(currentStepLen);
 
         // See if we've converged.
-        if (sample[1].stepLen <= minStepLen) {
-          if (sample[1].chiSq >= sample[0].chiSq) {
-            sample[1] = new RestResult(0d, 0d, 0d, currentDispersionValue);
+        if (sample[1].getStepLength() <= minStepLen) {
+          if (sample[1].getDispersion() >= sample[0].getDispersion()) {
+            sample[1] = new RSumEstResult(0d, 0d, 0d, currentDispersionValue);
           }
 
-          createTrialStepVector(sample[1].stepLen);
+          createTrialStepVector(sample[1].getStepLength());
 
           if (LocUtil.deBugLevel > 0) {
             System.out.format("Lintry: x dsp = %7.3f %9.4f %5.2f\n", 
-                sample[1].stepLen, sample[1].chiSq, sample[1].median);
+                sample[1].getStepLength(), sample[1].getDispersion(), sample[1].getMedianResidual());
           }
           return sample[1];
         }
-      } while (sample[0].chiSq < sample[1].chiSq);
+      } while (sample[0].getDispersion() < sample[1].getDispersion());
     }
     
     // Now we can start homing in from both sides.
-    while ((sample[2].stepLen - sample[0].stepLen) / sample[1].stepLen > 0.15d 
-        && sample[2].stepLen - sample[0].stepLen > minStepLen) {
+    while ((sample[2].getStepLength() - sample[0].getStepLength()) / sample[1].getStepLength() > 0.15d 
+        && sample[2].getStepLength() - sample[0].getStepLength() > minStepLen) {
       // Try the lower half first.
-      currentStepLen = 0.5 * (sample[0].stepLen + sample[1].stepLen);
-      RestResult testSample = estDispersionValue(currentStepLen);
+      currentStepLen = 0.5 * (sample[0].getStepLength() + sample[1].getStepLength());
+      RSumEstResult testSample = estDispersionValue(currentStepLen);
 
-      if (testSample.chiSq >= sample[1].chiSq) {
+      if (testSample.getDispersion() >= sample[1].getDispersion()) {
         // That didn't work, try the upper half.
         sample[0] = testSample;
-        currentStepLen = 0.5 * (sample[1].stepLen + sample[2].stepLen);
+        currentStepLen = 0.5 * (sample[1].getStepLength() + sample[2].getStepLength());
         testSample = estDispersionValue(currentStepLen);
       
-        if (testSample.chiSq >= sample[1].chiSq) {
+        if (testSample.getDispersion() >= sample[1].getDispersion()) {
           // The minimum's in the lower part of the upper half.
           sample[2] = testSample;
         } else {
@@ -196,11 +196,11 @@ public class LinearStep {
     }
 
     // Done.
-    createTrialStepVector(sample[1].stepLen);
+    createTrialStepVector(sample[1].getStepLength());
 
     if (LocUtil.deBugLevel > 0) {
       System.out.format("Lintry: x dsp = %7.3f %9.4f %5.2f\n", 
-          sample[1].stepLen, sample[1].chiSq, sample[1].median);
+          sample[1].getStepLength(), sample[1].getDispersion(), sample[1].getMedianResidual());
     }
 
     return sample[1];
@@ -222,10 +222,10 @@ public class LinearStep {
    * 
    * @param currentStepLen A double containing the current Trial step length in 
    *                       kilometers
-   * @return A RestResult object containing the results of the R-estimator 
+   * @return A RSumEstResult object containing the results of the R-estimator 
    *         algorithm
    */
-  private RestResult estDispersionValue(double currentStepLen) {
+  private RSumEstResult estDispersionValue(double currentStepLen) {
     // Do the initial pass to project and demean the correlated residuals.
     createTrialStepVector(currentStepLen);
     for (int j = 0; j < rawWeightedResiduals.size(); j++) {
@@ -248,7 +248,7 @@ public class LinearStep {
             currentStepLen, dispProj, dispRaw, median);
       }
 
-      return new RestResult(currentStepLen, median, 0d, dispProj);
+      return new RSumEstResult(currentStepLen, median, 0d, dispProj);
     } else {
       // Otherwise, we're pretty much done.
       if (LocUtil.deBugLevel > 0) {
@@ -256,7 +256,7 @@ public class LinearStep {
             currentStepLen, dispRaw, median);
       }
 
-      return new RestResult(currentStepLen, median, 0d, dispRaw);
+      return new RSumEstResult(currentStepLen, median, 0d, dispRaw);
     }
   }
   

@@ -16,7 +16,7 @@ public class Stepper {
 	PhaseID phaseID;
 	RankSumEstimator rEstRaw, rEstProj;
 	LinearStep linStep;
-	RestResult result;
+	RSumEstResult result;
 	HypoAudit lastHypo;
 	Decorrelator deCorr;
 
@@ -62,7 +62,7 @@ public class Stepper {
 		LocStatus status;
 		
 		status = setDir(otherWeight, stickyWeight, reID, reWeight);
-		if(status == LocStatus.SUCCESS) hypo.setEstimatorDispersionValue(result.chiSq);
+		if(status == LocStatus.SUCCESS) hypo.setEstimatorDispersionValue(result.getDispersion());
 		return status;
 	}
 	
@@ -136,7 +136,7 @@ public class Stepper {
 			}
 			System.out.println();
 		}
-		result = new RestResult(0d, medianRes, 0d, chiSq);
+		result = new RSumEstResult(0d, medianRes, 0d, chiSq);
 		
 		return LocStatus.SUCCESS;
 	}
@@ -165,9 +165,9 @@ public class Stepper {
 		result = linStep.stepLength(hypo.getStepDirectionUnitVector(), hypo.getStepLength(), 
 				LocUtil.CONVERGENCESTAGELIMITS[stage], LocUtil.STEPLENSTAGELIMITS[stage], hypo.getEstimatorDispersionValue());
 		// This weird special case appears once in a while.
-		if(result.chiSq >= hypo.getEstimatorDispersionValue() && result.stepLen < 
+		if(result.getDispersion() >= hypo.getEstimatorDispersionValue() && result.getStepLength() < 
 				LocUtil.CONVERGENCESTAGELIMITS[stage]) {
-			hypo.setStepLength(result.stepLen);
+			hypo.setStepLength(result.getStepLength());
 			hypo.setHorizontalStepLength(0d);
 			hypo.setVerticalStepLength(0d);
 			logStep("Step", stage, iter, status);
@@ -175,25 +175,25 @@ public class Stepper {
 		}
 		
 		// Update the hypocenter.
-		hypo.setLinearTimeShiftEstimate(result.median);
-		event.updateHypo(result.stepLen, result.median);
+		hypo.setLinearTimeShiftEstimate(result.getMedianResidual());
+		event.updateHypo(result.getStepLength(), result.getMedianResidual());
 		// Reidentify phases and get the non-linear R-estimator parameters 
 		// for the new hypocenter.
 		if(setDir(0.01d, 5d, false, false) == LocStatus.INSUFFICIENT_DATA) {
 			return LocStatus.INSUFFICIENT_DATA;
 		}
-		event.updateOriginTime(result.median);
+		event.updateOriginTime(result.getMedianResidual());
 		// If the phase identification has changed, we have to start over.
 		if(event.getHasPhaseIdChanged()) {
-			hypo.setEstimatorDispersionValue(result.chiSq);
+			hypo.setEstimatorDispersionValue(result.getDispersion());
 			status = LocStatus.PHASEID_CHANGED;
 			logStep("ReID", stage, iter, status);
 			return status;
 		}
 		
 		// If we're headed down hill, this iteration is done.
-		if(result.chiSq < hypo.getEstimatorDispersionValue()) {
-			hypo.setEstimatorDispersionValue(result.chiSq);
+		if(result.getDispersion() < hypo.getEstimatorDispersionValue()) {
+			hypo.setEstimatorDispersionValue(result.getDispersion());
 			logStep("Step", stage, iter, status);
 			return status;
 		}
@@ -217,7 +217,7 @@ public class Stepper {
 				hypo.setHorizontalStepLength(0d);
 				hypo.setVerticalStepLength(0d);
 				// Set the exit status.
-				if(result.chiSq <= LocUtil.ALMOSTCONVERGED*hypo.getEstimatorDispersionValue() && hypo.getStepLength() <= 
+				if(result.getDispersion() <= LocUtil.ALMOSTCONVERGED*hypo.getEstimatorDispersionValue() && hypo.getStepLength() <= 
 						LocUtil.CONVERGENCESTAGELIMITS[stage]) status = LocStatus.NEARLY_CONVERGED;
 				else if(hypo.getStepLength() <= LocUtil.STEPTOLERANCE) status = 
 						LocStatus.DID_NOT_CONVERGE;
@@ -238,16 +238,16 @@ public class Stepper {
 			if(setDir(0.01d, 5d, false, false) == LocStatus.INSUFFICIENT_DATA) {
 				return LocStatus.INSUFFICIENT_DATA;
 			}
-			event.updateOriginTime(result.median);
+			event.updateOriginTime(result.getMedianResidual());
 			// If the phase identification has changed, we have to start over.
 			if(event.getHasPhaseIdChanged()) {
-				hypo.setEstimatorDispersionValue(result.chiSq);
+				hypo.setEstimatorDispersionValue(result.getDispersion());
 				status = LocStatus.PHASEID_CHANGED;
 				logStep("ReID", stage, iter, status);
 				return status;
 			}
 			logStep("Damp", stage, iter, status);
-		} while(result.chiSq >= hypo.getEstimatorDispersionValue());
+		} while(result.getDispersion() >= hypo.getEstimatorDispersionValue());
 		
 		return status;
 	}
