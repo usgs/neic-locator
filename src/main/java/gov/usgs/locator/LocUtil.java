@@ -415,20 +415,20 @@ public class LocUtil {
    */
   public static double computeDistAzm(Hypocenter hypo, Station sta) {
     // South Pole (only tests the station because the South Pole is aseismic).
-    if (sta.sinLat <= TauUtil.DTOL) {
+    if (sta.getCoLatitudeSine() <= TauUtil.DTOL) {
       azimuth = 180d;
       return Math.toDegrees(Math.PI - Math.acos(hypo.getCoLatitudeCosine()));
     }
     
     // Compute some intermediate variables.
     // Use Bob Engdahl's variable names
-    double cosdel = hypo.getCoLatitudeSine() * sta.sinLat * (sta.cosLon 
-        * hypo.getLongitudeCosine() + sta.sinLon * hypo.getLongitudeSine())
-        + hypo.getCoLatitudeCosine() * sta.cosLat;
-    double tm1 = sta.sinLat * (sta.sinLon * hypo.getLongitudeCosine()
-        - sta.cosLon * hypo.getLongitudeSine());
-    double tm2 = hypo.getCoLatitudeSine() * sta.cosLat - hypo.getCoLatitudeCosine()
-        * sta.sinLat * (sta.cosLon * hypo.getLongitudeCosine() + sta.sinLon
+    double cosdel = hypo.getCoLatitudeSine() * sta.getCoLatitudeSine() * (sta.getLongitudeCosine() 
+        * hypo.getLongitudeCosine() + sta.getLongitudeSine() * hypo.getLongitudeSine())
+        + hypo.getCoLatitudeCosine() * sta.getCoLatitudeCosine();
+    double tm1 = sta.getCoLatitudeSine() * (sta.getLongitudeSine() * hypo.getLongitudeCosine()
+        - sta.getLongitudeCosine() * hypo.getLongitudeSine());
+    double tm2 = hypo.getCoLatitudeSine() * sta.getCoLatitudeCosine() - hypo.getCoLatitudeCosine()
+        * sta.getCoLatitudeSine() * (sta.getLongitudeCosine() * hypo.getLongitudeCosine() + sta.getLongitudeSine()
         * hypo.getLongitudeSine());
     double sindel = Math.sqrt(Math.pow(tm1, 2d) + Math.pow(tm2, 2d));
     
@@ -530,19 +530,19 @@ public class LocUtil {
 
     // South Pole.
     double delta;
-    if (sta1.sinLat <= TauUtil.DTOL) {
-      delta = Math.toDegrees(Math.PI - Math.acos(sta2.cosLat));
-    } else if (sta2.sinLat <= TauUtil.DTOL) {
-      delta = Math.toDegrees(Math.PI - Math.acos(sta1.cosLat));
+    if (sta1.getCoLatitudeSine() <= TauUtil.DTOL) {
+      delta = Math.toDegrees(Math.PI - Math.acos(sta2.getCoLatitudeCosine()));
+    } else if (sta2.getCoLatitudeSine() <= TauUtil.DTOL) {
+      delta = Math.toDegrees(Math.PI - Math.acos(sta1.getCoLatitudeCosine()));
     } else {
       // Compute some intermediate variables.
       // Use Bob Engdahl's variable names
-      double cosdel = sta1.sinLat * sta2.sinLat * (sta2.cosLon * sta1.cosLon
-          + sta2.sinLon * sta1.sinLon) + sta1.cosLat * sta2.cosLat;
-      double tm1 = sta2.sinLat * (sta2.sinLon * sta1.cosLon - sta2.cosLon
-          * sta1.sinLon);
-      double tm2 = sta1.sinLat * sta2.cosLat - sta1.cosLat * sta2.sinLat
-          * (sta2.cosLon * sta1.cosLon + sta2.sinLon * sta1.sinLon);
+      double cosdel = sta1.getCoLatitudeSine() * sta2.getCoLatitudeSine() * (sta2.getLongitudeCosine() * sta1.getLongitudeCosine()
+          + sta2.getLongitudeSine() * sta1.getLongitudeSine()) + sta1.getCoLatitudeCosine() * sta2.getCoLatitudeCosine();
+      double tm1 = sta2.getCoLatitudeSine() * (sta2.getLongitudeSine() * sta1.getLongitudeCosine() - sta2.getLongitudeCosine()
+          * sta1.getLongitudeSine());
+      double tm2 = sta1.getCoLatitudeSine() * sta2.getCoLatitudeCosine() - sta1.getCoLatitudeCosine() * sta2.getCoLatitudeSine()
+          * (sta2.getLongitudeCosine() * sta1.getLongitudeCosine() + sta2.getLongitudeSine() * sta1.getLongitudeSine());
       double sindel = Math.sqrt(Math.pow(tm1, 2d) + Math.pow(tm2, 2d));
 
       // Compute distance (delta).

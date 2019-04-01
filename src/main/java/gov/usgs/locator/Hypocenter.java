@@ -70,12 +70,12 @@ public class Hypocenter {
   private double coLatitudeCosine; 
 
   /**
-   * A double containing the sine of the geocentric longitude in degrees.
+   * A double containing the sine of the longitude in degrees.
    */
   private double longitudeSine; 
 
   /**
-   * A double containing the cosine of the geocentric longitude in degrees.
+   * A double containing the cosine of the longitude in degrees.
    */
   private double longitudeCosine; 
   

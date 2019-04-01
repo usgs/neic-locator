@@ -648,10 +648,10 @@ public class Event {
           + pickIn.getSource().getAuthor();
 
       // Create the station.
-      StationID staID = new StationID(pickIn.getSite().getStation(), 
+      StationID stationID = new StationID(pickIn.getSite().getStation(), 
           pickIn.getSite().getLocation(), 
           pickIn.getSite().getNetwork());
-      Station station = new Station(staID, pickIn.getSite().getLatitude(), 
+      Station station = new Station(stationID, pickIn.getSite().getLatitude(), 
           pickIn.getSite().getLongitude(),
           pickIn.getSite().getElevation());
       gov.usgs.locator.Pick pick = new gov.usgs.locator.Pick(station, 
@@ -696,13 +696,13 @@ public class Event {
       // for each pick in the group
       for (int j = 0; j < group.getNumPicks(); j++) {
         gov.usgs.locator.Pick pick = group.getPicks().get(j);
-        StationID staID = pick.getStation().staID;
+        StationID stationID = pick.getStation().getStationID();
 
         out.addPick(pick.getSourceID(), pick.getOriginalAuthorType(), pick.getPickID(), 
-            staID.staCode, 
-            pick.getChannelCode(), staID.netCode, staID.locCode, 
-            pick.getStation().latitude, pick.getStation().longitude, 
-            pick.getStation().elevation, LocUtil.toJavaTime(pick.getArrivalTime()), 
+            stationID.staCode, 
+            pick.getChannelCode(), stationID.netCode, stationID.locCode, 
+            pick.getStation().getLatitude(), pick.getStation().getLongitude(), 
+            pick.getStation().getElevation(), LocUtil.toJavaTime(pick.getArrivalTime()), 
             pick.getCurrentPhaseCode(), pick.getOriginalPhaseCode(), 
             pick.getResidual(), group.getDistance(), group.getAzimuth(), pick.getWeight(), pick.getImportance(), pick.getIsUsed(), 
             pick.getOriginalPhaseAffinity(), pick.getQuality());
@@ -772,10 +772,10 @@ public class Event {
 
     for (int j = 0; j < pickList.size(); j++) {
       gov.usgs.locator.Pick pick = pickList.get(j);
-      if (!pick.getStation().staID.staID.equals(lastSta)) {
+      if (!pick.getStation().getStationID().staID.equals(lastSta)) {
         // Remember this station.
-        lastSta = pick.getStation().staID.staID;
-        stationList.put(pick.getStation().staID, pick.getStation());
+        lastSta = pick.getStation().getStationID().staID;
+        stationList.put(pick.getStation().getStationID(), pick.getStation());
 
         // Initialize the pick group.
         group = new PickGroup(pick.getStation(), pick);
