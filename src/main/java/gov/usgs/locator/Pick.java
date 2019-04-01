@@ -649,7 +649,7 @@ public class Pick implements Comparable<Pick> {
 
       if (LocUtil.deBugLevel > 0 && reID) {
         System.out.format("=====> Phase re-ID: %-5s %-8s -> %-8s\n", 
-            station.getStationID().staCode, currentPhaseCode, ttCode);
+            station.getStationID().getStationCode(), currentPhaseCode, ttCode);
       }
     
       currentPhaseCode = ttCode;
@@ -687,7 +687,7 @@ public class Pick implements Comparable<Pick> {
         if (isUsed) {
           if (LocUtil.deBugLevel > 0) {
             System.out.format("=====> Phase no use set (wt): %-5s %-8s %5b %5.2f\n", 
-                station.getStationID().staCode, currentPhaseCode, 
+                station.getStationID().getStationCode(), currentPhaseCode, 
                 ttStatisticalMinFoM.canUse(), ttStatisticalMinFoM.getSpread());
           }
 
@@ -706,14 +706,14 @@ public class Pick implements Comparable<Pick> {
       // We don't have an identification.
       if (LocUtil.deBugLevel > 0 && !currentPhaseCode.equals("")) {
         System.out.format("=====> Phase re-ID: %-5s %-8s -> null\n", 
-            station.getStationID().staCode, currentPhaseCode);
+            station.getStationID().getStationCode(), currentPhaseCode);
       }
 
       // See if it was used before.
       if (isUsed) {
         if (LocUtil.deBugLevel > 0) {
           System.out.format("=====> Phase no use set (no ID): %-5s %-8s\n", 
-              station.getStationID().staCode, currentPhaseCode);
+              station.getStationID().getStationCode(), currentPhaseCode);
         }
 
         isUsed = false;
@@ -733,7 +733,7 @@ public class Pick implements Comparable<Pick> {
     }
     if (LocUtil.deBugLevel > 1) {
       System.out.format("  IDphas: %-5s %-8s %6.2f %7.4f %b\n", 
-          station.getStationID().staCode, currentPhaseCode, residual, weight, isUsed);
+          station.getStationID().getStationCode(), currentPhaseCode, residual, weight, isUsed);
     }
 
     return idChanged;
@@ -755,7 +755,7 @@ public class Pick implements Comparable<Pick> {
    */
   @Override
   public String toString() {
-    return String.format("%-5s %-8s %6.2f %b", station.getStationID().staCode, 
+    return String.format("%-5s %-8s %6.2f %b", station.getStationID().getStationCode(), 
         currentPhaseCode, residual, isUsed);
   }
 

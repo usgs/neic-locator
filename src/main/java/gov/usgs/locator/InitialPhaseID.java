@@ -193,7 +193,7 @@ public class InitialPhaseID {
 
               if (LocUtil.deBugLevel > 1) {
                 System.out.format("InitialPhaseID push: %-5s %-8s %5.2f %7.4f %5.2f" 
-                    + "%5.2f\n", pick.getStation().getStationID().staCode, pick.getCurrentPhaseCode(), 
+                    + "%5.2f\n", pick.getStation().getStationID().getStationCode(), pick.getCurrentPhaseCode(), 
                     pick.getResidual(), pick.getWeight(), travelTime.getTT(), 
                     travelTime.getSpread());
               }
@@ -265,7 +265,7 @@ public class InitialPhaseID {
             
             if (LocUtil.deBugLevel > 1) {
               System.out.format("\tIdEasy: don't use %-5s %-8s\n", 
-                  group.getStation().getStationID().staCode, pick.getCurrentPhaseCode());
+                  group.getStation().getStationID().getStationCode(), pick.getCurrentPhaseCode());
             }
           }
         }
@@ -279,7 +279,7 @@ public class InitialPhaseID {
             
             if (LocUtil.deBugLevel > 1) {
               System.out.format("\tIdEasy: don't use %-5s %-8s\n", 
-                  group.getStation().getStationID().staCode, pick.getCurrentPhaseCode());
+                  group.getStation().getStationID().getStationCode(), pick.getCurrentPhaseCode());
             }
           }
         }
@@ -331,7 +331,7 @@ public class InitialPhaseID {
             
             if (LocUtil.deBugLevel > 1) {
               System.out.format("\tIdHard: %-5s %-8s -> %-8s auto\n", 
-                  group.getStation().getStationID().staCode, phCode, 
+                  group.getStation().getStationID().getStationCode(), phCode, 
                   ttList.get(0).getPhCode());
             }
           } else {
@@ -341,7 +341,7 @@ public class InitialPhaseID {
             
             if (LocUtil.deBugLevel > 1) { 
               System.out.format("\tIdHard: don't use %-5s %-8s\n", 
-                  group.getStation().getStationID().staCode, pick.getCurrentPhaseCode());
+                  group.getStation().getStationID().getStationCode(), pick.getCurrentPhaseCode());
             }
           }
         }
@@ -355,7 +355,7 @@ public class InitialPhaseID {
             
             if (LocUtil.deBugLevel > 1) {
               System.out.format("\tIdHard: don't use %-5s %-8s\n", 
-                  group.getStation().getStationID().staCode, pick.getCurrentPhaseCode());
+                  group.getStation().getStationID().getStationCode(), pick.getCurrentPhaseCode());
             }
           }
         }
@@ -402,7 +402,7 @@ public class InitialPhaseID {
 
           if (pick.getIsUsed()) {
             System.out.format("%-5s %-8s %6.1f %6.1f %3.0f %5.2f\n", 
-                station.getStationID().staCode, pick.getCurrentPhaseCode(), pick.getResidual(), group.getDistance(), 
+                station.getStationID().getStationCode(), pick.getCurrentPhaseCode(), pick.getResidual(), group.getDistance(), 
                 group.getAzimuth(), pick.getWeight());
           }
         }

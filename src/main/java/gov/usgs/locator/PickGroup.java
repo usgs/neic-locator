@@ -251,8 +251,8 @@ public class PickGroup {
       pick = picks.get(j);
       System.out.format("%10s %-5s %3s %2s %2s %8.4f %9.4f %5.2f "
           + "%3.1f %-8s %12s %5b %-13s %-8s %3.1f\n", pick.getPickID(), 
-          station.getStationID().staCode, pick.getChannelCode(), station.getStationID().netCode, 
-          station.getStationID().locCode, station.getLatitude(), station.getLongitude(), 
+          station.getStationID().getStationCode(), pick.getChannelCode(), station.getStationID().getNetworkCode(), 
+          station.getStationID().getLocationCode(), station.getLatitude(), station.getLongitude(), 
           station.getElevation(), pick.getQuality(), pick.getCurrentPhaseCode(), 
           LocUtil.getTimeString(pick.getArrivalTime()), pick.getExternalUse(), 
           pick.getOriginalAuthorType(), pick.getOriginalPhaseCode(), 
@@ -270,7 +270,7 @@ public class PickGroup {
     // print the first pick
     Pick pick = picks.get(0);
     System.out.format("%-5s %-8s %-8s %7.2f %6.2f %3.0f\n", 
-        station.getStationID().staCode, pick.getCurrentPhaseCode(), 
+        station.getStationID().getStationCode(), pick.getCurrentPhaseCode(), 
         pick.getOriginalPhaseCode(), pick.getTravelTime(), distance, azimuth);
 
     // print the rest
@@ -290,8 +290,8 @@ public class PickGroup {
       Pick pick = picks.get(j);
 
       System.out.format("%10s %-5s %-3s %-2s %-2s %-8s%6.1f %5.1f "
-          + "%3.0f %1s %4.2f %6.4f\n", pick.getPickID(), station.getStationID().staCode, 
-          pick.getChannelCode(), station.getStationID().netCode, station.getStationID().locCode, 
+          + "%3.0f %1s %4.2f %6.4f\n", pick.getPickID(), station.getStationID().getStationCode(), 
+          pick.getChannelCode(), station.getStationID().getNetworkCode(), station.getStationID().getLocationCode(), 
           pick.getCurrentPhaseCode(), pick.getResidual(), distance, azimuth, 
           LocUtil.getBoolChar(pick.getIsUsed()), pick.getWeight(), 
           pick.getImportance());
@@ -303,7 +303,7 @@ public class PickGroup {
    * format.
    */
   public void printNEIC() {
-    String locCode = station.getStationID().locCode;
+    String locCode = station.getStationID().getLocationCode();
     if (locCode == null) {
       locCode = "";
     }
@@ -315,8 +315,8 @@ public class PickGroup {
         case CONTRIB_HUMAN: 
         case LOCAL_HUMAN:
           System.out.format("%-2s %-5s %-3s %-2s  %5.1f     %3.0f   %-8s %12s "
-              + " manual    %6.1f    %4.2f\n", station.getStationID().netCode, 
-              station.getStationID().staCode, pick.getChannelCode(), locCode, 
+              + " manual    %6.1f    %4.2f\n", station.getStationID().getNetworkCode(), 
+              station.getStationID().getStationCode(), pick.getChannelCode(), locCode, 
               distance, azimuth, pick.getCurrentPhaseCode(), 
               LocUtil.getNEICTimeString(pick.getArrivalTime()), 
               pick.getResidual(), pick.getWeight());
@@ -324,8 +324,8 @@ public class PickGroup {
 
         default:
           System.out.format("%-2s %-5s %-3s %-2s  %5.1f     %3.0f   %-8s %12s  "
-              + "automatic %6.1f    %4.2f\n", station.getStationID().netCode, 
-              station.getStationID().staCode, pick.getChannelCode(), locCode, 
+              + "automatic %6.1f    %4.2f\n", station.getStationID().getNetworkCode(), 
+              station.getStationID().getStationCode(), pick.getChannelCode(), locCode, 
               distance, azimuth, pick.getCurrentPhaseCode(), 
               LocUtil.getNEICTimeString(pick.getArrivalTime()), 
               pick.getResidual(), pick.getWeight());

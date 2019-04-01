@@ -168,7 +168,7 @@ public class PhaseID {
       
       if (LocUtil.deBugLevel > 1) {
         System.out.format("PhaseID: %-5s %6.2f %6.2f %6.2f\n", 
-            station.getStationID().staCode, currentGroup.getPicks().get(0).getTravelTime(), 
+            station.getStationID().getStationCode(), currentGroup.getPicks().get(0).getTravelTime(), 
             currentGroup.getDistance(), currentGroup.getAzimuth());
       }
       
@@ -177,7 +177,7 @@ public class PhaseID {
           station.getElevation(), currentGroup.getDistance(), currentGroup.getAzimuth());
       
       // Print them.
-      // if (station.getStationID().staCode.equals("TX11")) {
+      // if (station.getStationID().getStationCode().equals("TX11")) {
       // currentTTList.print();
       // }
       
@@ -250,7 +250,7 @@ public class PhaseID {
           
           if (LocUtil.deBugLevel > 1) { 
             System.out.format("NoReID: got it %-5s %-8s %6.2f %2d\n", 
-                pick.getStation().getStationID().staCode, phCode, minResidual, ttIndex);
+                pick.getStation().getStationID().getStationCode(), phCode, minResidual, ttIndex);
           }
         } else {
           // If the easy way doesn't work, we have to try harder.
@@ -279,14 +279,14 @@ public class PhaseID {
             
             if (LocUtil.deBugLevel > 1) {
               System.out.format("NoReID: group %-5s %-8s -> %-8s %6.2f %2d\n", 
-                  pick.getStation().getStationID().staCode, phCode, 
+                  pick.getStation().getStationID().getStationCode(), phCode, 
                   currentTTList.get(ttIndex).getPhCode(), minResidual, ttIndex);
             }
           } else {
             if (pick.getIsUsed()) {
               if (LocUtil.deBugLevel > 1) {
                 System.out.println("NoReID: give up " 
-                    + pick.getStation().getStationID().staCode);
+                    + pick.getStation().getStationID().getStationCode());
               }
 
               currentGroup.initializeFoM(j, j);

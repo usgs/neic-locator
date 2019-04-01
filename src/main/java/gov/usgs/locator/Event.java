@@ -699,8 +699,8 @@ public class Event {
         StationID stationID = pick.getStation().getStationID();
 
         out.addPick(pick.getSourceID(), pick.getOriginalAuthorType(), pick.getPickID(), 
-            stationID.staCode, 
-            pick.getChannelCode(), stationID.netCode, stationID.locCode, 
+            stationID.getStationCode(), 
+            pick.getChannelCode(), stationID.getNetworkCode(), stationID.getLocationCode(), 
             pick.getStation().getLatitude(), pick.getStation().getLongitude(), 
             pick.getStation().getElevation(), LocUtil.toJavaTime(pick.getArrivalTime()), 
             pick.getCurrentPhaseCode(), pick.getOriginalPhaseCode(), 
@@ -772,9 +772,9 @@ public class Event {
 
     for (int j = 0; j < pickList.size(); j++) {
       gov.usgs.locator.Pick pick = pickList.get(j);
-      if (!pick.getStation().getStationID().staID.equals(lastSta)) {
+      if (!pick.getStation().getStationID().getStationID().equals(lastSta)) {
         // Remember this station.
-        lastSta = pick.getStation().getStationID().staID;
+        lastSta = pick.getStation().getStationID().getStationID();
         stationList.put(pick.getStation().getStationID(), pick.getStation());
 
         // Initialize the pick group.

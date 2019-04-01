@@ -167,7 +167,7 @@ public class Station {
   @Override
   public String toString() {
     return String.format("%-5s %-2s %-2s %8.4f %9.4f %6.2f", 
-        stationID.staCode, stationID.locCode, stationID.netCode, latitude, 
+        stationID.getStationCode(), stationID.getLocationCode(), stationID.getNetworkCode(), latitude, 
         longitude, elevation);
   }
 }

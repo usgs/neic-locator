@@ -26,8 +26,8 @@ public class PickComp implements Comparator<Pick> {
   @Override
   public int compare(Pick pick1, Pick pick2) {
     // Sort into station and then arrival time order.
-    int order = pick1.getStation().getStationID().staID
-        .compareTo(pick2.getStation().getStationID().staID);
+    int order = pick1.getStation().getStationID().getStationID()
+        .compareTo(pick2.getStation().getStationID().getStationID());
 
     if (order != 0) {
       return order;
