@@ -5,66 +5,59 @@ import java.util.ArrayList;
 
 /**
  * The Locate class drives the location of one earthquake.
- * 
- * @author Ray Buland
  *
+ * @author Ray Buland
  */
 public class Locate {
-  /**
-   * An Event object containing the event to locate.
-   */
+  /** An Event object containing the event to locate. */
   private Event event;
-  
-  /**
-   * A Hypocenter object containing the hypocenter of event to locate.
-   */  
+
+  /** A Hypocenter object containing the hypocenter of event to locate. */
   private Hypocenter hypo;
-  
-  /** 
-   * An ArrayList of HypoAudit objects containing the hypocenter auditing 
-   * information during this location.
+
+  /**
+   * An ArrayList of HypoAudit objects containing the hypocenter auditing information during this
+   * location.
    */
   private ArrayList<HypoAudit> hypoAuditList;
-  
+
   /**
-   * A TTSessionLocal object containing a local travel-time manager used for
-   * this location process.
-   */    
+   * A TTSessionLocal object containing a local travel-time manager used for this location process.
+   */
   private TTSessionLocal ttLocalSession;
-  
-  /** 
-   * A InitialPhaseID object used to perform initial phase identification before any 
-   * location iterations.
+
+  /**
+   * A InitialPhaseID object used to perform initial phase identification before any location
+   * iterations.
    */
   private InitialPhaseID initialPhaseID;
 
-  /** 
-   * A PhaseID object containing Phase identification logic used in performing 
-   * phase identifications.
-   */  
+  /**
+   * A PhaseID object containing Phase identification logic used in performing phase
+   * identifications.
+   */
   private PhaseID phaseID;
 
   /**
-   * A Stepper object used to manage the rank-sum estimation logic needed to 
-   * refine the phase identifications and location.
+   * A Stepper object used to manage the rank-sum estimation logic needed to refine the phase
+   * identifications and location.
    */
   private Stepper stepper;
-  
+
   /**
-   * A CloseOut object used to computes all the errors and heuristics used to 
-   * evaluate the location after an event is located.
+   * A CloseOut object used to computes all the errors and heuristics used to evaluate the location
+   * after an event is located.
    */
   private CloseOut close;
 
   /**
    * The Locate constructor. Sets up the class to locate a single event.
-   * 
+   *
    * @param event An Event object containing the Event to locate
-   * @param ttLocalSession A TTSessionLocal object containing the travel-time 
-   *                       information for a local implementation to use in 
-   *                       computing the location
-   * @param auxLoc An AuxLocRef object containing zuxiliary location information
-   *               such as continental craton boundries and earthquake statistics
+   * @param ttLocalSession A TTSessionLocal object containing the travel-time information for a
+   *     local implementation to use in computing the location
+   * @param auxLoc An AuxLocRef object containing zuxiliary location information such as continental
+   *     craton boundries and earthquake statistics
    */
   public Locate(Event event, TTSessionLocal ttLocalSession, AuxLocRef auxLoc) {
     this.event = event;
@@ -77,22 +70,22 @@ public class Locate {
     close = new CloseOut(event);
     LocUtil.useDecorrelation = false;
   }
-  
+
   /**
    * This function performs the location for the event.
-   * 
+   *
    * @return A LocStatus object containing the final location status
    */
   public LocStatus doLocation() {
     // Save the essentials of this event for comparison.
     event.addAudit(0, 0, LocStatus.INITIAL_HYPOCENTER);
-    
+
     // Bail on insufficient data.
     if (event.getNumStationsUsed() < 3) {
       close.computeFinalStatistics(LocStatus.INSUFFICIENT_DATA);
       return LocStatus.INSUFFICIENT_DATA;
     }
-    
+
     try {
       // Handle a held solution.
       if (event.getIsLocationHeld()) {
@@ -102,14 +95,14 @@ public class Locate {
         close.computeFinalStatistics(LocStatus.HELD_HYPOCENTER);
         return LocStatus.SUCCESS;
       }
-      
+
       // Prepare the event for relocation by performing an initial phase
       // identification
       initialPhaseID.phaseID();
       if (LocUtil.deBugLevel > 3) {
         initialPhaseID.printInitialID();
       }
-      
+
       // Now do the multistage iteration to refine the hypocenter.
       LocStatus status;
       for (int stage = 0; stage < LocUtil.STAGELIMIT; stage++) {
@@ -117,11 +110,11 @@ public class Locate {
         switch (stage) {
           case 0:
             // Do the stage 0 phase identification (no reID, but re-weight).
-            status = stepper.doPhaseIdentification(0.01d,  5d, false, true);
+            status = stepper.doPhaseIdentification(0.01d, 5d, false, true);
             break;
 
           case 1:
-            // Unless this is a restart, allow phases initially removed to 
+            // Unless this is a restart, allow phases initially removed to
             // be added back in.
             if (!event.getIsLocationRestarted()) {
               initialPhaseID.resetUseFlags();
@@ -143,7 +136,7 @@ public class Locate {
             break;
         }
 
-        // Be sure we still have enough data to continue. 
+        // Be sure we still have enough data to continue.
         if (status == LocStatus.INSUFFICIENT_DATA) {
           close.computeFinalStatistics(status);
           return status;
@@ -174,7 +167,7 @@ public class Locate {
               break;
 
             default:
-              // Otherwise, keep on trucking!  (This includes phase 
+              // Otherwise, keep on trucking!  (This includes phase
               // re-identification).
               break;
           }
@@ -185,29 +178,30 @@ public class Locate {
           }
         }
 
-        // We're done with this stage.  Collect information for a stage 
+        // We're done with this stage.  Collect information for a stage
         // level audit instance.
         if (iter >= LocUtil.ITERATIONSTAGELIMITS[stage]) {
           status = LocStatus.FULL_ITERATIONS;
         }
 
-        hypo.setHorizontalStepLength(LocUtil.computeDistance(hypo, 
-            hypoAuditList.get(hypoAuditList.size() - 1)));
-        hypo.setVerticalStepLength(Math.abs(hypo.getDepth() 
-            - hypoAuditList.get(hypoAuditList.size() - 1).getDepth()));
-        hypo.setStepLength(Math.sqrt(Math.pow(hypo.getHorizontalStepLength(), 
-            2d) + Math.pow(hypo.getVerticalStepLength(), 2d)));
-        
+        hypo.setHorizontalStepLength(
+            LocUtil.computeDistance(hypo, hypoAuditList.get(hypoAuditList.size() - 1)));
+        hypo.setVerticalStepLength(
+            Math.abs(hypo.getDepth() - hypoAuditList.get(hypoAuditList.size() - 1).getDepth()));
+        hypo.setStepLength(
+            Math.sqrt(
+                Math.pow(hypo.getHorizontalStepLength(), 2d)
+                    + Math.pow(hypo.getVerticalStepLength(), 2d)));
+
         // check to see if we've converged
-        if (stage > 0 && hypo.getStepLength() 
-            <= LocUtil.CONVERGENCESTAGELIMITS[stage]) {
+        if (stage > 0 && hypo.getStepLength() <= LocUtil.CONVERGENCESTAGELIMITS[stage]) {
           // If we've converged, create a final location level audit.
-          hypo.setHorizontalStepLength(LocUtil.computeDistance(hypo, 
-              hypoAuditList.get(0)));
-          hypo.setVerticalStepLength(Math.abs(hypo.getDepth() 
-              - hypoAuditList.get(0).getDepth()));
-          hypo.setStepLength(Math.sqrt(Math.pow(hypo.getHorizontalStepLength(), 
-              2d) + Math.pow(hypo.getVerticalStepLength(),2d)));
+          hypo.setHorizontalStepLength(LocUtil.computeDistance(hypo, hypoAuditList.get(0)));
+          hypo.setVerticalStepLength(Math.abs(hypo.getDepth() - hypoAuditList.get(0).getDepth()));
+          hypo.setStepLength(
+              Math.sqrt(
+                  Math.pow(hypo.getHorizontalStepLength(), 2d)
+                      + Math.pow(hypo.getVerticalStepLength(), 2d)));
           event.addAudit(stage, iter, status);
 
           System.out.println("\nFinal wrapup:");
@@ -221,7 +215,7 @@ public class Locate {
         }
       }
 
-      // If we go to full interations on the last stage without converging, give 
+      // If we go to full interations on the last stage without converging, give
       // up.
       return LocStatus.DID_NOT_CONVERGE;
     } catch (Exception e) {

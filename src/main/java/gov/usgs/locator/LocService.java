@@ -7,48 +7,39 @@ import gov.usgs.processingformats.LocationService;
 import gov.usgs.traveltime.TTSessionLocal;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Date;
-import java.util.Iterator;
 
 public class LocService implements LocationService {
-  /** 
-   * A String containing the earth model path for the locator, null to use 
-   * default.
-   */
+  /** A String containing the earth model path for the locator, null to use default. */
   private String modelPath = null;
 
-  /**
-   * The LocService constructor. Sets up the earth model path
-   */
+  /** The LocService constructor. Sets up the earth model path */
   public LocService(String modelPath) {
     this.modelPath = modelPath;
   }
 
   /**
-   * Function to get a location using the provided input, implementing the 
-   * location service interface.
-   * 
+   * Function to get a location using the provided input, implementing the location service
+   * interface.
+   *
    * @param request a Final LocationRequest containing the location request
    * @return A LocationResult containing the resulting location
    */
   @Override
-  public LocationResult getLocation(final LocationRequest request) 
-      throws LocationException {    
+  public LocationResult getLocation(final LocationRequest request) throws LocationException {
     // create locInput from LocationRequest
     LocInput in = new LocInput(request);
 
     // return result as a LocationResult
-    return (LocationResult)getLocation(in);
+    return (LocationResult) getLocation(in);
   }
-  
+
   /**
    * Function to get a location using the provided input.
-   * 
+   *
    * @param in a Final LocInput containing the location input
    * @return A LocOutput containing the resulting location output
    */
-  public LocOutput getLocation(final LocInput in) 
-      throws LocationException {
+  public LocOutput getLocation(final LocInput in) throws LocationException {
     // check to see if the input is valid
     if (in.isValid() == false) {
       ArrayList<String> errorList = in.getErrors();
@@ -94,8 +85,9 @@ public class LocService implements LocationService {
     event.printHydraInput();
 
     // setup the locator
-    Locate loc = new Locate(event, ttLocal, auxLoc);;
-    
+    Locate loc = new Locate(event, ttLocal, auxLoc);
+    ;
+
     // perform the location
     LocStatus status = loc.doLocation();
     event.setLocatorExitCode(status);

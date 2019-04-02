@@ -1,9 +1,6 @@
 package gov.usgs.locator;
 
 import gov.usgs.processingformats.LocationRequest;
-import gov.usgs.processingformats.Pick;
-import gov.usgs.processingformats.Site;
-import gov.usgs.processingformats.Source;
 import java.io.BufferedInputStream;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -14,25 +11,22 @@ import java.util.Scanner;
 import java.util.regex.Pattern;
 
 /**
- * The LocInput class stores the inputs needed to relocate an event.  This class 
- * is designed to contain all inputs needed for a location pass.  An object of 
- * this class should be created from the users inputs and will drive subsequent processing.
- * 
- * @author jpatton@usgs.gov
+ * The LocInput class stores the inputs needed to relocate an event. This class is designed to
+ * contain all inputs needed for a location pass. An object of this class should be created from the
+ * users inputs and will drive subsequent processing.
  *
+ * @author jpatton@usgs.gov
  */
 public class LocInput extends LocationRequest {
-  /**
-   * The LocInput default constructor.
-   */
+  /** The LocInput default constructor. */
   public LocInput() {
     super();
   }
 
   /**
-   * The LocInput constructor. This constructor populates the LocInput class
-   * with the given LocationRequest parameters 
-   * 
+   * The LocInput constructor. This constructor populates the LocInput class with the given
+   * LocationRequest parameters
+   *
    * @param request A LocationRequest object containing the input data
    */
   public LocInput(final LocationRequest request) {
@@ -54,9 +48,9 @@ public class LocInput extends LocationRequest {
   }
 
   /**
-   * This function sead a Bulletin Hydra style event input file.  File open and 
-   * read exceptions are trapped.
-   * 
+   * This function sead a Bulletin Hydra style event input file. File open and read exceptions are
+   * trapped.
+   *
    * @param filePath A String containing the path to hydra file
    * @return True if the read was successful
    */
@@ -79,7 +73,7 @@ public class LocInput extends LocationRequest {
       setSourceLatitude(scan.nextDouble());
       setSourceLongitude(scan.nextDouble());
       setSourceDepth(scan.nextDouble());
-      
+
       // Get the analyst commands.
       setIsLocationHeld(LocUtil.getBoolean(scan.next().charAt(0)));
       setIsDepthHeld(LocUtil.getBoolean(scan.next().charAt(0)));
@@ -88,8 +82,8 @@ public class LocInput extends LocationRequest {
       setBayesianSpread(scan.nextDouble());
       char rstt = scan.next().charAt(0); // (not used)
       setUseSVD(!LocUtil.getBoolean(scan.next().charAt(0))); // True when noSvd is false
-      
-      // Fiddle because the analyst command last flag is omitted in earlier 
+
+      // Fiddle because the analyst command last flag is omitted in earlier
       // data.
       char moved;
       if (scan.hasNextInt()) {
@@ -98,21 +92,19 @@ public class LocInput extends LocationRequest {
         moved = scan.next().charAt(0);
       }
       setIsLocationNew(LocUtil.getBoolean(moved));
-     
+
       // create the pick list
-      ArrayList<gov.usgs.processingformats.Pick> pickList = 
+      ArrayList<gov.usgs.processingformats.Pick> pickList =
           new ArrayList<gov.usgs.processingformats.Pick>();
 
       // Get the pick information.
       while (scan.hasNext()) {
-        gov.usgs.processingformats.Pick newPick = 
-            new gov.usgs.processingformats.Pick();
-        
+        gov.usgs.processingformats.Pick newPick = new gov.usgs.processingformats.Pick();
+
         newPick.setId(scan.next());
 
         // Get the station information.
-        gov.usgs.processingformats.Site newSite = 
-            new gov.usgs.processingformats.Site();
+        gov.usgs.processingformats.Site newSite = new gov.usgs.processingformats.Site();
         newSite.setStation(scan.next());
         newSite.setChannel(scan.next());
         newSite.setNetwork(scan.next());
@@ -122,8 +114,8 @@ public class LocInput extends LocationRequest {
         newSite.setElevation(scan.nextDouble());
         newPick.setSite(newSite);
 
-        // Get the rest of the pick information.  Note that some 
-        // fiddling is required as some of the positional arguments 
+        // Get the rest of the pick information.  Note that some
+        // fiddling is required as some of the positional arguments
         // are sometimes omitted.
         newPick.setQuality(scan.nextDouble());
         String curPh = null;
@@ -135,8 +127,8 @@ public class LocInput extends LocationRequest {
         newPick.setTime(new Date(LocUtil.toJavaTime(scan.nextDouble())));
         newPick.setUse(LocUtil.getBoolean(scan.next().charAt(0)));
 
-        // convert author type 
-        // 1 = automatic contributed, 2 = automatic NEIC, 
+        // convert author type
+        // 1 = automatic contributed, 2 = automatic NEIC,
         // 3 = analyst contributed, 4 = NEIC analyst.
         int auth = scan.nextInt();
         String authType = null;
@@ -151,9 +143,9 @@ public class LocInput extends LocationRequest {
         } else {
           authType = "ContributedAutomatic";
         }
-        // make up agency/author because a hydra input file does not have that 
+        // make up agency/author because a hydra input file does not have that
         // information, only author type
-        gov.usgs.processingformats.Source newSource = 
+        gov.usgs.processingformats.Source newSource =
             new gov.usgs.processingformats.Source("US", "Hydra", authType);
         newPick.setSource(newSource);
 
@@ -173,7 +165,7 @@ public class LocInput extends LocationRequest {
         }
         newPick.setAffinity(aff);
         newPick.setAssociatedPhase(obsPh);
-       
+
         if (newPick.isValid()) {
           // Add the pick to the list
           pickList.add(newPick);

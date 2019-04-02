@@ -5,51 +5,40 @@ import gov.usgs.processingformats.LocationRequest;
 import gov.usgs.processingformats.LocationResult;
 import gov.usgs.processingformats.Utility;
 import java.io.BufferedReader;
-import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
-import java.util.ArrayList;
 import org.json.simple.parser.ParseException;
 
 /**
  * Test driver for the locator.
  *
  * @author John Patton
- *
  */
 public class LocMain {
-  /** 
-   * A String containing the argument for specifying the model file path. 
-   */
+  /** A String containing the argument for specifying the model file path. */
   public static final String MODELPATH_ARGUMENT = "--modelPath=";
 
-  /** 
-   * A String containing the argument for specifying the input file path.  
-   */
+  /** A String containing the argument for specifying the input file path. */
   public static final String FILEPATH_ARGUMENT = "--filePath=";
 
-  /** 
-   * A String containing the argument for specifying the input file type.  
-   */
+  /** A String containing the argument for specifying the input file type. */
   public static final String FILETYPE_ARGUMENT = "--fileType=";
 
-  /** 
-   * A String containing the argument for requesting the locator version.  
-   */
+  /** A String containing the argument for requesting the locator version. */
   public static final String VERSION_ARGUMENT = "--version";
 
   /**
    * Main program for testing the locator.
-   * 
+   *
    * @param args Command line arguments
    */
   public static void main(String[] args) {
     if (args == null || args.length == 0) {
-      System.out
-          .println("Usage: neic-locator --modelPath=[model path] " 
-          + "--filePath=[file path] --fileType=[file type]");
-      System.exit(1);    
+      System.out.println(
+          "Usage: neic-locator --modelPath=[model path] "
+              + "--filePath=[file path] --fileType=[file type]");
+      System.exit(1);
     }
 
     // Default paths
@@ -62,7 +51,7 @@ public class LocMain {
     for (String arg : args) {
       // save arguments for logging
       argumentList.append(arg).append(" ");
-      
+
       if (arg.startsWith(MODELPATH_ARGUMENT)) {
         // get model path
         modelPath = arg.replace(MODELPATH_ARGUMENT, "");
@@ -81,8 +70,7 @@ public class LocMain {
     }
 
     // print out args
-    System.out.println("Command line arguments: " 
-        + argumentList.toString().trim());
+    System.out.println("Command line arguments: " + argumentList.toString().trim());
 
     // Set the debug level.
     LocUtil.deBugLevel = 1;
@@ -100,8 +88,7 @@ public class LocMain {
       BufferedReader inputReader = null;
       String inputString = "";
       try {
-        inputReader = new BufferedReader(
-            new FileReader(filePath));
+        inputReader = new BufferedReader(new FileReader(filePath));
         String text = null;
 
         // each line is assumed to be part of the input
@@ -156,7 +143,7 @@ public class LocMain {
       if (hydraIn.readHydra(filePath) == false) {
         System.exit(0);
       }
-      
+
       // always print input as json for debugging
       String jsonString = Utility.toJSONString(hydraIn.toJSON());
       System.out.println("JSON Input: " + jsonString);
@@ -168,11 +155,11 @@ public class LocMain {
         System.out.println("Exception: " + e.toString());
         System.exit(1);
       }
-      
+
       if (hydraOut != null) {
         System.out.println("Writing a hydra file.");
         hydraOut.writeHydra(filePath + ".out");
-        result = (LocationResult)hydraOut;
+        result = (LocationResult) hydraOut;
       }
     }
 

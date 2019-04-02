@@ -4,68 +4,44 @@ import gov.usgs.traveltime.TauUtil;
 import java.util.Arrays;
 
 /**
- * The WeightedResidual class combines the residuals and weights for picks and 
- * the Bayesian depth, while providing storage for the dispersion calculation 
- * and the spatial derivatives.  Note that the residuals and weights are kept 
- * separate as some calculations depend only on the residuals.
- * 
- * @author Ray Buland
+ * The WeightedResidual class combines the residuals and weights for picks and the Bayesian depth,
+ * while providing storage for the dispersion calculation and the spatial derivatives. Note that the
+ * residuals and weights are kept separate as some calculations depend only on the residuals.
  *
+ * @author Ray Buland
  */
 public class WeightedResidual implements Comparable<WeightedResidual> {
-  /**
-   * A boolean flag indicating whether this WeightedResidual is the Bayesian 
-   * depth residual.
-   */
+  /** A boolean flag indicating whether this WeightedResidual is the Bayesian depth residual. */
   private boolean isBayesianDepth;
 
-  /**
-   * A double containing the residual. In seconds if for picks, in kilometers if 
-   * for depth.
-   */
-  private double residual;  
-  
-  /**
-   * A double containing the linearly estimated residual.
-   */
+  /** A double containing the residual. In seconds if for picks, in kilometers if for depth. */
+  private double residual;
+
+  /** A double containing the linearly estimated residual. */
   private double linEstResidual;
-  
-  /**
-   * A double containing the weight.
-   */  
+
+  /** A double containing the weight. */
   private double weight;
 
-  /**
-   * A double[] containing the spatial derivatives in kilometers.
-   */  
+  /** A double[] containing the spatial derivatives in kilometers. */
   private double[] spatialDerivatives;
 
-  /**
-   * A double[] containing the demedianed spatial derivatives in kilometers.
-   */    
-  private double[] deMedSpaDerivatives;  
+  /** A double[] containing the demedianed spatial derivatives in kilometers. */
+  private double[] deMedSpaDerivatives;
 
-  /**
-   * A double containing the 2-norm of the horizontal derivatives in kilometers.
-   */
+  /** A double containing the 2-norm of the horizontal derivatives in kilometers. */
   private double twoNorm;
 
-  /**
-   * A double containing the value to sort on.
-   */  
+  /** A double containing the value to sort on. */
   private double sortValue;
 
-  /**
-   * A Pick object holding the pick the residuals were derived from.
-   */
-  private Pick pick;        
+  /** A Pick object holding the pick the residuals were derived from. */
+  private Pick pick;
 
   /**
-   * Function to return whether this WeightedResidual is the Bayesian depth 
-   * residual.
-   * 
-   * @return A boolean flag indicating whether this WeightedResidual is the 
-   *         Bayesian depth residual
+   * Function to return whether this WeightedResidual is the Bayesian depth residual.
+   *
+   * @return A boolean flag indicating whether this WeightedResidual is the Bayesian depth residual
    */
   public boolean getIsBayesianDepth() {
     return isBayesianDepth;
@@ -73,9 +49,8 @@ public class WeightedResidual implements Comparable<WeightedResidual> {
 
   /**
    * Function to get the residual.
-   * 
-   * @return A double containing the residual. In seconds if for picks, in 
-   *          kilometers if for depth.
+   *
+   * @return A double containing the residual. In seconds if for picks, in kilometers if for depth.
    */
   public double getResidual() {
     return residual;
@@ -83,7 +58,7 @@ public class WeightedResidual implements Comparable<WeightedResidual> {
 
   /**
    * Function to get the linearly estimated residual.
-   * 
+   *
    * @return A double containing the linearly estimated residual
    */
   public double getLinEstResidual() {
@@ -92,7 +67,7 @@ public class WeightedResidual implements Comparable<WeightedResidual> {
 
   /**
    * Function to get the weight.
-   * 
+   *
    * @return A double containing the weight
    */
   public double getWeight() {
@@ -101,7 +76,7 @@ public class WeightedResidual implements Comparable<WeightedResidual> {
 
   /**
    * Function to get the spatial derivatives.
-   * 
+   *
    * @return A double[] containing the spatial derivatives in kilometers
    */
   public double[] getSpatialDerivatives() {
@@ -110,9 +85,8 @@ public class WeightedResidual implements Comparable<WeightedResidual> {
 
   /**
    * Function to get the demedianed spatial derivatives.
-   * 
-   * @return A double[] containing the demedianed spatial derivatives in 
-   *          kilometers
+   *
+   * @return A double[] containing the demedianed spatial derivatives in kilometers
    */
   public double[] getDeMedSpaDerivatives() {
     return deMedSpaDerivatives;
@@ -120,7 +94,7 @@ public class WeightedResidual implements Comparable<WeightedResidual> {
 
   /**
    * Function to get the value to sort on.
-   * 
+   *
    * @return A double containing the value to sort on
    */
   public double getSortValue() {
@@ -129,7 +103,7 @@ public class WeightedResidual implements Comparable<WeightedResidual> {
 
   /**
    * Function to get the pick the residuals were derived from.
-   * 
+   *
    * @return A Pick object holding the pick the residuals were derived from
    */
   public Pick getPick() {
@@ -138,70 +112,78 @@ public class WeightedResidual implements Comparable<WeightedResidual> {
 
   /**
    * Function to set the linearly estimated residual.
-   * 
+   *
    * @param linEstResidual A double containing the linearly estimated residual
    */
   public void setLinEstResidual(double linEstResidual) {
     this.linEstResidual = linEstResidual;
   }
 
-  /**
-   * The WeightedResidual default constructor. Creates the object with no initial 
-   * information.
-   */
+  /** The WeightedResidual default constructor. Creates the object with no initial information. */
   public WeightedResidual() {
     linEstResidual = 0d;
     twoNorm = Double.NaN;
     sortValue = Double.NaN;
   }
-  
+
   /**
-   * The WeightedResidual constructor. Initialize the weighted residual to the 
-   * provided values.
-   * 
+   * The WeightedResidual constructor. Initialize the weighted residual to the provided values.
+   *
    * @param pick A Pick object holing the pick associated with this data, if any
-   * @param residual A double containing the residual. In seconds if for picks,  
-   *                 in kilometers if for depth.
+   * @param residual A double containing the residual. In seconds if for picks, in kilometers if for
+   *     depth.
    * @param weight A double containing the weight
-   * @param isBayesianDepth A boolean flag indicating whether this 
-   *                        WeightedResidual is the Bayesian depth residual
-   * @param travelTimeLatDeriv A double containing the derivative of the travel  
-   *                           time with respect to latitude in 
-   *                           seconds/kilometers
-   * @param travelTimeLonDeriv A double containing the derivative of the travel  
-   *                           time with respect to longitude in 
-   *                           seconds/kilometers
-   * @param travelTimeDepthDeriv A double containing the derivative of the travel  
-   *                             time with respect to depth in seconds/kilometers
+   * @param isBayesianDepth A boolean flag indicating whether this WeightedResidual is the Bayesian
+   *     depth residual
+   * @param travelTimeLatDeriv A double containing the derivative of the travel time with respect to
+   *     latitude in seconds/kilometers
+   * @param travelTimeLonDeriv A double containing the derivative of the travel time with respect to
+   *     longitude in seconds/kilometers
+   * @param travelTimeDepthDeriv A double containing the derivative of the travel time with respect
+   *     to depth in seconds/kilometers
    */
-  public WeightedResidual(Pick pick, double residual, double weight, 
-      boolean isBayesianDepth, double travelTimeLatDeriv, 
-      double travelTimeLonDeriv, double travelTimeDepthDeriv) {
-    reInit(pick, residual, weight, isBayesianDepth, travelTimeLatDeriv, 
-        travelTimeLonDeriv, travelTimeDepthDeriv);
+  public WeightedResidual(
+      Pick pick,
+      double residual,
+      double weight,
+      boolean isBayesianDepth,
+      double travelTimeLatDeriv,
+      double travelTimeLonDeriv,
+      double travelTimeDepthDeriv) {
+    reInit(
+        pick,
+        residual,
+        weight,
+        isBayesianDepth,
+        travelTimeLatDeriv,
+        travelTimeLonDeriv,
+        travelTimeDepthDeriv);
   }
-  
+
   /**
    * This function re-initialize (reuses) the weighted residual.
-   * 
+   *
    * @param pick A Pick object holing the pick associated with this data, if any
-   * @param residual A double containing the residual. In seconds if for picks,  
-   *                 in kilometers if for depth.
+   * @param residual A double containing the residual. In seconds if for picks, in kilometers if for
+   *     depth.
    * @param weight A double containing the weight
-   * @param isBayesianDepth A boolean flag indicating whether this 
-   *                        WeightedResidual is the Bayesian depth residual
-   * @param travelTimeLatDeriv A double containing the derivative of the travel  
-   *                           time with respect to latitude in 
-   *                           seconds/kilometers
-   * @param travelTimeLonDeriv A double containing the derivative of the travel  
-   *                           time with respect to longitude in 
-   *                           seconds/kilometers
-   * @param travelTimeDepthDeriv A double containing the derivative of the travel  
-   *                             time with respect to depth in seconds/kilometers
+   * @param isBayesianDepth A boolean flag indicating whether this WeightedResidual is the Bayesian
+   *     depth residual
+   * @param travelTimeLatDeriv A double containing the derivative of the travel time with respect to
+   *     latitude in seconds/kilometers
+   * @param travelTimeLonDeriv A double containing the derivative of the travel time with respect to
+   *     longitude in seconds/kilometers
+   * @param travelTimeDepthDeriv A double containing the derivative of the travel time with respect
+   *     to depth in seconds/kilometers
    */
-  public void reInit(Pick pick, double residual, double weight, 
-      boolean isBayesianDepth, double travelTimeLatDeriv, 
-      double travelTimeLonDeriv, double travelTimeDepthDeriv) {
+  public void reInit(
+      Pick pick,
+      double residual,
+      double weight,
+      boolean isBayesianDepth,
+      double travelTimeLatDeriv,
+      double travelTimeLonDeriv,
+      double travelTimeDepthDeriv) {
     this.pick = pick;
     this.residual = residual;
     this.weight = weight;
@@ -218,10 +200,10 @@ public class WeightedResidual implements Comparable<WeightedResidual> {
     twoNorm = Double.NaN;
     sortValue = Double.NaN;
   }
-  
+
   /**
    * This function removes the median from the travel-time residuals.
-   * 
+   *
    * @param median A double containing the median travel-time residual in seconds
    */
   public void deMedianResiduals(double median) {
@@ -229,12 +211,11 @@ public class WeightedResidual implements Comparable<WeightedResidual> {
       residual -= median;
     }
   }
-  
+
   /**
-   * This function removes the median from the derivatives.  Note that this 
-   * isn't the median of the derivatives, but the derivative corresponding to  
-   * the median of the residuals.
-   * 
+   * This function removes the median from the derivatives. Note that this isn't the median of the
+   * derivatives, but the derivative corresponding to the median of the residuals.
+   *
    * @param medians A double[] containing the derivative medians
    */
   public void deMedianDerivatives(double[] medians) {
@@ -244,13 +225,12 @@ public class WeightedResidual implements Comparable<WeightedResidual> {
       }
     }
   }
-  
+
   /**
    * This function updates the estimated residual given a trial step vector.
-   * 
-   * @param trialStepVector A double[] contaiing the trial step vector (distance  
-   *                        and direction from the current hypocenter in 
-   *                        kilometers)
+   *
+   * @param trialStepVector A double[] contaiing the trial step vector (distance and direction from
+   *     the current hypocenter in kilometers)
    */
   public void updateEstResiduals(double[] trialStepVector) {
     linEstResidual = residual;
@@ -258,10 +238,10 @@ public class WeightedResidual implements Comparable<WeightedResidual> {
       linEstResidual -= trialStepVector[j] * spatialDerivatives[j];
     }
   }
-  
+
   /**
    * This function removes the median from the estimated travel-time residuals.
-   * 
+   *
    * @param median A double containing the median travel-time residual in seconds
    */
   public void deMedianEstResiduals(double median) {
@@ -269,40 +249,38 @@ public class WeightedResidual implements Comparable<WeightedResidual> {
       linEstResidual -= median;
     }
   }
-  
+
   /**
-   * This function sets the sort value to sort by travel-time residual.  Note  
-   * that the depth residual will be sorted to the end to keep it out of the way.
+   * This function sets the sort value to sort by travel-time residual. Note that the depth residual
+   * will be sorted to the end to keep it out of the way.
    */
   public void setSortValue() {
     if (isBayesianDepth) {
       sortValue = TauUtil.DMAX;
-    }  else {
+    } else {
       sortValue = residual;
     }
   }
-  
+
   /**
-   * This function sets the sort value to sort by absolute demedianed travel-time 
-   * residuals in order to compute the spread, a 1-norm measure of 
-   * scatter.  Note that the depth residual will be sorted to the end 
-   * to keep it out of the way.
-   * 
+   * This function sets the sort value to sort by absolute demedianed travel-time residuals in order
+   * to compute the spread, a 1-norm measure of scatter. Note that the depth residual will be sorted
+   * to the end to keep it out of the way.
+   *
    * @param median A double containing the median travel-time residual in seconds
    */
   public void setSortValueSpread(double median) {
     if (isBayesianDepth) {
       sortValue = TauUtil.DMAX;
-    }  else {
+    } else {
       sortValue = Math.abs(residual - median);
     }
   }
-  
+
   /**
-   * This function sets the sort value to sort by the demedianed, weighted 
-   * residuals in order to compute the R-estimator dispersion or penalty 
-   * function.
-   * 
+   * This function sets the sort value to sort by the demedianed, weighted residuals in order to
+   * compute the R-estimator dispersion or penalty function.
+   *
    * @param median A double containing the median travel-time residual in seconds
    */
   public void setSortValueDispersion(double median) {
@@ -312,11 +290,10 @@ public class WeightedResidual implements Comparable<WeightedResidual> {
       sortValue = (residual - median) * weight;
     }
   }
-  
+
   /**
-   * This function sets the sort value to sort by the estimated travel-time 
-   * residual. Note that the depth residual will be sorted to the end to keep it 
-   * out of the way.
+   * This function sets the sort value to sort by the estimated travel-time residual. Note that the
+   * depth residual will be sorted to the end to keep it out of the way.
    */
   public void setSortValueLinEstRes() {
     if (isBayesianDepth) {
@@ -325,53 +302,48 @@ public class WeightedResidual implements Comparable<WeightedResidual> {
       sortValue = linEstResidual;
     }
   }
-  
+
   /**
-   * This function sets the sort value to sort by the demedianed, weighted, 
-   * estimated residuals in order to compute the R-estimator dispersion or 
-   * penalty function.
-   * 
+   * This function sets the sort value to sort by the demedianed, weighted, estimated residuals in
+   * order to compute the R-estimator dispersion or penalty function.
+   *
    * @param median Median estimated travel-time residual in seconds
    */
   public void setSortValueLinEstDisp(double median) {
     if (isBayesianDepth) {
       sortValue = linEstResidual * weight;
-    }  else {
+    } else {
       sortValue = (linEstResidual - median) * weight;
     }
   }
-  
+
   /**
    * This function contributes to projecting the original weighted residuals.
-   * 
-   * @param weightedResidual A WeightedResidual containing the projected 
-   *                         weighted residual
+   *
+   * @param weightedResidual A WeightedResidual containing the projected weighted residual
    * @param eigenvectorElem A double containing the eigenvector element
    */
   public void project(WeightedResidual weightedResidual, double eigenvectorElem) {
     residual += eigenvectorElem * weightedResidual.residual;
 
     for (int j = 0; j < spatialDerivatives.length; j++) {
-      spatialDerivatives[j] += eigenvectorElem
-          * weightedResidual.getSpatialDerivatives()[j];
+      spatialDerivatives[j] += eigenvectorElem * weightedResidual.getSpatialDerivatives()[j];
     }
   }
-  
+
   /**
    * This function contributes to projecting the estimated weighted residuals.
-   * 
-   * @param weightedResidual A WeightedResidual containing the projected 
-   *                         weighted residual
+   *
+   * @param weightedResidual A WeightedResidual containing the projected weighted residual
    * @param eigenvectorElem A double containing the eigenvector element
    */
-  public void projectEstimated(WeightedResidual weightedResidual, 
-      double eigenvectorElem) {
+  public void projectEstimated(WeightedResidual weightedResidual, double eigenvectorElem) {
     linEstResidual += eigenvectorElem * weightedResidual.linEstResidual;
   }
-  
+
   /**
-   * This function changes the sign of the residual and it's derivatives if the 
-   * eigenvector is backwards.
+   * This function changes the sign of the residual and it's derivatives if the eigenvector is
+   * backwards.
    */
   public void changeSign() {
     residual = -residual;
@@ -380,40 +352,38 @@ public class WeightedResidual implements Comparable<WeightedResidual> {
       spatialDerivatives[j] = -spatialDerivatives[j];
     }
   }
-  
+
   /**
    * This function calculates the 2-norm of the horizontal derivatives.
-   * 
-   * @return A double containing the 2-norm of the horizontal derivatives in 
-   *         kilometers
+   *
+   * @return A double containing the 2-norm of the horizontal derivatives in kilometers
    */
   public double calculateTwoNorm() {
     if (Double.isNaN(twoNorm)) {
-      twoNorm = Math.sqrt(Math.pow(spatialDerivatives[0],2d)
-          + Math.pow(spatialDerivatives[1], 2d));
+      twoNorm =
+          Math.sqrt(Math.pow(spatialDerivatives[0], 2d) + Math.pow(spatialDerivatives[1], 2d));
     }
 
     return twoNorm;
   }
-  
+
   /**
-   * This function calculates the correlation between these horizontal 
-   * derivatives and another set of horizontal derivatives.
-   * 
-   * @param weightedResidual A WeightedResidual object containing the weighted  
-   *                         residual information to correlate against
-   * @return A double containing the correlation between the horizontal 
-   *         derivatives of two picks
+   * This function calculates the correlation between these horizontal derivatives and another set
+   * of horizontal derivatives.
+   *
+   * @param weightedResidual A WeightedResidual object containing the weighted residual information
+   *     to correlate against
+   * @return A double containing the correlation between the horizontal derivatives of two picks
    */
   public double calculateCorrelation(WeightedResidual weightedResidual) {
-    return (spatialDerivatives[0] * weightedResidual.getSpatialDerivatives()[0] 
-        + spatialDerivatives[1] * weightedResidual.getSpatialDerivatives()[1])
+    return (spatialDerivatives[0] * weightedResidual.getSpatialDerivatives()[0]
+            + spatialDerivatives[1] * weightedResidual.getSpatialDerivatives()[1])
         / (calculateTwoNorm() * weightedResidual.calculateTwoNorm());
   }
-  
+
   /**
    * Calculate the weighted derivatives for computing the "normal" matrix.
-   * 
+   *
    * @param degreesOfFreedom An int contaiing the number of degrees of freedom
    * @return A double[] containing the weighted derivative vector
    */
@@ -426,11 +396,10 @@ public class WeightedResidual implements Comparable<WeightedResidual> {
 
     return weightedDeriv;
   }
-  
+
   /**
-   * Calculate the weighted, demedianed derivatives for computing the projected 
-   * "normal" matrix.
-   * 
+   * Calculate the weighted, demedianed derivatives for computing the projected "normal" matrix.
+   *
    * @param degreesOfFreedom An int contaiing the number of degrees of freedom
    * @return A double[] containing the weighted derivative vector
    */
@@ -443,10 +412,10 @@ public class WeightedResidual implements Comparable<WeightedResidual> {
 
     return weightedDeMedDeriv;
   }
-  
+
   /**
    * This function updates the pick data importance.
-   * 
+   *
    * @param importance Pick data importance
    */
   public void updateImportance(double importance) {
@@ -454,44 +423,48 @@ public class WeightedResidual implements Comparable<WeightedResidual> {
       pick.setImportance(importance);
     }
   }
-  
+
   /**
    * This function prints the contents of the weighted residuals.
-   * 
-   * @param full A boolean flag indicating whether to print the derivatives as 
-   *             well
+   *
+   * @param full A boolean flag indicating whether to print the derivatives as well
    */
   public void printWeightedResiduals(boolean full) {
     if (!full || spatialDerivatives == null) {
-      System.out.format("res: %7.2f %7.2f wt: %7.4f %b\n", residual, 
-          linEstResidual, weight, isBayesianDepth);
+      System.out.format(
+          "res: %7.2f %7.2f wt: %7.4f %b\n", residual, linEstResidual, weight, isBayesianDepth);
     } else {
-      System.out.format("res: %7.2f %7.2f wt: %7.4f spatialDerivatives: %10.3e "
-          + "%10.3e %10.3e %b\n", residual, linEstResidual, weight, 
-          spatialDerivatives[0], spatialDerivatives[1], spatialDerivatives[2], 
+      System.out.format(
+          "res: %7.2f %7.2f wt: %7.4f spatialDerivatives: %10.3e " + "%10.3e %10.3e %b\n",
+          residual,
+          linEstResidual,
+          weight,
+          spatialDerivatives[0],
+          spatialDerivatives[1],
+          spatialDerivatives[2],
           isBayesianDepth);
     }
   }
 
   /**
    * Comparison function used to sort weighted residuals by ascending order.
-   * @param weightedResidual A WeightedResidual object containing the second 
-   *                         weighted residual to compare.
-   * @return +1 if this WeightedResidual object sortValue varible is greater 
-   *         than the second WeightedResidual object sortValue varible; -1 if 
-   *         this WeightedResidual object sortValue varible is less than the 
-   *         second WeightedResidual object sortValue varible; and 0 if this 
-   *         WeightedResidual object sortValue varible is equal to the second  
-   *         WeightedResidual object sortValue varible;
-   */  
+   *
+   * @param weightedResidual A WeightedResidual object containing the second weighted residual to
+   *     compare.
+   * @return +1 if this WeightedResidual object sortValue varible is greater than the second
+   *     WeightedResidual object sortValue varible; -1 if this WeightedResidual object sortValue
+   *     varible is less than the second WeightedResidual object sortValue varible; and 0 if this
+   *     WeightedResidual object sortValue varible is equal to the second WeightedResidual object
+   *     sortValue varible;
+   */
   @Override
   public int compareTo(WeightedResidual weightedResidual) {
     // Sort into value order.
     if (this.sortValue < weightedResidual.sortValue) {
       return -1;
-    }  else if (this.sortValue > weightedResidual.sortValue) {
+    } else if (this.sortValue > weightedResidual.sortValue) {
       return +1;
-    }  else {
+    } else {
       return 0;
     }
   }
