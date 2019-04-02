@@ -1,13 +1,25 @@
 package gov.usgs.locator;
 
+import gov.usgs.locator.SimpleLogFormatter;
 import gov.usgs.processingformats.LocationException;
 import gov.usgs.processingformats.LocationRequest;
 import gov.usgs.processingformats.LocationResult;
 import gov.usgs.processingformats.Utility;
+import java.io.File;
+import java.io.IOException;
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
+import java.util.Date;
+import java.util.logging.Formatter;
+import java.util.logging.FileHandler;
+import java.util.logging.Handler;
+import java.util.logging.Level;
+import java.util.logging.LogManager;
+import java.util.logging.LogRecord;
+import java.util.logging.Logger;
+import java.util.logging.SimpleFormatter;
 import org.json.simple.parser.ParseException;
 
 /**
@@ -16,6 +28,9 @@ import org.json.simple.parser.ParseException;
  * @author John Patton
  */
 public class LocMain {
+  /** A String containing the locator version */
+  public static final String VERSION = "v0.1.0";
+
   /** A String containing the argument for specifying the model file path. */
   public static final String MODELPATH_ARGUMENT = "--modelPath=";
 
@@ -28,6 +43,15 @@ public class LocMain {
   /** A String containing the argument for requesting the locator version. */
   public static final String VERSION_ARGUMENT = "--version";
 
+  /** A String containing the argument for specifying a log file path. */
+  public static final String LOGPATH_ARGUMENT = "--logPath=";
+
+  /** A String containing the argument for specifying a log level. */
+  public static final String LOGLEVEL_ARGUMENT = "--logLevel=";
+
+  /** Private logging object. */
+  private static final Logger LOGGER = Logger.getLogger(LocMain.class.getName());
+
   /**
    * Main program for testing the locator.
    *
@@ -37,7 +61,8 @@ public class LocMain {
     if (args == null || args.length == 0) {
       System.out.println(
           "Usage: neic-locator --modelPath=[model path] "
-              + "--filePath=[file path] --fileType=[file type]");
+              + "--filePath=[file path] --fileType=[file type] "
+              + "--logPath=[log file path] --logLevel=[logging level]");
       System.exit(1);
     }
 
@@ -45,6 +70,9 @@ public class LocMain {
     String modelPath = null;
     String filePath = null;
     String fileType = "hydra";
+    String logPath = "./";
+    String logLevel = "INFO";
+    String logFile = "locator.log";
 
     // process arguments
     StringBuffer argumentList = new StringBuffer();
@@ -61,16 +89,40 @@ public class LocMain {
       } else if (arg.startsWith(FILETYPE_ARGUMENT)) {
         // get file type
         fileType = arg.replace(FILETYPE_ARGUMENT, "");
+      } else if (arg.startsWith(LOGPATH_ARGUMENT)) {
+        // get log path
+        logPath = arg.replace(LOGPATH_ARGUMENT, "");
+      } else if (arg.startsWith(LOGLEVEL_ARGUMENT)) {
+        // get log level
+        logLevel = arg.replace(LOGLEVEL_ARGUMENT, "");
       } else if (arg.equals(VERSION_ARGUMENT)) {
         // print version
         System.err.println("neic-locator");
-        System.err.println("v0.1.0");
+        System.err.println(VERSION);
         System.exit(0);
       }
     }
 
-    // print out args
-    System.out.println("Command line arguments: " + argumentList.toString().trim());
+    LocMain locMain = new LocMain();
+
+    // setup logging
+    locMain.setupLogging(logPath, getFileName(filePath) + ".log", logLevel);
+
+    // print out version 
+    LOGGER.info("neic-locator " + VERSION);
+
+    // log args
+    LOGGER.fine("Command line arguments: " + argumentList.toString().trim());
+
+    // log java and os information
+    LOGGER.config("java.vendor = " + System.getProperty("java.vendor"));
+    LOGGER.config("java.version = " + System.getProperty("java.version"));
+    LOGGER.config("java.home = " + System.getProperty("java.home"));
+    LOGGER.config("os.arch = " + System.getProperty("os.arch"));
+    LOGGER.config("os.name = " + System.getProperty("os.name"));
+    LOGGER.config("os.version = " + System.getProperty("os.version"));
+    LOGGER.config("user.dir = " + System.getProperty("user.dir"));
+    LOGGER.config("user.name = " + System.getProperty("user.name"));
 
     // Set the debug level.
     LocUtil.deBugLevel = 1;
@@ -82,7 +134,7 @@ public class LocMain {
     LocationRequest request = null;
     LocationResult result = null;
     if (fileType.equals("json")) {
-      System.out.println("Reading a json file.");
+      LOGGER.fine("Reading a json file.");
 
       // read the file
       BufferedReader inputReader = null;
@@ -97,11 +149,11 @@ public class LocMain {
         }
       } catch (FileNotFoundException e) {
         // no file
-        System.out.println("Exception: " + e.toString());
+        LOGGER.severe("Exception: " + e.toString());
         System.exit(1);
       } catch (IOException e) {
         // problem reading
-        System.out.println("Exception: " + e.toString());
+        LOGGER.severe("Exception: " + e.toString());
         System.exit(1);
       } finally {
         try {
@@ -110,7 +162,7 @@ public class LocMain {
           }
         } catch (IOException e) {
           // can't close
-          System.out.println("Exception: " + e.toString());
+          LOGGER.severe("Exception: " + e.toString());
         }
       }
 
@@ -119,23 +171,23 @@ public class LocMain {
         request = new LocationRequest(Utility.fromJSONString(inputString));
       } catch (ParseException e) {
         // parse failure
-        System.out.println("Exception: " + e.toString());
+        LOGGER.severe("Exception: " + e.toString());
         System.exit(1);
       }
 
       // always print input as json for debugging
       String jsonString = Utility.toJSONString(request.toJSON());
-      System.out.println("JSON Input: \n" + jsonString);
+      LOGGER.fine("JSON Input: \n" + jsonString);
 
       // do location
       try {
         result = service.getLocation(request);
       } catch (LocationException e) {
-        System.out.println("Exception: " + e.toString());
+        LOGGER.severe("Exception: " + e.toString());
         System.exit(1);
       }
     } else {
-      System.out.println("Reading a hydra file.");
+      LOGGER.fine("Reading a hydra file.");
 
       // run as LocInput/LocOutput to get access to read/write routines
       LocInput hydraIn = new LocInput();
@@ -146,18 +198,18 @@ public class LocMain {
 
       // always print input as json for debugging
       String jsonString = Utility.toJSONString(hydraIn.toJSON());
-      System.out.println("JSON Input: " + jsonString);
+      LOGGER.fine("JSON Input: " + jsonString);
 
       // do location
       try {
         hydraOut = service.getLocation(hydraIn);
       } catch (LocationException e) {
-        System.out.println("Exception: " + e.toString());
+        LOGGER.severe("Exception: " + e.toString());
         System.exit(1);
       }
 
       if (hydraOut != null) {
-        System.out.println("Writing a hydra file.");
+        LOGGER.fine("Writing a hydra file.");
         hydraOut.writeHydra(filePath + ".out");
         result = (LocationResult) hydraOut;
       }
@@ -166,11 +218,83 @@ public class LocMain {
     // always print result as json for debugging
     if (result != null) {
       String jsonString = Utility.toJSONString(result.toJSON());
-      System.out.println("JSON Output: \n" + jsonString);
+      LOGGER.fine("JSON Output: \n" + jsonString);
       System.exit(0);
     }
 
     // Exit.
     System.exit(1);
+  }
+
+  public void setupLogging(String logPath, String logFile, String logLevel) {
+    LogManager.getLogManager().reset();
+
+    // parse the logging level
+    Level level = getLogLevel(logLevel);
+
+    LOGGER.config("Logging Level '" + level + "'");
+    LOGGER.config("Log directory '" + logPath + "'");
+
+    Logger rootLogger = Logger.getLogger("");
+    rootLogger.setLevel(level);
+
+    // create log directory, log file, and file handler
+    try {
+      File logDirectoryFile = new File(logPath);
+      if (!logDirectoryFile.exists()) {
+        LOGGER.fine("Creating log directory");
+        if (!logDirectoryFile.mkdirs()) {
+          LOGGER.warning("Unable to create log directory");
+        }
+      }
+
+      FileHandler handler = new FileHandler(logPath + "/" + logFile);
+      handler.setLevel(level);
+
+      rootLogger.addHandler(handler);
+    } catch (Exception e) {
+      LOGGER.log(Level.WARNING, "Unable to create log file handler", e);
+    }
+
+    // create console handler
+
+    // set all handlers to the same formatter
+    for (Handler handler : rootLogger.getHandlers()) {
+      handler.setFormatter(new SimpleLogFormatter());
+    }
+  }
+
+  private Level getLogLevel(String logLevel) {
+    if (logLevel == null) {
+        return null;
+    }
+    try {
+        return Level.parse(logLevel.toUpperCase());
+    }
+    catch (IllegalArgumentException e) {
+        if (logLevel.equalsIgnoreCase("DEBUG")) {
+            return Level.FINE;
+        }
+        if (logLevel.equalsIgnoreCase("WARN")) {
+            return Level.WARNING;
+        }
+        throw new IllegalArgumentException("Unresolved log level " + logLevel 
+            + " for java.util.logging", e);
+    }
+  }
+
+  public static String getFileName(String filePath) {
+    // get the file name from input file path
+    int start = filePath.lastIndexOf("/");
+    if (start < 0) {
+      start = filePath.lastIndexOf("\\");
+    }
+
+    int end = filePath.lastIndexOf(".");
+    if (end <= 0) {
+      end = filePath.length();
+    }
+
+    return filePath.substring(start, end);
   }
 }
