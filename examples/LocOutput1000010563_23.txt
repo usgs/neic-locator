@@ -1,0 +1,397 @@
+AuxLocRef read lock: valid = true shared = true
+
+Update origin: 1217617551.871136 -0.008864 1217617551.862272 2
+
+	Tectonic = true
+	Bayes:  15.0 0.200 false
+
+Curr loc: 1217617551.871  50.2075 -114.8603 509.98
+
+=====> Phase no use set (no ID): BSMT          
+=====> Phase no use set (no ID): CHMT          
+=====> Phase re-ID: ETW   P        -> S       
+=====> Phase re-ID: JCW   P        -> S       
+=====> Phase no use set (no ID): JTMT          
+=====> Phase no use set (no ID): NEW           
+=====> Phase no use set (no ID): SWMT          
+=====> Phase no use set (no ID): YBMT          
+Lsrt: ST av chisq =  -0.1350   677.3526
+Adder: b = -0.1899  0.2477 -0.9500
+
+Estlin: x dsp =  50.000  614.0914  3.10
+Estlin: x dsp = 100.000  552.7204  6.33
+Estlin: x dsp = 200.000  441.8065 12.67
+Lintry: x dsp = 200.00  441.8065 12.67
+
+Curr loc: 1217617564.537  50.5487 -114.1668 319.97
+
+=====> Phase re-ID: BMO   P        -> Pn      
+=====> Phase re-ID: BSMT  P        -> Pn      
+=====> Phase re-ID: CHMT  P        -> Pn      
+=====> Phase re-ID: EDM   P        -> Pn      
+=====> Phase re-ID: EGMT  P        -> Pn      
+=====> Phase re-ID: ETW   S        -> Sn      
+=====> Phase re-ID: HRY   P        -> Pn      
+=====> Phase re-ID: JCW   S        -> Sn      
+=====> Phase re-ID: JTMT  P        -> Pn      
+=====> Phase re-ID: LNO   P        -> Pn      
+=====> Phase re-ID: LRM   P        -> Pn      
+=====> Phase re-ID: MSO   P        -> Pn      
+=====> Phase re-ID: MSO   S        -> Sn      
+=====> Phase re-ID: NEW   P        -> Pn      
+=====> Phase re-ID: OD2   P        -> Pn      
+=====> Phase re-ID: OD2   S        -> Sn      
+=====> Phase re-ID: SLMT  P        -> Pn      
+=====> Phase re-ID: SWMT  P        -> Pn      
+=====> Phase re-ID: WALA  P        -> Pn      
+=====> Phase re-ID: YBMT  P        -> Pn      
+Lsrt: ST av chisq =  -2.3428   445.4002
+Adder: b =  0.3500 -0.2678 -0.8977
+
+ReID: 0  0    19  50.5487 -114.1668 319.97 del=  62.4 -190.0 rms=  26.20 PHASEID_CHANGED
+
+Estlin: x dsp = 200.000  268.5417 16.87
+Estlin: x dsp = 400.000  243.8909 30.73
+Lintry: x dsp = 400.00  243.8909 30.73
+
+Curr loc: 1217617592.923  49.2910 -115.6766   1.00
+
+Lsrt: ST av chisq = -11.4050   300.5854
+Adder: b = -0.2932  0.9366  0.1917
+
+Step: 0  1    19  49.2910 -115.6766   1.00 del= 176.3 -319.0 rms=  17.68 SUCCESS
+
+Estlin: x dsp = 400.000  909.6776 16.45
+Estlin: x dsp = 200.000  382.4597  8.22
+Estlin: x dsp = 100.000  198.0448  3.84
+Estlin: x dsp =  50.000  207.5276  1.62
+Estlin: x dsp = 150.000  268.0382  5.95
+Estlin: x dsp =  75.000  192.8695  2.40
+Estlin: x dsp =  62.500  195.3871  1.74
+Estlin: x dsp =  87.500  194.3767  3.18
+Estlin: x dsp =  68.750  193.1980  2.01
+Estlin: x dsp =  81.250  193.4835  2.79
+Estlin: x dsp =  71.875  192.8702  2.21
+Estlin: x dsp =  78.125  193.1007  2.60
+Lintry: x dsp =  75.000  192.8695  2.40
+
+Curr loc: 1217617583.919  49.4885 -114.7117  15.38
+
+Lsrt: ST av chisq =  -1.2192   182.8540
+Adder: b = -0.9012  0.1041 -0.4207
+
+Step: 0  2    19  49.4885 -114.7117  15.38 del=  73.6   14.4 rms=  10.76 SUCCESS
+
+Estlin: x dsp =  75.000  145.0802 -9.25
+Estlin: x dsp = 150.000  183.4801 -16.75
+Estlin: x dsp =  37.500  162.2507 -5.59
+Estlin: x dsp = 112.500  154.2285 -12.98
+Estlin: x dsp =  56.250  152.6144 -7.35
+Estlin: x dsp =  93.750  144.2873 -11.07
+Estlin: x dsp =  84.375  141.8805 -10.16
+Estlin: x dsp =  79.688  143.4199 -9.70
+Estlin: x dsp =  89.063  142.1335 -10.61
+Lintry: x dsp =  84.375  141.8805 -10.16
+
+Curr loc: 1217617572.536  50.1716 -114.5906   1.00
+
+Lsrt: ST av chisq =  -0.2193   132.9657
+Adder: b = -0.4671 -0.4508  0.7606
+
+Step: 0  3    19  50.1716 -114.5906   1.00 del=  76.5  -14.4 rms=   7.82 SUCCESS
+
+Estlin: x dsp =  84.375  232.4685  3.09
+Estlin: x dsp =  42.188  157.2647  1.44
+Estlin: x dsp =  21.094  128.7095  0.63
+Estlin: x dsp =  10.547  127.1401  0.30
+Estlin: x dsp =   5.273  129.3199  0.15
+Estlin: x dsp =  15.820  125.8719  0.45
+Estlin: x dsp =  13.184  126.2258  0.38
+Estlin: x dsp =  18.457  126.0198  0.53
+Estlin: x dsp =  14.502  125.9609  0.41
+Estlin: x dsp =  17.139  125.8275  0.49
+Estlin: x dsp =  16.479  125.8482  0.47
+Estlin: x dsp =  17.798  125.8602  0.51
+Lintry: x dsp =  17.139  125.8275  0.49
+
+Curr loc: 1217617572.807  50.2435 -114.6986  14.04
+
+Lsrt: ST av chisq =  -0.0156   125.8527
+Adder: b =  0.8292 -0.4479  0.3344
+
+Step: 0  4    19  50.2435 -114.6986  14.04 del=  11.1   13.0 rms=   7.40 SUCCESS
+
+Estlin: x dsp =  17.139  135.0410  2.33
+Estlin: x dsp =   8.569  126.4252  1.16
+Estlin: x dsp =   4.285  124.6341  0.58
+Estlin: x dsp =   2.142  125.0463  0.29
+Estlin: x dsp =   6.427  124.8911  0.86
+Estlin: x dsp =   3.214  124.7626  0.44
+Estlin: x dsp =   5.356  124.6932  0.73
+Estlin: x dsp =   3.749  124.6752  0.51
+Estlin: x dsp =   4.820  124.6422  0.65
+Estlin: x dsp =   4.017  124.6463  0.55
+Estlin: x dsp =   4.552  124.6346  0.62
+Lintry: x dsp =   4.285  124.6341  0.58
+
+Curr loc: 1217617573.374  50.2116 -114.7255  15.47
+
+Lsrt: ST av chisq =  -0.0018   124.6212
+Adder: b =  0.4073  0.0149 -0.9132
+
+Step: 0  5    19  50.2116 -114.7255  15.47 del=   4.0    1.4 rms=   7.33 SUCCESS
+
+Estlin: x dsp =   4.285  124.7205 -0.25
+Estlin: x dsp =   2.142  124.2546 -0.13
+Estlin: x dsp =   1.071  124.1546 -0.06
+Estlin: x dsp =   0.536  124.2706 -0.03
+Estlin: x dsp =   1.607  124.1555 -0.10
+Estlin: x dsp =   0.803  124.2006 -0.05
+Estlin: x dsp =   1.339  124.1207 -0.08
+Lintry: x dsp =   1.339  124.1207 -0.08
+
+Curr loc: 1217617573.293  50.2067 -114.7252  14.25
+
+Lsrt: ST av chisq =   0.0002   124.1193
+Adder: b =  0.9275 -0.0503  0.3703
+
+Step: 0  6    19  50.2067 -114.7252  14.25 del=   0.5   -1.2 rms=   7.30 SUCCESS
+
+Estlin: x dsp =   2.000  123.6006  0.22
+Estlin: x dsp =   4.000  125.0898  0.52
+Estlin: x dsp =   1.000  123.8747  0.16
+Estlin: x dsp =   3.000  124.2224  0.37
+Estlin: x dsp =   1.500  123.6820  0.20
+Estlin: x dsp =   2.500  123.8511  0.30
+Lintry: x dsp =   2.000  123.6006  0.22
+
+Curr loc: 1217617573.516  50.1900 -114.7266  14.99
+
+Lsrt: ST av chisq =  -0.0004   123.5970
+Adder: b = -0.5179  0.7280 -0.4493
+
+Step: 0  7    19  50.1900 -114.7266  14.99 del=   1.9    0.7 rms=   7.27 SUCCESS
+
+Estlin: x dsp =   2.000  124.0981 -0.12
+Estlin: x dsp =   1.000  123.8199 -0.03
+Lintry: x dsp =   0.000  123.5970  0.00
+
+Step: 0  8    19  50.1900 -114.7266  14.99 del=   0.0    0.0 rms=   7.27 SUCCESS
+
+	Tectonic = true
+	Bayes:  15.0 0.200 false
+
+Curr loc: 1217617573.516  50.1900 -114.7266  14.99
+
+=====> Phase re-ID: BSMT           -> Sn      
+=====> Phase re-ID: CHMT           -> Sn      
+=====> Phase re-ID: ETW   Sn       -> Sg      
+=====> Phase re-ID: JCW   Sn       -> Sg      
+=====> Phase re-ID: JTMT           -> Sn      
+=====> Phase re-ID: MSO   Sn       -> Sg      
+=====> Phase re-ID: NEW            -> Sn      
+=====> Phase re-ID: OD2   Sn       -> Sg      
+=====> Phase re-ID: SWMT           -> Sn      
+=====> Phase re-ID: WALA  Pn       -> Sn      
+=====> Phase re-ID: YBMT           -> Sn      
+Lsrt: EL av =   0.1181
+Eigenvalue time: 0.002
+
+		Eigenvalues:
+  8.782e-02  9.213e-02  1.135e-01  1.256e-01  1.290e-01  1.470e-01  1.656e-01  1.879e-01  2.147e-01
+             2.374e-01  2.739e-01  2.958e-01  3.125e-01  3.752e-01  4.016e-01  4.028e-01  4.498e-01
+             5.086e-01  5.846e-01  6.556e-01  9.906e-01  1.023e+00  1.220e+00  1.378e+00  1.144e+01
+             1.734e+01
+
+Project: wsum wlim elim:  3.846e+01  3.720e+01  1.734e-01 m:     7
+
+Lsrt: ST av chisq =   0.6750   155.5700
+Adder: b = -0.5700 -0.7904 -0.2243
+
+Estlin: x dsp =  50.000  285.5108  329.5806 -5.53
+Estlin: x dsp =  25.000  129.0102  149.8818 -2.34
+Estlin: x dsp =  12.500  122.1773  123.0771 -1.20
+Estlin: x dsp =   6.250  134.0026  130.4936 -0.51
+Estlin: x dsp =  18.750  116.9917  125.8725 -1.73
+Estlin: x dsp =  15.625  117.9542  122.7981 -1.51
+Estlin: x dsp =  21.875  117.8691  134.7910 -1.90
+Estlin: x dsp =  17.188  117.0734  123.7703 -1.61
+Estlin: x dsp =  20.313  116.9503  129.6090 -1.77
+Estlin: x dsp =  19.531  117.2841  127.6329 -1.76
+Estlin: x dsp =  21.094  116.8486  131.8710 -1.79
+Lintry: x dsp =  21.094  116.8486 -1.79
+
+Curr loc: 1217617571.729  50.2980 -114.9599  10.26
+
+Lsrt: EL av =   0.0826
+Lsrt: ST av chisq =  -0.6255   116.3029
+Adder: b =  0.9355  0.3032 -0.1812
+
+Step: 1  0    19  50.2980 -114.9599  10.26 del=  20.6   -4.7 rms=   6.84 SUCCESS
+
+Estlin: x dsp =  21.094  147.2655  173.6451  1.76
+Estlin: x dsp =  10.547  124.1003  135.5082  0.67
+Estlin: x dsp =   5.273  117.8972  129.4375  0.22
+Estlin: x dsp =   2.637  116.6170  129.5123  0.09
+Estlin: x dsp =   1.318  116.2805  129.8807  0.04
+Estlin: x dsp =   0.659  116.1605  130.0957  0.02
+Estlin: x dsp =   0.330  116.2051  130.2429  0.01
+Estlin: x dsp =   0.989  116.2070  129.9864  0.03
+Estlin: x dsp =   0.494  116.1778  130.1625  0.02
+Estlin: x dsp =   0.824  116.1733  130.0392  0.03
+Estlin: x dsp =   0.577  116.1641  130.1272  0.02
+Estlin: x dsp =   0.742  116.1664  130.0656  0.02
+Estlin: x dsp =   0.618  116.1577  130.1115  0.02
+Lintry: x dsp =   0.618  116.1577  0.02
+
+Curr loc: 1217617571.832  50.2928 -114.9573  10.14
+
+Lsrt: EL av =  -0.0001
+Lsrt: ST av chisq =  -0.6004   116.1585
+Adder: b = -0.3454 -0.8480 -0.4019
+
+Step: 1  1    19  50.2928 -114.9573  10.14 del=   0.6   -0.1 rms=   6.83 SUCCESS
+
+Estlin: x dsp =   0.618  116.3276  132.2550 -0.03
+Estlin: x dsp =   0.309  116.1478  131.1278 -0.01
+Estlin: x dsp =   0.154  116.1308  130.6113 -0.00
+Estlin: x dsp =   0.077  116.1443  130.3561 -0.00
+Estlin: x dsp =   0.232  116.1306  130.8664 -0.00
+Estlin: x dsp =   0.193  116.1244  130.7388 -0.00
+Lintry: x dsp =   0.193  116.1244 -0.00
+
+Curr loc: 1217617571.828  50.2934 -114.9596  10.07
+
+Lsrt: EL av =   0.0000
+Lsrt: ST av chisq =  -0.5978   116.1244
+Adder: b = -0.3066 -0.5087 -0.8045
+
+Step: 1  2    19  50.2934 -114.9596  10.07 del=   0.2   -0.1 rms=   6.83 SUCCESS
+
+Estlin: x dsp =   0.200  116.2525  131.2264 -0.02
+Estlin: x dsp =   0.100  116.1872  130.9789 -0.01
+Lintry: x dsp =   0.000  116.1244  0.00
+
+Step: 1  3    19  50.2934 -114.9596  10.07 del=   0.0    0.0 rms=   6.83 SUCCESS
+
+	Tectonic = true
+	Bayes:  15.0 0.200 false
+
+Curr loc: 1217617571.828  50.2934 -114.9596  10.07
+
+=====> Phase re-ID: ETW   Sg       -> Sn      
+=====> Phase no use set (wt): ETW   Sn        true  2.56
+Lsrt: EL av =  -0.1136
+Eigenvalue time: 0.001
+
+		Eigenvalues:
+  9.365e-02  1.115e-01  1.155e-01  1.312e-01  1.492e-01  1.682e-01  1.811e-01  2.125e-01  2.422e-01
+             2.765e-01  2.959e-01  3.235e-01  3.809e-01  3.995e-01  4.188e-01  4.742e-01  5.246e-01
+             5.914e-01  6.506e-01  9.776e-01  9.972e-01  1.025e+00  1.226e+00  1.154e+01  1.782e+01
+
+Project: wsum wlim elim:  3.873e+01  3.736e+01  1.782e-01 m:     6
+
+Lsrt: ST av chisq =  -0.4418   116.1901
+Adder: b = -0.2554 -0.9115 -0.3224
+
+Estlin: x dsp =  50.000  388.5849  384.2323 -4.55
+Estlin: x dsp =  25.000  232.4976  225.0729 -2.80
+Estlin: x dsp =  12.500  155.3512  148.5828 -1.26
+Estlin: x dsp =   6.250  124.1670  115.9557 -0.60
+Estlin: x dsp =   3.125  118.7996  102.0197 -0.47
+Estlin: x dsp =   1.563  116.1881   95.5911 -0.24
+Estlin: x dsp =   0.781  116.5727   92.8879 -0.12
+Estlin: x dsp =   2.344  117.4155   98.6881 -0.35
+Estlin: x dsp =   1.172  116.2382   94.2176 -0.18
+Estlin: x dsp =   1.953  116.7676   97.0694 -0.30
+Estlin: x dsp =   1.367  116.0568   94.8956 -0.21
+Estlin: x dsp =   1.270  116.1456   94.5566 -0.19
+Estlin: x dsp =   1.465  116.0484   95.2401 -0.22
+Lintry: x dsp =   1.465  116.0484 -0.22
+
+Curr loc: 1217617571.606  50.2968 -114.9783   9.59
+
+Lsrt: EL av =  -0.1135
+Lsrt: ST av chisq =  -0.2570   116.0420
+Adder: b = -0.4227  0.1387 -0.8956
+
+Step: 2  0    19  50.2968 -114.9783   9.59 del=   1.4   -0.5 rms=   6.83 SUCCESS
+
+Estlin: x dsp =   1.465  117.7475   95.7926 -0.18
+Estlin: x dsp =   0.732  116.8206   95.4828 -0.09
+Estlin: x dsp =   0.366  116.3952   95.3539 -0.04
+Estlin: x dsp =   0.183  116.1825   95.2908 -0.02
+Estlin: x dsp =   0.092  116.0905   95.2619 -0.01
+Lintry: x dsp =   0.000  116.0420  0.00
+
+Step: 2  1    19  50.2968 -114.9783   9.59 del=   0.0    0.0 rms=   6.83 SUCCESS
+
+	Tectonic = true
+	Bayes:  15.0 0.200 false
+
+Curr loc: 1217617571.493  50.2968 -114.9783   9.59
+
+Lsrt: EL av =  -0.0000
+Eigenvalue time: 0.001
+
+		Eigenvalues:
+  9.367e-02  1.112e-01  1.155e-01  1.312e-01  1.492e-01  1.683e-01  1.807e-01  2.122e-01  2.423e-01
+             2.764e-01  2.958e-01  3.235e-01  3.811e-01  3.993e-01  4.190e-01  4.747e-01  5.245e-01
+             5.916e-01  6.503e-01  9.744e-01  9.952e-01  1.025e+00  1.224e+00  1.154e+01  1.781e+01
+
+Project: wsum wlim elim:  3.872e+01  3.735e+01  1.781e-01 m:     6
+
+Lsrt: ST av chisq =  -0.2566   115.9562
+Adder: b = -0.4215  0.1729 -0.8902
+
+Estlin: x dsp =  50.000  174.0864  134.2866 -3.96
+Estlin: x dsp =  25.000  142.0579  106.3455 -2.57
+Estlin: x dsp =  12.500  132.7957  101.5408 -1.94
+Estlin: x dsp =   6.250  124.3136   98.3384 -1.08
+Estlin: x dsp =   3.125  118.9392   96.1834 -0.36
+Estlin: x dsp =   1.563  117.8748   95.6779 -0.18
+Estlin: x dsp =   0.781  116.8451   95.4486 -0.09
+Estlin: x dsp =   0.391  116.3625   95.3615 -0.05
+Estlin: x dsp =   0.195  116.1261   95.3198 -0.02
+Estlin: x dsp =   0.098  116.0079   95.3013 -0.01
+Lintry: x dsp =   0.000  115.9562  0.00
+
+Step: 3  0    19  50.2968 -114.9783   9.59 del=   0.0    0.0 rms=   6.82 SUCCESS
+
+Final wrapup:
+Audit: 0  0   26 01-Aug-08 13:05:51.880  50.2075 -114.8603 509.98 del =    0.0    0.0    0.0 rms =   0.00 INITIAL_HYPOCENTER
+Audit: 0  8   19 01-Aug-08 13:06:13.515  50.1900 -114.7266  14.99 del =    9.7  495.0  495.1 rms =   7.27 SUCCESS
+Audit: 1  3   19 01-Aug-08 13:06:11.827  50.2934 -114.9596  10.07 del =   20.2    4.9   20.8 rms =   6.83 SUCCESS
+Audit: 2  1   19 01-Aug-08 13:06:11.492  50.2968 -114.9783   9.59 del =    1.4    0.5    1.5 rms =   6.83 SUCCESS
+Audit: 3  0   19 01-Aug-08 13:06:11.492  50.2968 -114.9783   9.59 del =   13.0  500.4  500.6 rms =   6.82 SUCCESS
+Normeq: qsum qsum+ = 2.67 3.00
+
+1217617571.493  50.2968 -114.9783   9.59   18   26   17   25 131   1.4201
+  2.04    5.0    3.9    6.5   1.00    6.1    9.5    4.4 A    15.0  15.0 0.3250
+  11.2  21  57    5.9 146  20    5.5 246  24  234
+1003426473 BMO   BHZ US -- Pn         0.6   5.7 197 T 0.81 0.0222
+1003426347 BSMT  EHZ MB -- Pn        -0.5   2.5 177 T 1.08 0.0401
+1003429774 BSMT  EHZ MB -- Sn        -0.7   2.5 177 T 0.59 0.0323
+1003426367 CHMT  EHZ MB -- Pn        -0.9   3.6 161 T 0.96 0.0421
+1003429846 CHMT  EHZ MB -- Sn         1.2   3.6 161 T 0.46 0.0256
+1003426394 EDM   BHZ CN -- Pn         2.1   3.1  18 T 1.01 0.3894
+1003426381 EGMT  BHZ US -- Pn        -0.0   4.1 122 T 0.92 0.0898
+1003426459 ETW   EHZ UW -- Sn        18.7   4.4 235 F 0.00 0.0000
+1003426387 HRY   EHZ MB -- Pn         0.3   4.2 149 T 0.92 0.0493
+1003426475 JCW   EHZ UW -- Sg         0.7   5.0 248 T 1.39 0.4826
+1003426353 JTMT  EHZ MB -- Pn        -0.3   2.6 170 T 1.06 0.0432
+1003429828 JTMT  EHZ MB -- Sn         0.6   2.6 170 T 0.57 0.0335
+1003426397 LNO   EHZ UW -- Pn         1.2   5.0 208 T 0.85 0.0292
+1003426391 LRM   EHZ MB -- Pn        -0.9   4.8 158 T 0.87 0.0356
+1003426426 MSO   BHZ US -- Pn        -0.1   3.5 168 T 0.97 0.0366
+1003426497 MSO   BHZ US -- Sg         0.7   3.5 168 T 1.66 0.4585
+1003426346 NEW   BHZ US -- Pn        -0.4   2.5 215 T 1.08 0.0544
+1003429824 NEW   BHZ US -- Sn         0.5   2.5 215 T 0.59 0.0416
+1003426392 OD2   EHZ UW -- Pn         0.6   3.8 222 T 0.94 0.0487
+1003429849 OD2   EHZ UW -- Sg         2.9   3.8 222 T 1.60 0.4209
+1003426363 SLMT  EHZ MB -- Pn        -0.8   3.2 162 T 1.00 0.0442
+1003426354 SWMT  EHZ MB -- Pn        -1.1   2.9 167 T 1.03 0.0430
+1003429835 SWMT  EHZ MB -- Sn         2.7   2.9 167 T 0.53 0.0310
+1003429767 WALA  BHZ CN -- Sn        -1.1   1.4 150 T 0.80 0.0959
+1003426348 YBMT  EHZ MB -- Pn        -0.4   2.5 165 T 1.07 0.0476
+1003429778 YBMT  EHZ MB -- Sn        -2.0   2.5 165 T 0.58 0.0376

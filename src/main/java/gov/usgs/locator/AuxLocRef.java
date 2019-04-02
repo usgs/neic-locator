@@ -32,15 +32,27 @@ public class AuxLocRef {
 	String serName = "locaux.ser";					// Serialized file name
 	String[] fileNames = {"cratons.txt", "zonekey.dat", 
 			"zonestat.dat"};										// Raw input file names
-	
+  
+  /**
+	 * Default path for model files.
+	 */
+  public static final String DEFAULT_MODEL_PATH = "./models/";
+
+	/**
+	 * Path for model files.
+	 */
+	public String modelPath;      
+
 	/**
 	 * Read the cratons and zone statistics files and make the data available 
 	 * to the Locator.
 	 * 
+	 * @param modelPath If not null, path to model files
+	 * 
 	 * @throws IOException On any read error
 	 * @throws ClassNotFoundException In input serialization is hosed
 	 */
-	public AuxLocRef() throws IOException, ClassNotFoundException {
+	public AuxLocRef(String modelPath) throws IOException, ClassNotFoundException {
 //	long time;
 		int[][] zoneKeys;
 		String[] absNames;
@@ -53,19 +65,21 @@ public class AuxLocRef {
 		ObjectOutputStream objOut;
 		FileLock lock;
 		
-		// Set up the properties.
-		if(LocUtil.modelPath == null) {
-			LocUtil.getProperties();
-		}
+		if (modelPath == null) {
+			this.modelPath = DEFAULT_MODEL_PATH;
+		} else {
+      this.modelPath = modelPath;
+    }
+
 		// Create absolute path names.
 		absNames = new String[fileNames.length];
 		for(int j=0; j<fileNames.length; j++) {
-			absNames[j] = LocUtil.model(fileNames[j]);
+			absNames[j] = modelPath+fileNames[j];
 		}
 		
 		// If any of the raw input files have changed, regenerate the 
 		// serialized file.
-		if(FileChanged.isChanged(LocUtil.model(serName), absNames)) {
+		if(FileChanged.isChanged(modelPath+serName, absNames)) {
 //		time = System.currentTimeMillis();
 			// Open and read the cratons file.
 			inCratons = new BufferedInputStream(new FileInputStream(absNames[0]));
@@ -90,7 +104,7 @@ public class AuxLocRef {
 			inZones.close();
 			
 			// Write out the serialized file.
-			serOut = new FileOutputStream(LocUtil.model(serName));
+			serOut = new FileOutputStream(modelPath+serName);
 			objOut = new ObjectOutputStream(serOut);
 			// Wait for an exclusive lock for writing.
 			lock = serOut.getChannel().lock();
@@ -115,7 +129,7 @@ public class AuxLocRef {
 		} else {
 			// Read in the serialized file.
 //		time = System.currentTimeMillis();
-			serIn = new FileInputStream(LocUtil.model(serName));
+			serIn = new FileInputStream(modelPath+serName);
 			objIn = new ObjectInputStream(serIn);
 			// Wait for a shared lock for reading.
 			lock = serIn.getChannel().lock(0, Long.MAX_VALUE, true);

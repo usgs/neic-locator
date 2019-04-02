@@ -171,9 +171,10 @@ public class Event {
 	 * read exceptions are trapped.
 	 * 
 	 * @param eventID Hydra style event ID number
+	 * @param eventPath If not null, location of Hydra event file directory
 	 * @return True if the read was successful
 	 */
-	public boolean readHydra(String eventID) {
+	public boolean readHydra(String eventID, String eventPath) {
 		BufferedInputStream in;
 		Scanner scan;
 		char held, heldDep, prefDep, rstt, noSvd, moved, cmndUse;
@@ -186,6 +187,11 @@ public class Event {
 		Pick pick;
 		Pattern affinity = Pattern.compile("\\d*\\.\\d*");
 		
+		// setup event path
+		if (eventPath != null) {
+			LocUtil.eventPath = eventPath;
+		}
+
 		// Set up the IO.
 		try {
 			in = new BufferedInputStream(new FileInputStream(
