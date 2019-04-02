@@ -1,25 +1,19 @@
 package gov.usgs.locator;
 
-import gov.usgs.locator.SimpleLogFormatter;
 import gov.usgs.processingformats.LocationException;
 import gov.usgs.processingformats.LocationRequest;
 import gov.usgs.processingformats.LocationResult;
 import gov.usgs.processingformats.Utility;
-import java.io.File;
-import java.io.IOException;
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
-import java.util.Date;
-import java.util.logging.Formatter;
 import java.util.logging.FileHandler;
 import java.util.logging.Handler;
 import java.util.logging.Level;
 import java.util.logging.LogManager;
-import java.util.logging.LogRecord;
 import java.util.logging.Logger;
-import java.util.logging.SimpleFormatter;
 import org.json.simple.parser.ParseException;
 
 /**
@@ -108,7 +102,7 @@ public class LocMain {
     // setup logging
     locMain.setupLogging(logPath, getFileName(filePath) + ".log", logLevel);
 
-    // print out version 
+    // print out version
     LOGGER.info("neic-locator " + VERSION);
 
     // log args
@@ -226,6 +220,13 @@ public class LocMain {
     System.exit(1);
   }
 
+  /**
+   * This function sets up logging for the locator.
+   *
+   * @param logPath A String containing the path to write log files to
+   * @param logFile A String containing the name of the log file
+   * @param logLevel A String holding the desired log level
+   */
   public void setupLogging(String logPath, String logFile, String logLevel) {
     LogManager.getLogManager().reset();
 
@@ -264,25 +265,37 @@ public class LocMain {
     }
   }
 
+  /**
+   * This function converts a log level string into a logger level. This function converts a couple
+   * of non-standard logging levels / abbreviations.
+   *
+   * @param logLevel A String holding the desired log level
+   * @return A Level object containing the desired log level.
+   */
   private Level getLogLevel(String logLevel) {
     if (logLevel == null) {
-        return null;
+      return null;
     }
     try {
-        return Level.parse(logLevel.toUpperCase());
-    }
-    catch (IllegalArgumentException e) {
-        if (logLevel.equalsIgnoreCase("DEBUG")) {
-            return Level.FINE;
-        }
-        if (logLevel.equalsIgnoreCase("WARN")) {
-            return Level.WARNING;
-        }
-        throw new IllegalArgumentException("Unresolved log level " + logLevel 
-            + " for java.util.logging", e);
+      return Level.parse(logLevel.toUpperCase());
+    } catch (IllegalArgumentException e) {
+      if (logLevel.equalsIgnoreCase("DEBUG")) {
+        return Level.FINE;
+      }
+      if (logLevel.equalsIgnoreCase("WARN")) {
+        return Level.WARNING;
+      }
+      throw new IllegalArgumentException(
+          "Unresolved log level " + logLevel + " for java.util.logging", e);
     }
   }
 
+  /**
+   * This function extracts the file name from a given file path.
+   *
+   * @param filePath A String containing the full path to the file
+   * @return A String containing the file name extracted from the full path.
+   */
   public static String getFileName(String filePath) {
     // get the file name from input file path
     int start = filePath.lastIndexOf("/");
