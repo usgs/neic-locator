@@ -9,6 +9,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
+import java.util.logging.ConsoleHandler;
 import java.util.logging.FileHandler;
 import java.util.logging.Handler;
 import java.util.logging.Level;
@@ -249,15 +250,18 @@ public class LocMain {
         }
       }
 
-      FileHandler handler = new FileHandler(logPath + "/" + logFile);
-      handler.setLevel(level);
+      FileHandler fileHandler = new FileHandler(logPath + "/" + logFile);
+      fileHandler.setLevel(level);
 
-      rootLogger.addHandler(handler);
+      rootLogger.addHandler(fileHandler);
     } catch (Exception e) {
       LOGGER.log(Level.WARNING, "Unable to create log file handler", e);
     }
 
     // create console handler
+    ConsoleHandler consoleHandler = new ConsoleHandler();
+    consoleHandler.setLevel(level);
+    rootLogger.addHandler(consoleHandler);
 
     // set all handlers to the same formatter
     for (Handler handler : rootLogger.getHandlers()) {
