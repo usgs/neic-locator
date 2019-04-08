@@ -64,10 +64,12 @@ public class SimpleLogFormatter extends Formatter {
     }
 
     // add log level
-    buf.append(new String().format("[ %-7s ] ", record.getLevel().getLocalizedName()));
+    buf.append(new String().format("[ %s ] ", record.getLevel().getLocalizedName()));
 
     // add method name
-    buf.append(new String().format("[ %-10s ] ", record.getSourceMethodName()));
+    buf.append(
+        new String()
+            .format("[ %s ] ", record.getSourceClassName() + "." + record.getSourceMethodName()));
 
     // add log message
     buf.append(record.getMessage());

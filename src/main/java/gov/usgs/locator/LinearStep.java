@@ -1,6 +1,7 @@
 package gov.usgs.locator;
 
 import java.util.ArrayList;
+import java.util.logging.Logger;
 
 /**
  * The LinearStep class simplifies travel time computations. Computing seismic travel times is
@@ -42,6 +43,9 @@ public class LinearStep {
   /** A Decorrelator object used when decorrelating the event picks. */
   private Decorrelator decorrelator;
 
+  /** Private logging object. */
+  private static final Logger LOGGER = Logger.getLogger(LinearStep.class.getName());
+
   /**
    * The LinearStep constructor. This constructor sets the event (and thus the hypo, residuals, rank
    * sum estimators, and decorrelator) to the provided value.
@@ -81,10 +85,6 @@ public class LinearStep {
       double maxStepLen,
       double currentDispersionValue)
       throws Exception {
-    if (LocUtil.deBugLevel > 0) {
-      System.out.println();
-    }
-
     // The trial vector has to be the same size as the step vector.
     trialStepVector = new double[stepDirectionUnitVector.length];
 
@@ -110,13 +110,13 @@ public class LinearStep {
         if (sample[2].getStepLength() >= maxStepLen) {
           createTrialStepVector(sample[2].getStepLength());
 
-          if (LocUtil.deBugLevel > 0) {
-            System.out.format(
-                "Lintry: x dsp = %6.2f %9.4f %5.2f\n",
-                sample[2].getStepLength(),
-                sample[2].getDispersion(),
-                sample[2].getMedianResidual());
-          }
+          LOGGER.fine(
+              String.format(
+                  "Lintry: x dsp = %6.2f %9.4f %5.2f",
+                  sample[2].getStepLength(),
+                  sample[2].getDispersion(),
+                  sample[2].getMedianResidual()));
+
           return sample[2];
         }
 
@@ -143,13 +143,13 @@ public class LinearStep {
 
           createTrialStepVector(sample[1].getStepLength());
 
-          if (LocUtil.deBugLevel > 0) {
-            System.out.format(
-                "Lintry: x dsp = %7.3f %9.4f %5.2f\n",
-                sample[1].getStepLength(),
-                sample[1].getDispersion(),
-                sample[1].getMedianResidual());
-          }
+          LOGGER.fine(
+              String.format(
+                  "Lintry: x dsp = %7.3f %9.4f %5.2f",
+                  sample[1].getStepLength(),
+                  sample[1].getDispersion(),
+                  sample[1].getMedianResidual()));
+
           return sample[1];
         }
       } while (sample[0].getDispersion() < sample[1].getDispersion());
@@ -187,11 +187,10 @@ public class LinearStep {
     // Done.
     createTrialStepVector(sample[1].getStepLength());
 
-    if (LocUtil.deBugLevel > 0) {
-      System.out.format(
-          "Lintry: x dsp = %7.3f %9.4f %5.2f\n",
-          sample[1].getStepLength(), sample[1].getDispersion(), sample[1].getMedianResidual());
-    }
+    LOGGER.fine(
+        String.format(
+            "Lintry: x dsp = %7.3f %9.4f %5.2f",
+            sample[1].getStepLength(), sample[1].getDispersion(), sample[1].getMedianResidual()));
 
     return sample[1];
   }
@@ -231,17 +230,16 @@ public class LinearStep {
       projectedRankSumEstimator.computeLinEstMedian();
       double dispProj = projectedRankSumEstimator.computeEstDispersionValue();
 
-      if (LocUtil.deBugLevel > 0) {
-        System.out.format(
-            "Estlin: x dsp = %7.3f %9.4f %9.4f %5.2f\n", currentStepLen, dispProj, dispRaw, median);
-      }
+      LOGGER.fine(
+          String.format(
+              "Estlin: x dsp = %7.3f %9.4f %9.4f %5.2f",
+              currentStepLen, dispProj, dispRaw, median));
 
       return new RSumEstResult(currentStepLen, median, 0d, dispProj);
     } else {
       // Otherwise, we're pretty much done.
-      if (LocUtil.deBugLevel > 0) {
-        System.out.format("Estlin: x dsp = %7.3f %9.4f %5.2f\n", currentStepLen, dispRaw, median);
-      }
+      LOGGER.fine(
+          String.format("Estlin: x dsp = %7.3f %9.4f %5.2f", currentStepLen, dispRaw, median));
 
       return new RSumEstResult(currentStepLen, median, 0d, dispRaw);
     }

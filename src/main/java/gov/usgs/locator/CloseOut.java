@@ -5,6 +5,7 @@ import Jama.Matrix;
 import gov.usgs.traveltime.TauUtil;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.logging.Logger;
 
 /**
  * The CloseOut class computes all the errors and heuristics used to evaluate the location after an
@@ -42,6 +43,9 @@ public class CloseOut {
    * calculations for.
    */
   private RankSumEstimator rankSumEstimator;
+
+  /** Private logging object. */
+  private static final Logger LOGGER = Logger.getLogger(CloseOut.class.getName());
 
   /**
    * The CloseOut construtor. This constructor
@@ -137,9 +141,7 @@ public class CloseOut {
       }
     }
 
-    if (LocUtil.deBugLevel > 1) {
-      LocUtil.printMatrix(correlationMatrix, "Projected Matrix");
-    }
+    LOGGER.finer(LocUtil.printMatrix(correlationMatrix, "Projected Matrix"));
 
     // Set up the matrix computations.
     Matrix matrix = new Matrix(correlationMatrix);
@@ -151,12 +153,10 @@ public class CloseOut {
       // Get the inverse matrix back to compute errors.
       correlationMatrix = inverseMatrix.getArray();
 
-      if (LocUtil.deBugLevel > 1) {
-        LocUtil.printMatrix(correlationMatrix, "Correlation Matrix");
-      }
+      LOGGER.finer(LocUtil.printMatrix(correlationMatrix, "Correlation Matrix"));
     } catch (RuntimeException e) {
       // Oops!  The matrix is singular.
-      System.out.println("\n***** Projected normal matrix is singular!*****\n");
+      LOGGER.warning("***** Projected normal matrix is singular!*****");
       event.zeroOutStatistics(false);
       event.zeroOutWeights();
 
@@ -178,7 +178,7 @@ public class CloseOut {
       computeErrorEllipsoid(inverseMatrix);
     } catch (RuntimeException e) {
       // Oops!  Something bad happened to the eigenvalue problem.
-      System.out.println("\n***** Failure computing the error ellipsoid!*****\n");
+      LOGGER.severe("***** Failure computing the error ellipsoid!*****");
       event.zeroOutStatistics(false);
       event.zeroOutWeights();
       return LocStatus.ELLIPSOID_FAILED;
@@ -212,9 +212,7 @@ public class CloseOut {
       }
     }
 
-    if (LocUtil.deBugLevel > 1) {
-      LocUtil.printMatrix(correlationMatrix, "Normal Matrix");
-    }
+    LOGGER.finer(LocUtil.printMatrix(correlationMatrix, "Normal Matrix"));
 
     // Set up the matrix computations.
     matrix = new Matrix(correlationMatrix);
@@ -225,12 +223,10 @@ public class CloseOut {
       // Get the inverse matrix back to compute data importances.
       correlationMatrix = inverseMatrix.getArray();
 
-      if (LocUtil.deBugLevel > 1) {
-        LocUtil.printMatrix(correlationMatrix, "Correlation Matrix");
-      }
+      LOGGER.finer(LocUtil.printMatrix(correlationMatrix, "Correlation Matrix"));
     } catch (RuntimeException e) {
       // Oops!  The matrix is singular.
-      System.out.println("\n***** Pick normal matrix is singular!*****\n");
+      LOGGER.warning("***** Pick normal matrix is singular!*****");
       event.zeroOutStatistics(false);
       event.zeroOutWeights();
       return LocStatus.SINGULAR_MATRIX;
@@ -393,10 +389,9 @@ public class CloseOut {
     event.setBayesianDepthDataImportance(
         correlationMatrix[2][2] * Math.pow(hypo.getBayesianDepthWeight(), 2d));
 
-    if (LocUtil.deBugLevel > 0) {
-      System.out.format(
-          "Normeq: qsum qsum+ " + "= %4.2f %4.2f\n",
-          sumImportance, sumImportance + event.getBayesianDepthDataImportance());
-    }
+    LOGGER.fine(
+        String.format(
+            "Normeq: qsum qsum+ = %4.2f %4.2f",
+            sumImportance, sumImportance + event.getBayesianDepthDataImportance()));
   }
 }

@@ -1072,163 +1072,211 @@ public class Event {
     }
   }
 
-  /** This function print the station list to the screen. */
-  public void printStationList() {
+  /**
+   * This function writes the station list to a string.
+   *
+   * @return A String containing the station list
+   */
+  public String printStationList() {
+    String listString = "No stations found.";
+
     if (stationList.size() > 0) {
       StationID maxID = new StationID("~", "", "");
       NavigableMap<StationID, Station> map = stationList.headMap(maxID, true);
-      System.out.println("\n     Station List:");
+      listString = "Station List:";
 
       for (@SuppressWarnings("rawtypes") Map.Entry entry : map.entrySet()) {
         Station sta = (Station) entry.getValue();
-        System.out.println(sta);
+        listString += sta + "\n";
       }
-    } else {
-      System.out.print("No stations found.");
     }
+
+    return listString;
   }
 
   /**
-   * Function to print the arrivals associated with this event in a nice format to the screen.
+   * Function to write the arrivals associated with this event in a nicely formatted string.
    *
    * @param first A boolean flag, if true only print the first arrival in each pick group
+   * @return A String containing the picks
    */
-  public void printPicks(boolean first) {
-    System.out.println();
+  public String printPicks(boolean first) {
+    String pickString = "";
 
     for (int j = 0; j < pickGroupList.size(); j++) {
-      pickGroupList.get(j).printPicks(first);
+      pickString += pickGroupList.get(j).printPicks(first);
     }
+
+    return pickString;
   }
 
   /**
-   * This function prints the weighted residual storage. to the screen
+   * This function converts the weighted residual storage to a string.
    *
    * @param type A String identifying the weighted residual storage desired ("Raw" for the sorted
    *     picks, "Proj" for the projected picks, and "Org" for the unsorted picks)
    * @param full A boolean flag, if true, print the derivatives as well
+   * @return A String containing the formatted hydra input.
    */
-  public void printWeightedResiduals(String type, boolean full) {
+  public String printWeightedResiduals(String type, boolean full) {
+    String weiResString = "";
+
     if (type.equals("Raw")) {
-      System.out.println("\nwResRaw:");
+      weiResString += "RawWeightedResiduals:\n";
 
       for (int j = 0; j < rawWeightedResiduals.size(); j++) {
-        System.out.format("%4d ", j);
-        rawWeightedResiduals.get(j).printWeightedResiduals(full);
+        weiResString += String.format("%4d ", j);
+        weiResString += rawWeightedResiduals.get(j).printWeightedResiduals(full);
       }
     } else if (type.equals("Proj")) {
-      System.out.println("\nwResProj:");
+      weiResString += "ProjectedWeightedResiduals:\n";
 
       for (int j = 0; j < projectedWeightedResiduals.size(); j++) {
-        System.out.format("%4d ", j);
-        projectedWeightedResiduals.get(j).printWeightedResiduals(full);
+        weiResString += String.format("%4d ", j);
+        weiResString += projectedWeightedResiduals.get(j).printWeightedResiduals(full);
       }
     } else {
-      System.out.println("\nwResOrg:");
+      weiResString += "OriginalWeightedResiduals:\n";
 
       for (int j = 0; j < originalWeightedResiduals.size(); j++) {
-        System.out.format("%4d ", j);
-        originalWeightedResiduals.get(j).printWeightedResiduals(full);
+        weiResString += String.format("%4d ", j);
+        weiResString += originalWeightedResiduals.get(j).printWeightedResiduals(full);
       }
     }
+
+    return weiResString;
   }
 
-  /** This function prints all the audit records to the screen. */
-  public void printHypoAudit() {
+  /**
+   * This function generates a string containing all the audit records.
+   *
+   * @return A String containing the audit records.
+   */
+  public String printHypoAudit() {
+    String auditString = "";
+
     for (int j = 0; j < hypoAuditList.size(); j++) {
-      hypoAuditList.get(j).printAudit();
+      auditString += hypoAuditList.get(j).toString() + "\n";
     }
+
+    return auditString;
   }
 
   /**
-   * This function prints the input event information in a format similar to the Hydra event input
-   * file to the screen.
+   * This function converts the input event information to a string formatted similarly to the
+   * "Hydra" event input file for debugging.
+   *
+   * @return A String containing the formatted hydra input.
    */
-  public void printHydraInput() {
-    System.out.format(
-        "\n%22s %8.4f %9.4f %6.2f %5b %5b %5b " + "%5.1f %5.1f %5b\n",
-        LocUtil.getDateTimeString(hypo.getOriginTime()),
-        hypo.getLatitude(),
-        hypo.getLongitude(),
-        hypo.getDepth(),
-        isLocationHeld,
-        isDepthHeld,
-        isDepthManual,
-        hypo.getBayesianDepth(),
-        hypo.getBayesianDepthSpread(),
-        useDecorrelation);
-    System.out.println();
+  public String getHydraInput() {
+    String hydraInput = "";
+    hydraInput +=
+        String.format(
+            "%22s %8.4f %9.4f %6.2f %5b %5b %5b " + "%5.1f %5.1f %5b\n",
+            LocUtil.getDateTimeString(hypo.getOriginTime()),
+            hypo.getLatitude(),
+            hypo.getLongitude(),
+            hypo.getDepth(),
+            isLocationHeld,
+            isDepthHeld,
+            isDepthManual,
+            hypo.getBayesianDepth(),
+            hypo.getBayesianDepthSpread(),
+            useDecorrelation);
+    hydraInput += "\n";
 
     for (int j = 0; j < pickGroupList.size(); j++) {
-      pickGroupList.get(j).printInputPicks();
+      hydraInput += pickGroupList.get(j).getInputPicks();
     }
+
+    return hydraInput;
   }
 
   /**
-   * This function prints the output event information in a format similar to a Bulletin Hydra style
-   * output file to the screen.
+   * This function converts the output event information to a string formatted similarly to the
+   * "Hydra" event output file for debugging.
+   *
+   * @return A String containing the formatted hydra output.
    */
-  public void printHydraOutput() {
-    System.out.format(
-        "\n%14.3f %8.4f %9.4f %6.2f %4d %4d %4d %4d %3.0f " + "%8.4f\n",
-        hypo.getOriginTime(),
-        hypo.getLatitude(),
-        hypo.getLongitude(),
-        hypo.getDepth(),
-        numStationsAssociated,
-        numPhasesAssociated,
-        numStationsUsed,
-        numPhasesUsed,
-        azimuthalGap,
-        minStationDistance);
-    System.out.format(
-        "%6.2f %6.1f %6.1f %6.1f %6.2f %6.1f %6.1f %6.1f " + "%3s %5.1f %5.1f %6.4f\n",
-        timeStandardError,
-        latitudeStandardError,
-        longitudeStandardError,
-        depthStandardError,
-        residualsStandardError,
-        maxHorizontalError,
-        maxVerticalError,
-        equivalentErrorRadius,
-        qualityFlags,
-        hypo.getBayesianDepth(),
-        hypo.getBayesianDepthSpread(),
-        bayesianDepthDataImportance);
-    System.out.format(
-        "%14s %14s %14s  %3.0f\n",
-        errorEllipse[0], errorEllipse[1], errorEllipse[2], azimuthalGapLEst);
+  public String getHydraOutput() {
+    String hydraOutput = "";
+    hydraOutput +=
+        String.format(
+            "%14.3f %8.4f %9.4f %6.2f %4d %4d %4d %4d %3.0f %8.4f\n",
+            hypo.getOriginTime(),
+            hypo.getLatitude(),
+            hypo.getLongitude(),
+            hypo.getDepth(),
+            numStationsAssociated,
+            numPhasesAssociated,
+            numStationsUsed,
+            numPhasesUsed,
+            azimuthalGap,
+            minStationDistance);
+    hydraOutput +=
+        String.format(
+            "%6.2f %6.1f %6.1f %6.1f %6.2f %6.1f %6.1f %6.1f %3s %5.1f %5.1f %6.4f\n",
+            timeStandardError,
+            latitudeStandardError,
+            longitudeStandardError,
+            depthStandardError,
+            residualsStandardError,
+            maxHorizontalError,
+            maxVerticalError,
+            equivalentErrorRadius,
+            qualityFlags,
+            hypo.getBayesianDepth(),
+            hypo.getBayesianDepthSpread(),
+            bayesianDepthDataImportance);
+    hydraOutput +=
+        String.format(
+            "%14s %14s %14s  %3.0f\n\n",
+            errorEllipse[0], errorEllipse[1], errorEllipse[2], azimuthalGapLEst);
 
     for (int j = 0; j < pickGroupList.size(); j++) {
-      pickGroupList.get(j).printOutputPicks();
+      hydraOutput += pickGroupList.get(j).getOutputPicks();
     }
+
+    return hydraOutput;
   }
 
-  /** Function to print to the screen a NEIC style web output. */
-  public void printNEICOutput() {
+  /**
+   * This function converts the output event information to a string formatted similarly to the NEIC
+   * style web output for debugging.
+   *
+   * @return A String containing the formatted NEIC output.
+   */
+  public String getNEICOutput() {
+    String neicOutput = "";
     // Print the hypocenter.
-    System.out.format(
-        "\nLocation:             %-7s %-8s ±%6.1f km\n",
-        LocUtil.formatLat(hypo.getLatitude()),
-        LocUtil.formatLon(hypo.getLongitude()),
-        maxHorizontalError);
-    System.out.format("Depth:                %5.1f ±%6.1f km\n", hypo.getDepth(), maxVerticalError);
-    System.out.format(
-        "Origin Time:          %23s UTC\n", LocUtil.getNEICDateTimeString(hypo.getOriginTime()));
-    System.out.format("Number of Stations:     %4d\n", numStationsAssociated);
-    System.out.format("Number of Phases:       %4d\n", numPhasesAssociated);
-    System.out.format("Minimum Distance:     %6.1f\n", minStationDistance);
-    System.out.format("Travel Time Residual:  %5.2f\n", timeStandardError);
-    System.out.format("Azimuthal Gap:           %3.0f\n", azimuthalGap);
-    System.out.println(
-        "\n    Channel     Distance Azimuth Phase  " + "   Arrival Time Status    Residual Weight");
+    neicOutput +=
+        String.format(
+            "Location:             %-7s %-8s ±%6.1f km\n",
+            LocUtil.formatLat(hypo.getLatitude()),
+            LocUtil.formatLon(hypo.getLongitude()),
+            maxHorizontalError);
+    neicOutput +=
+        String.format("Depth:                %5.1f ±%6.1f km\n", hypo.getDepth(), maxVerticalError);
+    neicOutput +=
+        String.format(
+            "Origin Time:          %23s UTC\n",
+            LocUtil.getNEICDateTimeString(hypo.getOriginTime()));
+    neicOutput += String.format("Number of Stations:     %4d\n", numStationsAssociated);
+    neicOutput += String.format("Number of Phases:       %4d\n", numPhasesAssociated);
+    neicOutput += String.format("Minimum Distance:     %6.1f\n", minStationDistance);
+    neicOutput += String.format("Travel Time Residual:  %5.2f\n", timeStandardError);
+    neicOutput += String.format("Azimuthal Gap:           %3.0f\n", azimuthalGap);
+    neicOutput +=
+        "\n    Channel     Distance Azimuth Phase     Arrival Time Status    Residual Weight\n";
 
     // Sort the pick groups by distance.
     pickGroupList.sort(new PickGroupComp());
 
     // Print the picks.
     for (int j = 0; j < pickGroupList.size(); j++) {
-      pickGroupList.get(j).printNEIC();
+      neicOutput += pickGroupList.get(j).getNEIC();
     }
+
+    return neicOutput;
   }
 }

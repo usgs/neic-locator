@@ -1,5 +1,7 @@
 package gov.usgs.locator;
 
+import java.util.logging.Logger;
+
 /**
  * The Stepper class manages the rank-sum-estimator logic needed to refine the hypocenter.
  *
@@ -47,6 +49,9 @@ public class Stepper {
 
   /** A Decorrelator object used when decorrelating the event picks. */
   private Decorrelator decorrelator;
+
+  /** Private logging object. */
+  private static final Logger LOGGER = Logger.getLogger(Stepper.class.getName());
 
   /**
    * The Stepper constructor. Set the event, phaseID logic, and auxiliary locator information to the
@@ -141,9 +146,7 @@ public class Stepper {
       residualsMedian = rawRankSumEstimator.computeMedian();
       rawRankSumEstimator.deMedianResiduals();
 
-      if (LocUtil.deBugLevel > 0) {
-        System.out.format("Lsrt: EL av = %8.4f\n", residualsMedian);
-      }
+      LOGGER.fine(String.format("Lsrt: EL av = %8.4f", residualsMedian));
 
       // Decorrelate the raw data.
       if (event.getHasPhaseIdChanged()) {
@@ -160,9 +163,7 @@ public class Stepper {
       // Get the rank-sum-estimator dispersion of the projected data.
       dispersion = projectedRankSumEstimator.computeDispersionValue();
 
-      if (LocUtil.deBugLevel > 0) {
-        System.out.format("Lsrt: ST av chisq = %8.4f %10.4f\n", projectedMedian, dispersion);
-      }
+      LOGGER.fine(String.format("Lsrt: ST av chisq = %8.4f %10.4f", projectedMedian, dispersion));
 
       // Get the steepest descent direction.
       hypo.setStepDirectionUnitVector(
@@ -179,24 +180,18 @@ public class Stepper {
       // Get the rank-sum-estimator dispersion of the raw data.
       dispersion = rawRankSumEstimator.computeDispersionValue();
 
-      if (LocUtil.deBugLevel > 0) {
-        System.out.format("Lsrt: ST av chisq = %8.4f %10.4f\n", residualsMedian, dispersion);
-      }
+      LOGGER.fine(String.format("Lsrt: ST av chisq = %8.4f %10.4f", residualsMedian, dispersion));
 
       // Get the steepest descent direction.
       hypo.setStepDirectionUnitVector(
           rawRankSumEstimator.compSteepestDescDir(hypo.getDegreesOfFreedom()));
     }
 
-    if (LocUtil.deBugLevel > 0) {
-      System.out.print("Adder: b =");
-
-      for (int j = 0; j < hypo.getStepDirectionUnitVector().length; j++) {
-        System.out.format(" %7.4f", hypo.getStepDirectionUnitVector()[j]);
-      }
-
-      System.out.println();
+    String adderString = "Adder: b =";
+    for (int j = 0; j < hypo.getStepDirectionUnitVector().length; j++) {
+      adderString += String.format(" %7.4f", hypo.getStepDirectionUnitVector()[j]);
     }
+    LOGGER.fine(adderString);
 
     rSumEstResult = new RSumEstResult(0d, residualsMedian, 0d, dispersion);
 
@@ -347,9 +342,7 @@ public class Stepper {
       LocUtil.isTectonic = true;
     }
 
-    if (LocUtil.deBugLevel > 0) {
-      System.out.println("\n\tTectonic = " + LocUtil.isTectonic);
-    }
+    LOGGER.fine("Tectonic = " + LocUtil.isTectonic);
 
     if (!event.getIsDepthManual()) {
       // Update the Bayesian depth if it wasn't set by the analyst.
@@ -357,11 +350,10 @@ public class Stepper {
       double bayesSpread = zoneStats.getBayesSpread();
       hypo.updateBayes(bayesDepth, bayesSpread);
     }
-    if (LocUtil.deBugLevel > 0) {
-      System.out.format(
-          "\tBayes: %5.1f %5.3f %b\n",
-          hypo.getBayesianDepth(), hypo.getBayesianDepthWeight(), event.getIsDepthManual());
-    }
+    LOGGER.fine(
+        String.format(
+            "Bayes: %5.1f %5.3f %b",
+            hypo.getBayesianDepth(), hypo.getBayesianDepthWeight(), event.getIsDepthManual()));
   }
 
   /**
@@ -389,20 +381,19 @@ public class Stepper {
       hypo.setEstimatorRMSEquivalent(0d);
     }
 
-    if (LocUtil.deBugLevel > 0) {
-      System.out.format(
-          "\n%s: %1d %2d %5d %8.4f %8.4f %6.2f del= %5.1f %6.1f " + "rms= %6.2f %s\n",
-          id,
-          stage,
-          iteration,
-          used,
-          hypo.getLatitude(),
-          hypo.getLongitude(),
-          hypo.getDepth(),
-          hypo.getHorizontalStepLength(),
-          hypo.getVerticalStepLength(),
-          hypo.getEstimatorRMSEquivalent(),
-          status);
-    }
+    LOGGER.fine(
+        String.format(
+            "%s: %1d %2d %5d %8.4f %8.4f %6.2f del= %5.1f %6.1f " + "rms= %6.2f %s",
+            id,
+            stage,
+            iteration,
+            used,
+            hypo.getLatitude(),
+            hypo.getLongitude(),
+            hypo.getDepth(),
+            hypo.getHorizontalStepLength(),
+            hypo.getVerticalStepLength(),
+            hypo.getEstimatorRMSEquivalent(),
+            status));
   }
 }

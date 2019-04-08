@@ -866,22 +866,23 @@ public class LocUtil {
    *
    * @param a A double[] containing the vector to print
    * @param label A String containing the label to print as a header
+   * @return A String containing the vector
    */
-  public static void printVector(double[] a, String label) {
-    System.out.println("\n\t\t" + label + ":");
+  public static String printVector(double[] a, String label) {
+    String vectorString = label + ":\n\t";
     int count = 0;
 
     for (int j = 0; j < a.length; j++) {
       if (count > 8) {
-        System.out.print("\n           ");
+        vectorString += "\n\t";
         count = 1;
       }
 
-      System.out.format(" %10.3e", a[j]);
+      vectorString += String.format(" %10.3e", a[j]);
       count++;
     }
 
-    System.out.println();
+    return vectorString;
   }
 
   /**
@@ -889,22 +890,23 @@ public class LocUtil {
    *
    * @param a an int[] containing the vector to print
    * @param label A String containing the label to print as a header
+   * @return A String containing the vector
    */
-  public static void printVector(int[] a, String label) {
-    System.out.println("\n\t\t" + label + ":");
+  public static String printVector(int[] a, String label) {
+    String vectorString = label + ":\n\t";
 
     int count = 0;
     for (int j = 0; j < a.length; j++) {
       if (count > 17) {
-        System.out.print("\n     ");
+        vectorString += "\n\t";
         count = 1;
       }
 
-      System.out.format(" %4d", a[j]);
+      vectorString += String.format(" %4d", a[j]);
       count++;
     }
 
-    System.out.println();
+    return vectorString;
   }
 
   /**
@@ -912,24 +914,27 @@ public class LocUtil {
    *
    * @param a A double[][] containing the matrix to print
    * @param label A String containing the label to print as a header
+   * @return A String containing the matrix
    */
-  public static void printMatrix(double[][] a, String label) {
-    System.out.println("\n\t\t" + label + ":");
+  public static String printMatrix(double[][] a, String label) {
+    String matrixString = label + ":\n\t";
 
     for (int i = 0; i < a.length; i++) {
       int count = 0;
       for (int j = 0; j < a[i].length; j++) {
         if (count > 8) {
-          System.out.print("\n           ");
+          matrixString += "\n\t";
           count = 1;
         }
 
-        System.out.format(" %10.3e", a[i][j]);
+        matrixString += String.format(" %10.3e", a[i][j]);
         count++;
       }
 
-      System.out.println();
+      matrixString += "\n";
     }
+
+    return matrixString;
   }
 
   /**
@@ -941,11 +946,13 @@ public class LocUtil {
   }
 
   /**
-   * This timer function ends the timer and prints out the result in seconds.
+   * This timer function ends the timer and returns a string holding the result in seconds.
    *
    * @param label A String used to identify the timer
+   * @return A String containing the timer results
    */
-  public static void endTimer(String label) {
-    System.out.println("" + label + " time: " + 0.001 * (System.currentTimeMillis() - systemTime));
+  public static String endTimer(String label) {
+    String timerString = label + " time: " + 0.001 * (System.currentTimeMillis() - systemTime);
+    return (timerString);
   }
 }

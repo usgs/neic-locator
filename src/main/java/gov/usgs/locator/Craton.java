@@ -83,11 +83,17 @@ public class Craton implements Serializable {
     }
   }
 
-  /** This function prints the data for this craton. */
-  public void printCraton() {
-    System.out.println("\n" + name);
+  /**
+   * This function writes the data for this craton.
+   *
+   * @return A String containing the craton information
+   */
+  public String printCraton() {
+    String cratonString = "\n" + name;
     for (int j = 0; j < latitudePoints.length; j++) {
-      System.out.format("\t%8.4f %9.4f\n", latitudePoints[j], longitudePoints[j]);
+      cratonString += String.format("\t%8.4f %9.4f\n", latitudePoints[j], longitudePoints[j]);
     }
+
+    return cratonString;
   }
 }

@@ -2,6 +2,7 @@ package gov.usgs.locator;
 
 import gov.usgs.traveltime.TTSessionLocal;
 import java.util.ArrayList;
+import java.util.logging.Logger;
 
 /**
  * The Locate class drives the location of one earthquake.
@@ -50,6 +51,9 @@ public class Locate {
    */
   private CloseOut close;
 
+  /** Private logging object. */
+  private static final Logger LOGGER = Logger.getLogger(Locate.class.getName());
+
   /**
    * The Locate constructor. Sets up the class to locate a single event.
    *
@@ -77,6 +81,8 @@ public class Locate {
    * @return A LocStatus object containing the final location status
    */
   public LocStatus doLocation() {
+    LOGGER.info("Starting Location");
+
     // Save the essentials of this event for comparison.
     event.addAudit(0, 0, LocStatus.INITIAL_HYPOCENTER);
 
@@ -99,9 +105,7 @@ public class Locate {
       // Prepare the event for relocation by performing an initial phase
       // identification
       initialPhaseID.phaseID();
-      if (LocUtil.deBugLevel > 3) {
-        initialPhaseID.printInitialID();
-      }
+      LOGGER.finest(initialPhaseID.printInitialID());
 
       // Now do the multistage iteration to refine the hypocenter.
       LocStatus status;
@@ -204,8 +208,7 @@ public class Locate {
                       + Math.pow(hypo.getVerticalStepLength(), 2d)));
           event.addAudit(stage, iter, status);
 
-          System.out.println("\nFinal wrapup:");
-          event.printHypoAudit();
+          LOGGER.info("Final wrapup: \n" + event.printHypoAudit());
 
           status = close.computeFinalStatistics(status);
           return status;
@@ -220,7 +223,7 @@ public class Locate {
       return LocStatus.DID_NOT_CONVERGE;
     } catch (Exception e) {
       // This should never happen.
-      System.out.println("Source depth out of range");
+      LOGGER.severe("Source depth out of range");
       e.printStackTrace();
 
       return LocStatus.BAD_DEPTH;

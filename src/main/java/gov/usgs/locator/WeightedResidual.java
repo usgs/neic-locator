@@ -425,25 +425,32 @@ public class WeightedResidual implements Comparable<WeightedResidual> {
   }
 
   /**
-   * This function prints the contents of the weighted residuals.
+   * This function creats a string holding the contents of the weighted residuals.
    *
    * @param full A boolean flag indicating whether to print the derivatives as well
+   * @return A String containing the contents of the weighted residuals
    */
-  public void printWeightedResiduals(boolean full) {
+  public String printWeightedResiduals(boolean full) {
+    String weiResString = "";
+
     if (!full || spatialDerivatives == null) {
-      System.out.format(
-          "res: %7.2f %7.2f wt: %7.4f %b\n", residual, linEstResidual, weight, isBayesianDepth);
+      weiResString +=
+          String.format(
+              "res: %7.2f %7.2f wt: %7.4f %b\n", residual, linEstResidual, weight, isBayesianDepth);
     } else {
-      System.out.format(
-          "res: %7.2f %7.2f wt: %7.4f spatialDerivatives: %10.3e " + "%10.3e %10.3e %b\n",
-          residual,
-          linEstResidual,
-          weight,
-          spatialDerivatives[0],
-          spatialDerivatives[1],
-          spatialDerivatives[2],
-          isBayesianDepth);
+      weiResString +=
+          String.format(
+              "res: %7.2f %7.2f wt: %7.4f spatialDerivatives: %10.3e %10.3e %10.3e %b\n",
+              residual,
+              linEstResidual,
+              weight,
+              spatialDerivatives[0],
+              spatialDerivatives[1],
+              spatialDerivatives[2],
+              isBayesianDepth);
     }
+
+    return weiResString;
   }
 
   /**

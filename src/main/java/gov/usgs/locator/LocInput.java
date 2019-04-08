@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.Scanner;
+import java.util.logging.Logger;
 import java.util.regex.Pattern;
 
 /**
@@ -18,6 +19,9 @@ import java.util.regex.Pattern;
  * @author jpatton@usgs.gov
  */
 public class LocInput extends LocationRequest {
+  /** Private logging object. */
+  private static final Logger LOGGER = Logger.getLogger(LocInput.class.getName());
+
   /** The LocInput default constructor. */
   public LocInput() {
     super();
@@ -178,7 +182,7 @@ public class LocInput extends LocationRequest {
             errorString += " " + errorList.get(i);
           }
 
-          System.out.println("Invalid pick: " + errorString);
+          LOGGER.warning("Invalid pick: " + errorString);
         }
       }
 

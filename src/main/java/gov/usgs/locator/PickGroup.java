@@ -223,32 +223,38 @@ public class PickGroup {
   }
 
   /**
-   * This function prints out the input pick information in a format similar to the "Hydra" event
-   * input file.
+   * This function converts the input pick information to a string formatted similarly to the
+   * "Hydra" event input file.
    */
-  public void printInputPicks() {
-    Pick pick;
+  public String getInputPicks() {
+    String pickInput = "";
 
     for (int j = 0; j < picks.size(); j++) {
-      pick = picks.get(j);
-      System.out.format(
-          "%10s %-5s %3s %2s %2s %8.4f %9.4f %5.2f " + "%3.1f %-8s %12s %5b %-13s %-8s %3.1f\n",
-          pick.getPickID(),
-          station.getStationID().getStationCode(),
-          pick.getChannelCode(),
-          station.getStationID().getNetworkCode(),
-          station.getStationID().getLocationCode(),
-          station.getLatitude(),
-          station.getLongitude(),
-          station.getElevation(),
-          pick.getQuality(),
-          pick.getCurrentPhaseCode(),
-          LocUtil.getTimeString(pick.getArrivalTime()),
-          pick.getExternalUse(),
-          pick.getOriginalAuthorType(),
-          pick.getOriginalPhaseCode(),
-          pick.getOriginalPhaseAffinity());
+      Pick pick = picks.get(j);
+
+      pickInput +=
+          String.format(
+              "%10s %-5s %3s %2s %2s %8.4f %9.4f %5.2f %3.1f %-8s %12s %5b %-13s %-8s %3.1f",
+              pick.getPickID(),
+              station.getStationID().getStationCode(),
+              pick.getChannelCode(),
+              station.getStationID().getNetworkCode(),
+              station.getStationID().getLocationCode(),
+              station.getLatitude(),
+              station.getLongitude(),
+              station.getElevation(),
+              pick.getQuality(),
+              pick.getCurrentPhaseCode(),
+              LocUtil.getTimeString(pick.getArrivalTime()),
+              pick.getExternalUse(),
+              pick.getOriginalAuthorType(),
+              pick.getOriginalPhaseCode(),
+              pick.getOriginalPhaseAffinity());
+
+      pickInput += "\n";
     }
+
+    return pickInput;
   }
 
   /**
@@ -256,53 +262,69 @@ public class PickGroup {
    *
    * @param first A boolean flag indicating that the function should only print the first pick in
    *     the group
+   * @return A String containing the picks
    */
-  public void printPicks(boolean first) {
+  public String printPicks(boolean first) {
+    String pickString = "";
+
     // print the first pick
     Pick pick = picks.get(0);
-    System.out.format(
-        "%-5s %-8s %-8s %7.2f %6.2f %3.0f\n",
-        station.getStationID().getStationCode(),
-        pick.getCurrentPhaseCode(),
-        pick.getOriginalPhaseCode(),
-        pick.getTravelTime(),
-        distance,
-        azimuth);
+    pickString +=
+        String.format(
+            "%-5s %-8s %-8s %7.2f %6.2f %3.0f\n",
+            station.getStationID().getStationCode(),
+            pick.getCurrentPhaseCode(),
+            pick.getOriginalPhaseCode(),
+            pick.getTravelTime(),
+            distance,
+            azimuth);
 
     // print the rest
     if (!first) {
       for (int j = 1; j < picks.size(); j++) {
-        System.out.format(
-            "      %-8s %-8s %7.2f\n",
-            pick.getCurrentPhaseCode(), pick.getOriginalPhaseCode(), pick.getTravelTime());
+        pickString +=
+            String.format(
+                "      %-8s %-8s %7.2f\n",
+                pick.getCurrentPhaseCode(), pick.getOriginalPhaseCode(), pick.getTravelTime());
       }
     }
+
+    return pickString;
   }
 
-  /** This function prints the pick part of a Bulletin "Hydra" style output file. */
-  public void printOutputPicks() {
+  /**
+   * This function converts the output pick information to a string formatted similarly to the
+   * "Hydra" event output file.
+   */
+  public String getOutputPicks() {
+    String pickOutput = "";
+
     for (int j = 0; j < picks.size(); j++) {
       Pick pick = picks.get(j);
 
-      System.out.format(
-          "%10s %-5s %-3s %-2s %-2s %-8s%6.1f %5.1f " + "%3.0f %1s %4.2f %6.4f\n",
-          pick.getPickID(),
-          station.getStationID().getStationCode(),
-          pick.getChannelCode(),
-          station.getStationID().getNetworkCode(),
-          station.getStationID().getLocationCode(),
-          pick.getCurrentPhaseCode(),
-          pick.getResidual(),
-          distance,
-          azimuth,
-          LocUtil.getBoolChar(pick.getIsUsed()),
-          pick.getWeight(),
-          pick.getImportance());
+      pickOutput +=
+          String.format(
+              "%10s %-5s %-3s %-2s %-2s %-8s%6.1f %5.1f %3.0f %1s %4.2f %6.4f\n",
+              pick.getPickID(),
+              station.getStationID().getStationCode(),
+              pick.getChannelCode(),
+              station.getStationID().getNetworkCode(),
+              station.getStationID().getLocationCode(),
+              pick.getCurrentPhaseCode(),
+              pick.getResidual(),
+              distance,
+              azimuth,
+              LocUtil.getBoolChar(pick.getIsUsed()),
+              pick.getWeight(),
+              pick.getImportance());
     }
+
+    return pickOutput;
   }
 
   /** This function print out picks in the group in a way similar to the NEIC web format. */
-  public void printNEIC() {
+  public String getNEIC() {
+    String pickNEIC = "";
     String locCode = station.getStationID().getLocationCode();
     if (locCode == null) {
       locCode = "";
@@ -314,35 +336,41 @@ public class PickGroup {
       switch (pick.getOriginalAuthorType()) {
         case CONTRIB_HUMAN:
         case LOCAL_HUMAN:
-          System.out.format(
-              "%-2s %-5s %-3s %-2s  %5.1f     %3.0f   %-8s %12s " + " manual    %6.1f    %4.2f\n",
-              station.getStationID().getNetworkCode(),
-              station.getStationID().getStationCode(),
-              pick.getChannelCode(),
-              locCode,
-              distance,
-              azimuth,
-              pick.getCurrentPhaseCode(),
-              LocUtil.getNEICTimeString(pick.getArrivalTime()),
-              pick.getResidual(),
-              pick.getWeight());
+          pickNEIC +=
+              String.format(
+                  "%-2s %-5s %-3s %-2s  %5.1f     %3.0f   %-8s %12s "
+                      + " manual    %6.1f    %4.2f\n",
+                  station.getStationID().getNetworkCode(),
+                  station.getStationID().getStationCode(),
+                  pick.getChannelCode(),
+                  locCode,
+                  distance,
+                  azimuth,
+                  pick.getCurrentPhaseCode(),
+                  LocUtil.getNEICTimeString(pick.getArrivalTime()),
+                  pick.getResidual(),
+                  pick.getWeight());
           break;
 
         default:
-          System.out.format(
-              "%-2s %-5s %-3s %-2s  %5.1f     %3.0f   %-8s %12s  " + "automatic %6.1f    %4.2f\n",
-              station.getStationID().getNetworkCode(),
-              station.getStationID().getStationCode(),
-              pick.getChannelCode(),
-              locCode,
-              distance,
-              azimuth,
-              pick.getCurrentPhaseCode(),
-              LocUtil.getNEICTimeString(pick.getArrivalTime()),
-              pick.getResidual(),
-              pick.getWeight());
+          pickNEIC +=
+              String.format(
+                  "%-2s %-5s %-3s %-2s  %5.1f     %3.0f   %-8s %12s  "
+                      + "automatic %6.1f    %4.2f\n",
+                  station.getStationID().getNetworkCode(),
+                  station.getStationID().getStationCode(),
+                  pick.getChannelCode(),
+                  locCode,
+                  distance,
+                  azimuth,
+                  pick.getCurrentPhaseCode(),
+                  LocUtil.getNEICTimeString(pick.getArrivalTime()),
+                  pick.getResidual(),
+                  pick.getWeight());
           break;
       }
     }
+
+    return pickNEIC;
   }
 }

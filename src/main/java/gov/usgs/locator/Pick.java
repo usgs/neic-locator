@@ -3,6 +3,7 @@ package gov.usgs.locator;
 import gov.usgs.traveltime.TTimeData;
 import gov.usgs.traveltime.TauUtil;
 import java.util.ArrayList;
+import java.util.logging.Logger;
 
 /**
  * The Pick class stores the data making up one pick.
@@ -105,6 +106,9 @@ public class Pick implements Comparable<Pick> {
 
   /** A WeightedResidual object containing the weighted residual for this picks. */
   private WeightedResidual weightedResidual;
+
+  /** Private logging object. */
+  private static final Logger LOGGER = Logger.getLogger(Pick.class.getName());
 
   /**
    * Function to return the pick identifier.
@@ -576,10 +580,11 @@ public class Pick implements Comparable<Pick> {
         reID = true;
       }
 
-      if (LocUtil.deBugLevel > 0 && reID) {
-        System.out.format(
-            "=====> Phase re-ID: %-5s %-8s -> %-8s\n",
-            station.getStationID().getStationCode(), currentPhaseCode, ttCode);
+      if (reID) {
+        LOGGER.fine(
+            String.format(
+                "=====> Phase re-ID: %-5s %s -> %s",
+                station.getStationID().getStationCode(), currentPhaseCode, ttCode));
       }
 
       currentPhaseCode = ttCode;
@@ -620,14 +625,13 @@ public class Pick implements Comparable<Pick> {
       } else {
         // Otherwise, see if it was used before.
         if (isUsed) {
-          if (LocUtil.deBugLevel > 0) {
-            System.out.format(
-                "=====> Phase no use set (wt): %-5s %-8s %5b %5.2f\n",
-                station.getStationID().getStationCode(),
-                currentPhaseCode,
-                ttStatisticalMinFoM.canUse(),
-                ttStatisticalMinFoM.getSpread());
-          }
+          LOGGER.fine(
+              String.format(
+                  "=====> Phase no use set (wt): %s %s %5b %5.2f",
+                  station.getStationID().getStationCode(),
+                  currentPhaseCode,
+                  ttStatisticalMinFoM.canUse(),
+                  ttStatisticalMinFoM.getSpread()));
 
           isUsed = false;
 
@@ -642,19 +646,19 @@ public class Pick implements Comparable<Pick> {
       }
     } else {
       // We don't have an identification.
-      if (LocUtil.deBugLevel > 0 && !currentPhaseCode.equals("")) {
-        System.out.format(
-            "=====> Phase re-ID: %-5s %-8s -> null\n",
-            station.getStationID().getStationCode(), currentPhaseCode);
+      if (!currentPhaseCode.equals("")) {
+        LOGGER.fine(
+            String.format(
+                "=====> Phase re-ID: %s %s -> null",
+                station.getStationID().getStationCode(), currentPhaseCode));
       }
 
       // See if it was used before.
       if (isUsed) {
-        if (LocUtil.deBugLevel > 0) {
-          System.out.format(
-              "=====> Phase no use set (no ID): %-5s %-8s\n",
-              station.getStationID().getStationCode(), currentPhaseCode);
-        }
+        LOGGER.fine(
+            String.format(
+                "=====> Phase no use set (no ID): %s %s",
+                station.getStationID().getStationCode(), currentPhaseCode));
 
         isUsed = false;
 
@@ -671,11 +675,11 @@ public class Pick implements Comparable<Pick> {
       residual = 0d;
       weight = 0d;
     }
-    if (LocUtil.deBugLevel > 1) {
-      System.out.format(
-          "  IDphas: %-5s %-8s %6.2f %7.4f %b\n",
-          station.getStationID().getStationCode(), currentPhaseCode, residual, weight, isUsed);
-    }
+
+    LOGGER.finer(
+        String.format(
+            "IDphas: %s %s %6.2f %7.4f %b",
+            station.getStationID().getStationCode(), currentPhaseCode, residual, weight, isUsed));
 
     return idChanged;
   }
@@ -693,7 +697,7 @@ public class Pick implements Comparable<Pick> {
   @Override
   public String toString() {
     return String.format(
-        "%-5s %-8s %6.2f %b",
+        "%s %s %6.2f %b",
         station.getStationID().getStationCode(), currentPhaseCode, residual, isUsed);
   }
 

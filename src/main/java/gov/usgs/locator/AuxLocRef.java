@@ -13,6 +13,7 @@ import java.nio.ByteOrder;
 import java.nio.IntBuffer;
 import java.nio.channels.FileLock;
 import java.util.Scanner;
+import java.util.logging.Logger;
 
 /**
  * The AuxLocRef class manages auxiliary data files that support the Locator such as the continental
@@ -51,6 +52,9 @@ public class AuxLocRef {
    * geographic location.
    */
   private Scanner scan;
+
+  /** Private logging object. */
+  private static final Logger LOGGER = Logger.getLogger(LocMain.class.getName());
 
   /**
    * Read the cratons and zone statistics files and make the data available to the Locator.
@@ -114,10 +118,8 @@ public class AuxLocRef {
 
       // Wait for an exclusive lock for writing.
       lock = serOut.getChannel().lock();
-      if (LocUtil.deBugLevel > 0) {
-        System.out.println(
-            "AuxLocRef write lock: valid = " + lock.isValid() + " shared = " + lock.isShared());
-      }
+      LOGGER.fine(
+          "AuxLocRef write lock: valid = " + lock.isValid() + " shared = " + lock.isShared());
 
       // The auxiliary data can be read and written very quickly, so for persistent
       // applications such as the travel time or location server, serialization is
@@ -141,10 +143,8 @@ public class AuxLocRef {
 
       // Wait for a shared lock for reading.
       lock = serIn.getChannel().lock(0, Long.MAX_VALUE, true);
-      if (LocUtil.deBugLevel > 0) {
-        System.out.println(
-            "AuxLocRef read lock: valid = " + lock.isValid() + " shared = " + lock.isShared());
-      }
+      LOGGER.fine(
+          "AuxLocRef read lock: valid = " + lock.isValid() + " shared = " + lock.isShared());
 
       // load the cratons and zoneStats
       cratons = (Cratons) objIn.readObject();

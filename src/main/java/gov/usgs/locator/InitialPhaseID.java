@@ -4,6 +4,7 @@ import gov.usgs.traveltime.TTSessionLocal;
 import gov.usgs.traveltime.TTime;
 import gov.usgs.traveltime.TTimeData;
 import java.util.ArrayList;
+import java.util.logging.Logger;
 
 /**
  * The InitialPhaseID class performs an initial phase identification before any location iterations
@@ -52,6 +53,9 @@ public class InitialPhaseID {
    * phase identification.
    */
   private Stepper stepper;
+
+  /** Private logging object. */
+  private static final Logger LOGGER = Logger.getLogger(InitialPhaseID.class.getName());
 
   /**
    * The InitialPhaseID constructor. This constructor sets the event, tt session, phase
@@ -102,19 +106,13 @@ public class InitialPhaseID {
         false);
 
     // Loop over picks in the groups.
-    if (LocUtil.deBugLevel > 1) {
-      System.out.println();
-    }
-
     for (int j = 0; j < event.getNumStations(); j++) {
       PickGroup group = event.getPickGroupList().get(j);
 
       if (group.getNumPicksUsed() > 0) {
         // For the first pick in the group, get the travel times.
         Station station = group.getStation();
-        if (LocUtil.deBugLevel > 1) {
-          System.out.println("InitialPhaseID: " + station + ":");
-        }
+        LOGGER.finer("InitialPhaseID: " + station + ":");
 
         // Do the travel-time calculation.
         TTime ttList =
@@ -160,9 +158,10 @@ public class InitialPhaseID {
                 pick.setResidual(pick.getTravelTime() - travelTime.getTT());
                 pick.setWeight(1d / travelTime.getSpread());
 
-                if (LocUtil.deBugLevel > 1 && !phCode.equals(travelTime.getPhCode())) {
-                  System.out.format(
-                      "InitialPhaseID: %-8s -> %-8s auto\n", phCode, travelTime.getPhCode());
+                if (!phCode.equals(travelTime.getPhCode())) {
+                  LOGGER.finer(
+                      String.format(
+                          "InitialPhaseID: %s -> %s auto", phCode, travelTime.getPhCode()));
                 }
               } else {
                 found = false;
@@ -185,11 +184,9 @@ public class InitialPhaseID {
                   pick.setResidual(pick.getTravelTime() - travelTime.getTT());
                   pick.setWeight(1d / travelTime.getSpread());
 
-                  if (LocUtil.deBugLevel > 1) {
-                    System.out.format(
-                        "InitialPhaseID: " + "%-8s -> %-8s human\n",
-                        phCode, travelTime.getPhCode());
-                  }
+                  LOGGER.finer(
+                      String.format(
+                          "InitialPhaseID: " + "%s -> %s human", phCode, travelTime.getPhCode()));
                 }
               }
 
@@ -197,16 +194,15 @@ public class InitialPhaseID {
                   new WeightedResidual(
                       pick, pick.getResidual(), pick.getWeight(), false, 0d, 0d, 0d));
 
-              if (LocUtil.deBugLevel > 1) {
-                System.out.format(
-                    "InitialPhaseID push: %-5s %-8s %5.2f %7.4f %5.2f" + "%5.2f\n",
-                    pick.getStation().getStationID().getStationCode(),
-                    pick.getCurrentPhaseCode(),
-                    pick.getResidual(),
-                    pick.getWeight(),
-                    travelTime.getTT(),
-                    travelTime.getSpread());
-              }
+              LOGGER.finer(
+                  String.format(
+                      "InitialPhaseID push: %s %s %5.2f %7.4f %5.2f" + "%5.2f",
+                      pick.getStation().getStationID().getStationCode(),
+                      pick.getCurrentPhaseCode(),
+                      pick.getResidual(),
+                      pick.getWeight(),
+                      travelTime.getTT(),
+                      travelTime.getSpread()));
             }
           }
         }
@@ -230,11 +226,10 @@ public class InitialPhaseID {
     double median = rankSumEstimator.computeMedian();
     event.updateOriginTime(median);
 
-    if (LocUtil.deBugLevel > 0) {
-      System.out.format(
-          "\nUpdate origin: %f %f %f %d\n",
-          hypo.getOriginTime(), median, hypo.getOriginTime() + median, badPs);
-    }
+    LOGGER.fine(
+        String.format(
+            "Update origin: %f %f %f %d",
+            hypo.getOriginTime(), median, hypo.getOriginTime() + median, badPs));
 
     // On a restart, reidentify all phases to be consistent with the new hypocenter.
     // Note that we still needed the logic above to reset the origin time.
@@ -243,10 +238,6 @@ public class InitialPhaseID {
       phaseID.phaseID(0.1d, 1d, true, true);
       event.computeStationStats();
       return;
-    }
-
-    if (LocUtil.deBugLevel > 1) {
-      System.out.println();
     }
 
     // Based on the number of probably misidentified first arrivals:
@@ -283,11 +274,11 @@ public class InitialPhaseID {
               && !phCode.equals("P")) {
             pick.setIsUsed(false);
 
-            if (LocUtil.deBugLevel > 1) {
-              System.out.format(
-                  "\tIdEasy: don't use %-5s %-8s\n",
-                  group.getStation().getStationID().getStationCode(), pick.getCurrentPhaseCode());
-            }
+            LOGGER.finer(
+                String.format(
+                    "\tIdEasy: don't use %s %s",
+                    group.getStation().getStationID().getStationCode(),
+                    pick.getCurrentPhaseCode()));
           }
         }
 
@@ -298,11 +289,11 @@ public class InitialPhaseID {
           if (pick.getIsAutomatic() && pick.getIsUsed()) {
             pick.setIsUsed(false);
 
-            if (LocUtil.deBugLevel > 1) {
-              System.out.format(
-                  "\tIdEasy: don't use %-5s %-8s\n",
-                  group.getStation().getStationID().getStationCode(), pick.getCurrentPhaseCode());
-            }
+            LOGGER.finer(
+                String.format(
+                    "\tIdEasy: don't use %s %s",
+                    group.getStation().getStationID().getStationCode(),
+                    pick.getCurrentPhaseCode()));
           }
         }
       }
@@ -340,9 +331,7 @@ public class InitialPhaseID {
             // For the first pick in the group, get the travel times.
             station = group.getStation();
 
-            if (LocUtil.deBugLevel > 1) {
-              System.out.println("" + station + ":");
-            }
+            LOGGER.finer("" + station + ":");
 
             // Do the travel-time calculation.
             TTime ttList =
@@ -359,23 +348,22 @@ public class InitialPhaseID {
             // Set the phase code.  The travel time was already set in phaseID.
             pick.updatePhaseIdentification(ttList.get(0).getPhCode());
 
-            if (LocUtil.deBugLevel > 1) {
-              System.out.format(
-                  "\tIdHard: %-5s %-8s -> %-8s auto\n",
-                  group.getStation().getStationID().getStationCode(),
-                  phCode,
-                  ttList.get(0).getPhCode());
-            }
+            LOGGER.finer(
+                String.format(
+                    "IdHard: %s %s -> %s auto",
+                    group.getStation().getStationID().getStationCode(),
+                    phCode,
+                    ttList.get(0).getPhCode()));
           } else {
             // If it's a core phase or not a common mis-identification, just
             // don't use it.
             pick.setIsUsed(false);
 
-            if (LocUtil.deBugLevel > 1) {
-              System.out.format(
-                  "\tIdHard: don't use %-5s %-8s\n",
-                  group.getStation().getStationID().getStationCode(), pick.getCurrentPhaseCode());
-            }
+            LOGGER.finer(
+                String.format(
+                    "IdHard: don't use %s %s",
+                    group.getStation().getStationID().getStationCode(),
+                    pick.getCurrentPhaseCode()));
           }
         }
 
@@ -386,11 +374,11 @@ public class InitialPhaseID {
           if (pick.getIsAutomatic() && pick.getIsUsed()) {
             pick.setIsUsed(false);
 
-            if (LocUtil.deBugLevel > 1) {
-              System.out.format(
-                  "\tIdHard: don't use %-5s %-8s\n",
-                  group.getStation().getStationID().getStationCode(), pick.getCurrentPhaseCode());
-            }
+            LOGGER.finer(
+                String.format(
+                    "\tIdHard: don't use %s %s",
+                    group.getStation().getStationID().getStationCode(),
+                    pick.getCurrentPhaseCode()));
           }
         }
       }
@@ -417,11 +405,13 @@ public class InitialPhaseID {
   }
 
   /**
-   * The printInitialID function Lists the phases used in the initial relocation to the screen. Note
-   * that they may have been re-identified after the initialID algorithm.
+   * The printInitialID function writes the phases used in the initial relocation to a string for
+   * logging. Note that they may have been re-identified after the initialID algorithm.
+   *
+   * @return A String containing the initial phase ids
    */
-  public void printInitialID() {
-    System.out.println("\nInitial phase identification:");
+  public String printInitialID() {
+    String initialString = "Initial phase identification:\n";
 
     for (int j = 0; j < event.getNumStations(); j++) {
       PickGroup group = event.getPickGroupList().get(j);
@@ -433,17 +423,20 @@ public class InitialPhaseID {
           Pick pick = group.getPicks().get(i);
 
           if (pick.getIsUsed()) {
-            System.out.format(
-                "%-5s %-8s %6.1f %6.1f %3.0f %5.2f\n",
-                station.getStationID().getStationCode(),
-                pick.getCurrentPhaseCode(),
-                pick.getResidual(),
-                group.getDistance(),
-                group.getAzimuth(),
-                pick.getWeight());
+            initialString +=
+                String.format(
+                    "%-5s %-8s %6.1f %6.1f %3.0f %5.2f\n",
+                    station.getStationID().getStationCode(),
+                    pick.getCurrentPhaseCode(),
+                    pick.getResidual(),
+                    group.getDistance(),
+                    group.getAzimuth(),
+                    pick.getWeight());
           }
         }
       }
     }
+
+    return initialString;
   }
 }

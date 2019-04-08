@@ -4,6 +4,7 @@ import Jama.EigenvalueDecomposition;
 import Jama.Matrix;
 import gov.usgs.traveltime.TauUtil;
 import java.util.ArrayList;
+import java.util.logging.Logger;
 
 /**
  * The Decorrelator class handles the decorrelation of the pick data. This involves a singular
@@ -51,6 +52,9 @@ public class Decorrelator {
   /** A Jama.Matrix object containing the final covariance matrix. */
   private Matrix covMatrixFinal;
 
+  /** Private logging object. */
+  private static final Logger LOGGER = Logger.getLogger(Decorrelator.class.getName());
+
   /**
    * The Decorrelator constructor. This constructor initializes the event and projected residuals to
    * the provided event and residuals.
@@ -68,9 +72,7 @@ public class Decorrelator {
     // because it keeps changing when cloned.
     weightedResidualsOrg = event.getOriginalWeightedResiduals();
 
-    if (LocUtil.deBugLevel > 1) {
-      event.printWeightedResiduals("Org", true);
-    }
+    LOGGER.finer(event.printWeightedResiduals("Org", true));
 
     // We'll use the dimension of the picks a lot!
     numData = weightedResidualsOrg.size();
@@ -137,9 +139,8 @@ public class Decorrelator {
     // Because the weighted residuals get sorted, we need a copy in
     // the original order to project the estimated residuals.
     weightedResidualsProjOrg = (ArrayList<WeightedResidual>) weightedResidualsProj.clone();
-    if (LocUtil.deBugLevel > 2) {
-      event.printWeightedResiduals("Proj", true);
-    }
+
+    LOGGER.finest(event.printWeightedResiduals("Proj", true));
   }
 
   /**
@@ -195,9 +196,7 @@ public class Decorrelator {
    */
   private void triagePicks() {
     if (weightedResidualsOrg.size() > LocUtil.MAXPICKSTODECORRELATE) {
-      if (LocUtil.deBugLevel > 2) {
-        LocUtil.printMatrix(covMatrix, "Raw Covariance Matrix");
-      }
+      LOGGER.finest(LocUtil.printMatrix(covMatrix, "Raw Covariance Matrix"));
 
       // Reset all the triage flags.
       event.resetTriage();
@@ -224,17 +223,13 @@ public class Decorrelator {
 
       // Eliminate the biggest correlation sums.
       for (int i = corrSums.size() - 1; i >= LocUtil.MAXPICKSTODECORRELATE; i--) {
-        if (LocUtil.deBugLevel > 2) {
-          System.out.println("\nF:");
-
-          for (int j = 0; j < corrSums.size(); j++) {
-            System.out.println("\t" + corrSums.get(j));
-          }
+        String corrSumsStr = "F:";
+        for (int j = 0; j < corrSums.size(); j++) {
+          corrSumsStr += "\t" + corrSums.get(j);
         }
+        LOGGER.finest(corrSumsStr);
 
-        if (LocUtil.deBugLevel > 0) {
-          System.out.format("\tTriage: eliminate %3d %s\n", i, corrSums.get(i));
-        }
+        LOGGER.fine(String.format("\tTriage: eliminate %3d %s", i, corrSums.get(i)));
 
         int k = corrSums.get(i).getRowIndex();
         corrSums.remove(i);
@@ -270,9 +265,7 @@ public class Decorrelator {
       covRaw = null;
       covMatrix = covMatrixFinal.getArray();
 
-      if (LocUtil.deBugLevel > 2) {
-        LocUtil.printMatrix(covMatrix, "Final Covariance Matrix");
-      }
+      LOGGER.finest(LocUtil.printMatrix(covMatrix, "Final Covariance Matrix"));
 
       // We're not quite done.  We need to eliminate the same picks
       // from the weighted residuals.  And make sure they don't come
@@ -290,9 +283,7 @@ public class Decorrelator {
       numData = weightedResidualsOrg.size();
       numPickData = numData - 1;
 
-      if (LocUtil.deBugLevel > 1) {
-        event.printWeightedResiduals("Org", true);
-      }
+      LOGGER.finer(event.printWeightedResiduals("Org", true));
     } else {
       // We're OK.  Just create the correlation matrix in a form
       // suitable for extracting the eigenvalues.
@@ -311,24 +302,18 @@ public class Decorrelator {
    */
   private void doEigen() {
     // Do the eigenvalue problem (and time it).
-    if (LocUtil.deBugLevel > 0) {
-      LocUtil.startTimer();
-    }
+    LocUtil.startTimer();
     EigenvalueDecomposition eig = covMatrixFinal.eig();
 
-    if (LocUtil.deBugLevel > 0) {
-      LocUtil.endTimer("Eigenvalue");
-    }
+    LOGGER.fine(LocUtil.endTimer("Eigenvalue"));
+
     eigenvalues = eig.getRealEigenvalues();
 
-    if (LocUtil.deBugLevel > 0) {
-      LocUtil.printVector(eigenvalues, "Eigenvalues");
-    }
+    LOGGER.fine(LocUtil.printVector(eigenvalues, "Eigenvalues Vector"));
+
     eigenvectors = eig.getV().getArray();
 
-    if (LocUtil.deBugLevel > 2) {
-      testEig(covMatrixFinal, eig);
-    }
+    LOGGER.finest(testEig(covMatrixFinal, eig));
 
     // We don't need the covariance matrix any more.
     covMatrixFinal = null;
@@ -361,11 +346,10 @@ public class Decorrelator {
     numProjectedData++;
 
     // Print it out.
-    if (LocUtil.deBugLevel > 0) {
-      System.out.format(
-          "\nProject: wsum wlim elim: %10.3e %10.3e %10.3e " + "numProjectedData: %5d\n\n",
-          evSum, evLim, evThresh, numProjectedData);
-    }
+    LOGGER.fine(
+        String.format(
+            "Project: wsum wlim elim: %10.3e %10.3e %10.3e numProjectedData: %5d",
+            evSum, evLim, evThresh, numProjectedData));
 
     // Get the corresponding weights.
     projectedWeights = new double[numData - numProjectedData];
@@ -461,12 +445,14 @@ public class Decorrelator {
    *
    * @param a A Matrix object for which eigenvalues have been computed
    * @param eig An EigenvalueDecomposition object containing the Eigenvalues and eigenvectors
+   * @return A String containing the rest results
    */
-  private void testEig(Matrix a, EigenvalueDecomposition eig) {
+  private String testEig(Matrix a, EigenvalueDecomposition eig) {
     boolean bad = false;
     double[] values = eig.getRealEigenvalues();
     int numValues = values.length;
     Matrix vectors = eig.getV();
+    String results = "";
 
     // Loop over the eigenvalues.
     for (int j = 0; j < numValues; j++) {
@@ -480,12 +466,15 @@ public class Decorrelator {
       if (result.norm2() > TauUtil.DTOL) {
         if (!bad) {
           bad = true;
-          System.out.println("\nBad eigenvector(s):");
+          results += "Bad eigenvector(s):";
         }
 
-        System.out.format(
-            "\t%3d %8.2e %8.2e %8.2e\n", j, result.norm1(), result.norm2(), result.normInf());
+        results +=
+            String.format(
+                "\t%3d %8.2e %8.2e %8.2e", j, result.norm1(), result.norm2(), result.normInf());
       }
     }
+
+    return results;
   }
 }

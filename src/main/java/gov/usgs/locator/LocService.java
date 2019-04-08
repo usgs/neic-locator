@@ -7,10 +7,14 @@ import gov.usgs.processingformats.LocationService;
 import gov.usgs.traveltime.TTSessionLocal;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.logging.Logger;
 
 public class LocService implements LocationService {
   /** A String containing the earth model path for the locator, null to use default. */
   private String modelPath = null;
+
+  /** Private logging object. */
+  private static final Logger LOGGER = Logger.getLogger(LocService.class.getName());
 
   /** The LocService constructor. Sets up the earth model path */
   public LocService(String modelPath) {
@@ -50,7 +54,7 @@ public class LocService implements LocationService {
         errorString += " " + errorList.get(i);
       }
 
-      System.out.println("getLocation: Invalid input: " + errorString);
+      LOGGER.severe("Invalid input: " + errorString);
       return null;
     }
 
@@ -59,7 +63,7 @@ public class LocService implements LocationService {
     try {
       ttLocal = new TTSessionLocal(true, true, true, modelPath);
     } catch (IOException e) {
-      System.out.println("getLocation: Unable to read travel-time auxiliary data.");
+      LOGGER.severe("Unable to read travel-time auxiliary data.");
       e.printStackTrace();
       return null;
     }
@@ -69,7 +73,7 @@ public class LocService implements LocationService {
     try {
       auxLoc = new AuxLocRef(modelPath);
     } catch (IOException | ClassNotFoundException e) {
-      System.out.println("getLocation: Unable to read Locator auxiliary data.");
+      LOGGER.severe("Unable to read Locator auxiliary data.");
       e.printStackTrace();
       return null;
     }
@@ -82,21 +86,19 @@ public class LocService implements LocationService {
     // setup the event
     Event event = new Event(in.getEarthModel());
     event.input(in);
-    event.printHydraInput();
+
+    // print input for debugging
+    LOGGER.info("Input: \n" + event.getHydraInput());
 
     // setup the locator
     Locate loc = new Locate(event, ttLocal, auxLoc);
-    ;
 
     // perform the location
     LocStatus status = loc.doLocation();
     event.setLocatorExitCode(status);
 
     // print results for debugging
-    System.out.println("\nResults:");
-    event.printHydraOutput();
-    event.printNEICOutput();
-    System.out.println("");
+    LOGGER.info("Results: \n" + event.getHydraOutput() + "\n" + event.getNEICOutput());
 
     // get the output
     LocOutput out = event.output();
@@ -111,7 +113,7 @@ public class LocService implements LocationService {
         errorString += " " + errorList.get(i);
       }
 
-      System.out.println("getLocation: Invalid output: " + errorString);
+      LOGGER.severe("Invalid output: " + errorString);
     }
 
     // return the result

@@ -89,17 +89,12 @@ public class HypoAudit {
     longitudeCosine = hypo.getLongitudeCosine();
   }
 
-  /** This function prints the audit record. */
-  public void printAudit() {
-    System.out.println(toString());
-  }
-
   /** This function converts the audit record to a string. */
   @Override
   public String toString() {
     return String.format(
         "Audit: %1d %2d %4d %22s %8.4f %9.4f %6.2f "
-            + "del = %6.1f %6.1f %6.1f timeStandardError = %6.2f %s\n",
+            + "del = %6.1f %6.1f %6.1f timeStandardError = %6.2f %s",
         stage,
         iteration,
         numPicksUsed,
