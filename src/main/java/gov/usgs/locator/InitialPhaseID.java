@@ -268,10 +268,8 @@ public class InitialPhaseID {
         if (pick.getIsAutomatic() && pick.getIsUsed()) {
           String phCode = pick.getCurrentPhaseCode();
 
-          if (!phCode.equals("Pg")
-              && !phCode.equals("Pb")
-              && !phCode.equals("Pn")
-              && !phCode.equals("P")) {
+          if (!"Pg".equals(phCode) && !"Pb".equals(phCode)
+              && !"Pn".equals(phCode) && !"P".equals(phCode)) {
             pick.setIsUsed(false);
 
             LOGGER.finer(
@@ -321,13 +319,13 @@ public class InitialPhaseID {
           String phCode = pick.getCurrentPhaseCode();
 
           if (group.getDistance() <= 100d
-              && !phCode.substring(0, 1).equals("PK")
-              && !phCode.substring(0, 1).equals("P'")
-              && !phCode.substring(0, 1).equals("Sc")
-              && !phCode.equals("Sg")
-              && !phCode.equals("Sb")
-              && !phCode.equals("Sn")
-              && !phCode.equals("Lg")) {
+              && !"PK".equals(phCode.substring(0, 1))
+              && !"P'".equals(phCode.substring(0, 1))
+              && !"Sc".equals(phCode.substring(0, 1))
+              && !"Sg".equals(phCode)
+              && !"Sb".equals(phCode)
+              && !"Sn".equals(phCode)
+              && !"Lg".equals(phCode)) {
             // For the first pick in the group, get the travel times.
             station = group.getStation();
 

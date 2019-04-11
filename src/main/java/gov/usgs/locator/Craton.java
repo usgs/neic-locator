@@ -21,13 +21,13 @@ public class Craton implements Serializable {
   /**
    * An array of doubles containing the geographic latitude points of the craton boundary in degrees
    */
-  double[] latitudePoints;
+  private double[] latitudePoints;
 
   /**
    * An array of doubles containing the geographic longitude points of the craton boundary in
    * degrees
    */
-  double[] longitudePoints;
+  private double[] longitudePoints;
 
   /**
    * The Craton constructor. This constructor initializes the Craton to the provided values.
@@ -78,9 +78,9 @@ public class Craton implements Serializable {
     // If the number of crossings is odd, the epicenter is inside.
     if ((numCrossings % 2) > 0) {
       return true;
-    } else {
-      return false;
     }
+
+    return false;
   }
 
   /**

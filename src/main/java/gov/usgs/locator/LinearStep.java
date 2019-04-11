@@ -19,9 +19,6 @@ public class LinearStep {
   /** A double[] containing the trial step vector in kilometers. */
   private double[] trialStepVector;
 
-  /** An Event object containing the event to use when calculating the linear step. */
-  private Event event;
-
   /**
    * A Hypocenter object containing the hypocenter of the event to use when calculating the linear
    * step.
@@ -53,7 +50,6 @@ public class LinearStep {
    * @param event Event information
    */
   public LinearStep(Event event) {
-    this.event = event;
     hypo = event.getHypo();
     rawWeightedResiduals = event.getRawWeightedResiduals();
     rawRankSumEstimator = event.getRawRankSumEstimator();

@@ -457,7 +457,7 @@ public class Event {
    * @param equivalentErrorRadius A double containing the equivalent radius of the error ellipse in
    *     kilometers.
    */
-  void setEquivalentErrorRadius(double equivalentErrorRadius) {
+  public void setEquivalentErrorRadius(double equivalentErrorRadius) {
     this.equivalentErrorRadius = equivalentErrorRadius;
   }
 
@@ -466,7 +466,7 @@ public class Event {
    *
    * @param bayesianDepthDataImportance A double containing the Bayesian depth data importance.
    */
-  void setBayesianDepthDataImportance(double bayesianDepthDataImportance) {
+  public void setBayesianDepthDataImportance(double bayesianDepthDataImportance) {
     this.bayesianDepthDataImportance = bayesianDepthDataImportance;
   }
 
@@ -531,13 +531,13 @@ public class Event {
       // source type conversion
       int authorType = 1; // default to automatic contributed
       String typeString = pickIn.getSource().getType();
-      if (typeString == "ContributedAutomatic") {
+      if ("ContributedAutomatic".equals(typeString)) {
         authorType = 1; // automatic contributed
-      } else if (typeString == "LocalAutomatic") {
+      } else if ("LocalAutomatic".equals(typeString)) {
         authorType = 2; // automatic NEIC
-      } else if (typeString == "ContributedHuman") {
+      } else if ("ContributedHuman".equals(typeString)) {
         authorType = 3; // analyst contributed
-      } else if (typeString == "LocalHuman") {
+      } else if ("LocalHuman".equals(typeString)) {
         authorType = 4; // NEIC analyst
       }
 
@@ -1121,14 +1121,14 @@ public class Event {
   public String printWeightedResiduals(String type, boolean full) {
     String weiResString = "";
 
-    if (type.equals("Raw")) {
+    if ("Raw".equals(type)) {
       weiResString += "RawWeightedResiduals:\n";
 
       for (int j = 0; j < rawWeightedResiduals.size(); j++) {
         weiResString += String.format("%4d ", j);
         weiResString += rawWeightedResiduals.get(j).printWeightedResiduals(full);
       }
-    } else if (type.equals("Proj")) {
+    } else if ("Proj".equals(type)) {
       weiResString += "ProjectedWeightedResiduals:\n";
 
       for (int j = 0; j < projectedWeightedResiduals.size(); j++) {

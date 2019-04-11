@@ -245,8 +245,8 @@ public class PhaseID {
         // If it's not too out of whack, force the association.
         if (ttIndex >= 0
             && (minResidual <= LocUtil.ASSOCTOLERANCE
-                || phCode.equals("Lg")
-                || phCode.equals("LR"))) {
+                || "Lg".equals(phCode)
+                || "LR".equals(phCode))) {
           pick.setTTStatisticalMinFoM(currentTTList.get(ttIndex));
           pick.setStatisticalFoM(minResidual);
           pick.setForceAssociation(true);
@@ -266,11 +266,10 @@ public class PhaseID {
           for (int i = 0; i < currentTTList.size(); i++) {
             TTimeData travelTime = currentTTList.get(i);
 
-            if (phaseGroupName.equals(travelTime.getPhGroup())) {
-              if (Math.abs(pick.getTravelTime() - travelTime.getTT()) < minResidual) {
-                ttIndex = i;
-                minResidual = Math.abs(pick.getTravelTime() - travelTime.getTT());
-              }
+            if ((phaseGroupName.equals(travelTime.getPhGroup())) 
+                && (Math.abs(pick.getTravelTime() - travelTime.getTT()) < minResidual)) {
+              ttIndex = i;
+              minResidual = Math.abs(pick.getTravelTime() - travelTime.getTT());
             }
           }
 

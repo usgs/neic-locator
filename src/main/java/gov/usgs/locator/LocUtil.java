@@ -468,9 +468,9 @@ public class LocUtil {
         && Math.abs(hypo.getLongitude() - audit.getLongitude()) <= 0.0001d
         && Math.abs(hypo.getDepth() - audit.getDepth()) <= 0.01d) {
       return true;
-    } else {
-      return false;
     }
+
+    return false;
   }
 
   /**
@@ -659,9 +659,9 @@ public class LocUtil {
         && azimGap < MAXGT5AZMGAP
         && azimLestGap < MAXGT5AZMLESTGAP) {
       return true;
-    } else {
-      return false;
-    }
+    } 
+    
+    return false;
   }
 
   /**
@@ -842,9 +842,9 @@ public class LocUtil {
   public static boolean getBoolean(char log) {
     if (log == 'T') {
       return true;
-    } else {
-      return false;
     }
+    
+    return false;
   }
 
   /**

@@ -84,7 +84,7 @@ public class LocInput extends LocationRequest {
       setIsBayesianDepth(LocUtil.getBoolean(scan.next().charAt(0)));
       setBayesianDepth(scan.nextDouble());
       setBayesianSpread(scan.nextDouble());
-      char rstt = scan.next().charAt(0); // (not used)
+      scan.next().charAt(0); // rstt (not used)
       setUseSVD(!LocUtil.getBoolean(scan.next().charAt(0))); // True when noSvd is false
 
       // Fiddle because the analyst command last flag is omitted in earlier
@@ -177,7 +177,7 @@ public class LocInput extends LocationRequest {
           ArrayList<String> errorList = newPick.getErrors();
 
           // combine the errors into a single string
-          String errorString = new String();
+          String errorString = "";
           for (int i = 0; i < errorList.size(); i++) {
             errorString += " " + errorList.get(i);
           }

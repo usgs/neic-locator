@@ -146,6 +146,15 @@ public class HypoAudit {
   }
 
   /**
+   * Function to return the audit colatitude.
+   *
+   * @return A double containing the audit colatitude in degrees
+   */
+  public double getCoLatitude() {
+    return coLatitude;
+  }  
+
+  /**
    * Function to return the sine of the audit colatitude.
    *
    * @return A double containing the sine of the audit colatitude in degrees

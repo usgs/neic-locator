@@ -368,9 +368,9 @@ public class Hypocenter {
    * @param depth A double containing the depth in kilometers
    */
   public Hypocenter(double originTime, double latitude, double longitude, double depth) {
-    // Set up the hypocenter.
-    depth = Math.min(Math.max(depth, LocUtil.DEPTHMIN), LocUtil.DEPTHMAX);
-    updateHypo(originTime, latitude, longitude, depth);
+    // Set up the hypocenter, keep depth in bounds
+    double correctedDepth = Math.min(Math.max(depth, LocUtil.DEPTHMIN), LocUtil.DEPTHMAX);
+    updateHypo(originTime, latitude, longitude, correctedDepth);
 
     // Set defaults for the rest.
     bayesianDepth = Double.NaN;

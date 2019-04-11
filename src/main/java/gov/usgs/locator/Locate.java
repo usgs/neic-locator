@@ -23,21 +23,10 @@ public class Locate {
   private ArrayList<HypoAudit> hypoAuditList;
 
   /**
-   * A TTSessionLocal object containing a local travel-time manager used for this location process.
-   */
-  private TTSessionLocal ttLocalSession;
-
-  /**
    * A InitialPhaseID object used to perform initial phase identification before any location
    * iterations.
    */
   private InitialPhaseID initialPhaseID;
-
-  /**
-   * A PhaseID object containing Phase identification logic used in performing phase
-   * identifications.
-   */
-  private PhaseID phaseID;
 
   /**
    * A Stepper object used to manage the rank-sum estimation logic needed to refine the phase
@@ -67,8 +56,7 @@ public class Locate {
     this.event = event;
     hypo = event.getHypo();
     hypoAuditList = event.getHypoAuditList();
-    this.ttLocalSession = ttLocalSession;
-    phaseID = new PhaseID(event, ttLocalSession);
+    PhaseID phaseID = new PhaseID(event, ttLocalSession);
     stepper = new Stepper(event, phaseID, auxLoc);
     initialPhaseID = new InitialPhaseID(event, ttLocalSession, phaseID, stepper);
     close = new CloseOut(event);
@@ -88,7 +76,7 @@ public class Locate {
 
     // Bail on insufficient data.
     if (event.getNumStationsUsed() < 3) {
-      close.computeFinalStatistics(LocStatus.INSUFFICIENT_DATA);
+      close.compFinalStats(LocStatus.INSUFFICIENT_DATA);
       return LocStatus.INSUFFICIENT_DATA;
     }
 
@@ -98,7 +86,7 @@ public class Locate {
         // Reidentify and reweight phases.
         LocUtil.useDecorrelation = event.getUseDecorrelation();
         stepper.doPhaseIdentification(0.1d, 1d, true, true);
-        close.computeFinalStatistics(LocStatus.HELD_HYPOCENTER);
+        close.compFinalStats(LocStatus.HELD_HYPOCENTER);
         return LocStatus.SUCCESS;
       }
 
@@ -142,7 +130,7 @@ public class Locate {
 
         // Be sure we still have enough data to continue.
         if (status == LocStatus.INSUFFICIENT_DATA) {
-          close.computeFinalStatistics(status);
+          close.compFinalStats(status);
           return status;
         }
 
@@ -160,7 +148,7 @@ public class Locate {
           switch (status) {
             case INSUFFICIENT_DATA:
               // Bail on insufficient data.
-              close.computeFinalStatistics(status);
+              close.compFinalStats(status);
               return status;
 
             case NEARLY_CONVERGED:
@@ -210,7 +198,7 @@ public class Locate {
 
           LOGGER.info("Final wrapup: \n" + event.printHypoAudit());
 
-          status = close.computeFinalStatistics(status);
+          status = close.compFinalStats(status);
           return status;
         } else {
           // Otherwise, create the stage level audit.

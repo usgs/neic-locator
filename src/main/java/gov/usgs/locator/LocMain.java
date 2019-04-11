@@ -67,7 +67,6 @@ public class LocMain {
     String fileType = "hydra";
     String logPath = "./";
     String logLevel = "INFO";
-    String logFile = "locator.log";
 
     // process arguments
     StringBuffer argumentList = new StringBuffer();
@@ -128,7 +127,7 @@ public class LocMain {
     // load the event based on the file type
     LocationRequest request = null;
     LocationResult result = null;
-    if (fileType.equals("json")) {
+    if ("json".equals(fileType)) {
       LOGGER.fine("Reading a json file.");
 
       // read the file

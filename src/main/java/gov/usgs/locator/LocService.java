@@ -45,11 +45,11 @@ public class LocService implements LocationService {
    */
   public LocOutput getLocation(final LocInput in) throws LocationException {
     // check to see if the input is valid
-    if (in.isValid() == false) {
+    if (!in.isValid()) {
       ArrayList<String> errorList = in.getErrors();
 
       // combine the errors into a single string
-      String errorString = new String();
+      String errorString = "";
       for (int i = 0; i < errorList.size(); i++) {
         errorString += " " + errorList.get(i);
       }
@@ -104,11 +104,11 @@ public class LocService implements LocationService {
     LocOutput out = event.output();
 
     // check output
-    if (out.isValid() == false) {
+    if (!out.isValid()) {
       ArrayList<String> errorList = out.getErrors();
 
       // combine the errors into a single string
-      String errorString = new String();
+      String errorString = "";
       for (int i = 0; i < errorList.size(); i++) {
         errorString += " " + errorList.get(i);
       }

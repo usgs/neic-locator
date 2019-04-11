@@ -68,7 +68,7 @@ public class CloseOut {
    * @param status LocStatus containing the event status before the close out
    * @return A LocStatus object containing event status after the close out
    */
-  public LocStatus computeFinalStatistics(LocStatus status) {
+  public LocStatus compFinalStats(LocStatus status) {
     // Get the azimuthal gaps.
     event.computeAzimithGap();
 

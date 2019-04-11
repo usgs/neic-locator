@@ -235,19 +235,20 @@ public class AuxLocRef {
     // System.out.println("ZoneStats years = " + numberOfYears);
     byteBuf.position(40); // WHY
 
-    // Create the zoneStats array.
+    // Create the zoneStats array by reading the zonestats information
+    // skipping the fields we don't need
     ZoneStat[] stats = new ZoneStat[zoneStats.size()];
     for (int j = 0; j < stats.length; j++) {
-      int ndeg = byteBuf.getInt();
-      float peryr = byteBuf.getFloat(); // events per year
-      float maxmag = byteBuf.getFloat(); // maximum magnitude
-      float minmag = byteBuf.getFloat(); // minimum magnitude
+      byteBuf.getInt(); // ndeg, skip
+      byteBuf.getFloat(); // events per year, skip
+      byteBuf.getFloat(); // maximum magnitude, skip
+      byteBuf.getFloat(); // minimum magnitude, skip
       double minDepth = byteBuf.getFloat(); // minimum depth
       double maxDepth = byteBuf.getFloat(); // maximum depth
-      float pctfre = byteBuf.getFloat();
+      double pctfre = byteBuf.getFloat(); // pctfre
       double meanDepth = byteBuf.getFloat(); // average depth
-      int dpmode = byteBuf.getInt();
-      float pctge = byteBuf.getFloat();
+      byteBuf.getInt(); // dpmode, skip
+      byteBuf.getFloat(); // pctge, skip
 
       if (pctfre > 0. && minDepth < 900d) {
         // locator only cares about zone stats depth statistics

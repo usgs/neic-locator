@@ -224,11 +224,13 @@ public class LocOutput extends LocationResult {
     }
 
     // empty phases become null in proc formats
-    if (originalPhase.equals("")) {
-      originalPhase = null;
+    String originalPhaseCode = null;
+    if (!"".equals(originalPhase)) {
+      originalPhaseCode = originalPhase;
     }
-    if (locatorPhase.equals("")) {
-      locatorPhase = null;
+    String locatorPhaseCode = null;
+    if (!"".equals(locatorPhase)) {
+      locatorPhaseCode = locatorPhase;
     }
     // agencyid/author conversion
     String[] sourceArray = source.split("\\|", -1);
@@ -252,8 +254,8 @@ public class LocOutput extends LocationResult {
                 pickQuality,
                 useFlag,
                 null,
-                originalPhase,
-                locatorPhase,
+                originalPhaseCode,
+                locatorPhaseCode,
                 residual,
                 delta,
                 azimuth,
@@ -335,21 +337,20 @@ public class LocOutput extends LocationResult {
    * @return Returns a string containing the Bulletin Hydra style output pick line.
    */
   public String writeHydraPick(gov.usgs.processingformats.Pick pick) {
-    return new String()
-        .format(
-            "%-10s %-5s %-3s %-2s %-2s %-8s%6.1f %5.1f " + "%3.0f %1s %4.2f %6.4f\n",
-            pick.getID(),
-            pick.getSite().getStation(),
-            pick.getSite().getChannel(),
-            pick.getSite().getNetwork(),
-            pick.getSite().getLocation(),
-            pick.getLocatedPhase(),
-            pick.getResidual(),
-            pick.getDistance(),
-            pick.getAzimuth(),
-            LocUtil.getBoolChar(pick.getUse()),
-            pick.getWeight(),
-            pick.getImportance());
+    return String.format(
+        "%-10s %-5s %-3s %-2s %-2s %-8s%6.1f %5.1f %3.0f %1s %4.2f %6.4f\n",
+        pick.getID(),
+        pick.getSite().getStation(),
+        pick.getSite().getChannel(),
+        pick.getSite().getNetwork(),
+        pick.getSite().getLocation(),
+        pick.getLocatedPhase(),
+        pick.getResidual(),
+        pick.getDistance(),
+        pick.getAzimuth(),
+        LocUtil.getBoolChar(pick.getUse()),
+        pick.getWeight(),
+        pick.getImportance());
   }
 
   /** Print an NEIC style web output. */

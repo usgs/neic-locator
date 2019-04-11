@@ -22,9 +22,6 @@ public class Decorrelator {
   /** An int containing the number of projected data. */
   private int numProjectedData;
 
-  /** A double array containing the eigenvalues. */
-  private double[] eigenvalues;
-
   /** A double[][] containing the eigenvectors. */
   private double[][] eigenvectors;
 
@@ -114,16 +111,13 @@ public class Decorrelator {
         weightedResiduals.project(weightedResidualsOrg.get(j), eigenvectors[j][i]);
       }
 
-      if (event.getHasPhaseIdChanged()) {
-        // See if the eigenvector is backwards.
-        if (!checkEigenSigns(i, weightedResiduals)) {
-          // If so, fix the residual and derivatives.
-          weightedResiduals.changeSign();
+      if ((event.getHasPhaseIdChanged()) && !checkEigenSigns(i, weightedResiduals)) {
+        // If so, fix the residual and derivatives.
+        weightedResiduals.changeSign();
 
-          // Fix the eigenvector so it will be right next time.
-          for (int j = 0; j < numPickData; j++) {
-            eigenvectors[j][i] = -eigenvectors[j][i];
-          }
+        // Fix the eigenvector so it will be right next time.
+        for (int j = 0; j < numPickData; j++) {
+          eigenvectors[j][i] = -eigenvectors[j][i];
         }
       }
       weightedResidualsProj.add(weightedResiduals);
@@ -307,7 +301,7 @@ public class Decorrelator {
 
     LOGGER.fine(LocUtil.endTimer("Eigenvalue"));
 
-    eigenvalues = eig.getRealEigenvalues();
+    double[] eigenvalues = eig.getRealEigenvalues();
 
     LOGGER.fine(LocUtil.printVector(eigenvalues, "Eigenvalues Vector"));
 
@@ -393,9 +387,9 @@ public class Decorrelator {
       // If the depth derivatives agree, we're probably OK.
       if (depthSum * weightedResiduals.getSpatialDerivatives()[2] >= 0d) {
         return true;
-      } else {
-        return false;
       }
+
+      return false;
     }
 
     // Otherwise, see if the azimuth needs to be flipped 180 degrees.
@@ -409,11 +403,11 @@ public class Decorrelator {
           // If so, the results are problematic.
           if (Math.abs(weightedResiduals.getSpatialDerivatives()[2]) > 1e-4d) {
             return false;
-          } else {
-            return true;
           }
-          // If not, believe the correlation.
+           
+          return true;
         } else {
+          // If not, believe the correlation.
           return true;
         }
       }
