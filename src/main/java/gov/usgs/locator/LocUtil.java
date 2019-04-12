@@ -463,14 +463,10 @@ public class LocUtil {
    * @return True if the hypocenter and audit record are (nearly) the same
    */
   public static boolean compareHypos(Hypocenter hypo, HypoAudit audit) {
-    if (Math.abs(hypo.getOriginTime() - audit.getOriginTime()) <= 0.01d
+    return Math.abs(hypo.getOriginTime() - audit.getOriginTime()) <= 0.01d
         && Math.abs(hypo.getLatitude() - audit.getLatitude()) <= 0.0001d
         && Math.abs(hypo.getLongitude() - audit.getLongitude()) <= 0.0001d
-        && Math.abs(hypo.getDepth() - audit.getDepth()) <= 0.01d) {
-      return true;
-    }
-
-    return false;
+        && Math.abs(hypo.getDepth() - audit.getDepth()) <= 0.01d;
   }
 
   /**
@@ -654,14 +650,10 @@ public class LocUtil {
    * @return A boolean flag, True if this event qualifies as GT5
    */
   public static boolean isGT5(int locPhUsed, double delMin, double azimGap, double azimLestGap) {
-    if (locPhUsed >= MINGT5LOCALPHASES
+    return locPhUsed >= MINGT5LOCALPHASES
         && delMin <= MAXGT5STADIST
         && azimGap < MAXGT5AZMGAP
-        && azimLestGap < MAXGT5AZMLESTGAP) {
-      return true;
-    } 
-    
-    return false;
+        && azimLestGap < MAXGT5AZMLESTGAP;
   }
 
   /**
@@ -840,11 +832,7 @@ public class LocUtil {
    * @return A boolean containing the equivalent boolean value
    */
   public static boolean getBoolean(char log) {
-    if (log == 'T') {
-      return true;
-    }
-    
-    return false;
+    return log == 'T';
   }
 
   /**

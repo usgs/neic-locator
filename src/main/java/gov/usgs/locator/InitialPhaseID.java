@@ -141,13 +141,13 @@ public class InitialPhaseID {
           if (pick.getIsUsed()) {
             String phCode = pick.getCurrentPhaseCode();
 
-            if (!phCode.substring(0, 1).equals("PK")
-                && !phCode.substring(0, 1).equals("P'")
-                && !phCode.substring(0, 1).equals("Sc")
-                && !phCode.equals("Sg")
-                && !phCode.equals("Sb")
-                && !phCode.equals("Sn")
-                && !phCode.equals("Lg")) {
+            if (!"PK".equals(phCode.substring(0, 1))
+                && !"P'".equals(phCode.substring(0, 1))
+                && !"Sc".equals(phCode.substring(0, 1))
+                && !"Sg".equals(phCode)
+                && !"Sb".equals(phCode)
+                && !"Sn".equals(phCode)
+                && !"Lg".equals(phCode)) {
               if (pick.getIsAutomatic()) {
                 travelTime = ttList.get(0);
 

@@ -76,11 +76,7 @@ public class Craton implements Serializable {
     }
 
     // If the number of crossings is odd, the epicenter is inside.
-    if ((numCrossings % 2) > 0) {
-      return true;
-    }
-
-    return false;
+    return (numCrossings % 2) > 0;
   }
 
   /**

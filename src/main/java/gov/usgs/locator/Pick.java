@@ -525,7 +525,7 @@ public class Pick implements Comparable<Pick> {
         break;
     }
 
-    if ((bestPhaseCode.equals("Lg") || bestPhaseCode.equals("LR")) && !isAutomatic) {
+    if (("Lg".equals(bestPhaseCode) || "LR".equals(bestPhaseCode)) && !isAutomatic) {
       isSurfaceWave = true;
     }
   }
@@ -593,7 +593,7 @@ public class Pick implements Comparable<Pick> {
         bestPhaseCode = currentPhaseCode;
       }
 
-      if (!currentPhaseCode.equals("LR")) {
+      if (!"LR".equals(currentPhaseCode)) {
         residual = travelTime - ttStatisticalMinFoM.getTT();
       } else {
         residual = 0d;
@@ -646,7 +646,7 @@ public class Pick implements Comparable<Pick> {
       }
     } else {
       // We don't have an identification.
-      if (!currentPhaseCode.equals("")) {
+      if (!"".equals(currentPhaseCode)) {
         LOGGER.fine(
             String.format(
                 "=====> Phase re-ID: %s %s -> null",

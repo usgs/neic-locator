@@ -72,6 +72,15 @@ public class ZoneStats implements Serializable {
   }
 
   /**
+   * Function to get the number of years in the statistics.
+   *
+   * @return An int containing the number of years in the statistics
+   */
+  public int getNumYears() {
+    return numYears;
+  }
+
+  /**
    * Function to add sdd statistics for a zone.
    *
    * @param numYears An int holding the number of years in the statistics

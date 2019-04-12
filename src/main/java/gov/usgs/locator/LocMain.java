@@ -186,7 +186,7 @@ public class LocMain {
       // run as LocInput/LocOutput to get access to read/write routines
       LocInput hydraIn = new LocInput();
       LocOutput hydraOut = null;
-      if (hydraIn.readHydra(filePath) == false) {
+      if (!hydraIn.readHydra(filePath)) {
         System.exit(0);
       }
 

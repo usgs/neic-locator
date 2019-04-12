@@ -385,11 +385,7 @@ public class Decorrelator {
     // have the same sign.
     if (corrMax * corrMin >= 0d) {
       // If the depth derivatives agree, we're probably OK.
-      if (depthSum * weightedResiduals.getSpatialDerivatives()[2] >= 0d) {
-        return true;
-      }
-
-      return false;
+      return depthSum * weightedResiduals.getSpatialDerivatives()[2] >= 0d;
     }
 
     // Otherwise, see if the azimuth needs to be flipped 180 degrees.
@@ -420,11 +416,7 @@ public class Decorrelator {
         // See if the correlations are small.
         if (Math.abs(corrMax + corrMin) < 0.05d) {
           // If so, the results are problematic.
-          if (Math.abs(weightedResiduals.getSpatialDerivatives()[2]) > 1e-4d) {
-            return true;
-          } else {
-            return false;
-          }
+          return Math.abs(weightedResiduals.getSpatialDerivatives()[2]) > 1e-4d;
           // If not, believe the correlation.
         } else {
           return false;

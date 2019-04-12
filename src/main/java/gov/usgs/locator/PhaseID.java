@@ -234,11 +234,10 @@ public class PhaseID {
         for (int i = 0; i < currentTTList.size(); i++) {
           TTimeData travelTime = currentTTList.get(i);
 
-          if (phCode.equals(travelTime.getPhCode())) {
-            if (Math.abs(pick.getTravelTime() - travelTime.getTT()) < minResidual) {
-              ttIndex = i;
-              minResidual = Math.abs(pick.getTravelTime() - travelTime.getTT());
-            }
+          if (phCode.equals(travelTime.getPhCode())
+              && (Math.abs(pick.getTravelTime() - travelTime.getTT()) < minResidual)) {
+            ttIndex = i;
+            minResidual = Math.abs(pick.getTravelTime() - travelTime.getTT());
           }
         }
 
@@ -576,20 +575,19 @@ public class PhaseID {
       Pick pick = pick2;
       pick2 = currentGroup.getPick(j);
 
-      if (pick.getTTStatisticalMinFoM() != null && pick2.getTTStatisticalMinFoM() != null) {
-        if (pick.getTTStatisticalMinFoM().getTT() > pick2.getTTStatisticalMinFoM().getTT()) {
-          if (pick.getTTStatisticalMinFoM().getObserv()
-              >= pick2.getTTStatisticalMinFoM().getObserv()) {
-            // Apparently, we don't care if Lg or LR are out of order.
-            if (!pick2.getTTStatisticalMinFoM().getPhCode().equals("Lg")
-                && !pick2.getTTStatisticalMinFoM().getPhCode().equals("LR")) {
-              pick2.setTTStatisticalMinFoM(null);
-            }
-          } else {
-            if (!pick.getTTStatisticalMinFoM().getPhCode().equals("Lg")
-                && !pick.getTTStatisticalMinFoM().getPhCode().equals("LR")) {
-              pick.setTTStatisticalMinFoM(null);
-            }
+      if (pick.getTTStatisticalMinFoM() != null && pick2.getTTStatisticalMinFoM() != null
+          && pick.getTTStatisticalMinFoM().getTT() > pick2.getTTStatisticalMinFoM().getTT()) {
+        if (pick.getTTStatisticalMinFoM().getObserv()
+            >= pick2.getTTStatisticalMinFoM().getObserv()) {
+          // Apparently, we don't care if Lg or LR are out of order.
+          if (!pick2.getTTStatisticalMinFoM().getPhCode().equals("Lg")
+              && !pick2.getTTStatisticalMinFoM().getPhCode().equals("LR")) {
+            pick2.setTTStatisticalMinFoM(null);
+          }
+        } else {
+          if (!pick.getTTStatisticalMinFoM().getPhCode().equals("Lg")
+              && !pick.getTTStatisticalMinFoM().getPhCode().equals("LR")) {
+            pick.setTTStatisticalMinFoM(null);
           }
         }
       }
@@ -615,12 +613,14 @@ public class PhaseID {
       int firstPhaseIndex, int numPicks, int firstTTIndex, int numTT) {
     // Set up some pointer arrays to work with internally.
     Pick[] obsPicks = new Pick[numPicks];
-    for (int j = 0, i = firstPhaseIndex; j < numPicks; j++, i++) {
+    int i = firstPhaseIndex;
+    for (int j = 0; j < numPicks; j++, i++) {
       obsPicks[j] = currentGroup.getPicks().get(i);
     }
 
     TTimeData[] ttArrivals = new TTimeData[numTT];
-    for (int j = 0, i = firstTTIndex; j < numTT; j++, i++) {
+    i = firstTTIndex;
+    for (int j = 0; j < numTT; j++, i++) {
       ttArrivals[j] = currentTTList.get(i);
     }
 
@@ -726,15 +726,14 @@ public class PhaseID {
         // Set up the alternative criteria at the same time.  Note, the
         // Fortran version omitted the affinity in this test.
         if (ttArrivals[j].getObserv() >= LocUtil.OBSERVABILITYMIN
-            && residual < obsPicks[j].getAlternateFoM()) {
+            && residual < obsPicks[j].getAlternateFoM()
+            && obsPicks[j].getIsAutomatic()
+            || TauUtil.arrivalType(obsPicks[j].getBestPhaseCode())
+            == TauUtil.arrivalType(ttArrivals[j].getPhCode())) {
           // Make sure that the phase types match unless the pick is automatic.
-          if (obsPicks[j].getIsAutomatic()
-              || TauUtil.arrivalType(obsPicks[j].getBestPhaseCode())
-                  == TauUtil.arrivalType(ttArrivals[j].getPhCode())) {
-            obsPicks[j].setAlternateFoM(ttArrivals[j], residual);
+          obsPicks[j].setAlternateFoM(ttArrivals[j], residual);
 
-            LOGGER.finer(String.format("Alt: %4.2f", residual));
-          }
+          LOGGER.finer(String.format("Alt: %4.2f", residual));
         }
       }
     }
@@ -777,7 +776,7 @@ public class PhaseID {
               pick.getBestPhaseCode(), (pick.getOriginalAuthorType() == AuthorType.CONTRIB_AUTO));
       isPrimary = auxiliaryTTInfo.isPrimary();
 
-      if (currPhaseGroupName.equals("Any") || pick.getBestPhaseCode().equals(currPhaseGroupName)) {
+      if ("Any".equals(currPhaseGroupName) || pick.getBestPhaseCode().equals(currPhaseGroupName)) {
         isGeneric = true;
       } else {
         isGeneric = false;
@@ -806,7 +805,7 @@ public class PhaseID {
     // Do the group logic.  If the phase codes match drop through
     // unless the phase might be generic.
     if ((!pick.getBestPhaseCode().equals(travelTime.getPhCode()) || isGeneric)
-        && !currPhaseGroupName.equals("Any")) {
+        && !"Any".equals(currPhaseGroupName)) {
       // Handle primary groups differently for generic phase codes.
       if (isGeneric && isPrimary) {
         // If the observed phase group matches the primary or auxiliary
@@ -816,7 +815,7 @@ public class PhaseID {
         // from regional networks) which are assumed to be regional.
         if (currPhaseGroupName.equals(travelTime.getPhGroup())
             || currPhaseGroupName.equals(travelTime.getAuxGroup())
-            || (currPhaseGroupName.equals("Reg") && travelTime.isRegional())) {
+            || ("Reg".equals(currPhaseGroupName) && travelTime.isRegional())) {
           observabilityAmp *= LocUtil.GROUPWEIGHT;
 
           LOGGER.finest(" Group1");

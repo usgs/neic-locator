@@ -38,9 +38,6 @@ public class Stepper {
   /** A RSumEstResult object holding the most recent rank-sum estimation rSumEstResult. */
   private RSumEstResult rSumEstResult;
 
-  /** A HypoAudit object holding the most hypocenter audit record. */
-  private HypoAudit lastHypoAudit;
-
   /** A RankSumEstimator object used for the rank-sum estimation of the raw picks. */
   private RankSumEstimator rawRankSumEstimator;
 
@@ -211,7 +208,7 @@ public class Stepper {
     LocStatus status = LocStatus.SUCCESS;
 
     // Save the current hypocenter as a reference for the step length damping.
-    lastHypoAudit = new HypoAudit(hypo, 0, 0, event.getNumPhasesUsed(), status);
+    HypoAudit lastHypoAudit = new HypoAudit(hypo, 0, 0, event.getNumPhasesUsed(), status);
 
     // Get the linearized step.
     hypo.setNumOfTimesStepLengthDampening(0);
@@ -336,7 +333,7 @@ public class Stepper {
   protected void setLocEnvironment() {
     // Set the tectonic flag.  Note that everything outside cratons
     // is considered tectonic.
-    if (auxLoc.getCratons().isCraton(hypo.getLatitude(), hypo.getLongitude())) {
+    if (cratons.isCraton(hypo.getLatitude(), hypo.getLongitude())) {
       LocUtil.isTectonic = false;
     } else {
       LocUtil.isTectonic = true;

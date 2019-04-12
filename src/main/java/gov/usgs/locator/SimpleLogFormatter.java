@@ -34,9 +34,6 @@ public class SimpleLogFormatter extends Formatter {
   /** A long holding when the last LogRecord was processed. */
   private long lastMillis = 0;
 
-  /** The Default constructor. */
-  public SimpleLogFormatter() {}
-
   /**
    * Function to format a LogRecord for output.
    *
@@ -68,8 +65,7 @@ public class SimpleLogFormatter extends Formatter {
 
     // add method name
     buf.append(
-        new String()
-            .format("[ %s ] ", record.getSourceClassName() + "." + record.getSourceMethodName()));
+        String.format("[ %s ] ", record.getSourceClassName() + "." + record.getSourceMethodName()));
 
     // add log message
     buf.append(record.getMessage());
