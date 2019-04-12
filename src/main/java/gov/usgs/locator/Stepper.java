@@ -17,12 +17,6 @@ public class Stepper {
    */
   private Hypocenter hypo;
 
-  /**
-   * An AuxLocRef object containing auxiliary locator information used when performing Stepper
-   * calculations.
-   */
-  private AuxLocRef auxLoc;
-
   /** A Cratons object holding the geographic boundaries of continental cratons. */
   private Cratons cratons;
 
@@ -62,7 +56,6 @@ public class Stepper {
   public Stepper(Event event, PhaseID phaseIDLogic, AuxLocRef auxLoc) {
     this.event = event;
     hypo = event.getHypo();
-    this.auxLoc = auxLoc;
     cratons = auxLoc.getCratons();
     zoneStats = auxLoc.getZoneStats();
     this.phaseIDLogic = phaseIDLogic;

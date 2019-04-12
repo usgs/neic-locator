@@ -61,7 +61,7 @@ public class SimpleLogFormatter extends Formatter {
     }
 
     // add log level
-    buf.append(new String().format("[ %s ] ", record.getLevel().getLocalizedName()));
+    buf.append(String.format("[ %s ] ", record.getLevel().getLocalizedName()));
 
     // add method name
     buf.append(
