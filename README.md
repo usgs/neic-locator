@@ -43,14 +43,14 @@ A set of model files used by the locator is stored in the models/ directory.
 The locator also requires traveltime model files. These files are copied into
 build/models/ as part of the gradle build.
 
-An example legacy input file (LocOutput1000010563_23.txt) is provided in the
+An example legacy input file `LocOutput1000010563_23.txt` is provided in the
 examples directory.
 
-To run this example, run the command  `java -jar neic-locator-0.1.0.jar --modelPath=./models/ --eventFile=./`
+To run this example, run the command  `java -jar build/libs/neic-locator-0.1.0.jar --modelPath=./build/models/ --filePath=./examples/raylocinput1000010563_23.txt  --logLevel=debug`
 
-This example assumes that a sub-directory containing the locator and traveltime 
-model files, as well as the example input file are located in the same directory
-as the locator jar file.
+The results of this example (and associated log file) are expected to match the
+results found in the legacy output file `LocOutput1000010563_23.txt` file
+provided in the examples directory.
 
 Further Information and Documentation
 ------
