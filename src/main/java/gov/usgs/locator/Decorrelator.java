@@ -397,7 +397,7 @@ public class Decorrelator {
         // See if the correlations are small.
         if (Math.abs(corrMax + corrMin) < 0.05d) {
           // If so, the results are problematic.
-          return Math.abs(weightedResiduals.getSpatialDerivatives()[2]) > 1e-4d);
+          return Math.abs(weightedResiduals.getSpatialDerivatives()[2]) > 1e-4d;
         } else {
           // If not, believe the correlation.
           return true;

@@ -2,21 +2,41 @@
 language: java
 
 jdk:
+  - openjdk8
+  - openjdk9
+  - openjdk10
+  - openjdk11
   - oraclejdk8
+  - oraclejdk9
+# - oraclejdk10
+  - oraclejdk11
+
+# gradle caching
+before_cache:
+  - rm -f  $HOME/.gradle/caches/modules-2/modules-2.lock
+  - rm -fr $HOME/.gradle/caches/*/plugin-resolution/
+cache:
+  directories:
+    - "$HOME/.gradle/caches/"
+    - "$HOME/.gradle/wrapper/"
 
 script:
-  # Java build
-  - ant all
-  - mkdir ${TRAVIS_BUILD_DIR}/doc/javadoc
-  - cp -r ${TRAVIS_BUILD_DIR}/dist/javadoc/* ${TRAVIS_BUILD_DIR}/doc/javadoc
+  - ./gradlew --info build
 
-deploy:
+
+# script:
+  # Java build
+#  - ant all
+#  - mkdir ${TRAVIS_BUILD_DIR}/doc/javadoc
+#  - cp -r ${TRAVIS_BUILD_DIR}/dist/javadoc/* ${TRAVIS_BUILD_DIR}/doc/javadoc
+
+# deploy:
   # Deploying documentation to github pages
-  provider: pages
-  skip_cleanup: true
-  github_token: $GITHUB_TOKEN # Set in travis-ci.org dashboard
-  target_branch: gh-pages
-  keep-history: true
-  local_dir: /doc
-  on:
-    branch: master
+#  provider: pages
+#  skip_cleanup: true
+#  github_token: $GITHUB_TOKEN # Set in travis-ci.org dashboard
+#  target_branch: gh-pages
+#  keep-history: true
+#  local_dir: /doc
+#  on:
+#    branch: master
