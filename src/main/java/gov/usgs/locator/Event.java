@@ -452,6 +452,16 @@ public class Event {
   }
 
   /**
+   * Function to set the event error ellipse.
+   *
+   * @param errorEllipse - An array of EllipseAxis objects containing the  
+   *    error ellipse
+   */
+  public void setErrorEllipse(EllipseAxis[] errorEllipse) {
+    this.errorEllipse = errorEllipse;
+  }
+
+  /**
    * Function to set the equivalent radius of the error ellipse in kilometers.
    *
    * @param equivalentErrorRadius A double containing the equivalent radius of the error ellipse in

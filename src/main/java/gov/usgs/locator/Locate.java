@@ -76,6 +76,7 @@ public class Locate {
 
     // Bail on insufficient data.
     if (event.getNumStationsUsed() < 3) {
+      LOGGER.info("Insufficent Data (Stations Used)");
       close.compFinalStats(LocStatus.INSUFFICIENT_DATA);
       return LocStatus.INSUFFICIENT_DATA;
     }
@@ -83,6 +84,7 @@ public class Locate {
     try {
       // Handle a held solution.
       if (event.getIsLocationHeld()) {
+        LOGGER.info("Held Location");
         // Reidentify and reweight phases.
         LocUtil.useDecorrelation = event.getUseDecorrelation();
         stepper.doPhaseIdentification(0.1d, 1d, true, true);
@@ -130,6 +132,7 @@ public class Locate {
 
         // Be sure we still have enough data to continue.
         if (status == LocStatus.INSUFFICIENT_DATA) {
+          LOGGER.info("Insufficent Data");
           close.compFinalStats(status);
           return status;
         }
@@ -147,6 +150,7 @@ public class Locate {
           // check the iteration status
           switch (status) {
             case INSUFFICIENT_DATA:
+              LOGGER.info("Insufficent Data");
               // Bail on insufficient data.
               close.compFinalStats(status);
               return status;
@@ -208,6 +212,7 @@ public class Locate {
 
       // If we go to full interations on the last stage without converging, give
       // up.
+      LOGGER.info("Did Not Converge: \n" + event.printHypoAudit());
       return LocStatus.DID_NOT_CONVERGE;
     } catch (Exception e) {
       // This should never happen.

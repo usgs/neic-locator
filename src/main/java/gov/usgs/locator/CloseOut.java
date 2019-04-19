@@ -174,6 +174,7 @@ public class CloseOut {
         confidenceInterval * Math.sqrt(Math.max(correlationMatrix[2][2], 0d)));
 
     try {
+      LOGGER.info("Computing the error ellipsoid");
       // Do the error ellipsoid.
       computeErrorEllipsoid(inverseMatrix);
     } catch (RuntimeException e) {
@@ -343,6 +344,9 @@ public class CloseOut {
 
     // Sort the error ellipsoid axis by semiLen.
     Arrays.sort(ellip);
+
+    // update the event error ellipsoid
+    event.setErrorEllipse(ellip);
 
     // Do the summary errors, which also depend on the error ellipsoid.
     event.computeSummaryErrors();
