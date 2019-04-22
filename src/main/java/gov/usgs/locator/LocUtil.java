@@ -224,11 +224,6 @@ public class LocUtil {
   public static boolean isTectonic = false;
 
   /**
-   * An int defining the locator debug level. The higher the debug level, the more output you get.
-   */
-  public static int deBugLevel = 0;
-
-  /**
    * A double containing the receiver azimuth relative to the source in degrees clockwise from north
    * (available after calling computeDistAzm).
    */

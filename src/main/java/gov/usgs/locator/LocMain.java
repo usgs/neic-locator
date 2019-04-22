@@ -48,7 +48,7 @@ public class LocMain {
   private static final Logger LOGGER = Logger.getLogger(LocMain.class.getName());
 
   /**
-   * Main program for testing the locator.
+   * Main program for running the locator.
    *
    * @param args Command line arguments
    */
@@ -117,9 +117,6 @@ public class LocMain {
     LOGGER.config("os.version = " + System.getProperty("os.version"));
     LOGGER.config("user.dir = " + System.getProperty("user.dir"));
     LOGGER.config("user.name = " + System.getProperty("user.name"));
-
-    // Set the debug level.
-    LocUtil.deBugLevel = 1;
 
     // set up service
     LocService service = new LocService(modelPath);

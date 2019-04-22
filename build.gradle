@@ -57,6 +57,12 @@ ext.addExternalProject = { path, url, srcDir ->
   }
 }
 
+test {
+  filter {
+    includeTestsMatching "*Test"
+  }
+}
+
 // clone/update external libs from github, at least until they're available in
 // maven
 task cloneExternalProjects {
