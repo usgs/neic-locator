@@ -21,22 +21,23 @@ cache:
     - "$HOME/.gradle/wrapper/"
 
 script:
-  - ./gradlew --info test
+  - ./gradlew --info build check javadoc
+  # copy javadocs where deploy expects them
+  - mkdir ${TRAVIS_BUILD_DIR}/doc/javadoc
+  - cp -r ${TRAVIS_BUILD_DIR}/build/docs/javadoc/* ${TRAVIS_BUILD_DIR}/doc/javadoc  
 
+# upload coverage
+after_success:
+  - bash <(curl -s https://codecov.io/bash)
+  - "./gradlew sendCoverageToCodacy"
 
-# script:
-  # Java build
-#  - ant all
-#  - mkdir ${TRAVIS_BUILD_DIR}/doc/javadoc
-#  - cp -r ${TRAVIS_BUILD_DIR}/dist/javadoc/* ${TRAVIS_BUILD_DIR}/doc/javadoc
-
-# deploy:
-  # Deploying documentation to github pages
-#  provider: pages
-#  skip_cleanup: true
-#  github_token: $GITHUB_TOKEN # Set in travis-ci.org dashboard
-#  target_branch: gh-pages
-#  keep-history: true
-#  local_dir: /doc
-#  on:
-#    branch: master
+# Deploying documentation to github pages  
+deploy:
+  provider: pages
+  skip_cleanup: true
+  github_token: $GITHUB_TOKEN # Set in travis-ci.org dashboard
+  target_branch: gh-pages
+  keep-history: true
+  local_dir: /doc
+  on:
+    branch: master
