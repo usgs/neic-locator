@@ -21,7 +21,7 @@ cache:
     - "$HOME/.gradle/wrapper/"
 
 script:
-  - ./gradlew --info build
+  - ./gradlew --info test
 
 
 # script:

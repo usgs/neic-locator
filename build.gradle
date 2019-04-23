@@ -9,6 +9,8 @@
 plugins {
     // Apply the java plugin to add support for Java
     id 'java'
+    // code coverage
+    id "jacoco"
     // git clone, etc. 
     id "org.ajoberstar.grgit" version "2.3.0"       
 }
@@ -57,7 +59,30 @@ ext.addExternalProject = { path, url, srcDir ->
   }
 }
 
+// coverage reports
+jacoco {
+  toolVersion "0.8.2"
+}
+jacocoTestReport {
+  reports {
+    html.enabled true
+    xml.enabled true
+  }
+
+  // exclude librarys 
+  afterEvaluate {
+        classDirectories = files(classDirectories.files.collect {
+            fileTree(dir: it, exclude: [
+                    'gov/usgs/traveltime/**', 
+                    'gov/usgs/processingformats/**'
+            ])
+        })
+    }
+}
+check.dependsOn jacocoTestReport
+
 test {
+
   filter {
     includeTestsMatching "*Test"
   }
@@ -91,6 +116,7 @@ task copyModelFiles(type: Copy) {
 // make sure we always update the external projects and copy models prior to 
 // complile
 defaultTasks 'cloneExternalProjects', 'copyModelFiles'
+copyModelFiles.dependsOn 'cloneExternalProjects'
 compileJava.dependsOn 'cloneExternalProjects', 'copyModelFiles'
 
 // show compile warnings

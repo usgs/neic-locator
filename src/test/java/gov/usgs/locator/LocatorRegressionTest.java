@@ -31,7 +31,7 @@ public class LocatorRegressionTest {
   @Test
   public void testLocator() {
     // parse input string into request
-    String inputString = loadFromFile("src/test/resources/input.json");
+    String inputString = loadFromFile("build/resources/test/input.json");
     assertNotEquals("Loaded Input", inputString, EMPTYSTRING);
     LocationRequest request = null;
     try {
@@ -43,7 +43,7 @@ public class LocatorRegressionTest {
     assertNotEquals("Location Request", request, null);
 
     // parse verification string into result
-    String verificationString = loadFromFile("src/test/resources/verification.json");
+    String verificationString = loadFromFile("build/resources/test/verification.json");
     assertNotEquals("Loaded Verification", verificationString, EMPTYSTRING);
     LocationResult verificationResult = null;
     try {
