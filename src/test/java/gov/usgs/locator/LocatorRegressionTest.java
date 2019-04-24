@@ -68,32 +68,32 @@ public class LocatorRegressionTest {
     assertEquals(
         "Latitude:",
         verificationResult.getHypocenter().getLatitude(),
-        result.getHypocenter().getLatitude());
+        result.getHypocenter().getLatitude(), 0.0001);
 
     assertEquals(
         "Latitude Error:",
         verificationResult.getHypocenter().getLatitudeError(),
-        result.getHypocenter().getLatitudeError());
+        result.getHypocenter().getLatitudeError(), 0.0001);
 
     assertEquals(
         "Longitude: ",
         verificationResult.getHypocenter().getLongitude(),
-        result.getHypocenter().getLongitude());
+        result.getHypocenter().getLongitude(), 0.0001);
 
     assertEquals(
         "Longitude Error:",
         verificationResult.getHypocenter().getLongitudeError(),
-        result.getHypocenter().getLongitudeError());
+        result.getHypocenter().getLongitudeError(), 0.0001);
 
     assertEquals(
         "Depth: ",
         verificationResult.getHypocenter().getDepth(),
-        result.getHypocenter().getDepth());
+        result.getHypocenter().getDepth(), 0.0001);
 
     assertEquals(
         "Depth Error: ",
         verificationResult.getHypocenter().getDepthError(),
-        result.getHypocenter().getDepthError());
+        result.getHypocenter().getDepthError(), 0.0001);
 
     assertEquals(
         "Time: ", verificationResult.getHypocenter().getTime(), result.getHypocenter().getTime());
@@ -101,14 +101,14 @@ public class LocatorRegressionTest {
     assertEquals(
         "Time Error: ",
         verificationResult.getHypocenter().getTimeError(),
-        result.getHypocenter().getTimeError());
+        result.getHypocenter().getTimeError(), 0.0001);
 
     assertEquals(
-        "Minimum Distance: ", verificationResult.getMinimumDistance(), result.getMinimumDistance());
+        "Minimum Distance: ", verificationResult.getMinimumDistance(), result.getMinimumDistance(), 0.0001);
 
-    assertEquals("RMS: ", verificationResult.getRMS(), result.getRMS());
+    assertEquals("RMS: ", verificationResult.getRMS(), result.getRMS(), 0.0001);
 
-    assertEquals("Gap: ", verificationResult.getGap(), result.getGap());
+    assertEquals("Gap: ", verificationResult.getGap(), result.getGap(), 0.0001);
 
     assertEquals(
         "Used Stations: ",
