@@ -1,4 +1,4 @@
-[![Codacy Badge](https://api.codacy.com/project/badge/Grade/b50fddd11ce24251b546f1de9f4854e2)](https://app.codacy.com/app/jpatton-USGS/neic-locator?utm_source=github.com&utm_medium=referral&utm_content=usgs/neic-locator&utm_campaign=badger)
+[![Codacy Badge](https://api.codacy.com/project/badge/Grade/b50fddd11ce24251b546f1de9f4854e2)](https://app.codacy.com/app/usgs/neic-locator?utm_source=github.com&utm_medium=referral&utm_content=usgs/neic-locator&utm_campaign=badger)
 [![Build Status](https://travis-ci.org/usgs/neic-locator.svg?branch=master)](https://travis-ci.org/usgs/neic-locator)
 [![Documentation](https://usgs.github.io/neic-locator/codedocumented.svg)](https://usgs.github.io/neic-locator/)
 
