@@ -4,7 +4,6 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 
 import java.util.Date;
-import org.json.simple.parser.ParseException;
 import org.junit.Test;
 
 /**
