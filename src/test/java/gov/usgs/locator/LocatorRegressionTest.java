@@ -131,7 +131,7 @@ public class LocatorRegressionTest {
    * @param filePath A String containing the path to the file to load
    * @return A String containing the data in the file
    */
-  String loadFromFile(String filePath) {
+  private String loadFromFile(String filePath) {
     // read the input
     BufferedReader inputReader = null;
     String fileString = "";

@@ -1,17 +1,8 @@
 package gov.usgs.locator;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.fail;
 
-import gov.usgs.processingformats.LocationException;
-import gov.usgs.processingformats.LocationRequest;
-import gov.usgs.processingformats.LocationResult;
-import gov.usgs.processingformats.Utility;
-import java.io.BufferedReader;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.io.IOException;
 import java.util.Date;
 import org.json.simple.parser.ParseException;
 import org.junit.Test;
