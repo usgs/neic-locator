@@ -90,7 +90,6 @@ jacocoTestReport {
 check.dependsOn jacocoTestReport
 
 test {
-
   filter {
     includeTestsMatching "*Test"
   }
@@ -149,7 +148,9 @@ jar {
 // create javadocs
 javadoc {
   exclude "gov/usgs/processingformats/**"
-  options.addBooleanOption('html5', true)
+  if(JavaVersion.current() != JavaVersion.VERSION_1_8) {
+    options.addBooleanOption('html5', true)
+  }
 }
 
 
