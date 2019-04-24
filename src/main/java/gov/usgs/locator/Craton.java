@@ -53,13 +53,16 @@ public class Craton implements Serializable {
    */
   public boolean isCraton(double latitude, double longitude) {
     int numCrossings = 0;
-
+   
     // Stay away from the poles and the date line.
-    if (Math.abs(Math.abs(latitude) - 90d) < TauUtil.DTOL) {
-      latitude -= Math.copySign(TauUtil.DTOL, latitude);
+    double trialLatitude = latitude;
+    if (Math.abs(Math.abs(trialLatitude) - 90d) < TauUtil.DTOL) {
+      trialLatitude -= Math.copySign(TauUtil.DTOL, trialLatitude);
     }
-    if (Math.abs(Math.abs(longitude) - 180d) < TauUtil.DTOL) {
-      longitude -= Math.copySign(TauUtil.DTOL, longitude);
+
+    double trialLongitude = longitude;
+    if (Math.abs(Math.abs(trialLongitude) - 180d) < TauUtil.DTOL) {
+      trialLongitude -= Math.copySign(TauUtil.DTOL, trialLongitude);
     }
 
     // Count crossings of the polygon's sides.
@@ -67,9 +70,9 @@ public class Craton implements Serializable {
       double slope =
           (longitudePoints[j] - longitudePoints[j - 1])
               / (latitudePoints[j] - latitudePoints[j - 1]);
-      double testLat = (longitude - longitudePoints[j - 1] + slope * latitudePoints[j - 1]) / slope;
+      double testLat = (trialLongitude - longitudePoints[j - 1] + slope * latitudePoints[j - 1]) / slope;
 
-      if ((testLat >= latitude)
+      if ((testLat >= trialLatitude)
           && (((testLat - latitudePoints[j]) * (testLat - latitudePoints[j - 1])) <= 0d)) {
         numCrossings++;
       }

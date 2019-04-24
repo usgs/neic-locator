@@ -225,7 +225,7 @@ public class PhaseID {
       Pick pick = currentGroup.getPick(j);
       String phCode = pick.getCurrentPhaseCode();
 
-      if (!phCode.equals("")) {
+      if (!"".equals(phCode)) {
         // If we have a non-blank phase code, find the phase of the same name
         // that is closest to the pick in time.
         int ttIndex = -1;
@@ -769,7 +769,7 @@ public class PhaseID {
   private double computeObsAmplitude(Pick pick, TTimeData travelTime) {
     // Set up the observed pick phase group.
     // Note depends on the lastPick class varible being set
-    if (pick != lastPick) {
+    if (!pick.equals(lastPick)) {
       lastPick = pick;
       currPhaseGroupName =
           auxiliaryTTInfo.findGroup(

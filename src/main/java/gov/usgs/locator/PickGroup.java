@@ -225,6 +225,8 @@ public class PickGroup {
   /**
    * This function converts the input pick information to a string formatted similarly to the
    * "Hydra" event input file.
+   * @return A String containing the input pick information formatted similarly to the
+   * "Hydra" event input file.
    */
   public String getInputPicks() {
     String pickInput = "";
@@ -295,6 +297,8 @@ public class PickGroup {
   /**
    * This function converts the output pick information to a string formatted similarly to the
    * "Hydra" event output file.
+   * @return A String containing the output pick information formatted similarly to the
+   * "Hydra" event output file.
    */
   public String getOutputPicks() {
     String pickOutput = "";
@@ -322,7 +326,12 @@ public class PickGroup {
     return pickOutput;
   }
 
-  /** This function print out picks in the group in a way similar to the NEIC web format. */
+  /** 
+   * This function print out picks in the group formatted in a way similar to the NEIC web 
+   * format. 
+   * @return A String containing the picks in the group formatted in a way similar to the NEIC
+   * web format. 
+   */
   public String getNEIC() {
     String pickNEIC = "";
     String locCode = station.getStationID().getLocationCode();

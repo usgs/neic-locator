@@ -83,7 +83,10 @@ public class CorrelationsSum implements Comparable<CorrelationsSum> {
     }
   }
 
-  /** Function to return the row index. */
+  /** 
+   * Function to return the row index. 
+   * @return An int containing the current row index
+   **/
   public int getRowIndex() {
     return rowIndex;
   }

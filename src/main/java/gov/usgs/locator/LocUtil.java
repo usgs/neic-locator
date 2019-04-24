@@ -475,7 +475,7 @@ public class LocUtil {
    */
   public static double computeCovariance(Pick pick1, Pick pick2) {
     // Do the autocorrelation.
-    if (pick1 == pick2) {
+    if (pick1.equals(pick2)) {
       return 1d / (pick1.getWeight() * pick2.getWeight());
     }
 

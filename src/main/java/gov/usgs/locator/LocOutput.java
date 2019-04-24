@@ -169,6 +169,7 @@ public class LocOutput extends LocationResult {
    * @param stationElevation A double containing the station elevation in meters
    * @param pickTime A double containing the pick time in milliseconds.
    * @param locatorPhase A String containing the final seismic phase code.
+   * @param originalPhase A String containing the original seismic phase code.
    * @param residual A double containing the pick residual in seconds.
    * @param delta A double containing the source-receiver distance in degrees.
    * @param azimuth A double containing the receiver azimuth (clockwise from north) in degrees.

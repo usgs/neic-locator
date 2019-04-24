@@ -72,17 +72,26 @@ public class EllipseAxis implements Comparable<EllipseAxis> {
     }
   }
 
-  /** Function to return the length of the axis in kilometers. */
+  /** 
+   * Function to return the length of the axis in kilometers. 
+   * @return A double containing the length of the axis in kilometers
+   **/
   public double getSemiLen() {
     return semiLen;
   }
 
-  /** Function to return the azimuth of the axis in degrees (clockwise from north). */
+  /** 
+   * Function to return the azimuth of the axis in degrees (clockwise from north). 
+   * @return A double containing the azimuth of the axis in degrees (clockwise from north). 
+   **/
   public double getAzimuth() {
     return azimuth;
   }
 
-  /** Function to return the plunge of the axis in degrees (down from the horizontal). */
+  /** 
+   * Function to return the plunge of the axis in degrees (down from the horizontal). 
+   * @return A double containing the plunge of the axis in degrees (down from the horizontal).
+   **/
   public double getPlunge() {
     return plunge;
   }
