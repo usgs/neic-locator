@@ -69,9 +69,12 @@ ext.addExternalProject = { path, url, srcDir ->
   }
 }
 
+// Note: To reformat all java code (not in lib) into the 
+// google java style, run ./gradlew goJF
 googleJavaFormat {
   exclude 'lib/**'
 }
+// Google java style is checked automatically as part of the check task
 project.tasks.check.dependsOn(verifyGoogleJavaFormat)
 
 // coverage reports
