@@ -263,12 +263,20 @@ public class AuxLocRef {
     return stats;
   }
 
-  /** Function to return the cratons managed by AuxLocRef. */
+  /**
+   * Function to return the cratons managed by AuxLocRef.
+   *
+   * @return Returns a Cratons Object containing the cratons
+   */
   public Cratons getCratons() {
     return cratons;
   }
 
-  /** Function to return the zone statistics managed by AuxLocRef. */
+  /**
+   * Function to return the zone statistics managed by AuxLocRef.
+   *
+   * @return A ZoneStats object containing the zone statistics
+   */
   public ZoneStats getZoneStats() {
     return zoneStats;
   }

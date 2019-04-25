@@ -9,8 +9,16 @@
 plugins {
     // Apply the java plugin to add support for Java
     id 'java'
+    // code coverage
+    id "jacoco"
+    // static code analysis
+    // id "pmd"
+    // post build results online                                        
+    id "com.gradle.build-scan" version "2.0.2"        
     // git clone, etc. 
-    id "org.ajoberstar.grgit" version "2.3.0"       
+    id "org.ajoberstar.grgit" version "2.3.0"    
+    // google java format
+    id 'com.github.sherter.google-java-format' version '0.8'   
 }
 
 sourceCompatibility = '1.8'
@@ -19,6 +27,10 @@ version = '0.1.0'
 
 repositories {
     mavenCentral()
+}
+
+configurations {
+  codacy
 }
 
 dependencies {
@@ -57,6 +69,42 @@ ext.addExternalProject = { path, url, srcDir ->
   }
 }
 
+// Note: To reformat all java code (not in lib) into the 
+// google java style, run ./gradlew goJF
+googleJavaFormat {
+  exclude 'lib/**'
+}
+// Google java style is checked automatically as part of the check task
+project.tasks.check.dependsOn(verifyGoogleJavaFormat)
+
+// coverage reports
+jacoco {
+  toolVersion "0.8.2"
+}
+jacocoTestReport {
+  reports {
+    html.enabled true
+    xml.enabled true
+  }
+
+  // exclude librarys 
+  afterEvaluate {
+        classDirectories = files(classDirectories.files.collect {
+            fileTree(dir: it, exclude: [
+                    'gov/usgs/traveltime/**', 
+                    'gov/usgs/processingformats/**'
+            ])
+        })
+    }
+}
+check.dependsOn jacocoTestReport
+
+test {
+  filter {
+    includeTestsMatching "*Test"
+  }
+}
+
 // clone/update external libs from github, at least until they're available in
 // maven
 task cloneExternalProjects {
@@ -85,6 +133,7 @@ task copyModelFiles(type: Copy) {
 // make sure we always update the external projects and copy models prior to 
 // complile
 defaultTasks 'cloneExternalProjects', 'copyModelFiles'
+copyModelFiles.dependsOn 'cloneExternalProjects'
 compileJava.dependsOn 'cloneExternalProjects', 'copyModelFiles'
 
 // show compile warnings
@@ -108,5 +157,31 @@ jar {
 
 // create javadocs
 javadoc {
-  options.addBooleanOption('html5', true)
+  exclude "gov/usgs/processingformats/**"
+  if(JavaVersion.current() != JavaVersion.VERSION_1_8) {
+    options.addBooleanOption('html5', true)
+  }
+}
+
+
+// Tasks for TravisCI
+
+// run with "gradle build --scan" to post build output online
+buildScan {
+  termsOfServiceUrl = "https://gradle.com/terms-of-service"
+  termsOfServiceAgree = "yes"
+}
+
+// .travis.yml uses this to upload coverage
+task sendCoverageToCodacy(type: JavaExec, dependsOn: jacocoTestReport) {
+  description = "Upload coverage to codacy (used by TravisCI)"
+  main = "com.codacy.CodacyCoverageReporter"
+  classpath = configurations.codacy
+  args = [
+    "report",
+    "-l",
+    "Java",
+    "-r",
+    "${buildDir}/reports/jacoco/test/jacocoTestReport.xml"
+  ]
 }

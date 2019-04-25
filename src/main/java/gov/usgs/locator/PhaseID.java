@@ -225,7 +225,7 @@ public class PhaseID {
       Pick pick = currentGroup.getPick(j);
       String phCode = pick.getCurrentPhaseCode();
 
-      if (!phCode.equals("")) {
+      if (!"".equals(phCode)) {
         // If we have a non-blank phase code, find the phase of the same name
         // that is closest to the pick in time.
         int ttIndex = -1;
@@ -265,7 +265,7 @@ public class PhaseID {
           for (int i = 0; i < currentTTList.size(); i++) {
             TTimeData travelTime = currentTTList.get(i);
 
-            if ((phaseGroupName.equals(travelTime.getPhGroup())) 
+            if ((phaseGroupName.equals(travelTime.getPhGroup()))
                 && (Math.abs(pick.getTravelTime() - travelTime.getTT()) < minResidual)) {
               ttIndex = i;
               minResidual = Math.abs(pick.getTravelTime() - travelTime.getTT());
@@ -575,7 +575,8 @@ public class PhaseID {
       Pick pick = pick2;
       pick2 = currentGroup.getPick(j);
 
-      if (pick.getTTStatisticalMinFoM() != null && pick2.getTTStatisticalMinFoM() != null
+      if (pick.getTTStatisticalMinFoM() != null
+          && pick2.getTTStatisticalMinFoM() != null
           && pick.getTTStatisticalMinFoM().getTT() > pick2.getTTStatisticalMinFoM().getTT()) {
         if (pick.getTTStatisticalMinFoM().getObserv()
             >= pick2.getTTStatisticalMinFoM().getObserv()) {
@@ -726,10 +727,10 @@ public class PhaseID {
         // Set up the alternative criteria at the same time.  Note, the
         // Fortran version omitted the affinity in this test.
         if (ttArrivals[j].getObserv() >= LocUtil.OBSERVABILITYMIN
-            && residual < obsPicks[j].getAlternateFoM()
-            && obsPicks[j].getIsAutomatic()
+                && residual < obsPicks[j].getAlternateFoM()
+                && obsPicks[j].getIsAutomatic()
             || TauUtil.arrivalType(obsPicks[j].getBestPhaseCode())
-            == TauUtil.arrivalType(ttArrivals[j].getPhCode())) {
+                == TauUtil.arrivalType(ttArrivals[j].getPhCode())) {
           // Make sure that the phase types match unless the pick is automatic.
           obsPicks[j].setAlternateFoM(ttArrivals[j], residual);
 
@@ -769,7 +770,7 @@ public class PhaseID {
   private double computeObsAmplitude(Pick pick, TTimeData travelTime) {
     // Set up the observed pick phase group.
     // Note depends on the lastPick class varible being set
-    if (pick != lastPick) {
+    if (!pick.equals(lastPick)) {
       lastPick = pick;
       currPhaseGroupName =
           auxiliaryTTInfo.findGroup(

@@ -224,11 +224,6 @@ public class LocUtil {
   public static boolean isTectonic = false;
 
   /**
-   * An int defining the locator debug level. The higher the debug level, the more output you get.
-   */
-  public static int deBugLevel = 0;
-
-  /**
    * A double containing the receiver azimuth relative to the source in degrees clockwise from north
    * (available after calling computeDistAzm).
    */
@@ -480,7 +475,7 @@ public class LocUtil {
    */
   public static double computeCovariance(Pick pick1, Pick pick2) {
     // Do the autocorrelation.
-    if (pick1 == pick2) {
+    if (pick1.equals(pick2)) {
       return 1d / (pick1.getWeight() * pick2.getWeight());
     }
 

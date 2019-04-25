@@ -268,8 +268,10 @@ public class InitialPhaseID {
         if (pick.getIsAutomatic() && pick.getIsUsed()) {
           String phCode = pick.getCurrentPhaseCode();
 
-          if (!"Pg".equals(phCode) && !"Pb".equals(phCode)
-              && !"Pn".equals(phCode) && !"P".equals(phCode)) {
+          if (!"Pg".equals(phCode)
+              && !"Pb".equals(phCode)
+              && !"Pn".equals(phCode)
+              && !"P".equals(phCode)) {
             pick.setIsUsed(false);
 
             LOGGER.finer(

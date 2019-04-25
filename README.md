@@ -1,4 +1,4 @@
-[![Codacy Badge](https://api.codacy.com/project/badge/Grade/b50fddd11ce24251b546f1de9f4854e2)](https://app.codacy.com/app/jpatton-USGS/neic-locator?utm_source=github.com&utm_medium=referral&utm_content=usgs/neic-locator&utm_campaign=badger)
+[![Codacy Badge](https://api.codacy.com/project/badge/Grade/b50fddd11ce24251b546f1de9f4854e2)](https://app.codacy.com/app/usgs/neic-locator?utm_source=github.com&utm_medium=referral&utm_content=usgs/neic-locator&utm_campaign=badger)
 [![Build Status](https://travis-ci.org/usgs/neic-locator.svg?branch=master)](https://travis-ci.org/usgs/neic-locator)
 [![Documentation](https://usgs.github.io/neic-locator/codedocumented.svg)](https://usgs.github.io/neic-locator/)
 
@@ -12,27 +12,19 @@ In its current form, the neic-locator is a small piece of the much larger NEIC s
 Dependencies
 ------
 * neic-locator was written in Java 1.8
-* neic-locator can be built with [Apache Ant](http://ant.apache.org/), and was written using Eclipse and netbeans.  Netbeans project files, source files, and an ant build.xml are included in this project
-* neic-locator can also be built with [Gradle](https://gradle.org/), a build.gradle file is included in this project
+* neic-locator is built with [Gradle](https://gradle.org/), a build.gradle file and gradlew are included in this project
 * neic-locator depends on the [neic-traveltime](https://github.com/usgs/neic-traveltime) package. A copy of this package is automatically downloaded and built as part of the neic-locator build.
 * neic-locator depends on the [earthquake-processing-formats](https://github.com/usgs/earthquake-processing-formats) package. A copy of this package is automatically downloaded and built as part of the neic-locator build.
 
 Building
 ------
-The steps to get and build neic-locator.jar using ant are as follows:
-
-1. Clone neic-locator.
-2. Open a command window and change directories to /neic-locator/
-3. To build the jar file, run the command `ant jar`
-4. To generate javadocs, run the command `ant javadoc`
-5. To compile, generate javadocs, build jar, run the command `ant all`
-
 The steps to get and build neic-locator.jar using gradle are as follows:
 
 1. Clone neic-locator.
 2. Open a command window and change directories to /neic-locator/
 3. To build the jar file, run the command `./gradlew build`
-4. To generate javadocs, run the command `./gradlew javadoc`
+4. To build the jar file, run unit tests, and code coverage, run the command `./gradlew check`
+5. To generate javadocs, run the command `./gradlew javadoc`
 
 Using
 -----

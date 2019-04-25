@@ -47,7 +47,7 @@ public class LocInput extends LocationRequest {
     setIsBayesianDepth(request.getIsBayesianDepth());
     setBayesianDepth(request.getBayesianDepth());
     setBayesianSpread(request.getBayesianSpread());
-    setUseSVD(request.getIsLocationNew());
+    setUseSVD(request.getUseSVD());
     setOutputData(request.getOutputData());
   }
 
