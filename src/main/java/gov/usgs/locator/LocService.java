@@ -16,10 +16,11 @@ public class LocService implements LocationService {
   /** Private logging object. */
   private static final Logger LOGGER = Logger.getLogger(LocService.class.getName());
 
-  /** 
+  /**
    * The LocService constructor. Sets up the earth model path.
+   *
    * @param modelPath A String containing the earth model path to use
-   **/
+   */
   public LocService(String modelPath) {
     this.modelPath = modelPath;
   }
@@ -30,8 +31,8 @@ public class LocService implements LocationService {
    *
    * @param request a Final LocationRequest containing the location request
    * @return A LocationResult containing the resulting location
-   * @throws gov.usgs.processingformats.LocationException Throws a LocationException upon 
-   *         certain severe errors.
+   * @throws gov.usgs.processingformats.LocationException Throws a LocationException upon certain
+   *     severe errors.
    */
   @Override
   public LocationResult getLocation(final LocationRequest request) throws LocationException {
@@ -47,8 +48,8 @@ public class LocService implements LocationService {
    *
    * @param in a Final LocInput containing the location input
    * @return A LocOutput containing the resulting location output
-   * @throws gov.usgs.processingformats.LocationException Throws a LocationException upon 
-   *         certain severe errors.
+   * @throws gov.usgs.processingformats.LocationException Throws a LocationException upon certain
+   *     severe errors.
    */
   public LocOutput getLocation(final LocInput in) throws LocationException {
     // check to see if the input is valid

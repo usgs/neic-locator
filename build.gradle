@@ -16,7 +16,9 @@ plugins {
     // post build results online                                        
     id "com.gradle.build-scan" version "2.0.2"        
     // git clone, etc. 
-    id "org.ajoberstar.grgit" version "2.3.0"       
+    id "org.ajoberstar.grgit" version "2.3.0"    
+    // google java format
+    id 'com.github.sherter.google-java-format' version '0.8'   
 }
 
 sourceCompatibility = '1.8'
@@ -66,6 +68,11 @@ ext.addExternalProject = { path, url, srcDir ->
     }
   }
 }
+
+googleJavaFormat {
+  exclude 'lib/**'
+}
+project.tasks.check.dependsOn(verifyGoogleJavaFormat)
 
 // coverage reports
 jacoco {

@@ -454,8 +454,7 @@ public class Event {
   /**
    * Function to set the event error ellipse.
    *
-   * @param errorEllipse - An array of EllipseAxis objects containing the  
-   *    error ellipse
+   * @param errorEllipse - An array of EllipseAxis objects containing the error ellipse
    */
   public void setErrorEllipse(EllipseAxis[] errorEllipse) {
     this.errorEllipse = errorEllipse;

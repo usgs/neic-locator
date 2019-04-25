@@ -152,7 +152,7 @@ public class HypoAudit {
    */
   public double getCoLatitude() {
     return coLatitude;
-  }  
+  }
 
   /**
    * Function to return the sine of the audit colatitude.

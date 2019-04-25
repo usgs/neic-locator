@@ -53,7 +53,7 @@ public class Craton implements Serializable {
    */
   public boolean isCraton(double latitude, double longitude) {
     int numCrossings = 0;
-   
+
     // Stay away from the poles and the date line.
     double trialLatitude = latitude;
     if (Math.abs(Math.abs(trialLatitude) - 90d) < TauUtil.DTOL) {
@@ -70,7 +70,8 @@ public class Craton implements Serializable {
       double slope =
           (longitudePoints[j] - longitudePoints[j - 1])
               / (latitudePoints[j] - latitudePoints[j - 1]);
-      double testLat = (trialLongitude - longitudePoints[j - 1] + slope * latitudePoints[j - 1]) / slope;
+      double testLat =
+          (trialLongitude - longitudePoints[j - 1] + slope * latitudePoints[j - 1]) / slope;
 
       if ((testLat >= trialLatitude)
           && (((testLat - latitudePoints[j]) * (testLat - latitudePoints[j - 1])) <= 0d)) {
