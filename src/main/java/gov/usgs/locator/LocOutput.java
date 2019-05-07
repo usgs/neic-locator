@@ -125,18 +125,29 @@ public class LocOutput extends LocationResult {
     setBayesianRange(bayesianDepthSpread);
     setDepthImportance(bayesianDepthDataImportance);
 
-    getErrorEllipse().setMaximumHorizontalProjection(maxHorizontalError);
-    getErrorEllipse().setMaximumVerticalProjection(maxVerticalError);
-    getErrorEllipse().setEquivalentHorizontalRadius(equivalentErrorRadius);
-    getErrorEllipse().setE0Error(errorEllipse[0].getSemiLen());
-    getErrorEllipse().setE0Azimuth(errorEllipse[0].getAzimuth());
-    getErrorEllipse().setE0Dip(errorEllipse[0].getPlunge());
-    getErrorEllipse().setE1Error(errorEllipse[1].getSemiLen());
-    getErrorEllipse().setE1Azimuth(errorEllipse[1].getAzimuth());
-    getErrorEllipse().setE1Dip(errorEllipse[1].getPlunge());
-    getErrorEllipse().setE2Error(errorEllipse[2].getSemiLen());
-    getErrorEllipse().setE2Azimuth(errorEllipse[2].getAzimuth());
-    getErrorEllipse().setE2Dip(errorEllipse[2].getPlunge());
+    if (errorEllipse != null) {
+      getErrorEllipse().setMaximumHorizontalProjection(maxHorizontalError);
+      getErrorEllipse().setMaximumVerticalProjection(maxVerticalError);
+      getErrorEllipse().setEquivalentHorizontalRadius(equivalentErrorRadius);
+
+      if (errorEllipse[0] != null) {
+        getErrorEllipse().setE0Error(errorEllipse[0].getSemiLen());
+        getErrorEllipse().setE0Azimuth(errorEllipse[0].getAzimuth());
+        getErrorEllipse().setE0Dip(errorEllipse[0].getPlunge());
+      }
+
+      if (errorEllipse[1] != null) {
+        getErrorEllipse().setE1Error(errorEllipse[1].getSemiLen());
+        getErrorEllipse().setE1Azimuth(errorEllipse[1].getAzimuth());
+        getErrorEllipse().setE1Dip(errorEllipse[1].getPlunge());
+      }
+
+      if (errorEllipse[2] != null) {
+        getErrorEllipse().setE2Error(errorEllipse[2].getSemiLen());
+        getErrorEllipse().setE2Azimuth(errorEllipse[2].getAzimuth());
+        getErrorEllipse().setE2Dip(errorEllipse[2].getPlunge());
+      }
+    }
 
     // exit code conversion
     if (locatorExitCode == LocStatus.SUCESSFUL_LOCATION) {
