@@ -108,6 +108,9 @@ public class Event {
   /** A Hypocenter object containing the event hypocenter. */
   private Hypocenter hypo;
 
+  /** A String containing the optional ID for the event */
+  private String id;
+
   /**
    * An ArrayList of HypoAudit objects containing the hypocenter auditing information for logging
    * purposes.
@@ -487,6 +490,7 @@ public class Event {
    */
   public Event(String earthModel) {
     this.earthModel = earthModel;
+    id = null;
     stationList = new TreeMap<StationID, Station>();
     pickGroupList = new ArrayList<PickGroup>();
     pickList = new ArrayList<gov.usgs.locator.Pick>();
@@ -503,6 +507,7 @@ public class Event {
    */
   public void input(LocInput in) {
     // Create the hypocenter.
+    id = in.getID();
     hypo =
         new Hypocenter(
             LocUtil.toHydraTime(in.getSourceOriginTime().getTime()),
@@ -595,6 +600,7 @@ public class Event {
   public LocOutput output() {
     LocOutput out =
         new LocOutput(
+            id,
             LocUtil.toJavaTime(hypo.getOriginTime()),
             hypo.getLatitude(),
             hypo.getLongitude(),

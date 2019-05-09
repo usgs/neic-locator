@@ -22,6 +22,7 @@ public class LocOutput extends LocationResult {
    * The LocOutput constructor. This constructor populates the LocOutput class with the givin
    * parameters that are produced by an event relocation.
    *
+   * @param id A String containing the optional id, null to omit.
    * @param originTime A double containing the source origin time of this location in location in
    *     milliseconds.
    * @param sourceLatitude A Double containing the geographic source latitude of this location in
@@ -43,6 +44,7 @@ public class LocOutput extends LocationResult {
    * @param qualityFlags A String containing the summary event quality flags.
    */
   public LocOutput(
+      String id,
       long originTime,
       double sourceLatitude,
       double sourceLongitude,
@@ -55,6 +57,8 @@ public class LocOutput extends LocationResult {
       double azimuthalGapLEst,
       double minStationDistance,
       String qualityFlags) {
+
+    setID(id);
 
     // create subobjects
     setHypocenter(new gov.usgs.processingformats.Hypocenter());

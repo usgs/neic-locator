@@ -34,6 +34,7 @@ public class LocInput extends LocationRequest {
    * @param request A LocationRequest object containing the input data
    */
   public LocInput(final LocationRequest request) {
+    setID(request.getID());
     setType(request.getType());
     setEarthModel(request.getEarthModel());
     setSourceLatitude(request.getSourceLatitude());

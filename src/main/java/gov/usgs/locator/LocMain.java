@@ -10,6 +10,7 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.logging.ConsoleHandler;
@@ -59,6 +60,9 @@ public class LocMain {
   /** A String containing the argument for specifying the mode. */
   public static final String MODE_ARGUMENT = "--mode=";
 
+  /** A String containing the argument for specifying to output a csv file. */
+  public static final String CSVFILE_ARGUMENT = "--csvFile=";
+
   /** Private logging object. */
   private static final Logger LOGGER = Logger.getLogger(LocMain.class.getName());
 
@@ -70,9 +74,15 @@ public class LocMain {
   public static void main(String[] args) {
     if (args == null || args.length == 0) {
       System.out.println(
-          "Usage: neic-locator --modelPath=[model path] "
-              + "--filePath=[file path] --fileType=[file type] "
-              + "--logPath=[log file path] --logLevel=[logging level]");
+          "Usage:\nneic-locator --modelPath=[model path] --fileType=[json or hydra] "
+              + "\n\t--logPath=[log file path] --logLevel=[logging level] "
+              + "\n\t--filePath=[input file path]"
+              + "\nneic-locator --mode=batch --modelPath=[model path] "
+              + "\n\t--fileType=[json or hydra] --logPath=[log file path] "
+              + "\n\t--logLevel=[logging level] --inputDir=[input directory path] "
+              + "\n\t--outputDir=[output directory path] "
+              + "--archiveDir=[optional archive path] "
+              + "\n\t--csvFile=[optional csv file path]");
       System.exit(1);
     }
 
@@ -88,6 +98,7 @@ public class LocMain {
     String outputPath = "./output";
     String outputExtension = null;
     String archivePath = null;
+    String csvFile = null;
 
     // process arguments
     StringBuffer argumentList = new StringBuffer();
@@ -125,8 +136,11 @@ public class LocMain {
         // get archive path
         archivePath = arg.replace(ARCHIVEDIR_ARGUMENT, "");
       } else if (arg.startsWith(MODE_ARGUMENT)) {
-        // get archive path
+        // get mode
         mode = arg.replace(MODE_ARGUMENT, "");
+      } else if (arg.startsWith(CSVFILE_ARGUMENT)) {
+        // get csv file
+        csvFile = arg.replace(CSVFILE_ARGUMENT, "");
       }
     }
 
@@ -174,7 +188,8 @@ public class LocMain {
               outputPath,
               outputExtension,
               archivePath,
-              fileType);
+              fileType,
+              csvFile);
     } else {
       locRC = locMain.locateSingleEvent(modelPath, filePath, fileType, outputExtension);
     }
@@ -408,7 +423,8 @@ public class LocMain {
       String outputPath,
       String outputExtension,
       String archivePath,
-      String fileType) {
+      String fileType,
+      String csvFile) {
 
     // set up service
     LocService service = new LocService(modelPath);
@@ -439,6 +455,7 @@ public class LocMain {
       return (1);
     }
 
+    String csvString = "";
     // for all the files in the input directory
     for (File inputFile : inputDir.listFiles()) {
       String fileName = "";
@@ -478,9 +495,16 @@ public class LocMain {
           // parse into request
           try {
             request = new LocationRequest(Utility.fromJSONString(requestString));
-          } catch (ParseException e) {
+          } catch (Exception e) {
             // parse failure
             LOGGER.severe("Exception: " + e.toString());
+
+            StringWriter sw = new StringWriter();
+            PrintWriter pw = new PrintWriter(sw);
+            e.printStackTrace(pw);
+            LOGGER.severe("Trace: " + sw.toString());
+
+            LOGGER.severe("File: " + fileName);
             return (1);
           }
         } else {
@@ -505,6 +529,9 @@ public class LocMain {
 
         // do location
         try {
+          if (request.getID() != null) {
+            LOGGER.info("locating: " + request.getID());
+          }
           result = service.getLocation(request);
         } catch (LocationException e) {
           LOGGER.severe("Exception: " + e.toString());
@@ -533,7 +560,23 @@ public class LocMain {
             LocOutput hydraOut = (LocOutput) result;
             hydraOut.writeHydra(outFileName);
           }
+
+          // build csv string
+          if (csvFile != null) {
+            csvString += result.toCSV() + "\n";
+          }
         }
+      }
+    }
+
+    if (csvFile != null && !"".equals(csvString)) {
+      // Write the csv file to disk
+      try {
+        PrintWriter csvWriter = new PrintWriter(csvFile, "UTF-8");
+        csvWriter.print(csvString);
+        csvWriter.close();
+      } catch (Exception e) {
+        LOGGER.severe(e.toString());
       }
     }
 
