@@ -196,7 +196,7 @@ public class LocMain {
     }
 
     // Exit.
-    if (locRC == true) {
+    if (locRC) {
       System.exit(0);
     }
     System.exit(1);
@@ -327,8 +327,6 @@ public class LocMain {
       String outputPath,
       String outputExtension,
       String csvFile) {
-    // set up service
-    LocService service = new LocService(modelPath);
 
     // read the file
     BufferedReader inputReader = null;
@@ -389,6 +387,8 @@ public class LocMain {
     LocationResult result = null;
     if (request != null) {
       try {
+        // set up service
+        LocService service = new LocService(modelPath);
         result = service.getLocation(request);
       } catch (LocationException e) {
         LOGGER.severe("Exception: " + e.toString());
