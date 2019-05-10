@@ -8,9 +8,9 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.io.StringWriter;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.logging.ConsoleHandler;
@@ -177,7 +177,7 @@ public class LocMain {
     LOGGER.config("user.dir = " + System.getProperty("user.dir"));
     LOGGER.config("user.name = " + System.getProperty("user.name"));
 
-    int locRC = -1;
+    boolean locRC = false;
 
     if ("batch".equals(mode)) {
       locRC =
@@ -191,11 +191,15 @@ public class LocMain {
               fileType,
               csvFile);
     } else {
-      locRC = locMain.locateSingleEvent(modelPath, filePath, fileType, outputExtension);
+      locRC =
+          locMain.locateSingleEvent(modelPath, filePath, fileType, "./", outputExtension, csvFile);
     }
 
     // Exit.
-    System.exit(locRC);
+    if (locRC == true) {
+      System.exit(0);
+    }
+    System.exit(1);
   }
 
   /**
@@ -295,50 +299,71 @@ public class LocMain {
     return filePath.substring(start, end);
   }
 
+  /**
+   * This function returns the current local time as a string
+   *
+   * @return A String containing current local time formatted in the form "yyyyMMdd_HHmmss".
+   */
   public static String getCurrentLocalDateTimeStamp() {
     return LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss"));
   }
 
-  public int locateSingleEvent(
-      String modelPath, String filePath, String fileType, String outputExtension) {
+  /**
+   * This function locates a single event.
+   *
+   * @param modelPath A String containing the path to the required model files
+   * @param filePath A String containing the full path to the locator input file
+   * @param fileType A String containing the type of the locator input file
+   * @param outputPath A String containing the path to write the results
+   * @param outputExtension A String containing the extension to use for output files
+   * @param csvFile An optional String containing full path to the csv formatted file, null to
+   *     disable
+   * @return A boolean flag indicating whether the locaton was successful
+   */
+  public boolean locateSingleEvent(
+      String modelPath,
+      String filePath,
+      String fileType,
+      String outputPath,
+      String outputExtension,
+      String csvFile) {
     // set up service
     LocService service = new LocService(modelPath);
 
-    // load the event based on the file type
-    LocationRequest request = null;
-    LocationResult result = null;
-    if ("json".equals(fileType)) {
-      LOGGER.fine("Reading a json file.");
+    // read the file
+    BufferedReader inputReader = null;
+    String inputString = "";
+    try {
+      inputReader = new BufferedReader(new FileReader(filePath));
+      String text = null;
 
-      // read the file
-      BufferedReader inputReader = null;
-      String inputString = "";
-      try {
-        inputReader = new BufferedReader(new FileReader(filePath));
-        String text = null;
-
-        // each line is assumed to be part of the input
-        while ((text = inputReader.readLine()) != null) {
-          inputString += text;
-        }
-      } catch (FileNotFoundException e) {
-        // no file
-        LOGGER.severe("Exception: " + e.toString());
-        return (1);
-      } catch (IOException e) {
-        // problem reading
-        LOGGER.severe("Exception: " + e.toString());
-        return (1);
-      } finally {
-        try {
-          if (inputReader != null) {
-            inputReader.close();
-          }
-        } catch (IOException e) {
-          // can't close
-          LOGGER.severe("Exception: " + e.toString());
-        }
+      // each line is assumed to be part of the input
+      while ((text = inputReader.readLine()) != null) {
+        inputString += text;
       }
+    } catch (FileNotFoundException e) {
+      // no file
+      LOGGER.severe("Exception: " + e.toString());
+      return false;
+    } catch (IOException e) {
+      // problem reading
+      LOGGER.severe("Exception: " + e.toString());
+      return false;
+    } finally {
+      try {
+        if (inputReader != null) {
+          inputReader.close();
+        }
+      } catch (IOException e) {
+        // can't close
+        LOGGER.severe("Exception: " + e.toString());
+      }
+    }
+
+    // parse the file
+    LocationRequest request = null;
+    if ("json".equals(fileType)) {
+      LOGGER.fine("Parsing a json file.");
 
       // parse into request
       try {
@@ -346,77 +371,80 @@ public class LocMain {
       } catch (ParseException e) {
         // parse failure
         LOGGER.severe("Exception: " + e.toString());
-        return (1);
+        return false;
+      }
+    } else {
+      LOGGER.fine("Parsing a hydra file.");
+
+      // Use LocInput to get access to read routine
+      LocInput hydraIn = new LocInput();
+      if (!hydraIn.readHydra(inputString)) {
+        return false;
       }
 
-      // always print input as json for debugging
-      String jsonString = Utility.toJSONString(request.toJSON());
-      LOGGER.fine("JSON Input: \n" + jsonString);
+      request = (LocationRequest) hydraIn;
+    }
 
-      // do location
+    // do location
+    LocationResult result = null;
+    if (request != null) {
       try {
         result = service.getLocation(request);
       } catch (LocationException e) {
         LOGGER.severe("Exception: " + e.toString());
-        return (1);
-      }
-    } else {
-      LOGGER.fine("Reading a hydra file.");
-
-      // run as LocInput/LocOutput to get access to read/write routines
-      LocInput hydraIn = new LocInput();
-      LocOutput hydraOut = null;
-      if (!hydraIn.readHydra(filePath)) {
-        return (0);
-      }
-
-      // always print input as json for debugging
-      String jsonString = Utility.toJSONString(hydraIn.toJSON());
-      LOGGER.fine("JSON Input: " + jsonString);
-
-      // do location
-      try {
-        hydraOut = service.getLocation(hydraIn);
-      } catch (LocationException e) {
-        LOGGER.severe("Exception: " + e.toString());
-        return (1);
-      }
-
-      if (hydraOut != null) {
-        LOGGER.fine("Writing a hydra file.");
-        hydraOut.writeHydra(filePath + ".out");
-        result = (LocationResult) hydraOut;
+        return false;
       }
     }
 
-    // always print result as json for debugging
+    // Write the result to disk
     if (result != null) {
-      String resultString = Utility.toJSONString(result.toJSON());
-      LOGGER.fine("JSON Output: \n" + resultString);
+      // create the output file name
+      String outFileName =
+          outputPath + File.separatorChar + getFileName(filePath) + outputExtension;
+      LocOutput locOut = (LocOutput) result;
 
       if ("json".equals(fileType)) {
-        // create the output file name
-        String outFileName = "./" + getFileName(filePath) + outputExtension;
+        locOut.writeJSON(outFileName);
+      } else {
+        locOut.writeHydra(outFileName);
+      }
 
-        // Write the request to disk
+      // append csv to file
+      if (csvFile != null) {
         try {
-          PrintWriter outputWriter = new PrintWriter(outFileName, "UTF-8");
-          outputWriter.print(resultString);
-          outputWriter.close();
+          FileWriter fileWriter = new FileWriter(csvFile, true); // Set true for append mode
+          PrintWriter printWriter = new PrintWriter(fileWriter);
+          printWriter.println(result.toCSV());
+          printWriter.close();
         } catch (Exception e) {
           LOGGER.severe(e.toString());
-          return (1);
         }
       }
 
-      return (0);
+      // success
+      return true;
     }
 
     // Exit.
-    return (1);
+    return false;
   }
 
-  public int locateManyEvents(
+  /**
+   * This function locates all events in a given input directory
+   *
+   * @param modelPath A String containing the path to the required model files
+   * @param inputPath A String containing the full path to directory containing input files
+   * @param inputExtension A String containing the extension of locator input files
+   * @param outputPath A String containing the path to write the results
+   * @param outputExtension A String containing the extension to use for output files
+   * @param archivePath An optional String containing the full path to directory to archive input
+   *     files, null to disable, if disabled, input files are deleted
+   * @param fileType A String containing the type of the locator input file
+   * @param csvFile An optional String containing full path to the csv formatted file, null to
+   *     disable
+   * @return A boolean flag indicating whether the locatons were successful
+   */
+  public boolean locateManyEvents(
       String modelPath,
       String inputPath,
       String inputExtension,
@@ -425,9 +453,6 @@ public class LocMain {
       String archivePath,
       String fileType,
       String csvFile) {
-
-    // set up service
-    LocService service = new LocService(modelPath);
 
     // create the output and archive paths if they don't
     // already exist
@@ -438,7 +463,7 @@ public class LocMain {
       }
     } else {
       LOGGER.severe("Output Path is not specified, exitting.");
-      return 0;
+      return false;
     }
 
     if (archivePath != null) {
@@ -452,135 +477,37 @@ public class LocMain {
     File inputDir = new File(inputPath);
     if (!inputDir.exists()) {
       LOGGER.severe("Input Path is not valid, exitting.");
-      return (1);
+      return false;
     }
 
-    String csvString = "";
-    // for all the files in the input directory
+    // for all the files currently in the input directory
     for (File inputFile : inputDir.listFiles()) {
-      String fileName = "";
-
       // if the file has the right extension
       if (inputFile.getName().endsWith((inputExtension))) {
         // read the file
-        fileName = inputFile.getName();
-        BufferedReader inputReader = null;
-        String requestString = "";
-        LocationRequest request = null;
-        LocationResult result = null;
+        // String fileName = inputFile.getName();
+        String filePath = inputFile.getAbsolutePath();
 
-        if ("json".equals(fileType)) {
-          try {
-            inputReader = new BufferedReader(new FileReader(inputFile));
-
-            String line = "";
-            // each file is assumed to be a single message
-            while ((line = inputReader.readLine()) != null) {
-              requestString += line;
-            }
-          } catch (FileNotFoundException e) {
-            LOGGER.severe(e.toString());
-          } catch (IOException e) {
-            LOGGER.severe(e.toString());
-          } finally {
-            try {
-              if (inputReader != null) {
-                inputReader.close();
-              }
-            } catch (IOException e) {
-              LOGGER.severe(e.toString());
-            }
-          }
-
-          // parse into request
-          try {
-            request = new LocationRequest(Utility.fromJSONString(requestString));
-          } catch (Exception e) {
-            // parse failure
-            LOGGER.severe("Exception: " + e.toString());
-
-            StringWriter sw = new StringWriter();
-            PrintWriter pw = new PrintWriter(sw);
-            e.printStackTrace(pw);
-            LOGGER.severe("Trace: " + sw.toString());
-
-            LOGGER.severe("File: " + fileName);
-            return (1);
-          }
-        } else {
-          // run as LocInput/LocOutput to get access to read/write routines
-          LocInput hydraIn = new LocInput();
-          if (!hydraIn.readHydra(inputPath + File.separatorChar + fileName)) {
-            LOGGER.severe(
-                "Failed to read hydra file: " + inputPath + File.separatorChar + fileName);
-            return (0);
-          }
-          request = (LocationRequest) hydraIn;
-        }
-
-        // done with the file
-        if (archivePath == null) {
-          // not archiving, just delete it
-          inputFile.delete();
-        } else {
-          // Move file to archive directory
-          inputFile.renameTo(new File(archivePath + File.separatorChar + fileName));
-        }
-
-        // do location
-        try {
-          if (request.getID() != null) {
-            LOGGER.info("locating: " + request.getID());
-          }
-          result = service.getLocation(request);
-        } catch (LocationException e) {
-          LOGGER.severe("Exception: " + e.toString());
-          return (1);
-        }
-
-        // write file
-        if (result != null) {
-          // create the output file name
-          String outFileName =
-              outputPath + File.separatorChar + getFileName(fileName) + outputExtension;
-
-          if ("json".equals(fileType)) {
-            String resultString = Utility.toJSONString(result.toJSON());
-
-            // Write the request to disk
-            try {
-              PrintWriter outputWriter = new PrintWriter(outFileName, "UTF-8");
-              outputWriter.print(resultString);
-              outputWriter.close();
-            } catch (Exception e) {
-              LOGGER.severe(e.toString());
-              continue;
-            }
+        if (locateSingleEvent(
+            modelPath, filePath, fileType, outputPath, outputExtension, csvFile)) {
+          // done with the file
+          if (archivePath == null) {
+            // not archiving, just delete it
+            inputFile.delete();
           } else {
-            LocOutput hydraOut = (LocOutput) result;
-            hydraOut.writeHydra(outFileName);
+            // Move file to archive directory
+            inputFile.renameTo(
+                new File(
+                    archivePath + File.separatorChar + getFileName(filePath) + inputExtension));
           }
-
-          // build csv string
-          if (csvFile != null) {
-            csvString += result.toCSV() + "\n";
-          }
+        } else {
+          // we had an error, rename file as errored so we don't retry the same file
+          inputFile.renameTo(new File(filePath + ".error"));
         }
-      }
-    }
-
-    if (csvFile != null && !"".equals(csvString)) {
-      // Write the csv file to disk
-      try {
-        PrintWriter csvWriter = new PrintWriter(csvFile, "UTF-8");
-        csvWriter.print(csvString);
-        csvWriter.close();
-      } catch (Exception e) {
-        LOGGER.severe(e.toString());
       }
     }
 
     // done
-    return (1);
+    return true;
   }
 }

@@ -1,9 +1,11 @@
 package gov.usgs.locator;
 
 import gov.usgs.processingformats.LocationResult;
+import gov.usgs.processingformats.Utility;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.logging.Logger;
 
 /**
  * The LocOutput class stores the outputs from an event relocation. This class is designed to
@@ -13,6 +15,9 @@ import java.util.Date;
  * @author jpatton@usgs.gov
  */
 public class LocOutput extends LocationResult {
+  /** Private logging object. */
+  private static final Logger LOGGER = Logger.getLogger(LocOutput.class.getName());
+
   /** The LocOutput default constructor. */
   public LocOutput() {
     super();
@@ -286,6 +291,7 @@ public class LocOutput extends LocationResult {
    * @return Returns true if successful, false otherwise
    */
   public boolean writeHydra(String filePath) {
+    LOGGER.fine("Writing a hydra file.");
     try {
       PrintWriter fileWriter = new PrintWriter(filePath, "UTF-8");
 
@@ -340,7 +346,7 @@ public class LocOutput extends LocationResult {
       // done with file
       fileWriter.close();
     } catch (Exception e) {
-      e.printStackTrace();
+      LOGGER.severe(e.toString());
       return false;
     }
     return true;
@@ -367,6 +373,28 @@ public class LocOutput extends LocationResult {
         LocUtil.getBoolChar(pick.getUse()),
         pick.getWeight(),
         pick.getImportance());
+  }
+
+  /**
+   * This function generates a json formatted output file.
+   *
+   * @param filePath A String containing the file name and path to write the json output to.
+   * @return Returns true if successful, false otherwise
+   */
+  public boolean writeJSON(String filePath) {
+    LOGGER.fine("Writing a json file.");
+    try {
+      String outputString = Utility.toJSONString(toJSON());
+
+      PrintWriter fileWriter = new PrintWriter(filePath, "UTF-8");
+      fileWriter.print(outputString);
+      fileWriter.close();
+    } catch (Exception e) {
+      LOGGER.severe(e.toString());
+      return false;
+    }
+
+    return true;
   }
 
   /** Print an NEIC style web output. */

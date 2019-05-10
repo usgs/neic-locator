@@ -4,6 +4,7 @@ import gov.usgs.processingformats.LocationException;
 import gov.usgs.processingformats.LocationRequest;
 import gov.usgs.processingformats.LocationResult;
 import gov.usgs.processingformats.LocationService;
+import gov.usgs.processingformats.Utility;
 import gov.usgs.traveltime.TTSessionLocal;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -36,11 +37,28 @@ public class LocService implements LocationService {
    */
   @Override
   public LocationResult getLocation(final LocationRequest request) throws LocationException {
+    if (request == null) {
+      LOGGER.severe("Null request.");
+      throw new LocationException("Null request");
+    }
+
+    // always print request as json to log for debugging
+    LOGGER.fine("JSON Request: \n" + Utility.toJSONString(request.toJSON()));
+
     // create locInput from LocationRequest
     LocInput in = new LocInput(request);
 
-    // return result as a LocationResult
-    return (LocationResult) getLocation(in);
+    LocationResult result = (LocationResult) getLocation(in);
+
+    // always print result as json to log for debugging, if it is valid
+    if (result != null) {
+      LOGGER.fine("JSON Result: \n" + Utility.toJSONString(result.toJSON()));
+    } else {
+      LOGGER.severe("Null result.");
+      throw new LocationException("Null Result");
+    }
+
+    return result;
   }
 
   /**
