@@ -1,10 +1,6 @@
 package gov.usgs.locator;
 
 import gov.usgs.processingformats.LocationRequest;
-import java.io.BufferedInputStream;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.Scanner;
@@ -34,6 +30,7 @@ public class LocInput extends LocationRequest {
    * @param request A LocationRequest object containing the input data
    */
   public LocInput(final LocationRequest request) {
+    setID(request.getID());
     setType(request.getType());
     setEarthModel(request.getEarthModel());
     setSourceLatitude(request.getSourceLatitude());
@@ -52,150 +49,136 @@ public class LocInput extends LocationRequest {
   }
 
   /**
-   * This function sead a Bulletin Hydra style event input file. File open and read exceptions are
+   * This function read a Bulletin Hydra style event input file. File open and read exceptions are
    * trapped.
    *
-   * @param filePath A String containing the path to hydra file
+   * @param fileString A String containing the input file contents to parse
    * @return True if the read was successful
    */
-  public boolean readHydra(String filePath) {
-    BufferedInputStream in;
-    Scanner scan;
+  public boolean readHydra(String fileString) {
+    Scanner scan = new Scanner(fileString);
     Pattern affinity = Pattern.compile("\\d*\\.\\d*");
 
-    // Set up the IO.
-    try {
-      in = new BufferedInputStream(new FileInputStream(filePath));
-    } catch (FileNotFoundException e) {
-      e.printStackTrace();
-      return false;
+    // Get the hypocenter information.
+    setSourceOriginTime(new Date(LocUtil.toJavaTime(scan.nextDouble())));
+    setSourceLatitude(scan.nextDouble());
+    setSourceLongitude(scan.nextDouble());
+    setSourceDepth(scan.nextDouble());
+
+    // Get the analyst commands.
+    setIsLocationHeld(LocUtil.getBoolean(scan.next().charAt(0)));
+    setIsDepthHeld(LocUtil.getBoolean(scan.next().charAt(0)));
+    setIsBayesianDepth(LocUtil.getBoolean(scan.next().charAt(0)));
+    setBayesianDepth(scan.nextDouble());
+    setBayesianSpread(scan.nextDouble());
+    scan.next().charAt(0); // rstt (not used)
+    setUseSVD(!LocUtil.getBoolean(scan.next().charAt(0))); // True when noSvd is false
+
+    // Fiddle because the analyst command last flag is omitted in earlier
+    // data.
+    char moved;
+    if (scan.hasNextInt()) {
+      moved = 'F';
+    } else {
+      moved = scan.next().charAt(0);
     }
-    scan = new Scanner(in);
-    try {
-      // Get the hypocenter information.
-      setSourceOriginTime(new Date(LocUtil.toJavaTime(scan.nextDouble())));
-      setSourceLatitude(scan.nextDouble());
-      setSourceLongitude(scan.nextDouble());
-      setSourceDepth(scan.nextDouble());
+    setIsLocationNew(LocUtil.getBoolean(moved));
 
-      // Get the analyst commands.
-      setIsLocationHeld(LocUtil.getBoolean(scan.next().charAt(0)));
-      setIsDepthHeld(LocUtil.getBoolean(scan.next().charAt(0)));
-      setIsBayesianDepth(LocUtil.getBoolean(scan.next().charAt(0)));
-      setBayesianDepth(scan.nextDouble());
-      setBayesianSpread(scan.nextDouble());
-      scan.next().charAt(0); // rstt (not used)
-      setUseSVD(!LocUtil.getBoolean(scan.next().charAt(0))); // True when noSvd is false
+    // create the pick list
+    ArrayList<gov.usgs.processingformats.Pick> pickList =
+        new ArrayList<gov.usgs.processingformats.Pick>();
 
-      // Fiddle because the analyst command last flag is omitted in earlier
-      // data.
-      char moved;
-      if (scan.hasNextInt()) {
-        moved = 'F';
-      } else {
-        moved = scan.next().charAt(0);
+    // Get the pick information.
+    while (scan.hasNext()) {
+      gov.usgs.processingformats.Pick newPick = new gov.usgs.processingformats.Pick();
+
+      newPick.setId(scan.next());
+
+      // Get the station information.
+      gov.usgs.processingformats.Site newSite = new gov.usgs.processingformats.Site();
+      newSite.setStation(scan.next());
+      newSite.setChannel(scan.next());
+      newSite.setNetwork(scan.next());
+      newSite.setLocation(scan.next());
+      newSite.setLatitude(scan.nextDouble());
+      newSite.setLongitude(scan.nextDouble());
+      newSite.setElevation(scan.nextDouble());
+      newPick.setSite(newSite);
+
+      // Get the rest of the pick information.  Note that some
+      // fiddling is required as some of the positional arguments
+      // are sometimes omitted.
+      newPick.setQuality(scan.nextDouble());
+      String curPh = null;
+      if (!scan.hasNextDouble()) {
+        curPh = scan.next();
       }
-      setIsLocationNew(LocUtil.getBoolean(moved));
+      newPick.setPickedPhase(curPh);
 
-      // create the pick list
-      ArrayList<gov.usgs.processingformats.Pick> pickList =
-          new ArrayList<gov.usgs.processingformats.Pick>();
+      newPick.setTime(new Date(LocUtil.toJavaTime(scan.nextDouble())));
+      newPick.setUse(LocUtil.getBoolean(scan.next().charAt(0)));
 
-      // Get the pick information.
-      while (scan.hasNext()) {
-        gov.usgs.processingformats.Pick newPick = new gov.usgs.processingformats.Pick();
+      // convert author type
+      // 1 = automatic contributed, 2 = automatic NEIC,
+      // 3 = analyst contributed, 4 = NEIC analyst.
+      int auth = scan.nextInt();
+      String authType = null;
+      if (auth == 1) {
+        authType = "ContributedAutomatic";
+      } else if (auth == 2) {
+        authType = "LocalAutomatic";
+      } else if (auth == 3) {
+        authType = "ContributedHuman";
+      } else if (auth == 4) {
+        authType = "LocalHuman";
+      } else {
+        authType = "ContributedAutomatic";
+      }
+      // make up agency/author because a hydra input file does not have that
+      // information, only author type
+      gov.usgs.processingformats.Source newSource =
+          new gov.usgs.processingformats.Source("US", "Hydra", authType);
+      newPick.setSource(newSource);
 
-        newPick.setId(scan.next());
-
-        // Get the station information.
-        gov.usgs.processingformats.Site newSite = new gov.usgs.processingformats.Site();
-        newSite.setStation(scan.next());
-        newSite.setChannel(scan.next());
-        newSite.setNetwork(scan.next());
-        newSite.setLocation(scan.next());
-        newSite.setLatitude(scan.nextDouble());
-        newSite.setLongitude(scan.nextDouble());
-        newSite.setElevation(scan.nextDouble());
-        newPick.setSite(newSite);
-
-        // Get the rest of the pick information.  Note that some
-        // fiddling is required as some of the positional arguments
-        // are sometimes omitted.
-        newPick.setQuality(scan.nextDouble());
-        String curPh = null;
-        if (!scan.hasNextDouble()) {
-          curPh = scan.next();
-        }
-        newPick.setPickedPhase(curPh);
-
-        newPick.setTime(new Date(LocUtil.toJavaTime(scan.nextDouble())));
-        newPick.setUse(LocUtil.getBoolean(scan.next().charAt(0)));
-
-        // convert author type
-        // 1 = automatic contributed, 2 = automatic NEIC,
-        // 3 = analyst contributed, 4 = NEIC analyst.
-        int auth = scan.nextInt();
-        String authType = null;
-        if (auth == 1) {
-          authType = "ContributedAutomatic";
-        } else if (auth == 2) {
-          authType = "LocalAutomatic";
-        } else if (auth == 3) {
-          authType = "ContributedHuman";
-        } else if (auth == 4) {
-          authType = "LocalHuman";
-        } else {
-          authType = "ContributedAutomatic";
-        }
-        // make up agency/author because a hydra input file does not have that
-        // information, only author type
-        gov.usgs.processingformats.Source newSource =
-            new gov.usgs.processingformats.Source("US", "Hydra", authType);
-        newPick.setSource(newSource);
-
-        String obsPh = null;
-        double aff = 0d;
-        if (scan.hasNextInt() || !scan.hasNext()) {
-          aff = 0d;
-        } else if (scan.hasNext(affinity)) {
+      String obsPh = null;
+      double aff = 0d;
+      if (scan.hasNextInt() || !scan.hasNext()) {
+        aff = 0d;
+      } else if (scan.hasNext(affinity)) {
+        aff = scan.nextDouble();
+      } else {
+        obsPh = scan.next();
+        if (scan.hasNext(affinity)) {
           aff = scan.nextDouble();
         } else {
-          obsPh = scan.next();
-          if (scan.hasNext(affinity)) {
-            aff = scan.nextDouble();
-          } else {
-            aff = 0d;
-          }
-        }
-        newPick.setAffinity(aff);
-        newPick.setAssociatedPhase(obsPh);
-
-        if (newPick.isValid()) {
-          // Add the pick to the list
-          pickList.add(newPick);
-        } else {
-          ArrayList<String> errorList = newPick.getErrors();
-
-          // combine the errors into a single string
-          String errorString = "";
-          for (int i = 0; i < errorList.size(); i++) {
-            errorString += " " + errorList.get(i);
-          }
-
-          LOGGER.warning("Invalid pick: " + errorString);
+          aff = 0d;
         }
       }
+      newPick.setAffinity(aff);
+      newPick.setAssociatedPhase(obsPh);
 
-      // add the pick list to the request
-      setInputData(pickList);
+      if (newPick.isValid()) {
+        // Add the pick to the list
+        pickList.add(newPick);
+      } else {
+        ArrayList<String> errorList = newPick.getErrors();
 
-      // done with file
-      scan.close();
-      in.close();
-    } catch (IOException e) {
-      e.printStackTrace();
-      return false;
+        // combine the errors into a single string
+        String errorString = "";
+        for (int i = 0; i < errorList.size(); i++) {
+          errorString += " " + errorList.get(i);
+        }
+
+        LOGGER.warning("Invalid pick: " + errorString);
+      }
     }
+
+    // add the pick list to the request
+    setInputData(pickList);
+
+    // done with scanning
+    scan.close();
+
     return true;
   }
 }

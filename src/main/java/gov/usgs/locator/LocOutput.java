@@ -1,9 +1,11 @@
 package gov.usgs.locator;
 
 import gov.usgs.processingformats.LocationResult;
+import gov.usgs.processingformats.Utility;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.logging.Logger;
 
 /**
  * The LocOutput class stores the outputs from an event relocation. This class is designed to
@@ -13,6 +15,9 @@ import java.util.Date;
  * @author jpatton@usgs.gov
  */
 public class LocOutput extends LocationResult {
+  /** Private logging object. */
+  private static final Logger LOGGER = Logger.getLogger(LocOutput.class.getName());
+
   /** The LocOutput default constructor. */
   public LocOutput() {
     super();
@@ -22,6 +27,7 @@ public class LocOutput extends LocationResult {
    * The LocOutput constructor. This constructor populates the LocOutput class with the givin
    * parameters that are produced by an event relocation.
    *
+   * @param id A String containing the optional id, null to omit.
    * @param originTime A double containing the source origin time of this location in location in
    *     milliseconds.
    * @param sourceLatitude A Double containing the geographic source latitude of this location in
@@ -43,6 +49,7 @@ public class LocOutput extends LocationResult {
    * @param qualityFlags A String containing the summary event quality flags.
    */
   public LocOutput(
+      String id,
       long originTime,
       double sourceLatitude,
       double sourceLongitude,
@@ -55,6 +62,8 @@ public class LocOutput extends LocationResult {
       double azimuthalGapLEst,
       double minStationDistance,
       String qualityFlags) {
+
+    setID(id);
 
     // create subobjects
     setHypocenter(new gov.usgs.processingformats.Hypocenter());
@@ -125,18 +134,29 @@ public class LocOutput extends LocationResult {
     setBayesianRange(bayesianDepthSpread);
     setDepthImportance(bayesianDepthDataImportance);
 
-    getErrorEllipse().setMaximumHorizontalProjection(maxHorizontalError);
-    getErrorEllipse().setMaximumVerticalProjection(maxVerticalError);
-    getErrorEllipse().setEquivalentHorizontalRadius(equivalentErrorRadius);
-    getErrorEllipse().setE0Error(errorEllipse[0].getSemiLen());
-    getErrorEllipse().setE0Azimuth(errorEllipse[0].getAzimuth());
-    getErrorEllipse().setE0Dip(errorEllipse[0].getPlunge());
-    getErrorEllipse().setE1Error(errorEllipse[1].getSemiLen());
-    getErrorEllipse().setE1Azimuth(errorEllipse[1].getAzimuth());
-    getErrorEllipse().setE1Dip(errorEllipse[1].getPlunge());
-    getErrorEllipse().setE2Error(errorEllipse[2].getSemiLen());
-    getErrorEllipse().setE2Azimuth(errorEllipse[2].getAzimuth());
-    getErrorEllipse().setE2Dip(errorEllipse[2].getPlunge());
+    if (errorEllipse != null) {
+      getErrorEllipse().setMaximumHorizontalProjection(maxHorizontalError);
+      getErrorEllipse().setMaximumVerticalProjection(maxVerticalError);
+      getErrorEllipse().setEquivalentHorizontalRadius(equivalentErrorRadius);
+
+      if (errorEllipse[0] != null) {
+        getErrorEllipse().setE0Error(errorEllipse[0].getSemiLen());
+        getErrorEllipse().setE0Azimuth(errorEllipse[0].getAzimuth());
+        getErrorEllipse().setE0Dip(errorEllipse[0].getPlunge());
+      }
+
+      if (errorEllipse[1] != null) {
+        getErrorEllipse().setE1Error(errorEllipse[1].getSemiLen());
+        getErrorEllipse().setE1Azimuth(errorEllipse[1].getAzimuth());
+        getErrorEllipse().setE1Dip(errorEllipse[1].getPlunge());
+      }
+
+      if (errorEllipse[2] != null) {
+        getErrorEllipse().setE2Error(errorEllipse[2].getSemiLen());
+        getErrorEllipse().setE2Azimuth(errorEllipse[2].getAzimuth());
+        getErrorEllipse().setE2Dip(errorEllipse[2].getPlunge());
+      }
+    }
 
     // exit code conversion
     if (locatorExitCode == LocStatus.SUCESSFUL_LOCATION) {
@@ -271,6 +291,7 @@ public class LocOutput extends LocationResult {
    * @return Returns true if successful, false otherwise
    */
   public boolean writeHydra(String filePath) {
+    LOGGER.fine("Writing a hydra file.");
     try {
       PrintWriter fileWriter = new PrintWriter(filePath, "UTF-8");
 
@@ -325,7 +346,7 @@ public class LocOutput extends LocationResult {
       // done with file
       fileWriter.close();
     } catch (Exception e) {
-      e.printStackTrace();
+      LOGGER.severe(e.toString());
       return false;
     }
     return true;
@@ -352,6 +373,28 @@ public class LocOutput extends LocationResult {
         LocUtil.getBoolChar(pick.getUse()),
         pick.getWeight(),
         pick.getImportance());
+  }
+
+  /**
+   * This function generates a json formatted output file.
+   *
+   * @param filePath A String containing the file name and path to write the json output to.
+   * @return Returns true if successful, false otherwise
+   */
+  public boolean writeJSON(String filePath) {
+    LOGGER.fine("Writing a json file.");
+    try {
+      String outputString = Utility.toJSONString(toJSON());
+
+      PrintWriter fileWriter = new PrintWriter(filePath, "UTF-8");
+      fileWriter.print(outputString);
+      fileWriter.close();
+    } catch (Exception e) {
+      LOGGER.severe(e.toString());
+      return false;
+    }
+
+    return true;
   }
 
   /** Print an NEIC style web output. */

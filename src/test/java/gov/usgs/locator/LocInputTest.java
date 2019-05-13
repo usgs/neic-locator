@@ -3,6 +3,10 @@ package gov.usgs.locator;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 
+import java.io.BufferedReader;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.IOException;
 import java.util.Date;
 import org.junit.Test;
 
@@ -28,12 +32,42 @@ public class LocInputTest {
   /** This test is designed to test LocInput's ability to read a hydra input file. */
   @Test
   public void testFileRead() {
-    LocInput hydraIn = new LocInput();
 
-    if (!hydraIn.readHydra("build/resources/test/hydraInput.txt")) {
+    // read the file
+    BufferedReader inputReader = null;
+    String inputString = "";
+    try {
+      inputReader = new BufferedReader(new FileReader("build/resources/test/hydraInput.txt"));
+      String text = null;
+
+      // each line is assumed to be part of the input
+      while ((text = inputReader.readLine()) != null) {
+        inputString += text;
+      }
+    } catch (FileNotFoundException e) {
+      // no file
+      fail();
+    } catch (IOException e) {
+      // problem reading
+      fail();
+    } finally {
+      try {
+        if (inputReader != null) {
+          inputReader.close();
+        }
+      } catch (IOException e) {
+        // can't close
+        fail();
+      }
+    }
+
+    // parse
+    LocInput hydraIn = new LocInput();
+    if (!hydraIn.readHydra(inputString)) {
       fail();
     }
 
+    // check validity
     if (!hydraIn.isValid()) {
       fail();
     }
