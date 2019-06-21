@@ -24,4 +24,15 @@ public class LocatorSite {
     return site;
   }
 
+  public static LocatorSite fromSite(final Site that) {
+    LocatorSite site = new LocatorSite();
+    site.Station = that.getStation();
+    site.Network = that.getNetwork();
+    site.Channel = that.getChannel();
+    site.Location = that.getLocation();
+    site.Latitude = that.getLatitude();
+    site.Longitude = that.getLongitude();
+    site.Elevation = that.getElevation();
+    return site;
+  }
 }

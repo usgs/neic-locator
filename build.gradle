@@ -7,9 +7,10 @@
  */
 
 plugins {
-    id "io.spring.dependency-management" version "1.0.6.RELEASE"
-    // Apply the java plugin to add support for Java
-    id 'java'
+    // java application
+    id "application"
+    // jar bundling
+    id "com.github.johnrengelman.shadow" version "5.0.0"
     // code coverage
     id "jacoco"
     // static code analysis
@@ -19,8 +20,9 @@ plugins {
     // git clone, etc.
     id "org.ajoberstar.grgit" version "2.3.0"
     // google java format
-    id 'com.github.sherter.google-java-format' version '0.8'
-    id "application"
+    id "com.github.sherter.google-java-format" version "0.8"
+    // manage micronaut dependencies
+    id "io.spring.dependency-management" version "1.0.8.RELEASE"
 }
 
 sourceCompatibility = '1.8'
@@ -52,7 +54,7 @@ dependencies {
     compile "io.micronaut:micronaut-http-client"
     compile "io.micronaut:micronaut-http-server-netty"
     compile "io.swagger.core.v3:swagger-annotations"
-    runtime "ch.qos.logback:logback-classic:1.2.3"
+    compile "ch.qos.logback:logback-classic:1.2.3"
     testAnnotationProcessor "io.micronaut:micronaut-inject-java"
 
     // com.googlecode.json.simple
@@ -166,18 +168,22 @@ tasks.withType(JavaCompile) {
   options.setWarnings(true);
 }
 
-// set jar entry point
-jar {
-  manifest {
-    attributes(
-      'Class-Path': configurations.compile.collect { it.getName() }.join(' '),
-      'Main-Class': 'gov.usgs.locator.LocMain'
-    )
-  }
-  from {
-      configurations.compile.collect { it.isDirectory() ? it : zipTree(it) }
-  }
+shadowJar {
+  mergeServiceFiles()
 }
+
+// set jar entry point
+// jar {
+//   manifest {
+//     attributes(
+//       'Class-Path': configurations.compile.collect { it.getName() }.join(' '),
+//       'Main-Class': 'gov.usgs.locator.LocMain'
+//     )
+//   }
+//   from {
+//       configurations.compile.collect { it.isDirectory() ? it : zipTree(it) }
+//   }
+// }
 
 // create javadocs
 javadoc {

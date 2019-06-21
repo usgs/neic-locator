@@ -23,7 +23,6 @@ public class LocatorPick {
   public Double Weight;
   public Double Importance;
 
-
   public Pick toPick() {
     Pick pick = new Pick();
 
@@ -46,4 +45,23 @@ public class LocatorPick {
     return pick;
   }
 
+  public static LocatorPick fromPick(final Pick that) {
+    LocatorPick pick = new LocatorPick();
+    pick.ID = that.getID();
+    pick.Site = LocatorSite.fromSite(that.getSite());
+    pick.Source = LocatorSource.fromSource(that.getSource());
+    pick.Time = that.getTime();
+    pick.Affinity = that.getAffinity();
+    pick.Quality = that.getQuality();
+    pick.Use = that.getUse();
+    pick.PickedPhase = that.getPickedPhase();
+    pick.LocatedPhase = that.getLocatedPhase();
+    pick.AssociatedPhase = that.getAssociatedPhase();
+    pick.Residual = that.getResidual();
+    pick.Distance = that.getDistance();
+    pick.Azimuth = that.getAzimuth();
+    pick.Weight = that.getWeight();
+    pick.Importance = that.getImportance();
+    return pick;
+  }
 }

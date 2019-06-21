@@ -2,10 +2,10 @@ package gov.usgs.locatorservice;
 
 import gov.usgs.processingformats.LocationRequest;
 import gov.usgs.processingformats.Pick;
-import java.util.stream.Collectors;
-import java.util.Date;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class LocatorRequest {
 
@@ -45,12 +45,9 @@ public class LocatorRequest {
     request.setBayesianSpread(BayesianSpread);
     request.setUseSVD(UseSVD);
 
-    List<Pick> picks = InputData.stream()
-        .map(p -> p.toPick())
-        .collect(Collectors.toList());
+    List<Pick> picks = InputData.stream().map(p -> p.toPick()).collect(Collectors.toList());
     request.setInputData(new ArrayList<Pick>(picks));
 
     return request;
   }
-
 }

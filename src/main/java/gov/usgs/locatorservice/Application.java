@@ -5,12 +5,11 @@ import io.swagger.v3.oas.annotations.OpenAPIDefinition;
 import io.swagger.v3.oas.annotations.info.Info;
 
 @OpenAPIDefinition(
-    info = @Info(
-        title = "locator service",
-        version = "0.0",
-        description = "locator service description"
-    )
-)
+    info =
+        @Info(
+            title = "locator service",
+            version = "0.0",
+            description = "locator service description"))
 public class Application {
 
   public static void main(String[] args) {

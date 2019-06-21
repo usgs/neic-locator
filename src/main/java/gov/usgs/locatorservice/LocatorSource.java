@@ -16,4 +16,11 @@ public class LocatorSource {
     return source;
   }
 
+  public static LocatorSource fromSource(final Source that) {
+    LocatorSource source = new LocatorSource();
+    source.AgencyID = that.getAgencyID();
+    source.Author = that.getAuthor();
+    source.Type = that.getType();
+    return source;
+  }
 }
