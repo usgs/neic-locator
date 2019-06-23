@@ -126,7 +126,7 @@ public class InitialPhaseID {
 
         // Print them.
         // ttList.print(event.hypo.depth, group.getDistance());
-        TTimeData travelTime = ttList.get(0);
+        TTimeData travelTime = ttList.getPhase(0);
 
         // Based on a tentative ID, just compute residuals and weights so
         // that a robust estimate of the origin time correction can be
@@ -149,7 +149,7 @@ public class InitialPhaseID {
                 && !"Sn".equals(phCode)
                 && !"Lg".equals(phCode)) {
               if (pick.getIsAutomatic()) {
-                travelTime = ttList.get(0);
+                travelTime = ttList.getPhase(0);
 
                 if (!phCode.equals(travelTime.getPhCode())) {
                   badPs++;
@@ -166,8 +166,8 @@ public class InitialPhaseID {
               } else {
                 found = false;
 
-                for (int i = 0; i < ttList.size(); i++) {
-                  travelTime = ttList.get(i);
+                for (int i = 0; i < ttList.getNumPhases(); i++) {
+                  travelTime = ttList.getPhase(i);
 
                   if (phCode.equals(travelTime.getPhCode())) {
                     // Note that this is slightly different from the Fortran
@@ -180,7 +180,7 @@ public class InitialPhaseID {
                 }
 
                 if (!found) {
-                  travelTime = ttList.get(0);
+                  travelTime = ttList.getPhase(0);
                   pick.setResidual(pick.getTravelTime() - travelTime.getTT());
                   pick.setWeight(1d / travelTime.getSpread());
 
@@ -346,14 +346,14 @@ public class InitialPhaseID {
             // ttList.print(event.hypo.depth, group.getDistance());
 
             // Set the phase code.  The travel time was already set in phaseID.
-            pick.updatePhaseIdentification(ttList.get(0).getPhCode());
+            pick.updatePhaseIdentification(ttList.getPhase(0).getPhCode());
 
             LOGGER.finer(
                 String.format(
                     "IdHard: %s %s -> %s auto",
                     group.getStation().getStationID().getStationCode(),
                     phCode,
-                    ttList.get(0).getPhCode()));
+                    ttList.getPhase(0).getPhCode()));
           } else {
             // If it's a core phase or not a common mis-identification, just
             // don't use it.
