@@ -7,11 +7,7 @@ jdk:
   - openjdk10
   - openjdk11
   - openjdk12
-#  - oraclejdk8
-#  - oraclejdk9
-# - oraclejdk10
   - oraclejdk11
-  - oraclejdk12
 
 # gradle caching
 before_cache:
