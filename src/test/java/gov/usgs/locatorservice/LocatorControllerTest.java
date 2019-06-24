@@ -13,8 +13,7 @@ import org.junit.jupiter.api.Test;
 @MicronautTest
 public class LocatorControllerTest {
 
-  @Inject
-  private EmbeddedServer server;
+  @Inject private EmbeddedServer server;
 
   @Test
   public void exampleRequest() throws Exception {
