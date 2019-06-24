@@ -6,7 +6,7 @@ WORKDIR /project
 RUN gradle --no-daemon build
 
 
-FROM adoptopenjdk/openjdk11
+FROM adoptopenjdk/openjdk11:latest
 # copy shadow jar
 COPY --from=build /project/build/libs/neic-locator-0.1.0-all.jar /project/
 # copy models

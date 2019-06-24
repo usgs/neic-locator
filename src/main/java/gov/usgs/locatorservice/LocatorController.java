@@ -13,7 +13,7 @@ import io.micronaut.http.annotation.Post;
 public class LocatorController {
 
   @Value("${locator.model.path:./build/models/}")
-  String modelPath;
+  protected String modelPath;
 
   // @Get("/")
   // @Produces(MediaType.TEXT_HTML)
