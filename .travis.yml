@@ -6,10 +6,12 @@ jdk:
   - openjdk9
   - openjdk10
   - openjdk11
-  - oraclejdk8
-  - oraclejdk9
+  - openjdk12
+#  - oraclejdk8
+#  - oraclejdk9
 # - oraclejdk10
   - oraclejdk11
+  - oraclejdk12
 
 # gradle caching
 before_cache:
@@ -24,14 +26,14 @@ script:
   - ./gradlew --info build check javadoc
   # copy javadocs where deploy expects them
   - mkdir ${TRAVIS_BUILD_DIR}/doc/javadoc
-  - cp -r ${TRAVIS_BUILD_DIR}/build/docs/javadoc/* ${TRAVIS_BUILD_DIR}/doc/javadoc  
+  - cp -r ${TRAVIS_BUILD_DIR}/build/docs/javadoc/* ${TRAVIS_BUILD_DIR}/doc/javadoc
 
 # upload coverage
 after_success:
   - bash <(curl -s https://codecov.io/bash)
   - "./gradlew sendCoverageToCodacy"
 
-# Deploying documentation to github pages  
+# Deploying documentation to github pages
 #deploy:
 #  provider: pages
 #  skip_cleanup: true
