@@ -1,9 +1,5 @@
 package gov.usgs.locator;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotEquals;
-import static org.junit.Assert.fail;
-
 import gov.usgs.processingformats.LocationException;
 import gov.usgs.processingformats.LocationRequest;
 import gov.usgs.processingformats.LocationResult;
@@ -13,7 +9,8 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import org.json.simple.parser.ParseException;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 /**
  * Regression Test driver for the locator.
@@ -32,27 +29,27 @@ public class LocatorRegressionTest {
   public void testLocator() {
     // parse input string into request
     String inputString = loadFromFile("build/resources/test/input.json");
-    assertNotEquals("Loaded Input", inputString, EMPTYSTRING);
+    Assertions.assertNotEquals(EMPTYSTRING, inputString, "Loaded Input");
     LocationRequest request = null;
     try {
       request = new LocationRequest(Utility.fromJSONString(inputString));
     } catch (ParseException e) {
       // parse failure
-      fail(e.toString());
+      Assertions.fail(e.toString());
     }
-    assertNotEquals("Location Request", request, null);
+    Assertions.assertNotNull(request, "Location Request");
 
     // parse verification string into result
     String verificationString = loadFromFile("build/resources/test/verification.json");
-    assertNotEquals("Loaded Verification", verificationString, EMPTYSTRING);
+    Assertions.assertNotEquals(EMPTYSTRING, verificationString, "Loaded Verification");
     LocationResult verificationResult = null;
     try {
       verificationResult = new LocationResult(Utility.fromJSONString(verificationString));
     } catch (ParseException e) {
       // parse failure
-      fail(e.toString());
+      Assertions.fail(e.toString());
     }
-    assertNotEquals("Verification Result", verificationResult, null);
+    Assertions.assertNotNull(verificationResult, "Verification Result");
 
     // do location
     LocationResult result = null;
@@ -60,77 +57,75 @@ public class LocatorRegressionTest {
     try {
       result = service.getLocation(request);
     } catch (LocationException e) {
-      fail(e.toString());
+      Assertions.fail(e.toString());
     }
-    assertNotEquals("Location Result", result, null);
+    Assertions.assertNotNull(result, "Location Result");
 
     // check location result parameters against verification result
-    assertEquals(
-        "Latitude:",
+    Assertions.assertEquals(
         verificationResult.getHypocenter().getLatitude(),
         result.getHypocenter().getLatitude(),
-        0.0001);
+        0.0001,
+        "Latitude");
 
-    assertEquals(
-        "Latitude Error:",
+    Assertions.assertEquals(
         verificationResult.getHypocenter().getLatitudeError(),
         result.getHypocenter().getLatitudeError(),
-        0.0001);
+        0.0001,
+        "Latitude Error");
 
-    assertEquals(
-        "Longitude: ",
+    Assertions.assertEquals(
         verificationResult.getHypocenter().getLongitude(),
         result.getHypocenter().getLongitude(),
-        0.0001);
+        0.0001,
+        "Longitude");
 
-    assertEquals(
-        "Longitude Error:",
+    Assertions.assertEquals(
         verificationResult.getHypocenter().getLongitudeError(),
         result.getHypocenter().getLongitudeError(),
-        0.0001);
+        0.0001,
+        "Longitude Error");
 
-    assertEquals(
-        "Depth: ",
+    Assertions.assertEquals(
         verificationResult.getHypocenter().getDepth(),
         result.getHypocenter().getDepth(),
-        0.0001);
+        0.0001,
+        "Depth");
 
-    assertEquals(
-        "Depth Error: ",
+    Assertions.assertEquals(
         verificationResult.getHypocenter().getDepthError(),
         result.getHypocenter().getDepthError(),
-        0.0001);
+        0.0001,
+        "Depth Error");
 
-    assertEquals(
-        "Time: ", verificationResult.getHypocenter().getTime(), result.getHypocenter().getTime());
+    Assertions.assertEquals(
+        verificationResult.getHypocenter().getTime(), result.getHypocenter().getTime(), "Time");
 
-    assertEquals(
-        "Time Error: ",
+    Assertions.assertEquals(
         verificationResult.getHypocenter().getTimeError(),
         result.getHypocenter().getTimeError(),
-        0.0001);
+        0.0001,
+        "Time Error");
 
-    assertEquals(
-        "Minimum Distance: ",
+    Assertions.assertEquals(
         verificationResult.getMinimumDistance(),
         result.getMinimumDistance(),
-        0.0001);
+        0.0001,
+        "Minimum Distance");
 
-    assertEquals("RMS: ", verificationResult.getRMS(), result.getRMS(), 0.0001);
+    Assertions.assertEquals(verificationResult.getRMS(), result.getRMS(), 0.0001, "RMS");
 
-    assertEquals("Gap: ", verificationResult.getGap(), result.getGap(), 0.0001);
+    Assertions.assertEquals(verificationResult.getGap(), result.getGap(), 0.0001, "Gap");
 
-    assertEquals(
-        "Used Stations: ",
+    Assertions.assertEquals(
         verificationResult.getNumberOfUsedStations(),
-        result.getNumberOfUsedStations());
+        result.getNumberOfUsedStations(),
+        "Used Stations");
 
-    assertEquals(
-        "Used Phases: ",
-        verificationResult.getNumberOfUsedPhases(),
-        result.getNumberOfUsedPhases());
+    Assertions.assertEquals(
+        verificationResult.getNumberOfUsedPhases(), result.getNumberOfUsedPhases(), "Used Phases");
 
-    assertEquals("Quality: ", verificationResult.getQuality(), result.getQuality());
+    Assertions.assertEquals(verificationResult.getQuality(), result.getQuality(), "Quality");
 
     // not currently examining the phase list.
   }
