@@ -15,12 +15,6 @@ public class LocatorController {
   @Value("${locator.model.path:./build/models/}")
   protected String modelPath;
 
-  // @Get("/")
-  // @Produces(MediaType.TEXT_HTML)
-  // HttpResponse index() {
-  //   return HttpResponse.redirect(URI.create("/locator/index.html"));
-  // }
-
   @Post(uri = "/locate", consumes = MediaType.APPLICATION_JSON)
   public LocatorResponse getLocation(@Body LocatorRequest request) throws LocationException {
     LocService service = new LocService(modelPath);
