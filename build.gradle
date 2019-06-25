@@ -25,9 +25,9 @@ plugins {
     id "io.spring.dependency-management" version "1.0.8.RELEASE"
 }
 
-sourceCompatibility = '1.8'
-targetCompatibility = '1.8'
-version = '0.1.0'
+sourceCompatibility = "1.8"
+targetCompatibility = "1.8"
+version = "0.1.0"
 
 repositories {
     mavenCentral()
@@ -39,7 +39,7 @@ configurations {
 
 dependencyManagement {
     imports {
-        mavenBom 'io.micronaut:micronaut-bom:1.1.0'
+        mavenBom "io.micronaut:micronaut-bom:1.1.0"
     }
 }
 
@@ -101,7 +101,7 @@ mainClassName = "gov.usgs.locatorservice.Application"
 // Note: To reformat all java code (not in lib) into the
 // google java style, run ./gradlew goJF
 googleJavaFormat {
-  exclude 'lib/**'
+  exclude "lib/**"
 }
 // Google java style is checked automatically as part of the check task
 project.tasks.check.dependsOn(verifyGoogleJavaFormat)
@@ -120,8 +120,8 @@ jacocoTestReport {
   afterEvaluate {
         classDirectories = files(classDirectories.files.collect {
             fileTree(dir: it, exclude: [
-                    'gov/usgs/traveltime/**',
-                    'gov/usgs/processingformats/**'
+                    "gov/usgs/traveltime/**",
+                    "gov/usgs/processingformats/**"
             ])
         })
     }
@@ -138,7 +138,7 @@ test {
 // clone/update external libs from github, at least until they're available in
 // maven
 task cloneExternalProjects {
-  description 'Clones/Updates external project(s).'
+  description "Clones/Updates external project(s)."
 
   doFirst {
     // neic-traveltime
@@ -153,8 +153,8 @@ task cloneExternalProjects {
 
 // copy required model files
 task copyModelFiles(type: Copy) {
-  description 'Copies required model files to build directory.'
-  dependsOn 'cloneExternalProjects'
+  description "Copies required model files to build directory."
+  dependsOn "cloneExternalProjects"
   from "models", "$projectDir/lib/neic-traveltime/models/"
   exclude "README.txt"
   into "$buildDir/models"
@@ -162,12 +162,14 @@ task copyModelFiles(type: Copy) {
 
 // make sure we always update the external projects and copy models prior to
 // complile
-defaultTasks 'cloneExternalProjects', 'copyModelFiles'
-copyModelFiles.dependsOn 'cloneExternalProjects'
-compileJava.dependsOn 'cloneExternalProjects', 'copyModelFiles'
+defaultTasks "cloneExternalProjects", "copyModelFiles"
+copyModelFiles.dependsOn "cloneExternalProjects"
+compileJava.dependsOn "cloneExternalProjects", "copyModelFiles"
 
 // show compile warnings
 tasks.withType(JavaCompile) {
+  options.compilerArgs.add("-parameters")
+  options.encoding = "UTF-8"
   options.setDeprecation(true);
   options.setWarnings(true);
 }
