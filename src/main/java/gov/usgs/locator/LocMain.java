@@ -63,6 +63,13 @@ public class LocMain {
   /** A String containing the argument for specifying to output a csv file. */
   public static final String CSVFILE_ARGUMENT = "--csvFile=";
 
+  /** Mode to process one file (default) */
+  public static final String MODE_SINGLE = "single";
+  /** Mode to process batch */
+  public static final String MODE_BATCH = "batch";
+  /** Mode to run web service. */
+  public static final String MODE_SERVICE = "service";
+
   /** Private logging object. */
   private static final Logger LOGGER = Logger.getLogger(LocMain.class.getName());
 
@@ -82,12 +89,13 @@ public class LocMain {
               + "\n\t--logLevel=[logging level] --inputDir=[input directory path] "
               + "\n\t--outputDir=[output directory path] "
               + "--archiveDir=[optional archive path] "
-              + "\n\t--csvFile=[optional csv file path]");
+              + "\n\t--csvFile=[optional csv file path]"
+              + "\nneic-locator --mode=service");
       System.exit(1);
     }
 
     // Default paths
-    String mode = "single";
+    String mode = MODE_SINGLE;
     String logPath = "./";
     String logLevel = "INFO";
     String modelPath = null;
@@ -179,7 +187,11 @@ public class LocMain {
 
     boolean locRC = false;
 
-    if ("batch".equals(mode)) {
+    if (MODE_SERVICE.equals(mode)) {
+      gov.usgs.locatorservice.Application.main(args);
+      // service runs in separate thread, just return from this method...
+      return;
+    } else if (MODE_BATCH.equals(mode)) {
       locRC =
           locMain.locateManyEvents(
               modelPath,

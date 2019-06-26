@@ -36,4 +36,5 @@ COPY --from=build /project/build/models /project/models
 USER nobody
 EXPOSE 8080
 WORKDIR /project
-CMD [ "/usr/bin/java", "-jar", "neic-locator-service.jar" ]
+ENTRYPOINT [ "/usr/bin/java", "-jar", "neic-locator-service.jar" ]
+CMD [ "--mode=service" ]

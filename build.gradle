@@ -96,7 +96,9 @@ ext.addExternalProject = { path, url, srcDir ->
   }
 }
 
-mainClassName = "gov.usgs.locatorservice.Application"
+
+// mainClassName = "gov.usgs.locatorservice.Application"
+mainClassName = "gov.usgs.locator.LocMain"
 
 // Note: To reformat all java code (not in lib) into the
 // google java style, run ./gradlew goJF
