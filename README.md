@@ -31,7 +31,7 @@ The steps to get and build neic-locator.jar using gradle are as follows:
 To build the docker image, with docker installed and neic-locator built:
 
 1. In a command window, change directories to /neic-locator/
-2. To build the docker container, run the command `docker build -t neiclocator:latest .`
+2. To build the docker container, run the command `docker build -t usgs/neic-locator:latest .`
 
 Using
 -----
@@ -53,7 +53,7 @@ provided in the examples directory.
 
 To run the neic-locator as a web service, run the command `java -jar build/libs/neic-locator-0.1.0-all.jar --mode=service`
 
-To run the neic-locator from the docker container, run the command `docker run --rm -it -p 8080:8080 neiclocator:latest`
+To run the neic-locator from the docker container, run the command `docker run --rm -it -p 8080:8080 usgs/neic-locator:latest`
 
 Once the web service is running, either locally or out of the container , you can access the swagger ui in a browser at `http://localhost:8080/`, and "try out" the locator service using the contents of examples/request.json.
 
