@@ -11,8 +11,7 @@
     "IsBayesianDepth": false,
     "BayesianDepth": 660.0,
     "BayesianSpread": 30.0,
-    "UseRSTT": false,
-    "UseSVD": false,
+    "UseSVD": true,
     "InputData": [
       {
         "Type": "Pick",
@@ -145,7 +144,7 @@
           "Location": "00",
           "Latitude": 5.893,
           "Longitude": -73.083,
-          "Elevation": 3697.0 
+          "Elevation": 3697.0
         },
         "Source": {
           "AgencyID": "US",

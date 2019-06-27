@@ -231,8 +231,8 @@ public class PhaseID {
         int ttIndex = -1;
         double minResidual = TauUtil.DMAX;
 
-        for (int i = 0; i < currentTTList.size(); i++) {
-          TTimeData travelTime = currentTTList.get(i);
+        for (int i = 0; i < currentTTList.getNumPhases(); i++) {
+          TTimeData travelTime = currentTTList.getPhase(i);
 
           if (phCode.equals(travelTime.getPhCode())
               && (Math.abs(pick.getTravelTime() - travelTime.getTT()) < minResidual)) {
@@ -246,7 +246,7 @@ public class PhaseID {
             && (minResidual <= LocUtil.ASSOCTOLERANCE
                 || "Lg".equals(phCode)
                 || "LR".equals(phCode))) {
-          pick.setTTStatisticalMinFoM(currentTTList.get(ttIndex));
+          pick.setTTStatisticalMinFoM(currentTTList.getPhase(ttIndex));
           pick.setStatisticalFoM(minResidual);
           pick.setForceAssociation(true);
 
@@ -262,8 +262,8 @@ public class PhaseID {
           ttIndex = -1;
           minResidual = TauUtil.DMAX;
 
-          for (int i = 0; i < currentTTList.size(); i++) {
-            TTimeData travelTime = currentTTList.get(i);
+          for (int i = 0; i < currentTTList.getNumPhases(); i++) {
+            TTimeData travelTime = currentTTList.getPhase(i);
 
             if ((phaseGroupName.equals(travelTime.getPhGroup()))
                 && (Math.abs(pick.getTravelTime() - travelTime.getTT()) < minResidual)) {
@@ -274,7 +274,7 @@ public class PhaseID {
 
           // If it's not too out of whack, force the association.
           if (ttIndex >= 0 && minResidual <= LocUtil.ASSOCTOLERANCE) {
-            pick.setTTStatisticalMinFoM(currentTTList.get(ttIndex));
+            pick.setTTStatisticalMinFoM(currentTTList.getPhase(ttIndex));
             pick.setStatisticalFoM(minResidual);
             pick.setForceAssociation(true);
 
@@ -283,7 +283,7 @@ public class PhaseID {
                     "NoReID: group %s %s -> %s %6.2f %2d",
                     pick.getStation().getStationID().getStationCode(),
                     phCode,
-                    currentTTList.get(ttIndex).getPhCode(),
+                    currentTTList.getPhase(ttIndex).getPhCode(),
                     minResidual,
                     ttIndex));
           } else {
@@ -314,9 +314,9 @@ public class PhaseID {
       Pick pick = currentGroup.getPick(j);
 
       if (pick.getIsSurfaceWave()) {
-        for (int i = 0; i < currentTTList.size(); i++) {
-          if (pick.getBestPhaseCode().equals(currentTTList.get(i).getPhCode())) {
-            pick.setTTStatisticalMinFoM(currentTTList.get(i));
+        for (int i = 0; i < currentTTList.getNumPhases(); i++) {
+          if (pick.getBestPhaseCode().equals(currentTTList.getPhase(i).getPhCode())) {
+            pick.setTTStatisticalMinFoM(currentTTList.getPhase(i));
             pick.setForceAssociation(true);
             break;
           }
@@ -329,7 +329,7 @@ public class PhaseID {
     LOGGER.finer("Clusters:");
 
     int i = 0;
-    TTimeData travelTime = currentTTList.get(0);
+    TTimeData travelTime = currentTTList.getPhase(0);
     double minTTWindow = travelTime.getTT() - travelTime.getWindow();
     double maxTTWindow = travelTime.getTT() + travelTime.getWindow();
     int firstTTIndex = 0; // Index of the first theoretical arrival
@@ -338,8 +338,8 @@ public class PhaseID {
     int numPicks = 0; // Number of picks
 
     // Loop over theoretical arrivals.
-    for (int j = 1; j < currentTTList.size(); j++) {
-      travelTime = currentTTList.get(j);
+    for (int j = 1; j < currentTTList.getNumPhases(); j++) {
+      travelTime = currentTTList.getPhase(j);
 
       // If this is part of the same cluster, extend the window.
       if (travelTime.getTT() - travelTime.getWindow() <= maxTTWindow) {
@@ -622,7 +622,7 @@ public class PhaseID {
     TTimeData[] ttArrivals = new TTimeData[numTT];
     i = firstTTIndex;
     for (int j = 0; j < numTT; j++, i++) {
-      ttArrivals[j] = currentTTList.get(i);
+      ttArrivals[j] = currentTTList.getPhase(i);
     }
 
     LOGGER.finer(String.format(" Permut: %2d Picks, %2d TTs", numPicks, numTT));
