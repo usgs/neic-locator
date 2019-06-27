@@ -120,12 +120,12 @@ jacocoTestReport {
 
   // exclude librarys
   afterEvaluate {
-        classDirectories = files(classDirectories.files.collect {
+        getClassDirectories().from(files(classDirectories.files.collect {
             fileTree(dir: it, exclude: [
                     "gov/usgs/traveltime/**",
                     "gov/usgs/processingformats/**"
             ])
-        })
+        }))
     }
 }
 check.dependsOn jacocoTestReport

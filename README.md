@@ -15,6 +15,8 @@ Dependencies
 * neic-locator is built with [Gradle](https://gradle.org/), a build.gradle file and gradlew are included in this project
 * neic-locator depends on the [neic-traveltime](https://github.com/usgs/neic-traveltime) package. A copy of this package is automatically downloaded and built as part of the neic-locator build.
 * neic-locator depends on the [earthquake-processing-formats](https://github.com/usgs/earthquake-processing-formats) package. A copy of this package is automatically downloaded and built as part of the neic-locator build.
+* neic-locator uses the [Micronaut library](https://micronaut.io/) to implement a locator webservice. This package is automatically downloaded and built as part of the neic-locator build.
+* neic-locator can be optionally built into a docker container using the supplied dockerfile. Docker is not included with neic-locator project.
 
 Building
 ------
@@ -25,6 +27,11 @@ The steps to get and build neic-locator.jar using gradle are as follows:
 3. To build the jar file, run the command `./gradlew build`
 4. To build the jar file, run unit tests, and code coverage, run the command `./gradlew check`
 5. To generate javadocs, run the command `./gradlew javadoc`
+
+To build the docker image, with docker installed and neic-locator built:
+
+1. In a command window, change directories to /neic-locator/
+2. To build the docker container, run the command `docker build -t neiclocator:latest .`
 
 Using
 -----
@@ -38,11 +45,17 @@ build/models/ as part of the gradle build.
 An example legacy input file `LocOutput1000010563_23.txt` is provided in the
 examples directory.
 
-To run this example, run the command  `java -jar build/libs/neic-locator-0.1.0.jar --modelPath=./build/models/ --filePath=./examples/raylocinput1000010563_23.txt  --logLevel=debug`
+To run this example, run the command  `java -jar build/libs/neic-locator-0.1.0-all.jar --modelPath=./build/models/ --filePath=./examples/raylocinput1000010563_23.txt  --logLevel=debug`
 
 The results of this example (and associated log file) are expected to match the
 results found in the legacy output file `LocOutput1000010563_23.txt` file
 provided in the examples directory.
+
+To run the neic-locator as a web service, run the command `java -jar build/libs/neic-locator-0.1.0-all.jar --mode=service`
+
+To run the neic-locator from the docker container, run the command `docker run --rm -it -p 8080:8080 neiclocator:latest`
+
+Once the web service is running, either locally or out of the container , you can access the swagger ui in a browser at `http://localhost:8080/`, and "try out" the locator service using the contents of examples/request.json.
 
 Further Information and Documentation
 ------
