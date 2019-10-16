@@ -115,14 +115,14 @@ public class InitialPhaseID {
         LOGGER.finer("InitialPhaseID: " + station + ":");
 
         // Do the travel-time calculation.
-        TTime ttList =
-            ttList =
-                ttLocalSession.getTT(
-                    station.getLatitude(),
-                    station.getLongitude(),
-                    station.getElevation(),
-                    group.getDistance(),
-                    group.getAzimuth());
+        TTime ttList;
+        ttList =
+            ttLocalSession.getTT(
+                station.getLatitude(),
+                station.getLongitude(),
+                station.getElevation(),
+                group.getDistance(),
+                group.getAzimuth());
 
         // Print them.
         // ttList.print(event.hypo.depth, group.getDistance());
@@ -192,7 +192,7 @@ public class InitialPhaseID {
 
               weightedResiduals.add(
                   new WeightedResidual(
-                      pick, pick.getResidual(), pick.getWeight(), false, 0d, 0d, 0d));
+                      pick, pick.getResidual(), pick.getWeight(), false, 0d, 0d, 0d, 0d, 0d));
 
               LOGGER.finer(
                   String.format(
@@ -216,6 +216,8 @@ public class InitialPhaseID {
             hypo.getBayesianDepthResidual(),
             hypo.getBayesianDepthWeight(),
             true,
+            0d,
+            0d,
             0d,
             0d,
             0d));

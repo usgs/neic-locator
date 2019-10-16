@@ -114,7 +114,7 @@ public class LocService implements LocationService {
     event.input(in);
 
     // print input for debugging
-    LOGGER.info("Input: \n" + event.getHydraInput());
+    LOGGER.info("Input: \n" + event.getHydraInput(false));
 
     // setup the locator
     Locate loc = new Locate(event, ttLocal, auxLoc);

@@ -1,7 +1,6 @@
 package gov.usgs.locator;
 
 import gov.usgs.traveltime.TTimeData;
-import gov.usgs.traveltime.TauUtil;
 import java.util.ArrayList;
 import java.util.logging.Logger;
 
@@ -88,15 +87,6 @@ public class Pick implements Comparable<Pick> {
 
   /** A boolean flag indicating the association should be forced during phase identification. */
   private boolean forceAssociation;
-
-  /**
-   * A TTimeData object holding the theoretical arrival with the minimum alternateFoM used in phase
-   * identification.
-   */
-  private TTimeData ttAlternateMinFoM;
-
-  /** A double containing the alternate statistical figure-of-merit used in phase identification. */
-  private double alternateFoM;
 
   /**
    * A boolean flag indicating this pick is a surface wave. Surface wave phases can't be
@@ -304,24 +294,6 @@ public class Pick implements Comparable<Pick> {
   }
 
   /**
-   * Function to get the theoretical arrival object with the minimum alternateFoM.
-   *
-   * @return A TTimeData object holding the theoretical arrival with the minimum alternateFoM
-   */
-  public TTimeData getTTAlternateMinFoM() {
-    return ttAlternateMinFoM;
-  }
-
-  /**
-   * Function to get the current alternate figure-of-merit.
-   *
-   * @return A double containing the current alternate figure-of-merit
-   */
-  public double getAlternateFoM() {
-    return alternateFoM;
-  }
-
-  /**
    * Function to get whether this pick is a surface wave. Surface wave phases can't be re-identified
    *
    * @return A boolean flag indicating whether this pick is a surface wave.
@@ -415,26 +387,6 @@ public class Pick implements Comparable<Pick> {
   public void setStatisticalFoM(TTimeData statisticalTravelTime, double statisticalFoM) {
     ttStatisticalMinFoM = statisticalTravelTime;
     this.statisticalFoM = statisticalFoM;
-  }
-
-  /**
-   * Function to set the current alternate figure-of-merit.
-   *
-   * @param alternateFoM A double containing the current alternate figure-of-merit
-   */
-  public void setAlternateFoM(double alternateFoM) {
-    this.alternateFoM = alternateFoM;
-  }
-
-  /**
-   * This function sets the alternate figure-of-merit variables.
-   *
-   * @param alternateTravelTime A TTimeData object containing the travel-time information
-   * @param alternateFoM A double containing the altermate Figure-of-merit metric
-   */
-  public void setAlternateFoM(TTimeData alternateTravelTime, double alternateFoM) {
-    ttAlternateMinFoM = alternateTravelTime;
-    this.alternateFoM = alternateFoM;
   }
 
   /**
@@ -616,7 +568,9 @@ public class Pick implements Comparable<Pick> {
             false,
             LocUtil.computeTTLatDerivative(ttStatisticalMinFoM.getDTdD(), azimuth),
             LocUtil.computeTTLonDerivative(ttStatisticalMinFoM.getDTdD(), azimuth),
-            ttStatisticalMinFoM.getDTdZ());
+            ttStatisticalMinFoM.getDTdZ(),
+		        LocUtil.computeTTLatDerivative(ttStatisticalMinFoM.getDSdD(), azimuth),
+		        LocUtil.computeTTLonDerivative(ttStatisticalMinFoM.getDSdD(), azimuth));
         weightedResiduals.add(weightedResidual);
 
         if (reID) {
@@ -689,8 +643,6 @@ public class Pick implements Comparable<Pick> {
     statisticalFoM = 0d;
     ttStatisticalMinFoM = null;
     forceAssociation = false;
-    alternateFoM = TauUtil.DMAX;
-    ttAlternateMinFoM = null;
   }
 
   /** This function converts the pick into a string. */

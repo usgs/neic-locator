@@ -384,7 +384,7 @@ public class Hypocenter {
   }
 
   /**
-   * This functino sets an analyst requested Bayesian depth. Note that this forces the event
+   * This function sets an analyst requested Bayesian depth. Note that this forces the event
    * starting depth to the Bayesian depth.
    *
    * @param bayesianDepth A double containing the Bayesian depth in kilometers

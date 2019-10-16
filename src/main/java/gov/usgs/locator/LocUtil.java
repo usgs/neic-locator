@@ -81,25 +81,28 @@ public class LocUtil {
   public static final double DEG2KM = 6371d * Math.PI / 180d;
 
   /** An int constant representing the maximum number of iteration stages to attempt. */
-  public static final int STAGELIMIT = 5;
+  public static final int STAGELIMIT = 2;
 
   /** A double constant representing the initial step length to start each iteration loop with. */
   public static final double INITIALSTEPLEN = 50d;
 
   /** An array of int constants representing the maximum number of iterations for each stage. */
-  public static final int[] ITERATIONSTAGELIMITS = {15, 20, 20, 20, 20};
+  // public static final int[] ITERATIONSTAGELIMITS = {15, 20, 20, 20, 20, 20, 20, 20, 20, 20};
+  public static final int[] ITERATIONSTAGELIMITS = {15, 20};	// Collapse to with and without decorrelation sub-loops 9/16/19.
 
   /**
    * An array of double constants representing the convergence criteria in kilometers for each
    * stage.
    */
-  public static final double[] CONVERGENCESTAGELIMITS = {1d, 0.1d, 0.1d, 0.1d, 0.1d};
+  // public static final double[] CONVERGENCESTAGELIMITS = {1d, 0.1d, 0.1d, 0.1d, 0.1d, 0.1d, 0.1d, 
+  // 		0.1d, 0.1d, 0.1d};
+  public static final double[] CONVERGENCESTAGELIMITS = {1d, 0.1d};
 
   /**
    * An array of double constants representing the maximum step length in kilometers to allow for
    * each stage.
    */
-  public static final double[] STEPLENSTAGELIMITS = {200d, 50d, 20d, 20d, 20d};
+  public static final double[] STEPLENSTAGELIMITS = {200d, 50d};
 
   /**
    * A double constant representing the step tolerance dividing "did not converge" from "unstable
@@ -585,6 +588,21 @@ public class LocUtil {
     return (GAUSSIANNORM * Math.exp(-0.5d * Math.pow(gaussVar, 2d)) / gaussSpread
             + CAUCHYNORM / (cauchySpread * (1d + Math.pow(cauchyVar, 2d))))
         / ttResNorm;
+  }
+  
+  /**
+   * The proximity boost is designed to boost the probability of a set of phases if a lower 
+   * probability phase happens to have a freakishly small residual.  The phase probability 
+   * should be multiplied by the boost factor.  Note that if the most probable phase also has 
+   * a small residual, both would get a boost and the more probably phase would (probably) still 
+   * win.
+   * 
+   * @param residual Travel-time residual in seconds
+   * @return Proximity boost factor
+   */
+  public static double computeProximityBoost(double residual) {
+  	// This gives a boost of 15 for a zero residual and no boost for residuals over 3 s.
+  	return Math.max(15d - 4.67d * Math.abs(residual), 1d);
   }
 
   /**

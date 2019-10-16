@@ -1061,7 +1061,6 @@ public class Event {
     switch (status) {
       case SUCCESS:
       case NEARLY_CONVERGED:
-      case DID_NOT_CONVERGE:
       case UNSTABLE_SOLUTION:
         if ((hypo.getHorizontalStepLength() > LocUtil.DISTANCETOLERANCE)
             || (hypo.getVerticalStepLength() > LocUtil.DEPTHTOLERANCE)) {
@@ -1074,6 +1073,10 @@ public class Event {
       case SINGULAR_MATRIX:
       case ELLIPSOID_FAILED:
         locatorExitCode = LocStatus.ERRORS_NOT_COMPUTED;
+        break;
+
+      case DID_NOT_CONVERGE:
+        locatorExitCode = LocStatus.DID_NOT_CONVERGE;
         break;
 
       case INSUFFICIENT_DATA:
@@ -1181,27 +1184,44 @@ public class Event {
    * This function converts the input event information to a string formatted similarly to the
    * "Hydra" event input file for debugging.
    *
+   * @param humanReadable If true make date-times and booleans readable for a human
    * @return A String containing the formatted hydra input.
    */
-  public String getHydraInput() {
+  public String getHydraInput(boolean humanReadable) {
     String hydraInput = "";
-    hydraInput +=
-        String.format(
-            "%22s %8.4f %9.4f %6.2f %5b %5b %5b " + "%5.1f %5.1f %5b\n",
-            LocUtil.getDateTimeString(hypo.getOriginTime()),
-            hypo.getLatitude(),
-            hypo.getLongitude(),
-            hypo.getDepth(),
-            isLocationHeld,
-            isDepthHeld,
-            isDepthManual,
-            hypo.getBayesianDepth(),
-            hypo.getBayesianDepthSpread(),
-            useDecorrelation);
-    hydraInput += "\n";
+    if(humanReadable) {
+	    hydraInput +=
+	        String.format(
+	            "%22s %8.4f %9.4f %6.2f %5b %5b %5b " + "%5.1f %5.1f %5b\n",
+	            LocUtil.getDateTimeString(hypo.getOriginTime()),
+	            hypo.getLatitude(),
+	            hypo.getLongitude(),
+	            hypo.getDepth(),
+	            isLocationHeld,
+	            isDepthHeld,
+	            isDepthManual,
+	            hypo.getBayesianDepth(),
+	            hypo.getBayesianDepthSpread(),
+	            useDecorrelation);
+	    hydraInput += "\n";
+    } else {
+	    hydraInput +=
+	        String.format(
+	            "%14.3f %8.4f %9.4f %6.2f %c %c %c " + "%5.1f %5.1f %c \n",
+	            hypo.getOriginTime(),
+	            hypo.getLatitude(),
+	            hypo.getLongitude(),
+	            hypo.getDepth(),
+	            LocUtil.getBoolChar(isLocationHeld),
+	            LocUtil.getBoolChar(isDepthHeld),
+	            LocUtil.getBoolChar(isDepthManual),
+	            !Double.isNaN(hypo.getBayesianDepth()) ? hypo.getBayesianDepth() : 0d,
+	            !Double.isNaN(hypo.getBayesianDepthSpread()) ? hypo.getBayesianDepthSpread() : 0d,
+	            LocUtil.getBoolChar(!useDecorrelation));
+    }
 
     for (int j = 0; j < pickGroupList.size(); j++) {
-      hydraInput += pickGroupList.get(j).getInputPicks();
+      hydraInput += pickGroupList.get(j).getInputPicks(humanReadable);
     }
 
     return hydraInput;

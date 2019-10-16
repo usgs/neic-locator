@@ -80,7 +80,7 @@ public class LocInput extends LocationRequest {
     if (scan.hasNextInt()) {
       moved = 'F';
     } else {
-      moved = scan.next().charAt(0);
+    	moved = scan.next().charAt(0);
     }
     setIsLocationNew(LocUtil.getBoolean(moved));
 

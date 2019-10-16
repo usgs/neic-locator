@@ -226,35 +226,59 @@ public class PickGroup {
    * This function converts the input pick information to a string formatted similarly to the
    * "Hydra" event input file.
    *
+   * @param humanReadable If true make date-times and booleans readable for a human
    * @return A String containing the input pick information formatted similarly to the "Hydra" event
    *     input file.
    */
-  public String getInputPicks() {
+  public String getInputPicks(boolean humanReadable) {
     String pickInput = "";
 
     for (int j = 0; j < picks.size(); j++) {
       Pick pick = picks.get(j);
 
-      pickInput +=
-          String.format(
-              "%10s %-5s %3s %2s %2s %8.4f %9.4f %5.2f %3.1f %-8s %12s %5b %-13s %-8s %3.1f",
-              pick.getPickID(),
-              station.getStationID().getStationCode(),
-              pick.getChannelCode(),
-              station.getStationID().getNetworkCode(),
-              station.getStationID().getLocationCode(),
-              station.getLatitude(),
-              station.getLongitude(),
-              station.getElevation(),
-              pick.getQuality(),
-              pick.getCurrentPhaseCode(),
-              LocUtil.getTimeString(pick.getArrivalTime()),
-              pick.getExternalUse(),
-              pick.getOriginalAuthorType(),
-              pick.getOriginalPhaseCode(),
-              pick.getOriginalPhaseAffinity());
-
-      pickInput += "\n";
+      if(humanReadable) {
+	      pickInput +=
+	          String.format(
+	              "%10s %-5s %3s %2s %2s %8.4f %9.4f %5.2f %3.1f %-8s %12s %5b %-13s %-8s %3.1f",
+	              pick.getPickID(),
+	              station.getStationID().getStationCode(),
+	              pick.getChannelCode(),
+	              station.getStationID().getNetworkCode(),
+	              station.getStationID().getLocationCode(),
+	              station.getLatitude(),
+	              station.getLongitude(),
+	              station.getElevation(),
+	              pick.getQuality(),
+	              pick.getCurrentPhaseCode(),
+	              LocUtil.getTimeString(pick.getArrivalTime()),
+	              pick.getExternalUse(),
+	              pick.getOriginalAuthorType(),
+	              pick.getOriginalPhaseCode(),
+	              pick.getOriginalPhaseAffinity());
+	
+	      pickInput += "\n";
+      } else {
+	      pickInput +=
+	          String.format(
+	              "%10s %-5s %3s %2s %2s %8.4f %9.4f %5.2f %3.1f %-8s %14.3f %1c %1d %-8s %3.1f ",
+	              pick.getPickID(),
+	              station.getStationID().getStationCode(),
+	              pick.getChannelCode(),
+	              station.getStationID().getNetworkCode(),
+	              station.getStationID().getLocationCode(),
+	              station.getLatitude(),
+	              station.getLongitude(),
+	              station.getElevation(),
+	              pick.getQuality(),
+	              pick.getCurrentPhaseCode(),
+	              pick.getArrivalTime(),
+	              LocUtil.getBoolChar(pick.getExternalUse()),
+	              LocUtil.getNumericAuthCode(pick.getOriginalAuthorType()),
+	              pick.getOriginalPhaseCode(),
+	              pick.getOriginalPhaseAffinity());
+	
+	      pickInput += "\n";
+      }
     }
 
     return pickInput;

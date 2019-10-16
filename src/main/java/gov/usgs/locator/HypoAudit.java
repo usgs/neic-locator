@@ -189,4 +189,13 @@ public class HypoAudit {
   public double getLongitudeCosine() {
     return longitudeCosine;
   }
+  
+  /**
+   * Function to update the audit location status.
+   * 
+   * @param locationStatus New location status
+   */
+  public void setLocationStatus(LocStatus locationStatus) {
+  	this.locationStatus = locationStatus;
+  }
 }

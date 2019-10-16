@@ -8,6 +8,11 @@ import java.util.logging.Logger;
  * @author Ray Buland
  */
 public class Stepper {
+	/** We need to force the decorrelation to be done at least once even if the phase identification 
+	 * didn't change.
+	 */
+	private boolean firstDecorrelationDone = false;
+	
   /** An Event object containing the event to use when performing Stepper calculations. */
   private Event event;
 
@@ -43,6 +48,9 @@ public class Stepper {
 
   /** Private logging object. */
   private static final Logger LOGGER = Logger.getLogger(Stepper.class.getName());
+
+  // We need visibility here for the derivative test.
+  double residualsMedian;
 
   /**
    * The Stepper constructor. Set the event, phaseID logic, and auxiliary locator information to the
@@ -129,7 +137,6 @@ public class Stepper {
       return LocStatus.INSUFFICIENT_DATA;
     }
 
-    double residualsMedian;
     double dispersion;
     if (LocUtil.useDecorrelation) {
       // Demedian the raw residuals.
@@ -139,7 +146,8 @@ public class Stepper {
       LOGGER.fine(String.format("Lsrt: EL av = %8.4f", residualsMedian));
 
       // Decorrelate the raw data.
-      if (event.getHasPhaseIdChanged()) {
+      if (event.getHasPhaseIdChanged() || !firstDecorrelationDone) {
+      	firstDecorrelationDone = true;
         decorrelator.decorrelate();
       }
       decorrelator.projectPicks();
@@ -215,12 +223,12 @@ public class Stepper {
             LocUtil.STEPLENSTAGELIMITS[stage],
             hypo.getEstimatorDispersionValue());
 
-    // This weird special case appears once in a while.
+    // If the dispersion didn't change, don't make the step (meaning we've converged).
     if (rSumEstResult.getDispersion() >= hypo.getEstimatorDispersionValue()
         && rSumEstResult.getStepLength() < LocUtil.CONVERGENCESTAGELIMITS[stage]) {
-      hypo.setStepLength(rSumEstResult.getStepLength());
       hypo.setHorizontalStepLength(0d);
       hypo.setVerticalStepLength(0d);
+      hypo.setStepLength(0d);
 
       logStep("Step", stage, iteration, status);
 
@@ -233,7 +241,7 @@ public class Stepper {
 
     // Reidentify phases and get the non-linear rank-sum-estimator parameters
     // for the new hypocenter.
-    if (internalPhaseID(0.01d, 5d, false, false) == LocStatus.INSUFFICIENT_DATA) {
+    if (internalPhaseID(0.01d, 5d, false, true) == LocStatus.INSUFFICIENT_DATA) {					// ReWeight always true 9/16/19.
       return LocStatus.INSUFFICIENT_DATA;
     }
     event.updateOriginTime(rSumEstResult.getMedianResidual());
@@ -298,7 +306,7 @@ public class Stepper {
 
       // Reidentify phases and get the non-linear rank-sum-estimator parameters
       // for the new hypocenter.
-      if (internalPhaseID(0.01d, 5d, false, false) == LocStatus.INSUFFICIENT_DATA) {
+      if (internalPhaseID(0.01d, 5d, false, true) == LocStatus.INSUFFICIENT_DATA) {			// ReWeight always true 9/16/19.
         return LocStatus.INSUFFICIENT_DATA;
       }
       event.updateOriginTime(rSumEstResult.getMedianResidual());
