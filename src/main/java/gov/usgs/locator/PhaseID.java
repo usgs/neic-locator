@@ -125,12 +125,7 @@ public class PhaseID {
     this.stickyWeight = stickyWeight;
 
     // Initialize the changed flag.
-    boolean changed;
-    if (reweightResiduals) {
-      changed = true;
-    } else {
-      changed = false;
-    }
+    boolean changed = false;
 
     // Reinitialize the weighted residual storage.
     if (weightedResiduals.size() > 0) {
@@ -161,7 +156,7 @@ public class PhaseID {
               currentGroup.getPicks().get(0).getTravelTime(),
               currentGroup.getDistance(),
               currentGroup.getAzimuth()));
-
+      
       // For the first pick in the group, get the travel times.
       currentTTList =
           ttLocalSession.getTT(
@@ -171,15 +166,11 @@ public class PhaseID {
               currentGroup.getDistance(),
               currentGroup.getAzimuth());
 
-      // Print them.
-      // if (station.getStationID().getStationCode().equals("TX11")) {
-      // currentTTList.print();
-      // }
-
       // If reidentifyPhases is true, do a full phase re-identification for the
       // current group.
       // NOTE this is done using class variables rather than just passing the
-      // group in, ick.
+      // group in, ick.  NOTE class variables are cool when there are so many 
+      // interlinked methods!
       if (reidentifyPhases) {
         reidentifyPhases();
       } else {
@@ -202,7 +193,9 @@ public class PhaseID {
             true,
             0d,
             0d,
-            1d));
+            1d,
+            0d,
+            0d));
 
     // Save a copy of weightedResiduals in the original order.
     event.saveWeightedResiduals();
@@ -402,196 +395,6 @@ public class PhaseID {
             .getPick(0)
             .setStatisticalFoM(currentGroup.getPick(0).getStatisticalFoM() / distanceCorrection);
       }
-
-      if (currentGroup.getPick(0).getTTAlternateMinFoM() != null) {
-        currentGroup
-            .getPick(0)
-            .setAlternateFoM(currentGroup.getPick(0).getAlternateFoM() / distanceCorrection);
-      }
-    }
-
-    // Print out the chosen associations.
-    LOGGER.finest(printAssoc());
-
-    // Finally, rationalize the two identification methods.
-    fomMerge();
-  }
-
-  /**
-   * This function writes out the chosen associations. This can be messy because of possible null
-   * pointers.
-   *
-   * @return A string containing the associations.
-   */
-  private String printAssoc() {
-    String assocString = "";
-    for (int j = 0; j < currentGroup.getNumPicks(); j++) {
-      Pick pick = currentGroup.getPick(j);
-
-      if (pick.getTTStatisticalMinFoM() != null) {
-        if (pick.getTTAlternateMinFoM() != null) {
-          assocString +=
-              String.format(
-                  "Sel: %1d %s %s %5.2f %5.2f",
-                  j,
-                  pick.getTTStatisticalMinFoM().getPhCode(),
-                  pick.getTTAlternateMinFoM().getPhCode(),
-                  pick.getStatisticalFoM(),
-                  pick.getAlternateFoM());
-        } else {
-          assocString +=
-              String.format(
-                  "Sel: %1d %s null     %5.2f",
-                  j, pick.getTTStatisticalMinFoM().getPhCode(), pick.getStatisticalFoM());
-        }
-      } else {
-        if (pick.getTTAlternateMinFoM() != null) {
-          assocString +=
-              String.format(
-                  "  Sel: %1d null     %s       %5.2f",
-                  j, pick.getTTAlternateMinFoM().getPhCode(), pick.getAlternateFoM());
-        } else {
-          assocString += String.format("  Sel: %1d null     null", j);
-        }
-      }
-    }
-
-    return assocString;
-  }
-
-  /**
-   * This function merges the statistical and nearest theoretical phase identification strategies.
-   * This code has been isolated in the hope that a Bayesian approach will eliminate the alternate
-   * phase identification.
-   */
-  private void fomMerge() {
-    for (int j = 0; j < currentGroup.getNumPicks(); j++) {
-      Pick pick = currentGroup.getPick(j);
-
-      // The identification will be done using the statistical variables.
-      // Therefore, we only need to change the statistical variables if the
-      // alternative identification looks better.
-      if (pick.getTTStatisticalMinFoM() != null) {
-        if (pick.getTTAlternateMinFoM() != null) {
-          // We have both, now what?
-          if (j == 0) {
-            // Favor the alternate identification for the first arrival.
-            if (pick.getAlternateFoM()
-                    <= 2d * LocUtil.computeValidityLimit(pick.getTTAlternateMinFoM().getSpread())
-                && pick.getAlternateFoM() < pick.getStatisticalFoM() - 1d
-                && pick.getTTAlternateMinFoM().getPhGroup()
-                    == pick.getTTStatisticalMinFoM().getPhGroup()) {
-              pick.setTTStatisticalMinFoM(pick.getTTAlternateMinFoM());
-              pick.setStatisticalFoM(pick.getAlternateFoM());
-              // If that didn't work, see if the statistical identification is
-              // acceptable.
-            } else if (pick.getStatisticalFoM()
-                > 2d * LocUtil.computeValidityLimit(pick.getTTStatisticalMinFoM().getSpread())) {
-              // If that that didn't work, go back to the alternate
-              // identification.
-              if (pick.getAlternateFoM()
-                  <= 2d * LocUtil.computeValidityLimit(pick.getTTAlternateMinFoM().getSpread())) {
-                pick.setTTStatisticalMinFoM(pick.getTTAlternateMinFoM());
-                pick.setStatisticalFoM(pick.getAlternateFoM());
-              } else {
-                // If all else fails, give up.
-                pick.setTTStatisticalMinFoM(null);
-              }
-            }
-            // Treat later phases differently.
-          } else {
-            // Favor the alternate identification, but not quite as strictly.
-            if (pick.getAlternateFoM()
-                    <= 2d * LocUtil.computeValidityLimit(pick.getTTAlternateMinFoM().getSpread())
-                && pick.getAlternateFoM() < pick.getStatisticalFoM() - 0.5d) {
-              pick.setTTStatisticalMinFoM(pick.getTTAlternateMinFoM());
-              pick.setStatisticalFoM(pick.getAlternateFoM());
-            } else if (pick.getStatisticalFoM()
-                > 2d * LocUtil.computeValidityLimit(pick.getTTStatisticalMinFoM().getSpread())) {
-              // If that that didn't work, go back to the alternate
-              // identification.
-              if (pick.getAlternateFoM()
-                  <= 2d * LocUtil.computeValidityLimit(pick.getTTAlternateMinFoM().getSpread())) {
-                pick.setTTStatisticalMinFoM(pick.getTTAlternateMinFoM());
-                pick.setStatisticalFoM(pick.getAlternateFoM());
-              } else {
-                // If all else fails, give up.
-                pick.setTTStatisticalMinFoM(null);
-              }
-            }
-          }
-          // We only have a statistical identification.
-        } else if (pick.getStatisticalFoM()
-            > 2d * LocUtil.computeValidityLimit(pick.getTTStatisticalMinFoM().getSpread())) {
-          pick.setTTStatisticalMinFoM(null);
-        }
-        // We don't have a statistical identification, try the alternative.
-      } else if (pick.getTTAlternateMinFoM() != null) {
-        if (pick.getAlternateFoM()
-            <= 2d * LocUtil.computeValidityLimit(pick.getTTAlternateMinFoM().getSpread())) {
-          pick.setTTStatisticalMinFoM(pick.getTTAlternateMinFoM());
-          pick.setStatisticalFoM(pick.getAlternateFoM());
-        } else {
-          pick.setTTStatisticalMinFoM(null);
-        }
-        // Neither method found a match.  Give up.
-      } else {
-        pick.setTTStatisticalMinFoM(null);
-      }
-    }
-
-    // We're not quite done.  Now we need to eliminate duplicate
-    // identifications.
-    for (int j = 0; j < currentGroup.getNumPicks() - 1; j++) {
-      Pick pick = currentGroup.getPick(j);
-
-      if (pick.getTTStatisticalMinFoM() != null) {
-        for (int i = j + 1; i < currentGroup.getNumPicks(); i++) {
-          Pick pick2 = currentGroup.getPick(i);
-
-          if (pick.getTTStatisticalMinFoM() == pick2.getTTStatisticalMinFoM()) {
-            if (j == 0) {
-              pick2.setTTStatisticalMinFoM(null);
-            } else {
-              // The alternative figure-of-merits have to exist for this
-              // problem to occur.
-              if (pick.getStatisticalFoM() <= pick2.getStatisticalFoM()) {
-                pick2.setTTStatisticalMinFoM(null);
-              } else {
-                pick.setTTStatisticalMinFoM(null);
-                break;
-              }
-            }
-          }
-        }
-      }
-    }
-
-    // Sometimes the arrival order of the picks and the order of the
-    // theoretical phases are at odds.  If we leave it, it can cause problems,
-    // so, just delete one of the identifications.
-    Pick pick2 = currentGroup.getPick(0);
-    for (int j = 1; j < currentGroup.getNumPicks(); j++) {
-      Pick pick = pick2;
-      pick2 = currentGroup.getPick(j);
-
-      if (pick.getTTStatisticalMinFoM() != null
-          && pick2.getTTStatisticalMinFoM() != null
-          && pick.getTTStatisticalMinFoM().getTT() > pick2.getTTStatisticalMinFoM().getTT()) {
-        if (pick.getTTStatisticalMinFoM().getObserv()
-            >= pick2.getTTStatisticalMinFoM().getObserv()) {
-          // Apparently, we don't care if Lg or LR are out of order.
-          if (!pick2.getTTStatisticalMinFoM().getPhCode().equals("Lg")
-              && !pick2.getTTStatisticalMinFoM().getPhCode().equals("LR")) {
-            pick2.setTTStatisticalMinFoM(null);
-          }
-        } else {
-          if (!pick.getTTStatisticalMinFoM().getPhCode().equals("Lg")
-              && !pick.getTTStatisticalMinFoM().getPhCode().equals("LR")) {
-            pick.setTTStatisticalMinFoM(null);
-          }
-        }
-      }
     }
   }
 
@@ -705,6 +508,7 @@ public class PhaseID {
   private void computeCombinedFoM(Pick[] obsPicks, TTimeData[] ttArrivals) {
     // Make a pass computing the cumulative statistical figure-of-merit.
     double cumulativeFoM = 1d;
+    
     for (int j = 0; j < ttArrivals.length; j++) {
       if (!obsPicks[j].getIsSurfaceWave()) {
         // Compute the figure-of-merit for the primary criteria.
@@ -713,29 +517,18 @@ public class PhaseID {
                 obsPicks[j].getTravelTime() - ttArrivals[j].getTT(), 0d, ttArrivals[j].getSpread());
         double observabilityAmp = computeObsAmplitude(obsPicks[j], ttArrivals[j]);
         double residual = computeResidual(obsPicks[j], ttArrivals[j]);
+      	double boost = LocUtil.computeProximityBoost(residual);
 
         LOGGER.finer(
             String.format(
-                "%s %s: %10.4e %10.4e",
+                "%s %s: %10.4e %10.4e %5.2f",
                 obsPicks[j].getBestPhaseCode(),
                 ttArrivals[j].getPhCode(),
                 probability,
-                observabilityAmp));
+                observabilityAmp, 
+                boost));
 
-        cumulativeFoM *= observabilityAmp * probability;
-
-        // Set up the alternative criteria at the same time.  Note, the
-        // Fortran version omitted the affinity in this test.
-        if (ttArrivals[j].getObserv() >= LocUtil.OBSERVABILITYMIN
-                && residual < obsPicks[j].getAlternateFoM()
-                && obsPicks[j].getIsAutomatic()
-            || TauUtil.arrivalType(obsPicks[j].getBestPhaseCode())
-                == TauUtil.arrivalType(ttArrivals[j].getPhCode())) {
-          // Make sure that the phase types match unless the pick is automatic.
-          obsPicks[j].setAlternateFoM(ttArrivals[j], residual);
-
-          LOGGER.finer(String.format("Alt: %4.2f", residual));
-        }
+      	cumulativeFoM *= observabilityAmp * probability * boost;
       }
     }
 
@@ -769,7 +562,7 @@ public class PhaseID {
    */
   private double computeObsAmplitude(Pick pick, TTimeData travelTime) {
     // Set up the observed pick phase group.
-    // Note depends on the lastPick class varible being set
+    // Note depends on the lastPick class variable being set
     if (!pick.equals(lastPick)) {
       lastPick = pick;
       currPhaseGroupName =

@@ -64,7 +64,7 @@ public class RankSumEstimator {
   }
 
   /**
-   * This function computes the median of the travel-time residuals sored in weightedResiduals
+   * This function computes the median of the travel-time residuals stored in weightedResiduals
    * (excluding the Bayesian depth residual, of course).
    *
    * @return A double containing the median of travel-time residuals stored in weightedResiduals.
@@ -89,7 +89,7 @@ public class RankSumEstimator {
     weightedResiduals.sort(null);
 
     // Do the median.
-    weightedResidualsLength = weightedResiduals.size() - 1;
+    weightedResidualsLength = Math.max(weightedResiduals.size() - 1, 1);
     halfIndex = weightedResidualsLength / 2;
 
     if (weightedResidualsLength % 2 == 0) {
@@ -314,9 +314,10 @@ public class RankSumEstimator {
   /**
    * This function computes the dispersion of the rank-sum estimator.
    *
+   * @param reWeight If true, use a linear estimate of the weight
    * @return A double containing the dispersion / penalty function of the rank-sum estimator
    */
-  public double computeEstDispersionValue() {
+  public double computeEstDispersionValue(boolean reWeight) {
     // Trap insufficient data.
     if (weightedResiduals.size() < 2) {
       return 0d;
@@ -324,7 +325,7 @@ public class RankSumEstimator {
 
     // Set up the penalty.
     for (int j = 0; j < weightedResiduals.size(); j++) {
-      weightedResiduals.get(j).setSortValueLinEstDisp(linearEstimatesMedian);
+      weightedResiduals.get(j).setSortValueLinEstDisp(linearEstimatesMedian, reWeight);
     }
 
     weightedResiduals.sort(null);

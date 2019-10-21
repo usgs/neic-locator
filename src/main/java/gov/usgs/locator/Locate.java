@@ -97,14 +97,16 @@ public class Locate {
       initialPhaseID.phaseID();
       LOGGER.finest(initialPhaseID.printInitialID());
 
-      // Now do the multistage iteration to refine the hypocenter.
+      // Now do the multistage iteration to refine the hypocenter.  Note that 
+      // this is now just a two iteration process: once without and once with 
+      // decorrelation.
       LocStatus status;
       for (int stage = 0; stage < LocUtil.STAGELIMIT; stage++) {
         // check the stage status
         switch (stage) {
           case 0:
             // Do the stage 0 phase identification (no reID, but re-weight).
-            status = stepper.doPhaseIdentification(0.01d, 5d, false, true);
+            status = stepper.doPhaseIdentification(0.01d, 5.0d, false, true);
             break;
 
           case 1:
@@ -114,11 +116,12 @@ public class Locate {
               initialPhaseID.resetUseFlags();
             }
 
-            // Force decorrelation.
-            // NOTE doesn't this mean that we can't ever turn off decorrelation
-            // via the input configuration. It also explains why the locator
-            // crashes when decorrelation is turned off
-            LocUtil.useDecorrelation = true;
+            // Reset the decorrelation flag from the user input.
+            // Decorrelation is generally a good idea, particularly if the
+            // seismic network being used is "lumpy" (I.e., has dense sub-
+            // networks.  On the other hand, the locator is faster and much
+            // more stable without the decorrelation.
+            LocUtil.useDecorrelation = event.getUseDecorrelation();
 
             // Do a looser phase identification.
             status = stepper.doPhaseIdentification(0.1d, 1.0d, true, true);
@@ -141,7 +144,7 @@ public class Locate {
         hypo.setStepLength(LocUtil.INITIALSTEPLEN);
 
         // Iterate to convergence (or to the iteration limit).
-        int iter = 0;
+        int iter;
         boolean bail = false;
         for (iter = 0; iter < LocUtil.ITERATIONSTAGELIMITS[stage]; iter++) {
           // Make a step.
@@ -177,9 +180,12 @@ public class Locate {
         // We're done with this stage.  Collect information for a stage
         // level audit instance.
         if (iter >= LocUtil.ITERATIONSTAGELIMITS[stage]) {
-          status = LocStatus.FULL_ITERATIONS;
+        	status = LocStatus.FULL_ITERATIONS;
         }
 
+        // We need to save the last sub-step for the convergence test below.
+        double lastStepLength = hypo.getStepLength();
+        // Over write the step length with the total step over the stage for auditing purposes.
         hypo.setHorizontalStepLength(
             LocUtil.computeDistance(hypo, hypoAuditList.get(hypoAuditList.size() - 1)));
         hypo.setVerticalStepLength(
@@ -190,15 +196,18 @@ public class Locate {
                     + Math.pow(hypo.getVerticalStepLength(), 2d)));
 
         // check to see if we've converged
-        if (stage > 0 && hypo.getStepLength() <= LocUtil.CONVERGENCESTAGELIMITS[stage]) {
-          // If we've converged, create a final location level audit.
+        if (stage > 0 && lastStepLength <= LocUtil.CONVERGENCESTAGELIMITS[stage]) {
+          // Create the stage level audit anyway.
+          event.addAudit(stage, iter, status);
+          // If we've converged, create a final location level audit.  In this case, the step length 
+          // is from the starting location.
           hypo.setHorizontalStepLength(LocUtil.computeDistance(hypo, hypoAuditList.get(0)));
           hypo.setVerticalStepLength(Math.abs(hypo.getDepth() - hypoAuditList.get(0).getDepth()));
           hypo.setStepLength(
               Math.sqrt(
                   Math.pow(hypo.getHorizontalStepLength(), 2d)
                       + Math.pow(hypo.getVerticalStepLength(), 2d)));
-          event.addAudit(stage, iter, status);
+          event.addAudit(stage, iter, LocStatus.FINAL_HYPOCENTER);
 
           LOGGER.info("Final wrapup: \n" + event.printHypoAudit());
 
@@ -210,9 +219,12 @@ public class Locate {
         }
       }
 
-      // If we go to full interations on the last stage without converging, give
-      // up.
+      // If we finish the last stage without converging, give up.  Note that the location is 
+      // probably in the ball park despite not converging.
+      hypoAuditList.get(hypoAuditList.size() - 1).setLocationStatus(LocStatus.DID_NOT_CONVERGE);
       LOGGER.info("Did Not Converge: \n" + event.printHypoAudit());
+      // Since we're probably close anyway, compute the error bars for the analyst to see.
+      status = close.compFinalStats(LocStatus.DID_NOT_CONVERGE);
       return LocStatus.DID_NOT_CONVERGE;
     } catch (Exception e) {
       // This should never happen.
