@@ -14,7 +14,7 @@ public enum LocStatus {
 
   /** Internal status for a held hypocenter. */
   HELD_HYPOCENTER(2), // Flag for a held hypocenter
-  
+
   /** Internal status tagging the final hypocenter. */
   FINAL_HYPOCENTER(3), // Flag for the final audit hypocenter
 

@@ -97,8 +97,8 @@ public class Locate {
       initialPhaseID.phaseID();
       LOGGER.finest(initialPhaseID.printInitialID());
 
-      // Now do the multistage iteration to refine the hypocenter.  Note that 
-      // this is now just a two iteration process: once without and once with 
+      // Now do the multistage iteration to refine the hypocenter.  Note that
+      // this is now just a two iteration process: once without and once with
       // decorrelation.
       LocStatus status;
       for (int stage = 0; stage < LocUtil.STAGELIMIT; stage++) {
@@ -180,7 +180,7 @@ public class Locate {
         // We're done with this stage.  Collect information for a stage
         // level audit instance.
         if (iter >= LocUtil.ITERATIONSTAGELIMITS[stage]) {
-        	status = LocStatus.FULL_ITERATIONS;
+          status = LocStatus.FULL_ITERATIONS;
         }
 
         // We need to save the last sub-step for the convergence test below.
@@ -199,7 +199,7 @@ public class Locate {
         if (stage > 0 && lastStepLength <= LocUtil.CONVERGENCESTAGELIMITS[stage]) {
           // Create the stage level audit anyway.
           event.addAudit(stage, iter, status);
-          // If we've converged, create a final location level audit.  In this case, the step length 
+          // If we've converged, create a final location level audit.  In this case, the step length
           // is from the starting location.
           hypo.setHorizontalStepLength(LocUtil.computeDistance(hypo, hypoAuditList.get(0)));
           hypo.setVerticalStepLength(Math.abs(hypo.getDepth() - hypoAuditList.get(0).getDepth()));
@@ -219,7 +219,7 @@ public class Locate {
         }
       }
 
-      // If we finish the last stage without converging, give up.  Note that the location is 
+      // If we finish the last stage without converging, give up.  Note that the location is
       // probably in the ball park despite not converging.
       hypoAuditList.get(hypoAuditList.size() - 1).setLocationStatus(LocStatus.DID_NOT_CONVERGE);
       LOGGER.info("Did Not Converge: \n" + event.printHypoAudit());

@@ -213,19 +213,21 @@ public class LinearStep {
     createTrialStepVector(currentStepLen);
     for (int j = 0; j < rawWeightedResiduals.size(); j++) {
       rawWeightedResiduals.get(j).updateEstResiduals(trialStepVector);
-      rawWeightedResiduals.get(j).updateEstWeights(trialStepVector);								// Added 9/16/19.
+      rawWeightedResiduals.get(j).updateEstWeights(trialStepVector); // Added 9/16/19.
     }
 
     double median = rawRankSumEstimator.computeLinEstMedian();
     rawRankSumEstimator.deMedianEstResiduals();
-    double dispRaw = rawRankSumEstimator.computeEstDispersionValue(true);						// Went live with true 9/16/19.
+    double dispRaw =
+        rawRankSumEstimator.computeEstDispersionValue(true); // Went live with true 9/16/19.
 
     // Finish up.
     if (LocUtil.useDecorrelation) {
       // If we're decorrelating, we have more to do.
       decorrelator.projectEstimatedPicks();
       projectedRankSumEstimator.computeLinEstMedian();
-      double dispProj = projectedRankSumEstimator.computeEstDispersionValue(true);	// Went live with true 9/16/19.
+      double dispProj =
+          projectedRankSumEstimator.computeEstDispersionValue(true); // Went live with true 9/16/19.
 
       LOGGER.fine(
           String.format(

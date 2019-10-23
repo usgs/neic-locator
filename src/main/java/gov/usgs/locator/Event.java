@@ -1189,35 +1189,35 @@ public class Event {
    */
   public String getHydraInput(boolean humanReadable) {
     String hydraInput = "";
-    if(humanReadable) {
-	    hydraInput +=
-	        String.format(
-	            "%22s %8.4f %9.4f %6.2f %5b %5b %5b " + "%5.1f %5.1f %5b\n",
-	            LocUtil.getDateTimeString(hypo.getOriginTime()),
-	            hypo.getLatitude(),
-	            hypo.getLongitude(),
-	            hypo.getDepth(),
-	            isLocationHeld,
-	            isDepthHeld,
-	            isDepthManual,
-	            hypo.getBayesianDepth(),
-	            hypo.getBayesianDepthSpread(),
-	            useDecorrelation);
-	    hydraInput += "\n";
+    if (humanReadable) {
+      hydraInput +=
+          String.format(
+              "%22s %8.4f %9.4f %6.2f %5b %5b %5b " + "%5.1f %5.1f %5b\n",
+              LocUtil.getDateTimeString(hypo.getOriginTime()),
+              hypo.getLatitude(),
+              hypo.getLongitude(),
+              hypo.getDepth(),
+              isLocationHeld,
+              isDepthHeld,
+              isDepthManual,
+              hypo.getBayesianDepth(),
+              hypo.getBayesianDepthSpread(),
+              useDecorrelation);
+      hydraInput += "\n";
     } else {
-	    hydraInput +=
-	        String.format(
-	            "%14.3f %8.4f %9.4f %6.2f %c %c %c " + "%5.1f %5.1f %c \n",
-	            hypo.getOriginTime(),
-	            hypo.getLatitude(),
-	            hypo.getLongitude(),
-	            hypo.getDepth(),
-	            LocUtil.getBoolChar(isLocationHeld),
-	            LocUtil.getBoolChar(isDepthHeld),
-	            LocUtil.getBoolChar(isDepthManual),
-	            !Double.isNaN(hypo.getBayesianDepth()) ? hypo.getBayesianDepth() : 0d,
-	            !Double.isNaN(hypo.getBayesianDepthSpread()) ? hypo.getBayesianDepthSpread() : 0d,
-	            LocUtil.getBoolChar(!useDecorrelation));
+      hydraInput +=
+          String.format(
+              "%14.3f %8.4f %9.4f %6.2f %c %c %c " + "%5.1f %5.1f %c \n",
+              hypo.getOriginTime(),
+              hypo.getLatitude(),
+              hypo.getLongitude(),
+              hypo.getDepth(),
+              LocUtil.getBoolChar(isLocationHeld),
+              LocUtil.getBoolChar(isDepthHeld),
+              LocUtil.getBoolChar(isDepthManual),
+              !Double.isNaN(hypo.getBayesianDepth()) ? hypo.getBayesianDepth() : 0d,
+              !Double.isNaN(hypo.getBayesianDepthSpread()) ? hypo.getBayesianDepthSpread() : 0d,
+              LocUtil.getBoolChar(!useDecorrelation));
     }
 
     for (int j = 0; j < pickGroupList.size(); j++) {

@@ -569,8 +569,8 @@ public class Pick implements Comparable<Pick> {
             LocUtil.computeTTLatDerivative(ttStatisticalMinFoM.getDTdD(), azimuth),
             LocUtil.computeTTLonDerivative(ttStatisticalMinFoM.getDTdD(), azimuth),
             ttStatisticalMinFoM.getDTdZ(),
-		        LocUtil.computeTTLatDerivative(ttStatisticalMinFoM.getDSdD(), azimuth),
-		        LocUtil.computeTTLonDerivative(ttStatisticalMinFoM.getDSdD(), azimuth));
+            LocUtil.computeTTLatDerivative(ttStatisticalMinFoM.getDSdD(), azimuth),
+            LocUtil.computeTTLonDerivative(ttStatisticalMinFoM.getDSdD(), azimuth));
         weightedResiduals.add(weightedResidual);
 
         if (reID) {

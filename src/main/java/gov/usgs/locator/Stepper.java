@@ -8,11 +8,12 @@ import java.util.logging.Logger;
  * @author Ray Buland
  */
 public class Stepper {
-	/** We need to force the decorrelation to be done at least once even if the phase identification 
-	 * didn't change.
-	 */
-	private boolean firstDecorrelationDone = false;
-	
+  /**
+   * We need to force the decorrelation to be done at least once even if the phase identification
+   * didn't change.
+   */
+  private boolean firstDecorrelationDone = false;
+
   /** An Event object containing the event to use when performing Stepper calculations. */
   private Event event;
 
@@ -147,7 +148,7 @@ public class Stepper {
 
       // Decorrelate the raw data.
       if (event.getHasPhaseIdChanged() || !firstDecorrelationDone) {
-      	firstDecorrelationDone = true;
+        firstDecorrelationDone = true;
         decorrelator.decorrelate();
       }
       decorrelator.projectPicks();
@@ -241,7 +242,8 @@ public class Stepper {
 
     // Reidentify phases and get the non-linear rank-sum-estimator parameters
     // for the new hypocenter.
-    if (internalPhaseID(0.01d, 5d, false, true) == LocStatus.INSUFFICIENT_DATA) {					// ReWeight always true 9/16/19.
+    if (internalPhaseID(0.01d, 5d, false, true)
+        == LocStatus.INSUFFICIENT_DATA) { // ReWeight always true 9/16/19.
       return LocStatus.INSUFFICIENT_DATA;
     }
     event.updateOriginTime(rSumEstResult.getMedianResidual());
@@ -306,7 +308,8 @@ public class Stepper {
 
       // Reidentify phases and get the non-linear rank-sum-estimator parameters
       // for the new hypocenter.
-      if (internalPhaseID(0.01d, 5d, false, true) == LocStatus.INSUFFICIENT_DATA) {			// ReWeight always true 9/16/19.
+      if (internalPhaseID(0.01d, 5d, false, true)
+          == LocStatus.INSUFFICIENT_DATA) { // ReWeight always true 9/16/19.
         return LocStatus.INSUFFICIENT_DATA;
       }
       event.updateOriginTime(rSumEstResult.getMedianResidual());
