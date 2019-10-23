@@ -50,8 +50,8 @@ public class Stepper {
   /** Private logging object. */
   private static final Logger LOGGER = Logger.getLogger(Stepper.class.getName());
 
-  // We need visibility here for the derivative test.
-  double residualsMedian;
+  /** A double containing the median of the residuals used by the derivative test */
+  private double residualsMedian;
 
   /**
    * The Stepper constructor. Set the event, phaseID logic, and auxiliary locator information to the
