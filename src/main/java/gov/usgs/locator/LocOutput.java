@@ -159,7 +159,7 @@ public class LocOutput extends LocationResult {
     }
 
     // exit code conversion
-    if (locatorExitCode == LocStatus.SUCESSFUL_LOCATION) {
+    if (locatorExitCode == LocStatus.SUCCESSFUL_LOCATION) {
       setLocatorExitCode("Success");
     } else if (locatorExitCode == LocStatus.DID_NOT_MOVE) {
       setLocatorExitCode("DidNotMove");

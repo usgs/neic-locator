@@ -70,7 +70,7 @@ public class CloseOut {
    */
   public LocStatus compFinalStats(LocStatus status) {
     // Get the azimuthal gaps.
-    event.computeAzimithGap();
+    event.computeAzimuthalGap();
 
     // If there isn't enough data, zero out all statistics.
     if (status == LocStatus.INSUFFICIENT_DATA) {

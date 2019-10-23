@@ -207,7 +207,7 @@ public class PhaseID {
   }
 
   /**
-   * This function tries to re-identifys only if the identification is invalid. During the location
+   * This function tries to re-identifies only if the identification is invalid. During the location
    * iteration, we don't want to re-identify phases, but sometimes re-identification is thrust upon
    * us (e.g., when the depth or distance changes and the former identification no longer exists).
    */

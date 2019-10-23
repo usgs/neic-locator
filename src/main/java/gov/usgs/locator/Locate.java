@@ -49,8 +49,8 @@ public class Locate {
    * @param event An Event object containing the Event to locate
    * @param ttLocalSession A TTSessionLocal object containing the travel-time information for a
    *     local implementation to use in computing the location
-   * @param auxLoc An AuxLocRef object containing zuxiliary location information such as continental
-   *     craton boundries and earthquake statistics
+   * @param auxLoc An AuxLocRef object containing auxiliary location information such as continental
+   *     craton boundaries and earthquake statistics
    */
   public Locate(Event event, TTSessionLocal ttLocalSession, AuxLocRef auxLoc) {
     this.event = event;
@@ -135,7 +135,7 @@ public class Locate {
 
         // Be sure we still have enough data to continue.
         if (status == LocStatus.INSUFFICIENT_DATA) {
-          LOGGER.info("Insufficent Data");
+          LOGGER.info("Insufficient Data");
           close.compFinalStats(status);
           return status;
         }
@@ -153,7 +153,7 @@ public class Locate {
           // check the iteration status
           switch (status) {
             case INSUFFICIENT_DATA:
-              LOGGER.info("Insufficent Data");
+              LOGGER.info("Insufficient Data");
               // Bail on insufficient data.
               close.compFinalStats(status);
               return status;
@@ -209,7 +209,7 @@ public class Locate {
                       + Math.pow(hypo.getVerticalStepLength(), 2d)));
           event.addAudit(stage, iter, LocStatus.FINAL_HYPOCENTER);
 
-          LOGGER.info("Final wrapup: \n" + event.printHypoAudit());
+          LOGGER.info("Final wrap up: \n" + event.printHypoAudit());
 
           status = close.compFinalStats(status);
           return status;

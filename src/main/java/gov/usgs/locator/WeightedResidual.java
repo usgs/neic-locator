@@ -525,11 +525,11 @@ public class WeightedResidual implements Comparable<WeightedResidual> {
    *
    * @param weightedResidual A WeightedResidual object containing the second weighted residual to
    *     compare.
-   * @return +1 if this WeightedResidual object sortValue varible is greater than the second
-   *     WeightedResidual object sortValue varible; -1 if this WeightedResidual object sortValue
-   *     varible is less than the second WeightedResidual object sortValue varible; and 0 if this
-   *     WeightedResidual object sortValue varible is equal to the second WeightedResidual object
-   *     sortValue varible;
+   * @return +1 if this WeightedResidual object sortValue variable is greater than the second
+   *     WeightedResidual object sortValue variable; -1 if this WeightedResidual object sortValue
+   *     variable is less than the second WeightedResidual object sortValue variable; and 0 if this
+   *     WeightedResidual object sortValue variable is equal to the second WeightedResidual object
+   *     sortValue variable;
    */
   @Override
   public int compareTo(WeightedResidual weightedResidual) {

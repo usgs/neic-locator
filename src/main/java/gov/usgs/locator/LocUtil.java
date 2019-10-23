@@ -940,8 +940,8 @@ public class LocUtil {
   }
 
   /**
-   * This timer function sets the systemTime varible to the current system time in milliseconds.
-   * This function is used in conjuntion with endTimer
+   * This timer function sets the systemTime variable to the current system time in milliseconds.
+   * This function is used in conjunction with endTimer
    */
   public static void startTimer() {
     systemTime = System.currentTimeMillis();

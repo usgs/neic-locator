@@ -210,7 +210,7 @@ public class PickGroup {
   /**
    * This function initializes the figure-of-merit variables for all picks in the group.
    *
-   * @param startPickIndex An int containin the index of the first pick in the group to be
+   * @param startPickIndex An int containing the index of the first pick in the group to be
    *     initialized
    * @param endPickIndex An int index of the last pick in the group to be initialized
    */

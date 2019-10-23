@@ -67,7 +67,7 @@ public enum LocStatus {
   ELLIPSOID_FAILED(18), // Failure in computing the error ellipsoid
 
   /** External (exit) status for a successful location. */
-  SUCESSFUL_LOCATION(0), // Normal completion
+  SUCCESSFUL_LOCATION(0), // Normal completion
 
   /**
    * External (exit) status for a successful location that was essentially the same as the starting

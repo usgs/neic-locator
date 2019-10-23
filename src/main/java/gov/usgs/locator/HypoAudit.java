@@ -60,7 +60,7 @@ public class HypoAudit {
   private double longitudeCosine;
 
   /**
-   * The HypoAudit constructor. This counstructor creates an audit record from the provided values.
+   * The HypoAudit constructor. This constructor creates an audit record from the provided values.
    *
    * @param hypo A Hypocenter object containing the hypocentral information for this audit.
    * @param stage An int containing the current location stage
