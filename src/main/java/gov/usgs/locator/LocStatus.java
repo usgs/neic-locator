@@ -14,7 +14,7 @@ public enum LocStatus {
 
   /** Internal status for a held hypocenter. */
   HELD_HYPOCENTER(2), // Flag for a held hypocenter
-  
+
   /** Internal status tagging the final hypocenter. */
   FINAL_HYPOCENTER(3), // Flag for the final audit hypocenter
 
@@ -67,7 +67,7 @@ public enum LocStatus {
   ELLIPSOID_FAILED(18), // Failure in computing the error ellipsoid
 
   /** External (exit) status for a successful location. */
-  SUCESSFUL_LOCATION(0), // Normal completion
+  SUCCESSFUL_LOCATION(0), // Normal completion
 
   /**
    * External (exit) status for a successful location that was essentially the same as the starting

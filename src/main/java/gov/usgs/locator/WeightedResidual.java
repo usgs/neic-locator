@@ -29,11 +29,15 @@ public class WeightedResidual implements Comparable<WeightedResidual> {
   /** A double[] containing the spatial derivatives of travel time in seconds/kilometer. */
   private double[] spatialDerivatives;
 
-  /** A double[] containing the demedianed spatial derivatives of travel time in seconds/kilometer. */
+  /**
+   * A double[] containing the demedianed spatial derivatives of travel time in seconds/kilometer.
+   */
   private double[] deMedSpaDerivatives;
-  
-  /** A double[] containing the spatial derivatives of spread in seconds/kilometer.  Note that the 
-   * depth derivative is always zero.*/
+
+  /**
+   * A double[] containing the spatial derivatives of spread in seconds/kilometer. Note that the
+   * depth derivative is always zero.
+   */
   private double[] spreadDerivatives;
 
   /** A double containing the 2-norm of the horizontal derivatives in kilometers. */
@@ -166,10 +170,10 @@ public class WeightedResidual implements Comparable<WeightedResidual> {
    *     longitude in seconds/kilometers
    * @param travelTimeDepthDeriv A double containing the derivative of the travel time with respect
    *     to depth in seconds/kilometers
-   * @param spreadLatDeriv A double containing the derivative of the spread with respect to latitude 
-   * 		 in seconds/kilometers
-   * @param spreadLonDeriv A double containing the derivative of the spread with respect to longitude 
+   * @param spreadLatDeriv A double containing the derivative of the spread with respect to latitude
    *     in seconds/kilometers
+   * @param spreadLonDeriv A double containing the derivative of the spread with respect to
+   *     longitude in seconds/kilometers
    */
   public WeightedResidual(
       Pick pick,
@@ -208,10 +212,10 @@ public class WeightedResidual implements Comparable<WeightedResidual> {
    *     longitude in seconds/kilometers
    * @param travelTimeDepthDeriv A double containing the derivative of the travel time with respect
    *     to depth in seconds/kilometers
-   * @param spreadLatDeriv A double containing the derivative of the spread with respect to latitude 
-   * 		 in seconds/kilometers
-   * @param spreadLonDeriv A double containing the derivative of the spread with respect to longitude 
+   * @param spreadLatDeriv A double containing the derivative of the spread with respect to latitude
    *     in seconds/kilometers
+   * @param spreadLonDeriv A double containing the derivative of the spread with respect to
+   *     longitude in seconds/kilometers
    */
   public void reInit(
       Pick pick,
@@ -232,7 +236,7 @@ public class WeightedResidual implements Comparable<WeightedResidual> {
     spatialDerivatives[0] = travelTimeLatDeriv;
     spatialDerivatives[1] = travelTimeLonDeriv;
     spatialDerivatives[2] = travelTimeDepthDeriv;
-    
+
     spreadDerivatives = new double[2];
     spreadDerivatives[0] = spreadLatDeriv;
     spreadDerivatives[1] = spreadLonDeriv;
@@ -290,11 +294,11 @@ public class WeightedResidual implements Comparable<WeightedResidual> {
    *     the current hypocenter in kilometers)
    */
   public void updateEstWeights(double[] trialStepVector) {
-    linEstWeight = 1d/weight;
+    linEstWeight = 1d / weight;
     for (int j = 0; j < spreadDerivatives.length; j++) {
       linEstWeight += trialStepVector[j] * spreadDerivatives[j];
     }
-    linEstWeight = 1d/linEstWeight;
+    linEstWeight = 1d / linEstWeight;
   }
 
   /**
@@ -372,11 +376,11 @@ public class WeightedResidual implements Comparable<WeightedResidual> {
     if (isBayesianDepth) {
       sortValue = linEstResidual * weight;
     } else {
-    	if(reWeight) {
+      if (reWeight) {
         sortValue = (linEstResidual - median) * linEstWeight;
-    	} else {
+      } else {
         sortValue = (linEstResidual - median) * weight;
-    	}
+      }
     }
   }
 
@@ -521,11 +525,11 @@ public class WeightedResidual implements Comparable<WeightedResidual> {
    *
    * @param weightedResidual A WeightedResidual object containing the second weighted residual to
    *     compare.
-   * @return +1 if this WeightedResidual object sortValue varible is greater than the second
-   *     WeightedResidual object sortValue varible; -1 if this WeightedResidual object sortValue
-   *     varible is less than the second WeightedResidual object sortValue varible; and 0 if this
-   *     WeightedResidual object sortValue varible is equal to the second WeightedResidual object
-   *     sortValue varible;
+   * @return +1 if this WeightedResidual object sortValue variable is greater than the second
+   *     WeightedResidual object sortValue variable; -1 if this WeightedResidual object sortValue
+   *     variable is less than the second WeightedResidual object sortValue variable; and 0 if this
+   *     WeightedResidual object sortValue variable is equal to the second WeightedResidual object
+   *     sortValue variable;
    */
   @Override
   public int compareTo(WeightedResidual weightedResidual) {

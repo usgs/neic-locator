@@ -105,7 +105,8 @@ public class Decorrelator {
     }
     for (int i = numProjectedData; i < numPickData; i++) {
       weightedResiduals =
-          new WeightedResidual(null, 0d, projectedWeights[i - numProjectedData], false, 0d, 0d, 0d, 0d, 0d);
+          new WeightedResidual(
+              null, 0d, projectedWeights[i - numProjectedData], false, 0d, 0d, 0d, 0d, 0d);
 
       for (int j = 0; j < numPickData; j++) {
         weightedResiduals.project(weightedResidualsOrg.get(j), eigenvectors[j][i]);

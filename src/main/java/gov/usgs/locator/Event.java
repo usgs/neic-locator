@@ -876,7 +876,7 @@ public class Event {
   }
 
   /** This function computes the azimuthal gap and robust (L-estimator) azimuthal gap in degrees. */
-  public void computeAzimithGap() {
+  public void computeAzimuthalGap() {
     // Trap a bad call.
     if (numStationsUsed == 0) {
       azimuthalGap = 360d;
@@ -896,22 +896,22 @@ public class Event {
 
     // Do the azimuthal gap.
     azimuthalGap = 0d;
-    double lastAzim = azimuths[azimuths.length - 1] - 360d;
+    double lastAzimuth = azimuths[azimuths.length - 1] - 360d;
     for (int j = 0; j < azimuths.length; j++) {
-      azimuthalGap = Math.max(azimuthalGap, azimuths[j] - lastAzim);
-      lastAzim = azimuths[j];
+      azimuthalGap = Math.max(azimuthalGap, azimuths[j] - lastAzimuth);
+      lastAzimuth = azimuths[j];
     }
 
     // Do the robust azimuthal gap.
     if (numStationsUsed == 1) {
       azimuthalGapLEst = 360d;
     } else {
-      lastAzim = azimuths[azimuths.length - 2] - 360d;
-      azimuthalGapLEst = azimuths[0] - lastAzim;
-      lastAzim = azimuths[azimuths.length - 1] - 360d;
+      lastAzimuth = azimuths[azimuths.length - 2] - 360d;
+      azimuthalGapLEst = azimuths[0] - lastAzimuth;
+      lastAzimuth = azimuths[azimuths.length - 1] - 360d;
       for (int j = 1; j < azimuths.length; j++) {
-        azimuthalGapLEst = Math.max(azimuthalGapLEst, azimuths[j] - lastAzim);
-        lastAzim = azimuths[j - 1];
+        azimuthalGapLEst = Math.max(azimuthalGapLEst, azimuths[j] - lastAzimuth);
+        lastAzimuth = azimuths[j - 1];
       }
     }
   }
@@ -1064,7 +1064,7 @@ public class Event {
       case UNSTABLE_SOLUTION:
         if ((hypo.getHorizontalStepLength() > LocUtil.DISTANCETOLERANCE)
             || (hypo.getVerticalStepLength() > LocUtil.DEPTHTOLERANCE)) {
-          locatorExitCode = LocStatus.SUCESSFUL_LOCATION;
+          locatorExitCode = LocStatus.SUCCESSFUL_LOCATION;
         } else {
           locatorExitCode = LocStatus.DID_NOT_MOVE;
         }
@@ -1189,35 +1189,35 @@ public class Event {
    */
   public String getHydraInput(boolean humanReadable) {
     String hydraInput = "";
-    if(humanReadable) {
-	    hydraInput +=
-	        String.format(
-	            "%22s %8.4f %9.4f %6.2f %5b %5b %5b " + "%5.1f %5.1f %5b\n",
-	            LocUtil.getDateTimeString(hypo.getOriginTime()),
-	            hypo.getLatitude(),
-	            hypo.getLongitude(),
-	            hypo.getDepth(),
-	            isLocationHeld,
-	            isDepthHeld,
-	            isDepthManual,
-	            hypo.getBayesianDepth(),
-	            hypo.getBayesianDepthSpread(),
-	            useDecorrelation);
-	    hydraInput += "\n";
+    if (humanReadable) {
+      hydraInput +=
+          String.format(
+              "%22s %8.4f %9.4f %6.2f %5b %5b %5b " + "%5.1f %5.1f %5b\n",
+              LocUtil.getDateTimeString(hypo.getOriginTime()),
+              hypo.getLatitude(),
+              hypo.getLongitude(),
+              hypo.getDepth(),
+              isLocationHeld,
+              isDepthHeld,
+              isDepthManual,
+              hypo.getBayesianDepth(),
+              hypo.getBayesianDepthSpread(),
+              useDecorrelation);
+      hydraInput += "\n";
     } else {
-	    hydraInput +=
-	        String.format(
-	            "%14.3f %8.4f %9.4f %6.2f %c %c %c " + "%5.1f %5.1f %c \n",
-	            hypo.getOriginTime(),
-	            hypo.getLatitude(),
-	            hypo.getLongitude(),
-	            hypo.getDepth(),
-	            LocUtil.getBoolChar(isLocationHeld),
-	            LocUtil.getBoolChar(isDepthHeld),
-	            LocUtil.getBoolChar(isDepthManual),
-	            !Double.isNaN(hypo.getBayesianDepth()) ? hypo.getBayesianDepth() : 0d,
-	            !Double.isNaN(hypo.getBayesianDepthSpread()) ? hypo.getBayesianDepthSpread() : 0d,
-	            LocUtil.getBoolChar(!useDecorrelation));
+      hydraInput +=
+          String.format(
+              "%14.3f %8.4f %9.4f %6.2f %c %c %c " + "%5.1f %5.1f %c \n",
+              hypo.getOriginTime(),
+              hypo.getLatitude(),
+              hypo.getLongitude(),
+              hypo.getDepth(),
+              LocUtil.getBoolChar(isLocationHeld),
+              LocUtil.getBoolChar(isDepthHeld),
+              LocUtil.getBoolChar(isDepthManual),
+              !Double.isNaN(hypo.getBayesianDepth()) ? hypo.getBayesianDepth() : 0d,
+              !Double.isNaN(hypo.getBayesianDepthSpread()) ? hypo.getBayesianDepthSpread() : 0d,
+              LocUtil.getBoolChar(!useDecorrelation));
     }
 
     for (int j = 0; j < pickGroupList.size(); j++) {

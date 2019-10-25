@@ -99,7 +99,9 @@ public class LocatorRegressionTest {
         "Depth Error");
 
     Assertions.assertEquals(
-        verificationResult.getHypocenter().getTime(), result.getHypocenter().getTime(), "Time");
+        verificationResult.getHypocenter().getTime().getTime(),
+        result.getHypocenter().getTime().getTime(),
+        "Time");
 
     Assertions.assertEquals(
         verificationResult.getHypocenter().getTimeError(),

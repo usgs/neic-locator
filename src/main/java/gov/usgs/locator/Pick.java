@@ -70,7 +70,7 @@ public class Pick implements Comparable<Pick> {
   /** A double containing the current pick travel time in seconds. */
   private double travelTime;
 
-  /** A boolean flag indicating whether the pick was automaticially made. */
+  /** A boolean flag indicating whether the pick was automatically made. */
   private boolean isAutomatic;
 
   /** A boolean flag indicating this pick was eliminated by the triage method. */
@@ -213,7 +213,7 @@ public class Pick implements Comparable<Pick> {
   /**
    * Function to get whether the pick is currently used.
    *
-   * @return A boolean indicating whether the pick is currenty used or not
+   * @return A boolean indicating whether the pick is currently used or not
    */
   public boolean getIsUsed() {
     return isUsed;
@@ -258,9 +258,9 @@ public class Pick implements Comparable<Pick> {
   }
 
   /**
-   * Function to get whether the pick was automaticially made.
+   * Function to get whether the pick was automatically made.
    *
-   * @return A boolean flag indicating whether the pick was automaticially made
+   * @return A boolean flag indicating whether the pick was automatically made
    */
   public boolean getIsAutomatic() {
     return isAutomatic;
@@ -315,7 +315,7 @@ public class Pick implements Comparable<Pick> {
   /**
    * Function to set whether the pick is currently used.
    *
-   * @param isUsed A boolean indicating whether the pick is currenty used or not
+   * @param isUsed A boolean indicating whether the pick is currently used or not
    */
   public void setIsUsed(boolean isUsed) {
     this.isUsed = isUsed;
@@ -439,7 +439,7 @@ public class Pick implements Comparable<Pick> {
   /**
    * This function sets additional information to help with phase identification and location.
    *
-   * @param sourceID A String identifiying the pick source.
+   * @param sourceID A String identifying the pick source.
    * @param pickID A String containing the pick's external ID
    * @param quality A double containing the pick uncertainty in seconds (not currently used in phase
    *     identification and location)
@@ -512,7 +512,7 @@ public class Pick implements Comparable<Pick> {
    * @param isFirstPhase A boolean flag indicating if this is the first phase in a group
    * @param shouldReweight A boolean flag indicating whether weights are to be recomputed
    * @param azimuth A double holding the azimuth of the station from the source in degrees
-   * @param weightedResiduals An ArrayList of WeightedResidual objects conatining the weighted
+   * @param weightedResiduals An ArrayList of WeightedResidual objects containing the weighted
    *     residual information used in the Rank-Sum routines.
    * @return True if a used phase has changed identification or is no longer used
    */
@@ -569,8 +569,8 @@ public class Pick implements Comparable<Pick> {
             LocUtil.computeTTLatDerivative(ttStatisticalMinFoM.getDTdD(), azimuth),
             LocUtil.computeTTLonDerivative(ttStatisticalMinFoM.getDTdD(), azimuth),
             ttStatisticalMinFoM.getDTdZ(),
-		        LocUtil.computeTTLatDerivative(ttStatisticalMinFoM.getDSdD(), azimuth),
-		        LocUtil.computeTTLonDerivative(ttStatisticalMinFoM.getDSdD(), azimuth));
+            LocUtil.computeTTLatDerivative(ttStatisticalMinFoM.getDSdD(), azimuth),
+            LocUtil.computeTTLonDerivative(ttStatisticalMinFoM.getDSdD(), azimuth));
         weightedResiduals.add(weightedResidual);
 
         if (reID) {
@@ -657,10 +657,10 @@ public class Pick implements Comparable<Pick> {
    * Comparison function used to sort picks by travel time.
    *
    * @param pick A Pick object containing the second pick to compare
-   * @return +1 if this Pick object travelTime varible is greater than the second Pick object Pick
-   *     varible; -1 if this Pick object travelTime varible is less than the second Pick object
-   *     travelTime varible; and 0 if this Pick object travelTime varible is equal to the second
-   *     Pick object travelTime varible;
+   * @return +1 if this Pick object travelTime variable is greater than the second Pick object Pick
+   *     variable; -1 if this Pick object travelTime variable is less than the second Pick object
+   *     travelTime variable; and 0 if this Pick object travelTime variable is equal to the second
+   *     Pick object travelTime variable;
    */
   @Override
   public int compareTo(Pick pick) {

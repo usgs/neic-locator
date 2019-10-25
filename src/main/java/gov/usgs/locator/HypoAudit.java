@@ -60,7 +60,7 @@ public class HypoAudit {
   private double longitudeCosine;
 
   /**
-   * The HypoAudit constructor. This counstructor creates an audit record from the provided values.
+   * The HypoAudit constructor. This constructor creates an audit record from the provided values.
    *
    * @param hypo A Hypocenter object containing the hypocentral information for this audit.
    * @param stage An int containing the current location stage
@@ -189,13 +189,13 @@ public class HypoAudit {
   public double getLongitudeCosine() {
     return longitudeCosine;
   }
-  
+
   /**
    * Function to update the audit location status.
-   * 
+   *
    * @param locationStatus New location status
    */
   public void setLocationStatus(LocStatus locationStatus) {
-  	this.locationStatus = locationStatus;
+    this.locationStatus = locationStatus;
   }
 }
