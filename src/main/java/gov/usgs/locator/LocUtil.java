@@ -871,7 +871,7 @@ public class LocUtil {
    */
   public static String printVector(double[] a, String label) {
     String vectorString = label + ":\n\t";
-    int count = 0;
+    int count = 1;
 
     for (int j = 0; j < a.length; j++) {
       if (count > 8) {
@@ -896,7 +896,7 @@ public class LocUtil {
   public static String printVector(int[] a, String label) {
     String vectorString = label + ":\n\t";
 
-    int count = 0;
+    int count = 1;
     for (int j = 0; j < a.length; j++) {
       if (count > 17) {
         vectorString += "\n\t";
@@ -953,7 +953,8 @@ public class LocUtil {
    * @return A String containing the timer results
    */
   public static String endTimer(String label) {
-    String timerString = label + " time: " + 0.001 * (System.currentTimeMillis() - systemTime);
+//    String timerString = label + " time: " + 0.001 * (System.currentTimeMillis() - systemTime);
+    String timerString = String.format("%s time:%7.3f", label, 0.001 * (System.currentTimeMillis() - systemTime));
     return (timerString);
   }
 }

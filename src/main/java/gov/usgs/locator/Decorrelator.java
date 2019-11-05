@@ -223,7 +223,7 @@ public class Decorrelator {
         }
         LOGGER.finest(corrSumsStr);
 
-        LOGGER.fine(String.format("\tTriage: eliminate %3d %s", i, corrSums.get(i)));
+        LOGGER.finer(String.format("\tTriage: eliminate %3d %s", i, corrSums.get(i)));
 
         int k = corrSums.get(i).getRowIndex();
         corrSums.remove(i);
@@ -265,13 +265,21 @@ public class Decorrelator {
       // from the weighted residuals.  And make sure they don't come
       // back.
       int k = keep.length - 1;
-      for (int j = weightedResidualsOrg.size() - 2; j >= 0; j--) {
-        if (j != keep[k]) {
-          weightedResidualsOrg.get(j).getPick().setIsTriage(true);
-          weightedResidualsOrg.remove(j);
+      int i = weightedResidualsOrg.size() - 2;
+      for (; i >= 0 && k >= 0; i--) {
+        if (i != keep[k]) {
+          weightedResidualsOrg.get(i).getPick().setIsTriage(true);
+          weightedResidualsOrg.remove(i);
         } else {
           k--;
         }
+      }
+      // We may have some weighted residuals left.
+      if(i > 0) {
+      	for(; i >= 0; i--) {
+          weightedResidualsOrg.get(i).getPick().setIsTriage(true);
+          weightedResidualsOrg.remove(i);
+      	}
       }
 
       numData = weightedResidualsOrg.size();
@@ -303,7 +311,7 @@ public class Decorrelator {
 
     double[] eigenvalues = eig.getRealEigenvalues();
 
-    LOGGER.fine(LocUtil.printVector(eigenvalues, "Eigenvalues Vector"));
+    LOGGER.finer(LocUtil.printVector(eigenvalues, "Eigenvalues"));
 
     eigenvectors = eig.getV().getArray();
 
