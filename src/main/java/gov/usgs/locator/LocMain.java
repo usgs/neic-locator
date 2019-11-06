@@ -37,7 +37,10 @@ public class LocMain {
   public static final String FILEPATH_ARGUMENT = "--filePath=";
 
   /** A String containing the argument for specifying the input file type. */
-  public static final String FILETYPE_ARGUMENT = "--fileType=";
+  public static final String INPUTTYPE_ARGUMENT = "--inputType=";
+
+  /** A String containing the argument for specifying the output file type. */
+  public static final String OUTPUTTYPE_ARGUMENT = "--outputType=";
 
   /** A String containing the argument for requesting the locator version. */
   public static final String VERSION_ARGUMENT = "--version";
@@ -81,14 +84,15 @@ public class LocMain {
   public static void main(String[] args) {
     if (args == null || args.length == 0) {
       System.out.println(
-          "Usage:\nneic-locator --modelPath=[model path] --fileType=[json or hydra] "
+          "Usage:\nneic-locator --modelPath=[model path] --inputType=[json or hydra] "
               + "\n\t--logPath=[log file path] --logLevel=[logging level] "
-              + "\n\t--filePath=[input file path]"
+              + "\n\t--filePath=[input file path] --outputType=[optional type]"
               + "\nneic-locator --mode=batch --modelPath=[model path] "
-              + "\n\t--fileType=[json or hydra] --logPath=[log file path] "
+              + "\n\t--inputType=[json or hydra] --logPath=[log file path] "
               + "\n\t--logLevel=[logging level] --inputDir=[input directory path] "
               + "\n\t--outputDir=[output directory path] "
               + "--archiveDir=[optional archive path] "
+              + "\n\t--outputType=[optional type] "
               + "\n\t--csvFile=[optional csv file path]"
               + "\nneic-locator --mode=service");
       System.exit(1);
@@ -100,7 +104,8 @@ public class LocMain {
     String logLevel = "INFO";
     String modelPath = null;
     String filePath = null;
-    String fileType = "hydra";
+    String inputType = "hydra";
+    String outputType = "hydra";
     String inputPath = "./input";
     String inputExtension = null;
     String outputPath = "./output";
@@ -120,9 +125,13 @@ public class LocMain {
       } else if (arg.startsWith(FILEPATH_ARGUMENT)) {
         // get file path
         filePath = arg.replace(FILEPATH_ARGUMENT, "");
-      } else if (arg.startsWith(FILETYPE_ARGUMENT)) {
+      } else if (arg.startsWith(INPUTTYPE_ARGUMENT)) {
         // get file type
-        fileType = arg.replace(FILETYPE_ARGUMENT, "");
+        inputType = arg.replace(INPUTTYPE_ARGUMENT, "");
+        outputType = inputType;
+      } else if (arg.startsWith(OUTPUTTYPE_ARGUMENT)) {
+        // get file type
+        outputType = arg.replace(OUTPUTTYPE_ARGUMENT, "");
       } else if (arg.startsWith(LOGPATH_ARGUMENT)) {
         // get log path
         logPath = arg.replace(LOGPATH_ARGUMENT, "");
@@ -152,7 +161,7 @@ public class LocMain {
       }
     }
 
-    if ("json".equals(fileType)) {
+    if ("json".equals(inputType)) {
       inputExtension = ".locrequest";
       outputExtension = ".locresult";
     } else {
@@ -200,11 +209,13 @@ public class LocMain {
               outputPath,
               outputExtension,
               archivePath,
-              fileType,
+              inputType,
+              outputType,
               csvFile);
     } else {
       locRC =
-          locMain.locateSingleEvent(modelPath, filePath, fileType, "./", outputExtension, csvFile);
+          locMain.locateSingleEvent(
+              modelPath, filePath, inputType, outputType, "./", outputExtension, csvFile);
     }
 
     // Exit.
@@ -325,7 +336,8 @@ public class LocMain {
    *
    * @param modelPath A String containing the path to the required model files
    * @param filePath A String containing the full path to the locator input file
-   * @param fileType A String containing the type of the locator input file
+   * @param inputType A String containing the type of the locator input file
+   * @param outputType A String containing the type of the locator output file
    * @param outputPath A String containing the path to write the results
    * @param outputExtension A String containing the extension to use for output files
    * @param csvFile An optional String containing full path to the csv formatted file, null to
@@ -335,7 +347,8 @@ public class LocMain {
   public boolean locateSingleEvent(
       String modelPath,
       String filePath,
-      String fileType,
+      String inputType,
+      String outputType,
       String outputPath,
       String outputExtension,
       String csvFile) {
@@ -372,7 +385,7 @@ public class LocMain {
 
     // parse the file
     LocationRequest request = null;
-    if ("json".equals(fileType)) {
+    if ("json".equals(inputType)) {
       LOGGER.fine("Parsing a json file.");
 
       // parse into request
@@ -415,7 +428,7 @@ public class LocMain {
           outputPath + File.separatorChar + getFileName(filePath) + outputExtension;
       LocOutput locOut = (LocOutput) result;
 
-      if ("json".equals(fileType)) {
+      if ("json".equals(outputType)) {
         locOut.writeJSON(outFileName);
       } else {
         locOut.writeHydra(outFileName);
@@ -451,7 +464,8 @@ public class LocMain {
    * @param outputExtension A String containing the extension to use for output files
    * @param archivePath An optional String containing the full path to directory to archive input
    *     files, null to disable, if disabled, input files are deleted
-   * @param fileType A String containing the type of the locator input file
+   * @param inputType A String containing the type of the locator input file
+   * @param outputType A String containing the type of the locator output file
    * @param csvFile An optional String containing full path to the csv formatted file, null to
    *     disable
    * @return A boolean flag indicating whether the locatons were successful
@@ -463,7 +477,8 @@ public class LocMain {
       String outputPath,
       String outputExtension,
       String archivePath,
-      String fileType,
+      String inputType,
+      String outputType,
       String csvFile) {
 
     // create the output and archive paths if they don't
@@ -501,7 +516,7 @@ public class LocMain {
         String filePath = inputFile.getAbsolutePath();
 
         if (locateSingleEvent(
-            modelPath, filePath, fileType, outputPath, outputExtension, csvFile)) {
+            modelPath, filePath, inputType, outputType, outputPath, outputExtension, csvFile)) {
           // done with the file
           if (archivePath == null) {
             // not archiving, just delete it
