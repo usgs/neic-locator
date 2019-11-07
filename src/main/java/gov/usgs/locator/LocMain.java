@@ -163,9 +163,13 @@ public class LocMain {
 
     if ("json".equals(inputType)) {
       inputExtension = ".locrequest";
-      outputExtension = ".locresult";
     } else {
       inputExtension = ".txt";
+    }
+
+    if ("json".equals(outputType)) {
+      outputExtension = ".locresult";
+    } else {
       outputExtension = ".out";
     }
 
