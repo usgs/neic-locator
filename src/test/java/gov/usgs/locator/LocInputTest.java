@@ -73,29 +73,29 @@ public class LocInputTest {
     }
 
     // check input data
-    assertEquals("Latitude:", SOURCELATITUDE, hydraIn.getSourceLatitude(), 0);
+    assertEquals("Latitude:", SOURCELATITUDE, hydraIn.SourceLatitude, 0);
 
-    assertEquals("Longitude: ", SOURCELONGITUDE, hydraIn.getSourceLongitude(), 0);
+    assertEquals("Longitude: ", SOURCELONGITUDE, hydraIn.SourceLongitude, 0);
 
-    assertEquals("Depth: ", SOURCEDEPTH, hydraIn.getSourceDepth(), 0);
+    assertEquals("Depth: ", SOURCEDEPTH, hydraIn.SourceDepth, 0);
 
-    assertEquals("Time: ", SOURCEORIGINTIME, hydraIn.getSourceOriginTime());
+    assertEquals("Time: ", SOURCEORIGINTIME, hydraIn.SourceOriginTime);
 
-    assertEquals("Is Location New: ", ISLOCATIONNEW, hydraIn.getIsLocationNew());
+    assertEquals("Is Location New: ", ISLOCATIONNEW, hydraIn.IsLocationNew);
 
-    assertEquals("Is Location Held: ", ISLOCATIONHELD, hydraIn.getIsLocationHeld());
+    assertEquals("Is Location Held: ", ISLOCATIONHELD, hydraIn.IsLocationHeld);
 
-    assertEquals("Is Depth Held: ", ISDEPTHHELD, hydraIn.getIsDepthHeld());
+    assertEquals("Is Depth Held: ", ISDEPTHHELD, hydraIn.IsDepthHeld);
 
-    assertEquals("Is Bayesian Depth: ", ISBAYESIANDEPTH, hydraIn.getIsBayesianDepth());
+    assertEquals("Is Bayesian Depth: ", ISBAYESIANDEPTH, hydraIn.IsBayesianDepth);
 
-    assertEquals("Bayesan Depth: ", BAYESIANDEPTH, hydraIn.getBayesianDepth(), 0);
+    assertEquals("Bayesan Depth: ", BAYESIANDEPTH, hydraIn.BayesianDepth, 0);
 
-    assertEquals("Bayesian Spread: ", BAYESIANSPREAD, hydraIn.getBayesianSpread(), 0);
+    assertEquals("Bayesian Spread: ", BAYESIANSPREAD, hydraIn.BayesianSpread, 0);
 
-    assertEquals("Use SVD: ", USESVD, hydraIn.getUseSVD());
+    assertEquals("Use SVD: ", USESVD, hydraIn.UseSVD);
 
-    assertEquals("Num Input Data: ", NUMINPUTDATA, hydraIn.getInputData().size());
+    assertEquals("Num Input Data: ", NUMINPUTDATA, hydraIn.InputData.size());
 
     // not currently examining the phase list.*/
   }

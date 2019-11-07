@@ -14,7 +14,6 @@
     "UseSVD": true,
     "InputData": [
       {
-        "Type": "Pick",
         "ID": "64396690",
         "Site": {
           "Station": "BMAR",
@@ -38,8 +37,7 @@
         "LocatedPhase": "P",
         "AssociatedPhase": "P"
       },
-      {
-        "Type": "Pick",
+      { 
         "ID": "64396693",
         "Site": {
           "Station": "TOLK",
@@ -62,8 +60,7 @@
         "LocatedPhase": "P",
         "AssociatedPhase": "P"
       },
-      {
-        "Type": "Pick",
+      { 
         "ID": "64396794",
         "Site": {
           "Station": "SHAA",
@@ -86,8 +83,7 @@
         "LocatedPhase": "P",
         "AssociatedPhase": "P"
       },
-      {
-        "Type": "Pick",
+      { 
         "ID": "64396797",
         "Site": {
           "Station": "D27M",
@@ -111,7 +107,6 @@
         "AssociatedPhase": "P"
       },
       {
-        "Type": "Pick",
         "ID": "64396806",
         "Site": {
           "Station": "IGRN",
@@ -135,7 +130,6 @@
         "AssociatedPhase": "P"
       },
       {
-        "Type": "Pick",
         "ID": "64396822",
         "Site": {
           "Station": "RUS",
@@ -160,7 +154,6 @@
         "AssociatedPhase": "P"
       },
       {
-        "Type": "Pick",
         "ID": "64396862",
         "Site": {
           "Station": "JOW",

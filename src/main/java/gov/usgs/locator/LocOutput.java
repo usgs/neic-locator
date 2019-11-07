@@ -1,5 +1,6 @@
 package gov.usgs.locator;
 
+import gov.usgs.processingformats.ErrorEllipseAxis;
 import gov.usgs.processingformats.LocationResult;
 import gov.usgs.processingformats.Utility;
 import java.io.PrintWriter;
@@ -63,26 +64,26 @@ public class LocOutput extends LocationResult {
       double minStationDistance,
       String qualityFlags) {
 
-    setID(id);
+    ID = id;
 
     // create subobjects
-    setHypocenter(new gov.usgs.processingformats.Hypocenter());
-    setErrorEllipse(new gov.usgs.processingformats.ErrorEllipse());
-    setSupportingData(new ArrayList<gov.usgs.processingformats.Pick>());
+    Hypocenter = new gov.usgs.processingformats.Hypocenter();
+    ErrorEllipse = new gov.usgs.processingformats.ErrorEllipse();
+    SupportingData = new ArrayList<gov.usgs.processingformats.Pick>();
 
     // fill in information
-    getHypocenter().setTime(new Date(originTime));
-    getHypocenter().setLatitude(sourceLatitude);
-    getHypocenter().setLongitude(sourceLongitude);
-    getHypocenter().setDepth(sourceDepth);
-    setNumberOfAssociatedStations(numStationsAssociated);
-    setNumberOfAssociatedPhases(numPhasesAssociated);
-    setNumberOfUsedStations(numStationsUsed);
-    setNumberOfUsedPhases(numPhasesUsed);
-    setGap(azimuthGap);
-    setSecondaryGap(azimuthalGapLEst);
-    setMinimumDistance(minStationDistance);
-    setQuality(qualityFlags);
+    Hypocenter.Time = new Date(originTime);
+    Hypocenter.Latitude = sourceLatitude;
+    Hypocenter.Longitude = sourceLongitude;
+    Hypocenter.Depth = sourceDepth;
+    NumberOfAssociatedStations = numStationsAssociated;
+    NumberOfAssociatedPhases = numPhasesAssociated;
+    NumberOfUsedStations = numStationsUsed;
+    NumberOfUsedPhases = numPhasesUsed;
+    Gap = azimuthGap;
+    SecondaryGap = azimuthalGapLEst;
+    MinimumDistance = minStationDistance;
+    Quality = qualityFlags;
   }
 
   /**
@@ -124,51 +125,54 @@ public class LocOutput extends LocationResult {
       EllipseAxis[] errorEllipse,
       LocStatus locatorExitCode) {
 
-    getHypocenter().setTimeError(timeStandardError);
-    getHypocenter().setLatitudeError(latitudeStandardError);
-    getHypocenter().setLongitudeError(longitudeStandardError);
-    getHypocenter().setDepthError(depthStandardError);
+    Hypocenter.TimeError = timeStandardError;
+    Hypocenter.LatitudeError = latitudeStandardError;
+    Hypocenter.LongitudeError = longitudeStandardError;
+    Hypocenter.DepthError = depthStandardError;
 
-    setRms(residualsStandardError);
-    setBayesianDepth(bayesianDepth);
-    setBayesianRange(bayesianDepthSpread);
-    setDepthImportance(bayesianDepthDataImportance);
+    RMS = residualsStandardError;
+    BayesianDepth = bayesianDepth;
+    BayesianRange = bayesianDepthSpread;
+    DepthImportance = bayesianDepthDataImportance;
 
     if (errorEllipse != null) {
-      getErrorEllipse().setMaximumHorizontalProjection(maxHorizontalError);
-      getErrorEllipse().setMaximumVerticalProjection(maxVerticalError);
-      getErrorEllipse().setEquivalentHorizontalRadius(equivalentErrorRadius);
+      ErrorEllipse.MaximumHorizontalProjection = maxHorizontalError;
+      ErrorEllipse.MaximumVerticalProjection = maxVerticalError;
+      ErrorEllipse.EquivalentHorizontalRadius = equivalentErrorRadius;
 
       if (errorEllipse[0] != null) {
-        getErrorEllipse().setE0Error(errorEllipse[0].getSemiLen());
-        getErrorEllipse().setE0Azimuth(errorEllipse[0].getAzimuth());
-        getErrorEllipse().setE0Dip(errorEllipse[0].getPlunge());
+        ErrorEllipse.E0 = new ErrorEllipseAxis();
+        ErrorEllipse.E0.Error = errorEllipse[0].getSemiLen();
+        ErrorEllipse.E0.Azimuth = errorEllipse[0].getAzimuth();
+        ErrorEllipse.E0.Dip = errorEllipse[0].getPlunge();
       }
 
       if (errorEllipse[1] != null) {
-        getErrorEllipse().setE1Error(errorEllipse[1].getSemiLen());
-        getErrorEllipse().setE1Azimuth(errorEllipse[1].getAzimuth());
-        getErrorEllipse().setE1Dip(errorEllipse[1].getPlunge());
+        ErrorEllipse.E1 = new ErrorEllipseAxis();
+        ErrorEllipse.E1.Error = errorEllipse[1].getSemiLen();
+        ErrorEllipse.E1.Azimuth = errorEllipse[1].getAzimuth();
+        ErrorEllipse.E1.Dip = errorEllipse[1].getPlunge();
       }
 
       if (errorEllipse[2] != null) {
-        getErrorEllipse().setE2Error(errorEllipse[2].getSemiLen());
-        getErrorEllipse().setE2Azimuth(errorEllipse[2].getAzimuth());
-        getErrorEllipse().setE2Dip(errorEllipse[2].getPlunge());
+        ErrorEllipse.E2 = new ErrorEllipseAxis();
+        ErrorEllipse.E2.Error = errorEllipse[2].getSemiLen();
+        ErrorEllipse.E2.Azimuth = errorEllipse[2].getAzimuth();
+        ErrorEllipse.E2.Dip = errorEllipse[2].getPlunge();
       }
     }
 
     // exit code conversion
     if (locatorExitCode == LocStatus.SUCCESSFUL_LOCATION) {
-      setLocatorExitCode("Success");
+      LocatorExitCode = "Success";
     } else if (locatorExitCode == LocStatus.DID_NOT_MOVE) {
-      setLocatorExitCode("DidNotMove");
+      LocatorExitCode = "DidNotMove";
     } else if (locatorExitCode == LocStatus.ERRORS_NOT_COMPUTED) {
-      setLocatorExitCode("ErrorsNotComputed");
+      LocatorExitCode = "ErrorsNotComputed";
     } else if (locatorExitCode == LocStatus.LOCATION_FAILED) {
-      setLocatorExitCode("Failed");
+      LocatorExitCode = "Failed";
     } else {
-      setLocatorExitCode("Unknown");
+      LocatorExitCode = "Unknown";
     }
   }
 
@@ -256,32 +260,31 @@ public class LocOutput extends LocationResult {
     // agencyid/author conversion
     String[] sourceArray = source.split("\\|", -1);
 
-    getSupportingData()
-        .add(
-            new gov.usgs.processingformats.Pick(
-                pickID,
-                stationCode,
-                componentCode,
-                networkCode,
-                locationCode,
-                stationLatitude,
-                stationLongitude,
-                stationElevation,
-                sourceArray[0],
-                sourceArray[1],
-                typeString,
-                new Date(pickTime),
-                pickAffinity,
-                pickQuality,
-                useFlag,
-                null,
-                originalPhaseCode,
-                locatorPhaseCode,
-                residual,
-                delta,
-                azimuth,
-                weight,
-                pickImport));
+    SupportingData.add(
+        new gov.usgs.processingformats.Pick(
+            pickID,
+            stationCode,
+            componentCode,
+            networkCode,
+            locationCode,
+            stationLatitude,
+            stationLongitude,
+            stationElevation,
+            sourceArray[0],
+            sourceArray[1],
+            typeString,
+            new Date(pickTime),
+            pickAffinity,
+            pickQuality,
+            useFlag,
+            null,
+            originalPhaseCode,
+            locatorPhaseCode,
+            residual,
+            delta,
+            azimuth,
+            weight,
+            pickImport));
   }
 
   /**
@@ -297,50 +300,44 @@ public class LocOutput extends LocationResult {
 
       fileWriter.format(
           "\n%14.3f %8.4f %9.4f %6.2f %4d %4d %4d %4d %3.0f " + "%8.4f\n",
-          LocUtil.toHydraTime(getHypocenter().getTime().getTime()),
-          getHypocenter().getLatitude(),
-          getHypocenter().getLongitude(),
-          getHypocenter().getDepth(),
-          getNumberOfAssociatedStations(),
-          getNumberOfAssociatedPhases(),
-          getNumberOfUsedStations(),
-          getNumberOfUsedPhases(),
-          getGap(),
-          getMinimumDistance());
+          LocUtil.toHydraTime(Hypocenter.Time.getTime()),
+          Hypocenter.Latitude,
+          Hypocenter.Longitude,
+          Hypocenter.Depth,
+          NumberOfAssociatedStations,
+          NumberOfAssociatedPhases,
+          NumberOfUsedStations,
+          NumberOfUsedPhases,
+          Gap,
+          MinimumDistance);
       fileWriter.format(
           "%6.2f %6.1f %6.1f %6.1f %6.2f %6.1f %6.1f %6.1f " + "%3s %5.1f %5.1f %6.4f\n",
-          getHypocenter().getTimeError(),
-          getHypocenter().getLatitudeError(),
-          getHypocenter().getLongitudeError(),
-          getHypocenter().getDepthError(),
-          getRMS(),
-          getErrorEllipse().getMaximumHorizontalProjection(),
-          getErrorEllipse().getMaximumVerticalProjection(),
-          getErrorEllipse().getEquivalentHorizontalRadius(),
-          getQuality(),
-          getBayesianDepth(),
-          getBayesianRange(),
-          getDepthImportance());
+          Hypocenter.TimeError,
+          Hypocenter.LatitudeError,
+          Hypocenter.LongitudeError,
+          Hypocenter.DepthError,
+          RMS,
+          ErrorEllipse.MaximumHorizontalProjection,
+          ErrorEllipse.MaximumVerticalProjection,
+          ErrorEllipse.EquivalentHorizontalRadius,
+          Quality,
+          BayesianDepth,
+          BayesianRange,
+          DepthImportance);
       fileWriter.format(
           "%6.1f %3.0f %3.0f ",
-          getErrorEllipse().getE0Error(),
-          getErrorEllipse().getE0Azimuth(),
-          getErrorEllipse().getE0Dip());
+          ErrorEllipse.E0.Error, ErrorEllipse.E0.Azimuth, ErrorEllipse.E0.Dip);
       fileWriter.format(
           "%6.1f %3.0f %3.0f ",
-          getErrorEllipse().getE1Error(),
-          getErrorEllipse().getE1Azimuth(),
-          getErrorEllipse().getE1Dip());
+          ErrorEllipse.E1.Error, ErrorEllipse.E1.Azimuth, ErrorEllipse.E1.Dip);
       fileWriter.format(
           "%6.1f %3.0f %3.0f  ",
-          getErrorEllipse().getE2Error(),
-          getErrorEllipse().getE1Azimuth(),
-          getErrorEllipse().getE2Dip());
-      fileWriter.format("%3.0f\n", getSecondaryGap());
+          ErrorEllipse.E2.Error, ErrorEllipse.E2.Azimuth, ErrorEllipse.E2.Dip);
+      fileWriter.format("%3.0f\n", SecondaryGap);
 
       // picks
-      for (int j = 0; j < getSupportingData().size(); j++) {
-        fileWriter.print(writeHydraPick(getSupportingData().get(j)));
+      for (int j = 0; j < SupportingData.size(); j++) {
+        fileWriter.print(writeHydraPick(SupportingData.get(j)));
       }
 
       // done with file
@@ -361,18 +358,18 @@ public class LocOutput extends LocationResult {
   public String writeHydraPick(gov.usgs.processingformats.Pick pick) {
     return String.format(
         "%-10s %-5s %-3s %-2s %-2s %-8s%6.1f %5.1f %3.0f %1s %4.2f %6.4f\n",
-        pick.getID(),
-        pick.getSite().getStation(),
-        pick.getSite().getChannel(),
-        pick.getSite().getNetwork(),
-        pick.getSite().getLocation(),
-        pick.getLocatedPhase(),
-        pick.getResidual(),
-        pick.getDistance(),
-        pick.getAzimuth(),
-        LocUtil.getBoolChar(pick.getUse()),
-        pick.getWeight(),
-        pick.getImportance());
+        pick.ID,
+        pick.Site.Station,
+        pick.Site.Channel,
+        pick.Site.Network,
+        pick.Site.Location,
+        pick.LocatedPhase,
+        pick.Residual,
+        pick.Distance,
+        pick.Azimuth,
+        LocUtil.getBoolChar(pick.Use),
+        pick.Weight,
+        pick.Importance);
   }
 
   /**
