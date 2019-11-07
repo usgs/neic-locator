@@ -1,11 +1,14 @@
 package gov.usgs.locator;
 
+import gov.usgs.detectionformats.Detection;
 import gov.usgs.processingformats.LocationRequest;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.Iterator;
 import java.util.Scanner;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
+import org.json.simple.JSONObject;
 
 /**
  * The LocInput class stores the inputs needed to relocate an event. This class is designed to
@@ -46,6 +49,145 @@ public class LocInput extends LocationRequest {
     setBayesianSpread(request.getBayesianSpread());
     setUseSVD(request.getUseSVD());
     setOutputData(request.getOutputData());
+  }
+
+  /**
+   * The LocInput constructor. This constructor populates the LocInput class with the given
+   * Detection parameters
+   *
+   * @param detection A Detection object containing the input data
+   */
+  public LocInput(final Detection detection, JSONObject locationConfig) {
+    setType("Locator");
+    setID(detection.getID());
+    setSourceLatitude(detection.getHypocenter().getLatitude());
+    setSourceLongitude(detection.getHypocenter().getLongitude());
+    setSourceDepth(detection.getHypocenter().getDepth());
+    setSourceOriginTime(detection.getHypocenter().getTime());
+
+    // optionally configurable values because there are no corresponding entries
+    // in detection formats
+    if ((locationConfig != null) && (locationConfig.containsKey("EarthModel"))) {
+      setEarthModel(locationConfig.get("EarthModel").toString());
+    } else {
+      setEarthModel("ak135");
+    }
+
+    if ((locationConfig != null) && (locationConfig.containsKey("IsLocationNew"))) {
+      setIsLocationNew((boolean) locationConfig.get("IsLocationNew"));
+    } else {
+      setIsLocationNew(true);
+    }
+
+    if ((locationConfig != null) && (locationConfig.containsKey("IsLocationHeld"))) {
+      setIsLocationHeld((boolean) locationConfig.get("IsLocationHeld"));
+    } else {
+      setIsLocationHeld(false);
+    }
+
+    if ((locationConfig != null) && (locationConfig.containsKey("IsDepthHeld"))) {
+      setIsDepthHeld((boolean) locationConfig.get("IsDepthHeld"));
+    } else {
+      setIsDepthHeld(false);
+    }
+
+    if ((locationConfig != null) && (locationConfig.containsKey("IsBayesianDepth"))) {
+      setIsBayesianDepth((boolean) locationConfig.get("IsBayesianDepth"));
+    } else {
+      setIsBayesianDepth(false);
+    }
+
+    if ((locationConfig != null) && (locationConfig.containsKey("BayesianDepth"))) {
+      setBayesianDepth((double) locationConfig.get("BayesianDepth"));
+    } else {
+      setBayesianDepth(0.0);
+    }
+
+    if ((locationConfig != null) && (locationConfig.containsKey("BayesianSpread"))) {
+      setBayesianSpread((double) locationConfig.get("BayesianSpread"));
+    } else {
+      setBayesianSpread(0.0);
+    }
+
+    if ((locationConfig != null) && (locationConfig.containsKey("UseSVD"))) {
+      setUseSVD((boolean) locationConfig.get("UseSVD"));
+    } else {
+      setUseSVD(true);
+    }
+
+    // default pick values
+    String pickSourceType = "LocalAutomatic";
+    if ((locationConfig != null) && (locationConfig.containsKey("PickSourceType"))) {
+      pickSourceType = locationConfig.get("PickSourceType").toString();
+    }
+
+    double pickAffinity = 1.0;
+    if ((locationConfig != null) && (locationConfig.containsKey("PickAffinity"))) {
+      pickAffinity = (double) locationConfig.get("PickAffinity");
+    }
+
+    double pickQuality = 0.0;
+    if ((locationConfig != null) && (locationConfig.containsKey("PickQuality"))) {
+      pickQuality = (double) locationConfig.get("PickQuality");
+    }
+
+    boolean pickUse = true;
+    if ((locationConfig != null) && (locationConfig.containsKey("PickUse"))) {
+      pickUse = (boolean) locationConfig.get("PickUse");
+    }
+
+    // picks
+    ArrayList<gov.usgs.processingformats.Pick> requestInputData =
+        new ArrayList<gov.usgs.processingformats.Pick>();
+
+    // for loop while converting picks
+    for (Iterator<gov.usgs.detectionformats.Pick> picksIterator =
+            detection.getPickData().iterator();
+        picksIterator.hasNext(); ) {
+      gov.usgs.detectionformats.Pick detectPick = picksIterator.next();
+      gov.usgs.processingformats.Pick requestPick = new gov.usgs.processingformats.Pick();
+
+      // check to see if we have a pick
+      if (detectPick == null) {
+        continue;
+      }
+
+      // check to see if we have a lat/lon/elev
+      if ((detectPick.getSite().getLatitude() == null)
+          || (detectPick.getSite().getLongitude() == null)
+          || (detectPick.getSite().getElevation() == null)) {
+        continue;
+      }
+
+      requestPick.setId(detectPick.getID());
+
+      requestPick.setSite(
+          new gov.usgs.processingformats.Site(
+              detectPick.getSite().getStation(),
+              detectPick.getSite().getChannel(),
+              detectPick.getSite().getNetwork(),
+              detectPick.getSite().getLocation(),
+              detectPick.getSite().getLatitude(),
+              detectPick.getSite().getLongitude(),
+              detectPick.getSite().getElevation()));
+
+      requestPick.setSource(
+          new gov.usgs.processingformats.Source(
+              detectPick.getSource().getAgencyID(),
+              detectPick.getSource().getAuthor(),
+              pickSourceType));
+
+      requestPick.setTime(detectPick.getTime());
+      requestPick.setAffinity(pickAffinity);
+      requestPick.setQuality(pickQuality);
+      requestPick.setUse(pickUse);
+      requestPick.setPickedPhase(detectPick.getPhase());
+      requestPick.setAssociatedPhase(detectPick.getAssociationInfo().getPhase());
+
+      requestInputData.add(requestPick);
+    }
+
+    setInputData(requestInputData);
   }
 
   /**

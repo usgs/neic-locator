@@ -1,5 +1,6 @@
 package gov.usgs.locator;
 
+import gov.usgs.detectionformats.Detection;
 import gov.usgs.processingformats.LocationException;
 import gov.usgs.processingformats.LocationRequest;
 import gov.usgs.processingformats.LocationResult;
@@ -19,6 +20,8 @@ import java.util.logging.Handler;
 import java.util.logging.Level;
 import java.util.logging.LogManager;
 import java.util.logging.Logger;
+import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 
 /**
@@ -73,6 +76,9 @@ public class LocMain {
   /** Mode to run web service. */
   public static final String MODE_SERVICE = "service";
 
+  /** A String containing the argument for specifying the location configuration file path. */
+  public static final String LOCCONFIG_ARGUMENT = "--locationConfig=";
+
   /** Private logging object. */
   private static final Logger LOGGER = Logger.getLogger(LocMain.class.getName());
 
@@ -84,15 +90,17 @@ public class LocMain {
   public static void main(String[] args) {
     if (args == null || args.length == 0) {
       System.out.println(
-          "Usage:\nneic-locator --modelPath=[model path] --inputType=[json or hydra] "
+          "Usage:\nneic-locator --modelPath=[model path] --inputType=[json, detection, or hydra] "
               + "\n\t--logPath=[log file path] --logLevel=[logging level] "
-              + "\n\t--filePath=[input file path] --outputType=[optional type]"
+              + "\n\t--filePath=[input file path] [--outputType=[optional json or hydra]]"
+              + "\n\t[--locationConfig='optional config file path']"
               + "\nneic-locator --mode=batch --modelPath=[model path] "
-              + "\n\t--inputType=[json or hydra] --logPath=[log file path] "
+              + "\n\t--inputType=[json, detection, or hydra] --logPath=[log file path] "
               + "\n\t--logLevel=[logging level] --inputDir=[input directory path] "
               + "\n\t--outputDir=[output directory path] "
-              + "--archiveDir=[optional archive path] "
-              + "\n\t--outputType=[optional type] "
+              + "[--archiveDir=[optional archive path]] "
+              + "\n\t[--outputType=[optional json or hydra]] "
+              + "[--locationConfig='optional config file path']"
               + "\n\t--csvFile=[optional csv file path]"
               + "\nneic-locator --mode=service");
       System.exit(1);
@@ -112,6 +120,7 @@ public class LocMain {
     String outputExtension = null;
     String archivePath = null;
     String csvFile = null;
+    String locationConfigPath = null;
 
     // process arguments
     StringBuffer argumentList = new StringBuffer();
@@ -158,19 +167,25 @@ public class LocMain {
       } else if (arg.startsWith(CSVFILE_ARGUMENT)) {
         // get csv file
         csvFile = arg.replace(CSVFILE_ARGUMENT, "");
+      } else if (arg.startsWith(LOCCONFIG_ARGUMENT)) {
+        // get locator configuration
+        locationConfigPath = arg.replace(LOCCONFIG_ARGUMENT, "");
       }
     }
 
     if ("json".equals(inputType)) {
       inputExtension = ".locrequest";
+    }
+    if ("detection".equals(inputType)) {
+      inputExtension = ".jsondetect";
     } else {
       inputExtension = ".txt";
     }
 
-    if ("json".equals(outputType)) {
-      outputExtension = ".locresult";
-    } else {
+    if ("hydra".equals(outputType)) {
       outputExtension = ".out";
+    } else {
+      outputExtension = ".locresult";
     }
 
     LocMain locMain = new LocMain();
@@ -200,6 +215,13 @@ public class LocMain {
 
     boolean locRC = false;
 
+    // get location config
+    JSONObject locationConfig = loadJSONFromFile(locationConfigPath);
+
+    if (locationConfig != null) {
+      LOGGER.info("Loaded locationConfig");
+    }
+
     if (MODE_SERVICE.equals(mode)) {
       gov.usgs.locatorservice.Application.main(args);
       // service runs in separate thread, just return from this method...
@@ -215,11 +237,19 @@ public class LocMain {
               archivePath,
               inputType,
               outputType,
-              csvFile);
+              csvFile,
+              locationConfig);
     } else {
       locRC =
           locMain.locateSingleEvent(
-              modelPath, filePath, inputType, outputType, "./", outputExtension, csvFile);
+              modelPath,
+              filePath,
+              inputType,
+              outputType,
+              "./",
+              outputExtension,
+              csvFile,
+              locationConfig);
     }
 
     // Exit.
@@ -336,6 +366,79 @@ public class LocMain {
   }
 
   /**
+   * This function loads a the contents of a file into a json object
+   *
+   * @param filePath A String containing the full path to the input file
+   * @return A JSONObject containing the file contents, or null if the file was invalid.
+   */
+  public static JSONObject loadJSONFromFile(String filePath) {
+    JSONObject fileJSONObject = null;
+    String fileString = loadStringFromFile(filePath);
+
+    if ("".equals(fileString)) {
+      LOGGER.severe("String from file is empty.");
+      return (null);
+    }
+
+    try {
+      // use a parser to convert to a string
+      JSONParser parser = new JSONParser();
+      fileJSONObject = (JSONObject) parser.parse(fileString);
+    } catch (ParseException e) {
+      LOGGER.severe("JSON string parse exception.");
+      LOGGER.severe(e.toString());
+      return (null);
+    }
+
+    return (fileJSONObject);
+  }
+
+  /**
+   * This function loads a the contents of a file into a string
+   *
+   * @param filePath A String containing the full path to the input file
+   * @return A String containing the file contents, or empty string if the file was invalid.
+   */
+  public static String loadStringFromFile(String filePath) {
+    String fileString = "";
+
+    if (filePath == null) {
+      LOGGER.severe("File Path is not valid.");
+      return ("");
+    } else if ("".equals(filePath)) {
+      LOGGER.severe("File Path is empty.");
+      return ("");
+    } else {
+      BufferedReader fileBufferedReader = null;
+      try {
+        FileReader stringFile = new FileReader(filePath);
+        fileBufferedReader = new BufferedReader(stringFile);
+
+        String line = "";
+        while ((line = fileBufferedReader.readLine()) != null) {
+          fileString += line + "\n";
+        }
+      } catch (FileNotFoundException e) {
+        LOGGER.severe(e.toString());
+        return ("");
+      } catch (IOException e) {
+        LOGGER.severe(e.toString());
+        return ("");
+      } finally {
+        try {
+          if (fileBufferedReader != null) {
+            fileBufferedReader.close();
+          }
+        } catch (IOException e) {
+          LOGGER.severe(e.toString());
+        }
+      }
+    }
+
+    return (fileString);
+  }
+
+  /**
    * This function locates a single event.
    *
    * @param modelPath A String containing the path to the required model files
@@ -346,6 +449,8 @@ public class LocMain {
    * @param outputExtension A String containing the extension to use for output files
    * @param csvFile An optional String containing full path to the csv formatted file, null to
    *     disable
+   * @param locationConfig An optional JSONObject containing the locator config for detections, null
+   *     to disable
    * @return A boolean flag indicating whether the locaton was successful
    */
   public boolean locateSingleEvent(
@@ -355,36 +460,16 @@ public class LocMain {
       String outputType,
       String outputPath,
       String outputExtension,
-      String csvFile) {
+      String csvFile,
+      JSONObject locationConfig) {
 
     // read the file
     BufferedReader inputReader = null;
-    String inputString = "";
-    try {
-      inputReader = new BufferedReader(new FileReader(filePath));
-      String text = null;
+    String inputString = loadStringFromFile(filePath);
 
-      // each line is assumed to be part of the input
-      while ((text = inputReader.readLine()) != null) {
-        inputString += text;
-      }
-    } catch (FileNotFoundException e) {
-      // no file
-      LOGGER.severe("Exception: " + e.toString());
+    if ("".equals(inputString)) {
+      LOGGER.severe("String from file is empty.");
       return false;
-    } catch (IOException e) {
-      // problem reading
-      LOGGER.severe("Exception: " + e.toString());
-      return false;
-    } finally {
-      try {
-        if (inputReader != null) {
-          inputReader.close();
-        }
-      } catch (IOException e) {
-        // can't close
-        LOGGER.severe("Exception: " + e.toString());
-      }
     }
 
     // parse the file
@@ -400,6 +485,23 @@ public class LocMain {
         LOGGER.severe("Exception: " + e.toString());
         return false;
       }
+    } else if ("detection".equals(inputType)) {
+      LOGGER.fine("Parsing a detection file.");
+
+      // parse into detection
+      Detection detection = null;
+      try {
+        detection = new Detection(Utility.fromJSONString(inputString));
+      } catch (ParseException e) {
+        // parse failure
+        LOGGER.severe("Exception: " + e.toString());
+        return false;
+      }
+
+      // convert to request
+      // Use LocInput to get access to proper constructor
+      LocInput detectIn = new LocInput(detection, locationConfig);
+      request = (LocationRequest) detectIn;
     } else {
       LOGGER.fine("Parsing a hydra file.");
 
@@ -472,6 +574,8 @@ public class LocMain {
    * @param outputType A String containing the type of the locator output file
    * @param csvFile An optional String containing full path to the csv formatted file, null to
    *     disable
+   * @param locationConfig An optional JSONObject containing the locator config for detections, null
+   *     to disable
    * @return A boolean flag indicating whether the locatons were successful
    */
   public boolean locateManyEvents(
@@ -483,7 +587,8 @@ public class LocMain {
       String archivePath,
       String inputType,
       String outputType,
-      String csvFile) {
+      String csvFile,
+      JSONObject locationConfig) {
 
     // create the output and archive paths if they don't
     // already exist
@@ -520,7 +625,14 @@ public class LocMain {
         String filePath = inputFile.getAbsolutePath();
 
         if (locateSingleEvent(
-            modelPath, filePath, inputType, outputType, outputPath, outputExtension, csvFile)) {
+            modelPath,
+            filePath,
+            inputType,
+            outputType,
+            outputPath,
+            outputExtension,
+            csvFile,
+            locationConfig)) {
           // done with the file
           if (archivePath == null) {
             // not archiving, just delete it
