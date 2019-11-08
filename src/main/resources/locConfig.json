@@ -1,0 +1,14 @@
+{
+  "EarthModel": "ak135",
+  "IsLocationNew": true,
+  "IsLocationHeld": false,
+  "IsDepthHeld": false,
+  "IsBayesianDepth": false,
+  "BayesianDepth": 0.0,
+  "BayesianSpread": 0.0,
+  "UseSVD": true,
+  "PickSourceType": "LocalAutomatic",
+  "PickAffinity": 1.0,
+  "PickQuality": 0.0,
+  "PickUse": true
+}

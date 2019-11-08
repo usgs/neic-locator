@@ -507,44 +507,44 @@ public class Event {
    */
   public void input(LocInput in) {
     // Create the hypocenter.
-    id = in.getID();
+    id = in.ID;
     hypo =
         new Hypocenter(
-            LocUtil.toHydraTime(in.getSourceOriginTime().getTime()),
-            in.getSourceLatitude(),
-            in.getSourceLongitude(),
-            in.getSourceDepth());
+            LocUtil.toHydraTime(in.SourceOriginTime.getTime()),
+            in.SourceLatitude,
+            in.SourceLongitude,
+            in.SourceDepth);
 
     // Get the analyst commands.
-    isLocationHeld = in.getIsLocationHeld();
-    isDepthHeld = in.getIsDepthHeld();
-    isDepthManual = in.getIsBayesianDepth();
+    isLocationHeld = in.IsLocationHeld;
+    isDepthHeld = in.IsDepthHeld;
+    isDepthManual = in.IsBayesianDepth;
 
     if (isDepthManual) {
-      bayesianDepth = in.getBayesianDepth();
-      bayesianDepthSpread = in.getBayesianSpread();
+      bayesianDepth = in.BayesianDepth;
+      bayesianDepthSpread = in.BayesianSpread;
     }
 
-    useDecorrelation = in.getUseSVD(); // True when noSvd is false
-    isLocationRestarted = in.getIsLocationNew();
+    useDecorrelation = in.UseSVD; // True when noSvd is false
+    isLocationRestarted = in.IsLocationNew;
 
     // process the input pick data.
-    for (int j = 0; j < in.getInputData().size(); j++) {
-      gov.usgs.processingformats.Pick pickIn = in.getInputData().get(j);
+    for (int j = 0; j < in.InputData.size(); j++) {
+      gov.usgs.processingformats.Pick pickIn = in.InputData.get(j);
 
       // make sure phCode and obsCode are not null
       String phCode = "";
-      if (pickIn.getPickedPhase() != null) {
-        phCode = pickIn.getPickedPhase();
+      if (pickIn.PickedPhase != null) {
+        phCode = pickIn.PickedPhase;
       }
       String obsCode = "";
-      if (pickIn.getAssociatedPhase() != null) {
-        obsCode = pickIn.getAssociatedPhase();
+      if (pickIn.AssociatedPhase != null) {
+        obsCode = pickIn.AssociatedPhase;
       }
 
       // source type conversion
       int authorType = 1; // default to automatic contributed
-      String typeString = pickIn.getSource().getType();
+      String typeString = pickIn.Source.Type;
       if ("ContributedAutomatic".equals(typeString)) {
         authorType = 1; // automatic contributed
       } else if ("LocalAutomatic".equals(typeString)) {
@@ -556,34 +556,28 @@ public class Event {
       }
 
       // source conversion
-      String sourceStr = pickIn.getSource().getAgencyID() + "|" + pickIn.getSource().getAuthor();
+      String sourceStr = pickIn.Source.AgencyID + "|" + pickIn.Source.Author;
 
       // Create the station.
       StationID stationID =
-          new StationID(
-              pickIn.getSite().getStation(),
-              pickIn.getSite().getLocation(),
-              pickIn.getSite().getNetwork());
+          new StationID(pickIn.Site.Station, pickIn.Site.Location, pickIn.Site.Network);
       Station station =
           new Station(
-              stationID,
-              pickIn.getSite().getLatitude(),
-              pickIn.getSite().getLongitude(),
-              pickIn.getSite().getElevation());
+              stationID, pickIn.Site.Latitude, pickIn.Site.Longitude, pickIn.Site.Elevation);
       gov.usgs.locator.Pick pick =
           new gov.usgs.locator.Pick(
               station,
-              pickIn.getSite().getChannel(),
-              LocUtil.toHydraTime(pickIn.getTime().getTime()),
-              pickIn.getUse(),
+              pickIn.Site.Channel,
+              LocUtil.toHydraTime(pickIn.Time.getTime()),
+              pickIn.Use,
               phCode);
       pick.setPhaseIdInfo(
           sourceStr,
-          pickIn.getID(),
-          pickIn.getQuality(),
+          pickIn.ID,
+          pickIn.Quality,
           obsCode,
           LocUtil.getAuthCodeFromNumericCode(authorType),
-          pickIn.getAffinity());
+          pickIn.Affinity);
       pickList.add(pick);
     }
 

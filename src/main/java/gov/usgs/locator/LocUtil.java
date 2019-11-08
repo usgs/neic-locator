@@ -954,8 +954,10 @@ public class LocUtil {
    * @return A String containing the timer results
    */
   public static String endTimer(String label) {
-//    String timerString = label + " time: " + 0.001 * (System.currentTimeMillis() - systemTime);
-    String timerString = String.format("%s time:%7.3f", label, 0.001 * (System.currentTimeMillis() - systemTime));
+    //    String timerString = label + " time: " + 0.001 * (System.currentTimeMillis() -
+    // systemTime);
+    String timerString =
+        String.format("%s time:%7.3f", label, 0.001 * (System.currentTimeMillis() - systemTime));
     return (timerString);
   }
 }

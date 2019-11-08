@@ -105,12 +105,12 @@ public class LocService implements LocationService {
     }
 
     // make sure we have an earth model
-    if (in.getEarthModel() == null) {
-      in.setEarthModel("ak135");
+    if (in.EarthModel == null) {
+      in.EarthModel = "ak135";
     }
 
     // setup the event
-    Event event = new Event(in.getEarthModel());
+    Event event = new Event(in.EarthModel);
     event.input(in);
 
     // print input for debugging

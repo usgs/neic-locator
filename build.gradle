@@ -69,6 +69,7 @@ dependencies {
     //testCompile "org.mockito:mockito-junit-jupiter:2.22.0"
     testCompile "org.junit.jupiter:junit-jupiter-api:5.4.2"
     testRuntime "org.junit.jupiter:junit-jupiter-engine:5.4.2"
+
 }
 
 // method to add/update an external project from git and add it to the
@@ -123,7 +124,8 @@ jacocoTestReport {
         getClassDirectories().from(files(classDirectories.files.collect {
             fileTree(dir: it, exclude: [
                     "gov/usgs/traveltime/**",
-                    "gov/usgs/processingformats/**"
+                    "gov/usgs/processingformats/**",
+                    "gov/usgs/detectionformats/**"
             ])
         }))
     }
@@ -150,6 +152,10 @@ task cloneExternalProjects {
     // earthquake-processing-formats
     addExternalProject("$projectDir/lib/earthquake-processing-formats",
       "https://github.com/usgs/earthquake-processing-formats.git", "java/src")
+
+    // earthquake-detection-formats
+    addExternalProject("$projectDir/lib/earthquake-detection-formats",
+      "https://github.com/usgs/earthquake-detection-formats.git", "java/src")
   }
 }
 
@@ -195,7 +201,8 @@ shadowJar {
 
 // create javadocs
 javadoc {
-  exclude "gov/usgs/processingformats/**"
+  exclude "**/gov/usgs/processingformats/**"
+  exclude "**/gov/usgs/detectionformats/**"
   if(JavaVersion.current() != JavaVersion.VERSION_1_8) {
     options.addBooleanOption('html5', true)
   }

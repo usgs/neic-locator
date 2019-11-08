@@ -63,71 +63,52 @@ public class LocatorRegressionTest {
 
     // check location result parameters against verification result
     Assertions.assertEquals(
-        verificationResult.getHypocenter().getLatitude(),
-        result.getHypocenter().getLatitude(),
-        0.0001,
-        "Latitude");
+        verificationResult.Hypocenter.Latitude, result.Hypocenter.Latitude, 0.0001, "Latitude");
 
     Assertions.assertEquals(
-        verificationResult.getHypocenter().getLatitudeError(),
-        result.getHypocenter().getLatitudeError(),
+        verificationResult.Hypocenter.LatitudeError,
+        result.Hypocenter.LatitudeError,
         0.0001,
         "Latitude Error");
 
     Assertions.assertEquals(
-        verificationResult.getHypocenter().getLongitude(),
-        result.getHypocenter().getLongitude(),
-        0.0001,
-        "Longitude");
+        verificationResult.Hypocenter.Longitude, result.Hypocenter.Longitude, 0.0001, "Longitude");
 
     Assertions.assertEquals(
-        verificationResult.getHypocenter().getLongitudeError(),
-        result.getHypocenter().getLongitudeError(),
+        verificationResult.Hypocenter.LongitudeError,
+        result.Hypocenter.LongitudeError,
         0.0001,
         "Longitude Error");
 
     Assertions.assertEquals(
-        verificationResult.getHypocenter().getDepth(),
-        result.getHypocenter().getDepth(),
-        0.0001,
-        "Depth");
+        verificationResult.Hypocenter.Depth, result.Hypocenter.Depth, 0.0001, "Depth");
 
     Assertions.assertEquals(
-        verificationResult.getHypocenter().getDepthError(),
-        result.getHypocenter().getDepthError(),
+        verificationResult.Hypocenter.DepthError,
+        result.Hypocenter.DepthError,
         0.0001,
         "Depth Error");
 
     Assertions.assertEquals(
-        verificationResult.getHypocenter().getTime().getTime(),
-        result.getHypocenter().getTime().getTime(),
-        "Time");
+        verificationResult.Hypocenter.Time.getTime(), result.Hypocenter.Time.getTime(), "Time");
 
     Assertions.assertEquals(
-        verificationResult.getHypocenter().getTimeError(),
-        result.getHypocenter().getTimeError(),
-        0.0001,
-        "Time Error");
+        verificationResult.Hypocenter.TimeError, result.Hypocenter.TimeError, 0.0001, "Time Error");
 
     Assertions.assertEquals(
-        verificationResult.getMinimumDistance(),
-        result.getMinimumDistance(),
-        0.0001,
-        "Minimum Distance");
+        verificationResult.MinimumDistance, result.MinimumDistance, 0.0001, "Minimum Distance");
 
-    Assertions.assertEquals(verificationResult.getRMS(), result.getRMS(), 0.0001, "RMS");
+    Assertions.assertEquals(verificationResult.RMS, result.RMS, 0.0001, "RMS");
 
-    Assertions.assertEquals(verificationResult.getGap(), result.getGap(), 0.0001, "Gap");
+    Assertions.assertEquals(verificationResult.Gap, result.Gap, 0.0001, "Gap");
 
     Assertions.assertEquals(
-        verificationResult.getNumberOfUsedStations(),
-        result.getNumberOfUsedStations(),
-        "Used Stations");
+        verificationResult.NumberOfUsedStations, result.NumberOfUsedStations, "Used Stations");
 
     Assertions.assertEquals(
-        verificationResult.getNumberOfUsedPhases(), result.getNumberOfUsedPhases(), "Used Phases");
+        verificationResult.NumberOfUsedPhases, result.NumberOfUsedPhases, "Used Phases");
 
-    Assertions.assertEquals(verificationResult.getQuality(), result.getQuality(), "Quality");
+    Assertions.assertEquals(verificationResult.Quality, result.Quality, "Quality");
 
     // not currently examining the phase list.
   }
