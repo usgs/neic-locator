@@ -224,7 +224,10 @@ public class LocMain {
     boolean locRC = false;
 
     // get location config
-    JSONObject locationConfig = loadJSONFromFile(locationConfigPath);
+    JSONObject locationConfig = null;
+    if (locationConfigPath != null) {
+      locationConfig = loadJSONFromFile(locationConfigPath);
+    }
 
     if (locationConfig != null) {
       LOGGER.info("Loaded locationConfig");
