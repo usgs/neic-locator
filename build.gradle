@@ -201,7 +201,8 @@ shadowJar {
 
 // create javadocs
 javadoc {
-  exclude "gov/usgs/processingformats/**"
+  exclude "**/gov/usgs/processingformats/**"
+  exclude "**/gov/usgs/detectionformats/**"
   if(JavaVersion.current() != JavaVersion.VERSION_1_8) {
     options.addBooleanOption('html5', true)
   }

@@ -174,17 +174,25 @@ public class LocMain {
     }
 
     if ("json".equals(inputType)) {
+      // we expect json inputs to use the standard processing formats extension
+      // for requests
       inputExtension = ".locrequest";
-    }
-    if ("detection".equals(inputType)) {
+    } else if ("detection".equals(inputType)) {
+      // we expect detection inputs to use the standard detection formats extension
+      // for detections
       inputExtension = ".jsondetect";
     } else {
+      // hydra input files have a .txt extension
       inputExtension = ".txt";
     }
 
     if ("hydra".equals(outputType)) {
+      // hydra output files have a .out extension
       outputExtension = ".out";
     } else {
+      // we expect json outputs to use the standard processing formats extension
+      // for results, and there is no specified detection formats extension, so
+      // we'll use the same as json outputs
       outputExtension = ".locresult";
     }
 
@@ -404,10 +412,10 @@ public class LocMain {
 
     if (filePath == null) {
       LOGGER.severe("File Path is not valid.");
-      return ("");
+      return (null);
     } else if ("".equals(filePath)) {
       LOGGER.severe("File Path is empty.");
-      return ("");
+      return (null);
     } else {
       BufferedReader fileBufferedReader = null;
       try {
@@ -420,10 +428,10 @@ public class LocMain {
         }
       } catch (FileNotFoundException e) {
         LOGGER.severe(e.toString());
-        return ("");
+        return (null);
       } catch (IOException e) {
         LOGGER.severe(e.toString());
-        return ("");
+        return (null);
       } finally {
         try {
           if (fileBufferedReader != null) {
@@ -464,8 +472,12 @@ public class LocMain {
       JSONObject locationConfig) {
 
     // read the file
-    BufferedReader inputReader = null;
     String inputString = loadStringFromFile(filePath);
+
+    if (inputString == null) {
+      LOGGER.severe("String from file is null.");
+      return false;
+    }
 
     if ("".equals(inputString)) {
       LOGGER.severe("String from file is empty.");

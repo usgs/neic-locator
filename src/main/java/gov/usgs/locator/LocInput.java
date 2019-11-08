@@ -56,6 +56,8 @@ public class LocInput extends LocationRequest {
    * Detection parameters
    *
    * @param detection A Detection object containing the input data
+   * @param locationConfig A JSONObject containing location configuration not included in the
+   *     detection object
    */
   public LocInput(final Detection detection, JSONObject locationConfig) {
     Type = "Locator";
