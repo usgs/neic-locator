@@ -64,26 +64,26 @@ public class LocOutput extends LocationResult {
       double minStationDistance,
       String qualityFlags) {
 
-    ID = id;
+    this.ID = id;
 
     // create subobjects
-    Hypocenter = new gov.usgs.processingformats.Hypocenter();
-    ErrorEllipse = new gov.usgs.processingformats.ErrorEllipse();
-    SupportingData = new ArrayList<gov.usgs.processingformats.Pick>();
+    this.Hypocenter = new gov.usgs.processingformats.Hypocenter();
+    this.ErrorEllipse = new gov.usgs.processingformats.ErrorEllipse();
+    this.SupportingData = new ArrayList<gov.usgs.processingformats.Pick>();
 
     // fill in information
-    Hypocenter.Time = new Date(originTime);
-    Hypocenter.Latitude = sourceLatitude;
-    Hypocenter.Longitude = sourceLongitude;
-    Hypocenter.Depth = sourceDepth;
-    NumberOfAssociatedStations = numStationsAssociated;
-    NumberOfAssociatedPhases = numPhasesAssociated;
-    NumberOfUsedStations = numStationsUsed;
-    NumberOfUsedPhases = numPhasesUsed;
-    Gap = azimuthGap;
-    SecondaryGap = azimuthalGapLEst;
-    MinimumDistance = minStationDistance;
-    Quality = qualityFlags;
+    this.Hypocenter.Time = new Date(originTime);
+    this.Hypocenter.Latitude = sourceLatitude;
+    this.Hypocenter.Longitude = sourceLongitude;
+    this.Hypocenter.Depth = sourceDepth;
+    this.NumberOfAssociatedStations = numStationsAssociated;
+    this.NumberOfAssociatedPhases = numPhasesAssociated;
+    this.NumberOfUsedStations = numStationsUsed;
+    this.NumberOfUsedPhases = numPhasesUsed;
+    this.Gap = azimuthGap;
+    this.SecondaryGap = azimuthalGapLEst;
+    this.MinimumDistance = minStationDistance;
+    this.Quality = qualityFlags;
   }
 
   /**
@@ -125,54 +125,57 @@ public class LocOutput extends LocationResult {
       EllipseAxis[] errorEllipse,
       LocStatus locatorExitCode) {
 
-    Hypocenter.TimeError = timeStandardError;
-    Hypocenter.LatitudeError = latitudeStandardError;
-    Hypocenter.LongitudeError = longitudeStandardError;
-    Hypocenter.DepthError = depthStandardError;
+    this.Hypocenter.TimeError = timeStandardError;
+    this.Hypocenter.LatitudeError = latitudeStandardError;
+    this.Hypocenter.LongitudeError = longitudeStandardError;
+    this.Hypocenter.DepthError = depthStandardError;
 
-    RMS = residualsStandardError;
-    BayesianDepth = bayesianDepth;
-    BayesianRange = bayesianDepthSpread;
-    DepthImportance = bayesianDepthDataImportance;
+    this.RMS = residualsStandardError;
+    this.BayesianDepth = bayesianDepth;
+    this.BayesianRange = bayesianDepthSpread;
+    this.DepthImportance = bayesianDepthDataImportance;
 
     if (errorEllipse != null) {
-      ErrorEllipse.MaximumHorizontalProjection = maxHorizontalError;
-      ErrorEllipse.MaximumVerticalProjection = maxVerticalError;
-      ErrorEllipse.EquivalentHorizontalRadius = equivalentErrorRadius;
+      this.ErrorEllipse.MaximumHorizontalProjection = maxHorizontalError;
+      this.ErrorEllipse.MaximumVerticalProjection = maxVerticalError;
+      this.ErrorEllipse.EquivalentHorizontalRadius = equivalentErrorRadius;
 
       if (errorEllipse[0] != null) {
-        ErrorEllipse.E0 = new ErrorEllipseAxis();
-        ErrorEllipse.E0.Error = errorEllipse[0].getSemiLen();
-        ErrorEllipse.E0.Azimuth = errorEllipse[0].getAzimuth();
-        ErrorEllipse.E0.Dip = errorEllipse[0].getPlunge();
+        this.ErrorEllipse.E0 =
+            new ErrorEllipseAxis(
+                errorEllipse[0].getSemiLen(),
+                errorEllipse[0].getAzimuth(),
+                errorEllipse[0].getPlunge());
       }
 
       if (errorEllipse[1] != null) {
-        ErrorEllipse.E1 = new ErrorEllipseAxis();
-        ErrorEllipse.E1.Error = errorEllipse[1].getSemiLen();
-        ErrorEllipse.E1.Azimuth = errorEllipse[1].getAzimuth();
-        ErrorEllipse.E1.Dip = errorEllipse[1].getPlunge();
+        this.ErrorEllipse.E1 =
+            new ErrorEllipseAxis(
+                errorEllipse[1].getSemiLen(),
+                errorEllipse[1].getAzimuth(),
+                errorEllipse[1].getPlunge());
       }
 
       if (errorEllipse[2] != null) {
-        ErrorEllipse.E2 = new ErrorEllipseAxis();
-        ErrorEllipse.E2.Error = errorEllipse[2].getSemiLen();
-        ErrorEllipse.E2.Azimuth = errorEllipse[2].getAzimuth();
-        ErrorEllipse.E2.Dip = errorEllipse[2].getPlunge();
+        this.ErrorEllipse.E2 =
+            new ErrorEllipseAxis(
+                errorEllipse[2].getSemiLen(),
+                errorEllipse[2].getAzimuth(),
+                errorEllipse[2].getPlunge());
       }
     }
 
     // exit code conversion
     if (locatorExitCode == LocStatus.SUCCESSFUL_LOCATION) {
-      LocatorExitCode = "Success";
+      this.LocatorExitCode = "Success";
     } else if (locatorExitCode == LocStatus.DID_NOT_MOVE) {
-      LocatorExitCode = "DidNotMove";
+      this.LocatorExitCode = "DidNotMove";
     } else if (locatorExitCode == LocStatus.ERRORS_NOT_COMPUTED) {
-      LocatorExitCode = "ErrorsNotComputed";
+      this.LocatorExitCode = "ErrorsNotComputed";
     } else if (locatorExitCode == LocStatus.LOCATION_FAILED) {
-      LocatorExitCode = "Failed";
+      this.LocatorExitCode = "Failed";
     } else {
-      LocatorExitCode = "Unknown";
+      this.LocatorExitCode = "Unknown";
     }
   }
 

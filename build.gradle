@@ -78,12 +78,15 @@ ext.addExternalProject = { path, url, srcDir ->
   File projDir = new File("$path")
   // clone project if it doesn't exist locally
   if(!projDir.exists()) {
+    logger.quiet('Cloning {}', projDir)
     grgit.clone(dir: projDir, uri: url)
   }
   // pull the project if it does exist locally
   else {
+    logger.quiet('Updating {}', projDir)
     grgit.open(dir: projDir)
-    grgit.pull(branch: "master")
+   // grgit.reset(mode: 'hard', commit: 'HEAD')
+    grgit.pull()
     grgit.close()
   }
 
