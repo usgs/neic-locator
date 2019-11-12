@@ -51,7 +51,14 @@ public class LocService implements LocationService {
 
     LocationResult result = (LocationResult) getLocation(in);
 
-    LOGGER.info(request.ID + ": " + LocUtil.endLocationTimer());
+    LOGGER.info(
+        "Event: "
+            + request.ID
+            + ", "
+            + LocUtil.endLocationTimer()
+            + ", "
+            + request.InputData.size()
+            + " numData.");
 
     // always print result as json to log for debugging, if it is valid
     if (result != null) {

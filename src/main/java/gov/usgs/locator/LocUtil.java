@@ -983,8 +983,7 @@ public class LocUtil {
   public static String endLocationTimer() {
     String timerString =
         String.format(
-            "Time to compute location: %7.3f seconds",
-            0.001 * (System.currentTimeMillis() - locationTime));
+            "Compute time %7.3f seconds", 0.001 * (System.currentTimeMillis() - locationTime));
     return (timerString);
   }
 }
