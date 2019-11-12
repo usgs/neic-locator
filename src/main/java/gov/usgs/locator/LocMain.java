@@ -364,7 +364,7 @@ public class LocMain {
       end = filePath.length();
     }
 
-    return filePath.substring(start, end);
+    return filePath.substring(start + 1, end);
   }
 
   /**
@@ -527,6 +527,9 @@ public class LocMain {
       }
 
       request = (LocationRequest) hydraIn;
+
+      // use file name as ID
+      request.ID = getFileName(filePath);
     }
 
     // do location
