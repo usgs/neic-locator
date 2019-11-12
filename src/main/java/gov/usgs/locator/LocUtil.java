@@ -356,6 +356,12 @@ public class LocUtil {
    */
   private static long systemTime;
 
+  /*
+   * A double representing the system time, used as a timer. Needed by
+   * startLocationTimer and endLocationTimer.
+   */
+  private static long locationTime;
+
   /**
    * This function computes the source-receiver distance and the receiver azimuth. An historically
    * significant subroutine from deep time (1962)! This routine was written by Bob Engdahl in
@@ -958,6 +964,27 @@ public class LocUtil {
     // systemTime);
     String timerString =
         String.format("%s time:%7.3f", label, 0.001 * (System.currentTimeMillis() - systemTime));
+    return (timerString);
+  }
+
+  /**
+   * This timer function sets the locationTime variable to the current system time in milliseconds.
+   * This function is used in conjunction with endLocationTimer
+   */
+  public static void startLocationTimer() {
+    locationTime = System.currentTimeMillis();
+  }
+
+  /**
+   * This timer function ends the location timer and returns a string holding the result in seconds.
+   *
+   * @return A String containing the timer results
+   */
+  public static String endLocationTimer() {
+    String timerString =
+        String.format(
+            "Time to compute location: %7.3f seconds",
+            0.001 * (System.currentTimeMillis() - locationTime));
     return (timerString);
   }
 }

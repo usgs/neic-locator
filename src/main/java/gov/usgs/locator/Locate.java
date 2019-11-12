@@ -76,7 +76,7 @@ public class Locate {
 
     // Bail on insufficient data.
     if (event.getNumStationsUsed() < 3) {
-      LOGGER.info("Insufficent Data (Stations Used)");
+      LOGGER.info("Insufficient Data (Stations Used)");
       close.compFinalStats(LocStatus.INSUFFICIENT_DATA);
       return LocStatus.INSUFFICIENT_DATA;
     }
