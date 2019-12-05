@@ -4,6 +4,7 @@ import Jama.EigenvalueDecomposition;
 import Jama.Matrix;
 import gov.usgs.traveltime.TauUtil;
 import java.util.ArrayList;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
@@ -69,7 +70,9 @@ public class Decorrelator {
     // because it keeps changing when cloned.
     weightedResidualsOrg = event.getOriginalWeightedResiduals();
 
-    LOGGER.finer(event.printWeightedResiduals("Org", true));
+    if (LOGGER.getLevel() == Level.FINER) {
+      LOGGER.finer(event.printWeightedResiduals("Org", true));
+    }
 
     // We'll use the dimension of the picks a lot!
     numData = weightedResidualsOrg.size();
@@ -105,7 +108,8 @@ public class Decorrelator {
     }
     for (int i = numProjectedData; i < numPickData; i++) {
       weightedResiduals =
-          new WeightedResidual(null, 0d, projectedWeights[i - numProjectedData], false, 0d, 0d, 0d, 0d, 0d);
+          new WeightedResidual(
+              null, 0d, projectedWeights[i - numProjectedData], false, 0d, 0d, 0d, 0d, 0d);
 
       for (int j = 0; j < numPickData; j++) {
         weightedResiduals.project(weightedResidualsOrg.get(j), eigenvectors[j][i]);
@@ -134,7 +138,9 @@ public class Decorrelator {
     // the original order to project the estimated residuals.
     weightedResidualsProjOrg = (ArrayList<WeightedResidual>) weightedResidualsProj.clone();
 
-    LOGGER.finest(event.printWeightedResiduals("Proj", true));
+    if (LOGGER.getLevel() == Level.FINEST) {
+      LOGGER.finest(event.printWeightedResiduals("Proj", true));
+    }
   }
 
   /**
@@ -190,7 +196,9 @@ public class Decorrelator {
    */
   private void triagePicks() {
     if (weightedResidualsOrg.size() > LocUtil.MAXPICKSTODECORRELATE) {
-      LOGGER.finest(LocUtil.printMatrix(covMatrix, "Raw Covariance Matrix"));
+      if (LOGGER.getLevel() == Level.FINEST) {
+        LOGGER.finest(LocUtil.printMatrix(covMatrix, "Raw Covariance Matrix"));
+      }
 
       // Reset all the triage flags.
       event.resetTriage();
@@ -259,7 +267,9 @@ public class Decorrelator {
       covRaw = null;
       covMatrix = covMatrixFinal.getArray();
 
-      LOGGER.finest(LocUtil.printMatrix(covMatrix, "Final Covariance Matrix"));
+      if (LOGGER.getLevel() == Level.FINEST) {
+        LOGGER.finest(LocUtil.printMatrix(covMatrix, "Final Covariance Matrix"));
+      }
 
       // We're not quite done.  We need to eliminate the same picks
       // from the weighted residuals.  And make sure they don't come
@@ -275,17 +285,19 @@ public class Decorrelator {
         }
       }
       // We may have some weighted residuals left.
-      if(i > 0) {
-      	for(; i >= 0; i--) {
+      if (i > 0) {
+        for (; i >= 0; i--) {
           weightedResidualsOrg.get(i).getPick().setIsTriage(true);
           weightedResidualsOrg.remove(i);
-      	}
+        }
       }
 
       numData = weightedResidualsOrg.size();
       numPickData = numData - 1;
 
-      LOGGER.finer(event.printWeightedResiduals("Org", true));
+      if (LOGGER.getLevel() == Level.FINER) {
+        LOGGER.finer(event.printWeightedResiduals("Org", true));
+      }
     } else {
       // We're OK.  Just create the correlation matrix in a form
       // suitable for extracting the eigenvalues.
@@ -311,11 +323,15 @@ public class Decorrelator {
 
     double[] eigenvalues = eig.getRealEigenvalues();
 
-    LOGGER.finer(LocUtil.printVector(eigenvalues, "Eigenvalues"));
+    if (LOGGER.getLevel() == Level.FINER) {
+      LOGGER.finer(LocUtil.printVector(eigenvalues, "Eigenvalues"));
+    }
 
     eigenvectors = eig.getV().getArray();
 
-    LOGGER.finest(testEig(covMatrixFinal, eig));
+    if (LOGGER.getLevel() == Level.FINEST) {
+      LOGGER.finest(testEig(covMatrixFinal, eig));
+    }
 
     // We don't need the covariance matrix any more.
     covMatrixFinal = null;

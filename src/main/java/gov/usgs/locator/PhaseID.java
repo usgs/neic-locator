@@ -160,7 +160,7 @@ public class PhaseID {
               currentGroup.getPicks().get(0).getTravelTime(),
               currentGroup.getDistance(),
               currentGroup.getAzimuth()));
-      
+
       // For the first pick in the group, get the travel times.
       currentTTList =
           ttLocalSession.getTT(
@@ -173,7 +173,7 @@ public class PhaseID {
       // If reidentifyPhases is true, do a full phase re-identification for the
       // current group.
       // NOTE this is done using class variables rather than just passing the
-      // group in, ick.  NOTE class variables are cool when there are so many 
+      // group in, ick.  NOTE class variables are cool when there are so many
       // interlinked methods!
       if (reidentifyPhases) {
         reidentifyPhases();
@@ -211,7 +211,7 @@ public class PhaseID {
   }
 
   /**
-   * This function tries to re-identifys only if the identification is invalid. During the location
+   * This function tries to re-identifies only if the identification is invalid. During the location
    * iteration, we don't want to re-identify phases, but sometimes re-identification is thrust upon
    * us (e.g., when the depth or distance changes and the former identification no longer exists).
    */
@@ -512,7 +512,7 @@ public class PhaseID {
   private void computeCombinedFoM(Pick[] obsPicks, TTimeData[] ttArrivals) {
     // Make a pass computing the cumulative statistical figure-of-merit.
     double cumulativeFoM = 1d;
-    
+
     for (int j = 0; j < ttArrivals.length; j++) {
       if (!obsPicks[j].getIsSurfaceWave()) {
         // Compute the figure-of-merit for the primary criteria.
@@ -521,7 +521,7 @@ public class PhaseID {
                 obsPicks[j].getTravelTime() - ttArrivals[j].getTT(), 0d, ttArrivals[j].getSpread());
         double observabilityAmp = computeObsAmplitude(obsPicks[j], ttArrivals[j]);
         double residual = computeResidual(obsPicks[j], ttArrivals[j]);
-      	double boost = LocUtil.computeProximityBoost(residual);
+        double boost = LocUtil.computeProximityBoost(residual);
 
         LOGGER.finer(
             String.format(
@@ -529,10 +529,10 @@ public class PhaseID {
                 obsPicks[j].getBestPhaseCode(),
                 ttArrivals[j].getPhCode(),
                 probability,
-                observabilityAmp, 
+                observabilityAmp,
                 boost));
 
-      	cumulativeFoM *= observabilityAmp * probability * boost;
+        cumulativeFoM *= observabilityAmp * probability * boost;
       }
     }
 

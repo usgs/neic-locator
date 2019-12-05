@@ -16,6 +16,7 @@ public enum LocStatus {
   HELD_HYPOCENTER(2), // Flag for a held hypocenter
   
   /** Internal status tagging the final hypocenter in the audit. */
+
   FINAL_HYPOCENTER(3), // Flag for the final audit hypocenter
   
   
@@ -100,7 +101,7 @@ public enum LocStatus {
   /** External status codes */
 
   /** External (exit) status for a successful location. */
-  SUCESSFUL_LOCATION(0), // Normal completion
+  SUCCESSFUL_LOCATION(0), // Normal completion
 
   /**
    * External (exit) status for a successful location that was essentially the same as the starting

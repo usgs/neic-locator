@@ -69,22 +69,24 @@ dependencies {
     //testCompile "org.mockito:mockito-junit-jupiter:2.22.0"
     testCompile "org.junit.jupiter:junit-jupiter-api:5.4.2"
     testRuntime "org.junit.jupiter:junit-jupiter-engine:5.4.2"
+
 }
 
 // method to add/update an external project from git and add it to the
 // sourceset
 ext.addExternalProject = { path, url, srcDir ->
   File projDir = new File("$path")
-  // clone project if it doesn't exist locally
-  if(!projDir.exists()) {
-    grgit.clone(dir: projDir, uri: url)
+
+  // cleanup local copy if it exists 
+  // (we do this because grgit.pull doesn't seem to update
+  // local files, yes this is slow)
+  if(projDir.exists()) {
+    projDir.deleteDir()
   }
-  // pull the project if it does exist locally
-  else {
-    grgit.open(dir: projDir)
-    grgit.pull(branch: "master")
-    grgit.close()
-  }
+
+  // clone external project
+  logger.quiet('Cloning {}', projDir)
+  grgit.clone(dir: projDir, uri: url)
 
   // add to sourceset
   sourceSets {
@@ -123,7 +125,8 @@ jacocoTestReport {
         getClassDirectories().from(files(classDirectories.files.collect {
             fileTree(dir: it, exclude: [
                     "gov/usgs/traveltime/**",
-                    "gov/usgs/processingformats/**"
+                    "gov/usgs/processingformats/**",
+                    "gov/usgs/detectionformats/**"
             ])
         }))
     }
@@ -150,6 +153,10 @@ task cloneExternalProjects {
     // earthquake-processing-formats
     addExternalProject("$projectDir/lib/earthquake-processing-formats",
       "https://github.com/usgs/earthquake-processing-formats.git", "java/src")
+
+    // earthquake-detection-formats
+    addExternalProject("$projectDir/lib/earthquake-detection-formats",
+      "https://github.com/usgs/earthquake-detection-formats.git", "java/src")
   }
 }
 
@@ -195,7 +202,8 @@ shadowJar {
 
 // create javadocs
 javadoc {
-  exclude "gov/usgs/processingformats/**"
+  exclude "**/gov/usgs/processingformats/**"
+  exclude "**/gov/usgs/detectionformats/**"
   if(JavaVersion.current() != JavaVersion.VERSION_1_8) {
     options.addBooleanOption('html5', true)
   }

@@ -2,6 +2,7 @@ package gov.usgs.locatorservice;
 
 import gov.usgs.locator.LocService;
 import gov.usgs.processingformats.LocationException;
+import gov.usgs.processingformats.LocationRequest;
 import gov.usgs.processingformats.LocationResult;
 import io.micronaut.context.annotation.Value;
 import io.micronaut.http.HttpResponse;
@@ -26,9 +27,8 @@ public class LocatorController {
   }
 
   @Post(uri = "/locate", consumes = MediaType.APPLICATION_JSON)
-  public LocatorResponse getLocation(@Body LocatorRequest request) throws LocationException {
+  public LocationResult getLocation(@Body LocationRequest request) throws LocationException {
     LocService service = new LocService(modelPath);
-    LocationResult result = service.getLocation(request.toLocationRequest());
-    return LocatorResponse.fromLocationResult(result);
+    return service.getLocation(request);
   }
 }

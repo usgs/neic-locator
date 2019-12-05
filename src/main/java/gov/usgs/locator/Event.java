@@ -511,44 +511,44 @@ public class Event {
    */
   public void input(LocInput in) {
     // Create the hypocenter.
-    id = in.getID();
+    id = in.ID;
     hypo =
         new Hypocenter(
-            LocUtil.toHydraTime(in.getSourceOriginTime().getTime()),
-            in.getSourceLatitude(),
-            in.getSourceLongitude(),
-            in.getSourceDepth());
+            LocUtil.toHydraTime(in.SourceOriginTime.getTime()),
+            in.SourceLatitude,
+            in.SourceLongitude,
+            in.SourceDepth);
 
     // Get the analyst commands.
-    isLocationHeld = in.getIsLocationHeld();
-    isDepthHeld = in.getIsDepthHeld();
-    isDepthManual = in.getIsBayesianDepth();
+    isLocationHeld = in.IsLocationHeld;
+    isDepthHeld = in.IsDepthHeld;
+    isDepthManual = in.IsBayesianDepth;
 
     if (isDepthManual) {
-      bayesianDepth = in.getBayesianDepth();
-      bayesianDepthSpread = in.getBayesianSpread();
+      bayesianDepth = in.BayesianDepth;
+      bayesianDepthSpread = in.BayesianSpread;
     }
 
-    useDecorrelation = in.getUseSVD(); // True when noSvd is false
-    isLocationRestarted = in.getIsLocationNew();
+    useDecorrelation = in.UseSVD; // True when noSvd is false
+    isLocationRestarted = in.IsLocationNew;
 
     // process the input pick data.
-    for (int j = 0; j < in.getInputData().size(); j++) {
-      gov.usgs.processingformats.Pick pickIn = in.getInputData().get(j);
+    for (int j = 0; j < in.InputData.size(); j++) {
+      gov.usgs.processingformats.Pick pickIn = in.InputData.get(j);
 
       // make sure phCode and obsCode are not null
       String phCode = "";
-      if (pickIn.getPickedPhase() != null) {
-        phCode = pickIn.getPickedPhase();
+      if (pickIn.PickedPhase != null) {
+        phCode = pickIn.PickedPhase;
       }
       String obsCode = "";
-      if (pickIn.getAssociatedPhase() != null) {
-        obsCode = pickIn.getAssociatedPhase();
+      if (pickIn.AssociatedPhase != null) {
+        obsCode = pickIn.AssociatedPhase;
       }
 
       // source type conversion
       int authorType = 1; // default to automatic contributed
-      String typeString = pickIn.getSource().getType();
+      String typeString = pickIn.Source.Type;
       if ("ContributedAutomatic".equals(typeString)) {
         authorType = 1; // automatic contributed
       } else if ("LocalAutomatic".equals(typeString)) {
@@ -560,34 +560,28 @@ public class Event {
       }
 
       // source conversion
-      String sourceStr = pickIn.getSource().getAgencyID() + "|" + pickIn.getSource().getAuthor();
+      String sourceStr = pickIn.Source.AgencyID + "|" + pickIn.Source.Author;
 
       // Create the station.
       StationID stationID =
-          new StationID(
-              pickIn.getSite().getStation(),
-              pickIn.getSite().getLocation(),
-              pickIn.getSite().getNetwork());
+          new StationID(pickIn.Site.Station, pickIn.Site.Location, pickIn.Site.Network);
       Station station =
           new Station(
-              stationID,
-              pickIn.getSite().getLatitude(),
-              pickIn.getSite().getLongitude(),
-              pickIn.getSite().getElevation());
+              stationID, pickIn.Site.Latitude, pickIn.Site.Longitude, pickIn.Site.Elevation);
       gov.usgs.locator.Pick pick =
           new gov.usgs.locator.Pick(
               station,
-              pickIn.getSite().getChannel(),
-              LocUtil.toHydraTime(pickIn.getTime().getTime()),
-              pickIn.getUse(),
+              pickIn.Site.Channel,
+              LocUtil.toHydraTime(pickIn.Time.getTime()),
+              pickIn.Use,
               phCode);
       pick.setPhaseIdInfo(
           sourceStr,
-          pickIn.getID(),
-          pickIn.getQuality(),
+          pickIn.ID,
+          pickIn.Quality,
           obsCode,
           LocUtil.getAuthCodeFromNumericCode(authorType),
-          pickIn.getAffinity());
+          pickIn.Affinity);
       pickList.add(pick);
     }
 
@@ -880,7 +874,7 @@ public class Event {
   }
 
   /** This function computes the azimuthal gap and robust (L-estimator) azimuthal gap in degrees. */
-  public void computeAzimithGap() {
+  public void computeAzimuthalGap() {
     // Trap a bad call.
     if (numStationsUsed == 0) {
       azimuthalGap = 360d;
@@ -900,22 +894,22 @@ public class Event {
 
     // Do the azimuthal gap.
     azimuthalGap = 0d;
-    double lastAzim = azimuths[azimuths.length - 1] - 360d;
+    double lastAzimuth = azimuths[azimuths.length - 1] - 360d;
     for (int j = 0; j < azimuths.length; j++) {
-      azimuthalGap = Math.max(azimuthalGap, azimuths[j] - lastAzim);
-      lastAzim = azimuths[j];
+      azimuthalGap = Math.max(azimuthalGap, azimuths[j] - lastAzimuth);
+      lastAzimuth = azimuths[j];
     }
 
     // Do the robust azimuthal gap.
     if (numStationsUsed == 1) {
       azimuthalGapLEst = 360d;
     } else {
-      lastAzim = azimuths[azimuths.length - 2] - 360d;
-      azimuthalGapLEst = azimuths[0] - lastAzim;
-      lastAzim = azimuths[azimuths.length - 1] - 360d;
+      lastAzimuth = azimuths[azimuths.length - 2] - 360d;
+      azimuthalGapLEst = azimuths[0] - lastAzimuth;
+      lastAzimuth = azimuths[azimuths.length - 1] - 360d;
       for (int j = 1; j < azimuths.length; j++) {
-        azimuthalGapLEst = Math.max(azimuthalGapLEst, azimuths[j] - lastAzim);
-        lastAzim = azimuths[j - 1];
+        azimuthalGapLEst = Math.max(azimuthalGapLEst, azimuths[j] - lastAzimuth);
+        lastAzimuth = azimuths[j - 1];
       }
     }
   }
@@ -1068,7 +1062,7 @@ public class Event {
       case UNSTABLE_SOLUTION:
         if ((hypo.getHorizontalStepLength() > LocUtil.DISTANCETOLERANCE)
             || (hypo.getVerticalStepLength() > LocUtil.DEPTHTOLERANCE)) {
-          locatorExitCode = LocStatus.SUCESSFUL_LOCATION;
+          locatorExitCode = LocStatus.SUCCESSFUL_LOCATION;
         } else {
           locatorExitCode = LocStatus.DID_NOT_MOVE;
         }
@@ -1193,35 +1187,35 @@ public class Event {
    */
   public String getHydraInput(boolean humanReadable) {
     String hydraInput = "";
-    if(humanReadable) {
-	    hydraInput +=
-	        String.format(
-	            "%22s %8.4f %9.4f %6.2f %5b %5b %5b " + "%5.1f %5.1f %5b\n",
-	            LocUtil.getDateTimeString(hypo.getOriginTime()),
-	            hypo.getLatitude(),
-	            hypo.getLongitude(),
-	            hypo.getDepth(),
-	            isLocationHeld,
-	            isDepthHeld,
-	            isDepthManual,
-	            hypo.getBayesianDepth(),
-	            hypo.getBayesianDepthSpread(),
-	            useDecorrelation);
-	    hydraInput += "\n";
+    if (humanReadable) {
+      hydraInput +=
+          String.format(
+              "%22s %8.4f %9.4f %6.2f %5b %5b %5b " + "%5.1f %5.1f %5b\n",
+              LocUtil.getDateTimeString(hypo.getOriginTime()),
+              hypo.getLatitude(),
+              hypo.getLongitude(),
+              hypo.getDepth(),
+              isLocationHeld,
+              isDepthHeld,
+              isDepthManual,
+              hypo.getBayesianDepth(),
+              hypo.getBayesianDepthSpread(),
+              useDecorrelation);
+      hydraInput += "\n";
     } else {
-	    hydraInput +=
-	        String.format(
-	            "%14.3f %8.4f %9.4f %6.2f %c %c %c " + "%5.1f %5.1f %c \n",
-	            hypo.getOriginTime(),
-	            hypo.getLatitude(),
-	            hypo.getLongitude(),
-	            hypo.getDepth(),
-	            LocUtil.getBoolChar(isLocationHeld),
-	            LocUtil.getBoolChar(isDepthHeld),
-	            LocUtil.getBoolChar(isDepthManual),
-	            !Double.isNaN(hypo.getBayesianDepth()) ? hypo.getBayesianDepth() : 0d,
-	            !Double.isNaN(hypo.getBayesianDepthSpread()) ? hypo.getBayesianDepthSpread() : 0d,
-	            LocUtil.getBoolChar(!useDecorrelation));
+      hydraInput +=
+          String.format(
+              "%14.3f %8.4f %9.4f %6.2f %c %c %c " + "%5.1f %5.1f %c \n",
+              hypo.getOriginTime(),
+              hypo.getLatitude(),
+              hypo.getLongitude(),
+              hypo.getDepth(),
+              LocUtil.getBoolChar(isLocationHeld),
+              LocUtil.getBoolChar(isDepthHeld),
+              LocUtil.getBoolChar(isDepthManual),
+              !Double.isNaN(hypo.getBayesianDepth()) ? hypo.getBayesianDepth() : 0d,
+              !Double.isNaN(hypo.getBayesianDepthSpread()) ? hypo.getBayesianDepthSpread() : 0d,
+              LocUtil.getBoolChar(!useDecorrelation));
     }
 
     for (int j = 0; j < pickGroupList.size(); j++) {

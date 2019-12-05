@@ -88,13 +88,15 @@ public class LocUtil {
 
   /** An array of int constants representing the maximum number of iterations for each stage. */
   // public static final int[] ITERATIONSTAGELIMITS = {15, 20, 20, 20, 20, 20, 20, 20, 20, 20};
-  public static final int[] ITERATIONSTAGELIMITS = {15, 20};	// Collapse to with and without decorrelation sub-loops 9/16/19.
+  public static final int[] ITERATIONSTAGELIMITS = {
+    15, 20
+  }; // Collapse to with and without decorrelation sub-loops 9/16/19.
 
   /**
    * An array of double constants representing the convergence criteria in kilometers for each
    * stage.
    */
-  // public static final double[] CONVERGENCESTAGELIMITS = {1d, 0.1d, 0.1d, 0.1d, 0.1d, 0.1d, 0.1d, 
+  // public static final double[] CONVERGENCESTAGELIMITS = {1d, 0.1d, 0.1d, 0.1d, 0.1d, 0.1d, 0.1d,
   // 		0.1d, 0.1d, 0.1d};
   public static final double[] CONVERGENCESTAGELIMITS = {1d, 0.1d};
 
@@ -354,6 +356,12 @@ public class LocUtil {
    */
   private static long systemTime;
 
+  /*
+   * A double representing the system time, used as a timer. Needed by
+   * startLocationTimer and endLocationTimer.
+   */
+  private static long locationTime;
+
   /**
    * This function computes the source-receiver distance and the receiver azimuth. An historically
    * significant subroutine from deep time (1962)! This routine was written by Bob Engdahl in
@@ -589,20 +597,19 @@ public class LocUtil {
             + CAUCHYNORM / (cauchySpread * (1d + Math.pow(cauchyVar, 2d))))
         / ttResNorm;
   }
-  
+
   /**
-   * The proximity boost is designed to boost the probability of a set of phases if a lower 
-   * probability phase happens to have a freakishly small residual.  The phase probability 
-   * should be multiplied by the boost factor.  Note that if the most probable phase also has 
-   * a small residual, both would get a boost and the more probably phase would (probably) still 
-   * win.
-   * 
+   * The proximity boost is designed to boost the probability of a set of phases if a lower
+   * probability phase happens to have a freakishly small residual. The phase probability should be
+   * multiplied by the boost factor. Note that if the most probable phase also has a small residual,
+   * both would get a boost and the more probably phase would (probably) still win.
+   *
    * @param residual Travel-time residual in seconds
    * @return Proximity boost factor
    */
   public static double computeProximityBoost(double residual) {
-  	// This gives a boost of 15 for a zero residual and no boost for residuals over 3 s.
-  	return Math.max(15d - 4.67d * Math.abs(residual), 1d);
+    // This gives a boost of 15 for a zero residual and no boost for residuals over 3 s.
+    return Math.max(15d - 4.67d * Math.abs(residual), 1d);
   }
 
   /**
@@ -939,8 +946,8 @@ public class LocUtil {
   }
 
   /**
-   * This timer function sets the systemTime varible to the current system time in milliseconds.
-   * This function is used in conjuntion with endTimer
+   * This timer function sets the systemTime variable to the current system time in milliseconds.
+   * This function is used in conjunction with endTimer
    */
   public static void startTimer() {
     systemTime = System.currentTimeMillis();
@@ -953,8 +960,30 @@ public class LocUtil {
    * @return A String containing the timer results
    */
   public static String endTimer(String label) {
-//    String timerString = label + " time: " + 0.001 * (System.currentTimeMillis() - systemTime);
-    String timerString = String.format("%s time:%7.3f", label, 0.001 * (System.currentTimeMillis() - systemTime));
+    //    String timerString = label + " time: " + 0.001 * (System.currentTimeMillis() -
+    // systemTime);
+    String timerString =
+        String.format("%s time:%7.3f", label, 0.001 * (System.currentTimeMillis() - systemTime));
+    return (timerString);
+  }
+
+  /**
+   * This timer function sets the locationTime variable to the current system time in milliseconds.
+   * This function is used in conjunction with endLocationTimer
+   */
+  public static void startLocationTimer() {
+    locationTime = System.currentTimeMillis();
+  }
+
+  /**
+   * This timer function ends the location timer and returns a string holding the result in seconds.
+   *
+   * @return A String containing the timer results
+   */
+  public static String endLocationTimer() {
+    String timerString =
+        String.format(
+            "Compute time %7.3f seconds", 0.001 * (System.currentTimeMillis() - locationTime));
     return (timerString);
   }
 }

@@ -41,6 +41,7 @@ public class LocService implements LocationService {
       LOGGER.severe("Null request.");
       throw new LocationException("Null request");
     }
+    LocUtil.startLocationTimer();
 
     // always print request as json to log for debugging
     LOGGER.fine("JSON Request: \n" + Utility.toJSONString(request.toJSON()));
@@ -49,6 +50,15 @@ public class LocService implements LocationService {
     LocInput in = new LocInput(request);
 
     LocationResult result = (LocationResult) getLocation(in);
+
+    LOGGER.info(
+        "Event: "
+            + request.ID
+            + ", "
+            + LocUtil.endLocationTimer()
+            + ", "
+            + request.InputData.size()
+            + " numData.");
 
     // always print result as json to log for debugging, if it is valid
     if (result != null) {
@@ -105,12 +115,12 @@ public class LocService implements LocationService {
     }
 
     // make sure we have an earth model
-    if (in.getEarthModel() == null) {
-      in.setEarthModel("ak135");
+    if (in.EarthModel == null) {
+      in.EarthModel = "ak135";
     }
 
     // setup the event
-    Event event = new Event(in.getEarthModel());
+    Event event = new Event(in.EarthModel);
     event.input(in);
 
     // print input for debugging
