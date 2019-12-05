@@ -1,8 +1,11 @@
 package gov.usgs.locator;
 
+import gov.usgs.traveltime.BadDepthException;
 import gov.usgs.traveltime.TTSessionLocal;
 import gov.usgs.traveltime.TTime;
 import gov.usgs.traveltime.TTimeData;
+import gov.usgs.traveltime.tables.TauIntegralException;
+
 import java.util.ArrayList;
 import java.util.logging.Logger;
 
@@ -83,9 +86,10 @@ public class InitialPhaseID {
    * The phaseID function performs a tentative phase identification to see if the event is making
    * sense.
    *
-   * @throws Exception On an illegal source depth
+   * @throws BadDepthException If source depth is out of range
+   * @throws TauIntegralException If the tau integrals fail
    */
-  public void phaseID() throws Exception {
+  public void phaseID() throws BadDepthException, TauIntegralException {
     int badPs = 0;
 
     // Reinitialize the weighted residual storage.
@@ -141,54 +145,54 @@ public class InitialPhaseID {
           if (pick.getIsUsed()) {
             String phCode = pick.getCurrentPhaseCode();
 
-            if (!"PK".equals(phCode.substring(0, 1))
-                && !"P'".equals(phCode.substring(0, 1))
-                && !"Sc".equals(phCode.substring(0, 1))
-                && !"Sg".equals(phCode)
-                && !"Sb".equals(phCode)
-                && !"Sn".equals(phCode)
-                && !"Lg".equals(phCode)) {
-              if (pick.getIsAutomatic()) {
-                travelTime = ttList.getPhase(0);
+            if (pick.getIsAutomatic() && (phCode.length() == 0 || 
+          		(!"PK".equals(phCode.substring(0, 1))
+              && !"P'".equals(phCode.substring(0, 1))
+              && !"Sc".equals(phCode.substring(0, 1))
+              && !"Sg".equals(phCode)
+              && !"Sb".equals(phCode)
+              && !"Sn".equals(phCode)
+              && !"Lg".equals(phCode)))) {
+              travelTime = ttList.getPhase(0);
 
-                if (!phCode.equals(travelTime.getPhCode())) {
-                  badPs++;
+              if (!phCode.equals(travelTime.getPhCode())) {
+                badPs++;
+              }
+
+              pick.setResidual(pick.getTravelTime() - travelTime.getTT());
+              pick.setWeight(1d / travelTime.getSpread());
+
+              if (!phCode.equals(travelTime.getPhCode())) {
+                LOGGER.finer(
+                    String.format(
+                        "InitialPhaseID: %s -> %s auto", phCode, travelTime.getPhCode()));
+              }
+            } else {
+              found = false;
+
+              for (int i = 0; i < ttList.getNumPhases(); i++) {
+                travelTime = ttList.getPhase(i);
+
+                if (phCode.equals(travelTime.getPhCode())) {
+                  // Note that this is slightly different from the Fortran
+                  // version where the weight is always from the first arrival.
+                  pick.setResidual(pick.getTravelTime() - travelTime.getTT());
+                  pick.setWeight(1d / travelTime.getSpread());
+                  found = true;
+                  break;
                 }
+              }
 
+              if (!found) {
+                travelTime = ttList.getPhase(0);
                 pick.setResidual(pick.getTravelTime() - travelTime.getTT());
                 pick.setWeight(1d / travelTime.getSpread());
 
-                if (!phCode.equals(travelTime.getPhCode())) {
-                  LOGGER.finer(
-                      String.format(
-                          "InitialPhaseID: %s -> %s auto", phCode, travelTime.getPhCode()));
-                }
-              } else {
-                found = false;
-
-                for (int i = 0; i < ttList.getNumPhases(); i++) {
-                  travelTime = ttList.getPhase(i);
-
-                  if (phCode.equals(travelTime.getPhCode())) {
-                    // Note that this is slightly different from the Fortran
-                    // version where the weight is always from the first arrival.
-                    pick.setResidual(pick.getTravelTime() - travelTime.getTT());
-                    pick.setWeight(1d / travelTime.getSpread());
-                    found = true;
-                    break;
-                  }
-                }
-
-                if (!found) {
-                  travelTime = ttList.getPhase(0);
-                  pick.setResidual(pick.getTravelTime() - travelTime.getTT());
-                  pick.setWeight(1d / travelTime.getSpread());
-
-                  LOGGER.finer(
-                      String.format(
-                          "InitialPhaseID: " + "%s -> %s human", phCode, travelTime.getPhCode()));
-                }
+                LOGGER.finer(
+                    String.format(
+                        "InitialPhaseID: " + "%s -> %s human", phCode, travelTime.getPhCode()));
               }
+            }
 
               weightedResiduals.add(
                   new WeightedResidual(
@@ -203,7 +207,6 @@ public class InitialPhaseID {
                       pick.getWeight(),
                       travelTime.getTT(),
                       travelTime.getSpread()));
-            }
           }
         }
       }

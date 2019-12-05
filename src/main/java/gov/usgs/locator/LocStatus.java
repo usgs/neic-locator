@@ -6,18 +6,24 @@ package gov.usgs.locator;
  * @author Ray Buland
  */
 public enum LocStatus {
-  /** Internal success status. */
-  SUCCESS(0), // Success
-
-  /** Internal status tagging the starting hypocenter. */
+	
+  /** Internal status used in audit records. //
+  
+  /** Internal status tagging the starting hypocenter in the audit. */
   INITIAL_HYPOCENTER(1), // Flag for the initial audit hypocenter
 
-  /** Internal status for a held hypocenter. */
+  /** Internal status for a held hypocenter in the audit. */
   HELD_HYPOCENTER(2), // Flag for a held hypocenter
   
-  /** Internal status tagging the final hypocenter. */
+  /** Internal status tagging the final hypocenter in the audit. */
   FINAL_HYPOCENTER(3), // Flag for the final audit hypocenter
-
+  
+  
+  /** Internal status that may result in a final location status. */
+  
+  /** Internal success status. */
+  SUCCESS(0), // Success
+  
   /**
    * Internal status for a singular matrix occuring in the hypocenter evaluation (i.e., error bars,
    * etc.).
@@ -36,35 +42,62 @@ public enum LocStatus {
    */
   UNSTABLE_SOLUTION(12), // Unable to improve the solution
 
-  /** Internal status for a location that can't be improved, but has clearly not converged. */
-  DID_NOT_CONVERGE(13), // Unable to improve, but not close to converging
-
   /** Internal status for a location that can't be improved, but has sort of converged. */
-  NEARLY_CONVERGED(14), // Unable to improve, but close to converging
-
-  /**
-   * Internal status for a phase re-identification in the middle of a stage iteration. This
-   * condition forces the iteration to restart.
-   */
-  PHASEID_CHANGED(15), // Phase identification has changed
+  NEARLY_CONVERGED(13), // Unable to improve, but close to converging
 
   /**
    * Internal status denoting that the iteration limit was reached during a stage before
    * convergence.
    */
-  FULL_ITERATIONS(16), // Stage went to full iterations
-
-  /**
-   * Internal status meaning that the source depth was out of range (usually too deep). This is
-   * trapped in the travel-time package, so it should never happen.
-   */
-  BAD_DEPTH(17), // Depth out of range
+  FULL_ITERATIONS(14), // Stage went to full iterations
 
   /**
    * Internal status meaning that the eigenvalue decomposition to determine the error ellipse or
    * ellipsoid has failed.
    */
-  ELLIPSOID_FAILED(18), // Failure in computing the error ellipsoid
+  ELLIPSOID_FAILED(15), // Failure in computing the error ellipsoid
+  
+  
+  /** Internal status used for flagging.  These should never be the final location status. */
+
+  /**
+   * Internal status for a phase re-identification in the middle of a stage iteration. This
+   * condition forces the iteration to restart.  This should always be transitory.
+   */
+  PHASEID_CHANGED(20), // Phase identification has changed
+  
+  /**
+   * Internal status denoting a step length damping trial.  This should always be transitory.
+   */
+  DAMP_STEP_LENGTH(21),
+  
+  
+  /** Internal status resulting from exceptions. */
+
+  /**
+   * Internal status meaning that the source depth was out of range (usually too deep). This is
+   * trapped in the travel-time package, so it should never happen.
+   */
+  BAD_DEPTH(30), // Depth out of range
+  
+  /**
+   * Internal status meaning that the tau integration over one depth increment was negative.
+   */
+  BAD_INTEGRAL(31), // Bad tau integral
+  
+  /**
+   *  Internal status meaning that the phase was not found when computing the up-going travel 
+   *  time and distance.
+   */
+  PHASE_NOT_FOUND(32),
+  
+  /**
+   * Any unhandled system exception.
+   */
+  FAILED(32),
+  
+  
+  /** External status codes */
 
   /** External (exit) status for a successful location. */
   SUCESSFUL_LOCATION(0), // Normal completion
@@ -85,13 +118,15 @@ public enum LocStatus {
    * External (exit) status catch all. If this is returned, it probably means that a new internal
    * status wasn't converted to an external status.
    */
-  UNKNOWN_STATUS(4), // Just in case...
+  LOCATION_FAILED(101), // Location failed (singular or insufficient data)
 
   /**
-   * External (exit) status meaning that the location failed due to lack of data or some other
-   * problem.
+   * External (exit) status meaning that there wasn't enough data to locate the event.
    */
-  LOCATION_FAILED(101), // Location failed (singular or insufficient data)
+  NOT_ENOUGH_DATA(104), // Insufficient data
+
+  /** Internal status for a location that can't be improved, but has clearly not converged. */
+  DID_NOT_CONVERGE(105), // Unable to improve, but not close to converging
 
   /**
    * External (exit) status meaning that the event input data was broken in some indecipherable way.

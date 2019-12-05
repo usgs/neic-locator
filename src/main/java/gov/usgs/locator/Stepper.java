@@ -2,6 +2,9 @@ package gov.usgs.locator;
 
 import java.util.logging.Logger;
 
+import gov.usgs.traveltime.BadDepthException;
+import gov.usgs.traveltime.tables.TauIntegralException;
+
 /**
  * The Stepper class manages the rank-sum-estimator logic needed to refine the hypocenter.
  *
@@ -88,15 +91,18 @@ public class Stepper {
    *     re-identification, if false try not to change identifications
    * @param updateResWeights A boolean flag indicating whether to the residual weights
    * @return A LocStatus object containing the status value.
-   * @throws Exception On an illegal source depth
+   * @throws BadDepthException If source depth is out of range
+   * @throws TauIntegralException If the tau integrals fail
    */
   public LocStatus doPhaseIdentification(
       double otherWeight, double stickyWeight, boolean reidentifyPhases, boolean updateResWeights)
-      throws Exception {
+      throws BadDepthException, TauIntegralException {
+    // Reidentify phases.
     LocStatus status =
         internalPhaseID(otherWeight, stickyWeight, reidentifyPhases, updateResWeights);
 
     if (status == LocStatus.SUCCESS) {
+      updateStepDirection();
       hypo.setEstimatorDispersionValue(rSumEstResult.getDispersion());
     }
 
@@ -105,9 +111,9 @@ public class Stepper {
 
   /**
    * The Stepper internal phase identification function. Sets the tectonic flag and Bayesian depth
-   * parameters. Then calculates the median residual (origin time correction), rank-sum-estimator
-   * dispersion, and rank-sum-estimator direction of steepest descents. For calls from makeStep, we
-   * don't want to update the reference dispersion in the hypocenter just yet.
+   * parameters. Then calculates the median residual (origin time correction), and 
+   * rank-sum-estimator dispersion. For calls from makeStep, we don't want to update the reference 
+   * dispersion in the hypocenter just yet.
    *
    * @param otherWeight A double value holding the weight for phases that don't match the current
    *     phase identification or the current phase group (higher weights make changing to an "other"
@@ -118,16 +124,18 @@ public class Stepper {
    *     re-identification, if false try not to change identifications
    * @param updateResWeights A boolean flag indicating whether to the residual weights
    * @return A LocStatus object containing the status value.
-   * @throws Exception On an illegal source depth
+   * @throws BadDepthException If source depth is out of range
+   * @throws TauIntegralException If the tau integrals fail
    */
   private LocStatus internalPhaseID(
-      double otherWeight, double stickyWeight, boolean reidentifyPhases, boolean updateResWeights)
-      throws Exception {
+      double otherWeight, double stickyWeight, boolean reidentifyPhases, boolean updateResWeights) 
+      		throws BadDepthException, TauIntegralException {
+
     // Set the location environment.
     if (updateResWeights) {
       setLocEnvironment();
     }
-
+    
     // Reidentify phases.
     event.setHasPhaseIdChanged(
         phaseIDLogic.phaseID(otherWeight, stickyWeight, reidentifyPhases, updateResWeights));
@@ -162,10 +170,6 @@ public class Stepper {
       dispersion = projectedRankSumEstimator.computeDispersionValue();
 
       LOGGER.fine(String.format("Lsrt: ST av chisq = %8.4f %10.4f", projectedMedian, dispersion));
-
-      // Get the steepest descent direction.
-      hypo.setStepDirectionUnitVector(
-          projectedRankSumEstimator.compSteepestDescDir(hypo.getDegreesOfFreedom()));
     } else {
       // Demedian the raw residuals.
       residualsMedian = rawRankSumEstimator.computeMedian();
@@ -179,21 +183,31 @@ public class Stepper {
       dispersion = rawRankSumEstimator.computeDispersionValue();
 
       LOGGER.fine(String.format("Lsrt: ST av chisq = %8.4f %10.4f", residualsMedian, dispersion));
-
-      // Get the steepest descent direction.
-      hypo.setStepDirectionUnitVector(
-          rawRankSumEstimator.compSteepestDescDir(hypo.getDegreesOfFreedom()));
     }
-
-    String adderString = "Adder: b =";
-    for (int j = 0; j < hypo.getStepDirectionUnitVector().length; j++) {
-      adderString += String.format(" %7.4f", hypo.getStepDirectionUnitVector()[j]);
-    }
-    LOGGER.fine(adderString);
 
     rSumEstResult = new RSumEstResult(0d, residualsMedian, 0d, dispersion);
 
     return LocStatus.SUCCESS;
+  }
+  
+  /**
+   * Compute the rank-sum-estimator direction of steepest descents.  This has been separated from 
+   * internalPhaseID because we don't want to update the direction during step length damping.
+   */
+  private void updateStepDirection() {
+    if (LocUtil.useDecorrelation) {
+      hypo.setStepDirectionUnitVector(
+          projectedRankSumEstimator.compSteepestDescDir(hypo.getDegreesOfFreedom()));
+    } else {
+      hypo.setStepDirectionUnitVector(
+          rawRankSumEstimator.compSteepestDescDir(hypo.getDegreesOfFreedom()));
+    }
+
+	    String adderString = "Adder: b =";
+	    for (int j = 0; j < hypo.getStepDirectionUnitVector().length; j++) {
+	      adderString += String.format(" %7.4f", hypo.getStepDirectionUnitVector()[j]);
+	    }
+	    LOGGER.fine(adderString);
   }
 
   /**
@@ -203,9 +217,11 @@ public class Stepper {
    * @param stage An int containing the current stage
    * @param iteration An int containing the current iteration within the stage
    * @return A LocStatus object holding the current stepper status
-   * @throws Exception If the linearized step length bisection algorithm fails
+   * @throws BadDepthException If source depth is out of range
+   * @throws TauIntegralException If the tau integrals fail
    */
-  public LocStatus makeStep(int stage, int iteration) throws Exception {
+  public LocStatus makeStep(int stage, int iteration) 
+  		throws BadDepthException, TauIntegralException {
     LocStatus status = LocStatus.SUCCESS;
 
     // Save the current hypocenter as a reference for the step length damping.
@@ -249,6 +265,8 @@ public class Stepper {
     // If the phase identification has changed, we have to start over.
     if (event.getHasPhaseIdChanged()) {
       hypo.setEstimatorDispersionValue(rSumEstResult.getDispersion());
+//    setLocEnvironment();
+      updateStepDirection();
       status = LocStatus.PHASEID_CHANGED;
       logStep("ReID", stage, iteration, status);
       return status;
@@ -256,7 +274,10 @@ public class Stepper {
 
     // If we're headed down hill, this iteration is done.
     if (rSumEstResult.getDispersion() < hypo.getEstimatorDispersionValue()) {
+    	// Delay resetting the Bayesian depth for stability reasons.
       hypo.setEstimatorDispersionValue(rSumEstResult.getDispersion());
+//    setLocEnvironment();
+      updateStepDirection();
       logStep("Step", stage, iteration, status);
       return status;
     }
@@ -269,6 +290,7 @@ public class Stepper {
     // factor is only updated once per call to makeStep.  This is because the
     // infinite loop we're avoiding depends on a cycle comprised of a normal
     // step and a damped step.
+    status = LocStatus.DAMP_STEP_LENGTH;
     do {
       // Trap a failed damping strategy.
       if (damp * hypo.getStepLength() <= LocUtil.CONVERGENCESTAGELIMITS[stage]
@@ -297,6 +319,8 @@ public class Stepper {
 
       // Do the damping.
       hypo.setNumOfTimesStepLengthDampening(hypo.getNumOfTimesStepLengthDampening() + 1);
+      LOGGER.fine(String.format("Damping: %d %6.4f", hypo.getNumOfTimesStepLengthDampening(), 
+      		damp));
       hypo.resetHypo(lastHypoAudit);
       hypo.setStepLength(hypo.getStepLength() * damp);
       hypo.setLinearTimeShiftEstimate(hypo.getLinearTimeShiftEstimate() * damp);
@@ -305,7 +329,8 @@ public class Stepper {
       event.updateHypo(hypo.getStepLength(), hypo.getLinearTimeShiftEstimate());
 
       // Reidentify phases and get the non-linear rank-sum-estimator parameters
-      // for the new hypocenter.
+      // for the new hypocenter.  Don't update the Bayesian depth.  If the depth 
+      // residual is large the epicenter will never move much.
       if (internalPhaseID(0.01d, 5d, false, true) == LocStatus.INSUFFICIENT_DATA) {			// ReWeight always true 9/16/19.
         return LocStatus.INSUFFICIENT_DATA;
       }
@@ -323,8 +348,9 @@ public class Stepper {
 
       logStep("Damp", stage, iteration, status);
     } while (rSumEstResult.getDispersion() >= hypo.getEstimatorDispersionValue());
-
-    return status;
+    
+    // The step length damping actually worked!
+    return LocStatus.SUCCESS;
   }
 
   /**
@@ -347,6 +373,8 @@ public class Stepper {
       double bayesDepth = zoneStats.getBayesDepth(hypo.getLatitude(), hypo.getLongitude());
       double bayesSpread = zoneStats.getBayesSpread();
       hypo.updateBayes(bayesDepth, bayesSpread);
+//    rawRankSumEstimator.updateBayesianResidual(hypo.getBayesianDepthResidual(), 
+//    		hypo.getBayesianDepthWeight());
     }
     LOGGER.fine(
         String.format(
@@ -374,7 +402,7 @@ public class Stepper {
 
     if (used >= hypo.getDegreesOfFreedom()) {
       hypo.setEstimatorRMSEquivalent(
-          hypo.getEstimatorDispersionValue() / (used - hypo.getDegreesOfFreedom() + 1));
+      		rSumEstResult.getDispersion() / (used - hypo.getDegreesOfFreedom() + 1));
     } else {
       hypo.setEstimatorRMSEquivalent(0d);
     }
