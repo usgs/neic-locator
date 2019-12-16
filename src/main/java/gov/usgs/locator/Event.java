@@ -6,6 +6,7 @@ import java.util.Arrays;
 import java.util.Map;
 import java.util.NavigableMap;
 import java.util.TreeMap;
+import java.util.logging.Logger;
 
 /**
  * The Event class keeps all data for one seismic event (earthquake usually).
@@ -155,6 +156,9 @@ public class Event {
 
   /** A Decorrelator object used when decorrelating the event picks. */
   private Decorrelator decorrelator;
+
+  /** Private logging object. */
+  private static final Logger LOGGER = Logger.getLogger(LocService.class.getName());
 
   /**
    * Function to return the event hypocenter object.
@@ -1069,19 +1073,19 @@ public class Event {
         locatorExitCode = LocStatus.ERRORS_NOT_COMPUTED;
         break;
 
-      case DID_NOT_CONVERGE:
+      case FULL_ITERATIONS:
         locatorExitCode = LocStatus.DID_NOT_CONVERGE;
         break;
 
       case INSUFFICIENT_DATA:
-      case BAD_DEPTH:
-        locatorExitCode = LocStatus.LOCATION_FAILED;
-        break;
+      	locatorExitCode = LocStatus.NOT_ENOUGH_DATA;
+      	break;
 
       default:
-        locatorExitCode = LocStatus.UNKNOWN_STATUS;
+        locatorExitCode = LocStatus.LOCATION_FAILED;
         break;
     }
+    LOGGER.fine("Internal/external status: " + status + " -> " + locatorExitCode);
   }
 
   /**

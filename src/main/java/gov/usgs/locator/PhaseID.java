@@ -1,10 +1,13 @@
 package gov.usgs.locator;
 
 import gov.usgs.traveltime.AuxTtRef;
+import gov.usgs.traveltime.BadDepthException;
 import gov.usgs.traveltime.TTSessionLocal;
 import gov.usgs.traveltime.TTime;
 import gov.usgs.traveltime.TTimeData;
 import gov.usgs.traveltime.TauUtil;
+import gov.usgs.traveltime.tables.TauIntegralException;
+
 import java.util.ArrayList;
 import java.util.logging.Logger;
 
@@ -112,11 +115,12 @@ public class PhaseID {
    *     change phase identifications
    * @param reweightResiduals If true, update the residual weights
    * @return True if any used pick in the group has changed significantly
-   * @throws Exception On an illegal source depth
+   * @throws BadDepthException If source depth is out of range
+   * @throws TauIntegralException If the tau integrals fail
    */
   public boolean phaseID(
       double otherWeight, double stickyWeight, boolean reidentifyPhases, boolean reweightResiduals)
-      throws Exception {
+      throws BadDepthException, TauIntegralException {
 
     LOGGER.fine("Curr loc: " + hypo);
 

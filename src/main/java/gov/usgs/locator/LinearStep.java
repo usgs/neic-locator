@@ -72,15 +72,13 @@ public class LinearStep {
    * @param currentDispersionValue A double containing the current R-estimator dispersion value
    * @return A RSumEstResult containing the step length in kilometers needed to reach the minimum
    *     dispersion
-   * @throws Exception If the bisection doesn't make sense
    */
   public RSumEstResult stepLength(
       double[] stepDirectionUnitVector,
       double startStepLen,
       double minStepLen,
       double maxStepLen,
-      double currentDispersionValue)
-      throws Exception {
+      double currentDispersionValue) {
     // The trial vector has to be the same size as the step vector.
     trialStepVector = new double[stepDirectionUnitVector.length];
 
@@ -92,6 +90,7 @@ public class LinearStep {
     // Make a default step.
     RSumEstResult[] sample = new RSumEstResult[3];
     sample[0] = new RSumEstResult(0d, 0d, 0d, currentDispersionValue);
+//  sample[0] = estDispersionValue(0d);
     sample[1] = estDispersionValue(currentStepLen);
 
     // Do some preliminary hunting to surround the minimum.

@@ -548,6 +548,17 @@ public class Hypocenter {
     latitude = backup.getLatitude();
     longitude = backup.getLongitude();
     depth = backup.getDepth();
+
+    // compute the colatitude
+    coLatitude = TauUtil.geoCen(latitude);
+
+    // Update the sines and cosines.
+    computeSinesAndCosines();
+
+    // Update the Bayesian depth residual.
+    if (!Double.isNaN(bayesianDepth)) {
+      bayesianDepthResidual = bayesianDepth - depth;
+    }
   }
 
   /** Converts the primary hypocenter paramters into a string. */
