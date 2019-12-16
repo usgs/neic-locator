@@ -98,7 +98,7 @@ public class LocService implements LocationService {
     TTSessionLocal ttLocal = null;
     try {
       ttLocal = new TTSessionLocal(true, true, true, modelPath);
-    } catch (IOException e) {
+    } catch (IOException e, ClassNotFoundException f) {
       LOGGER.severe("Unable to read travel-time auxiliary data.");
       e.printStackTrace();
       throw new LocationException("Unable to read travel-time auxiliary data.");
