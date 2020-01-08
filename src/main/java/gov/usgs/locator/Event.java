@@ -1078,8 +1078,8 @@ public class Event {
         break;
 
       case INSUFFICIENT_DATA:
-      	locatorExitCode = LocStatus.NOT_ENOUGH_DATA;
-      	break;
+        locatorExitCode = LocStatus.NOT_ENOUGH_DATA;
+        break;
 
       default:
         locatorExitCode = LocStatus.LOCATION_FAILED;

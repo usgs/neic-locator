@@ -273,18 +273,18 @@ public class WeightedResidual implements Comparable<WeightedResidual> {
       }
     }
   }
-  
+
   /**
    * This function updates the Bayesian depth residual and weight.
-   * 
+   *
    * @param newResidual New Bayesian depth residual in kilometers
    * @param newWeight New Bayesian weight
    */
   public void updateBayesianResidual(double newResidual, double newWeight) {
-  	if(isBayesianDepth) {
-  		residual = newResidual;
-  		weight = newWeight;
-  	}
+    if (isBayesianDepth) {
+      residual = newResidual;
+      weight = newWeight;
+    }
   }
 
   /**

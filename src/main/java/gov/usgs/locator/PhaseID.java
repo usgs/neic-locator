@@ -7,7 +7,6 @@ import gov.usgs.traveltime.TTime;
 import gov.usgs.traveltime.TTimeData;
 import gov.usgs.traveltime.TauUtil;
 import gov.usgs.traveltime.tables.TauIntegralException;
-
 import java.util.ArrayList;
 import java.util.logging.Logger;
 

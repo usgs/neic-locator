@@ -90,7 +90,7 @@ public class LinearStep {
     // Make a default step.
     RSumEstResult[] sample = new RSumEstResult[3];
     sample[0] = new RSumEstResult(0d, 0d, 0d, currentDispersionValue);
-//  sample[0] = estDispersionValue(0d);
+    //  sample[0] = estDispersionValue(0d);
     sample[1] = estDispersionValue(currentStepLen);
 
     // Do some preliminary hunting to surround the minimum.

@@ -6,25 +6,25 @@ package gov.usgs.locator;
  * @author Ray Buland
  */
 public enum LocStatus {
-	
-  /** Internal status used in audit records. //
-  
-  /** Internal status tagging the starting hypocenter in the audit. */
+
+  /**
+   * Internal status used in audit records. //
+   *
+   * <p>/** Internal status tagging the starting hypocenter in the audit.
+   */
   INITIAL_HYPOCENTER(1), // Flag for the initial audit hypocenter
 
   /** Internal status for a held hypocenter in the audit. */
   HELD_HYPOCENTER(2), // Flag for a held hypocenter
-  
-  /** Internal status tagging the final hypocenter in the audit. */
 
+  /** Internal status tagging the final hypocenter in the audit. */
   FINAL_HYPOCENTER(3), // Flag for the final audit hypocenter
-  
-  
+
   /** Internal status that may result in a final location status. */
-  
+
   /** Internal success status. */
   SUCCESS(0), // Success
-  
+
   /**
    * Internal status for a singular matrix occuring in the hypocenter evaluation (i.e., error bars,
    * etc.).
@@ -57,22 +57,18 @@ public enum LocStatus {
    * ellipsoid has failed.
    */
   ELLIPSOID_FAILED(15), // Failure in computing the error ellipsoid
-  
-  
-  /** Internal status used for flagging.  These should never be the final location status. */
+
+  /** Internal status used for flagging. These should never be the final location status. */
 
   /**
    * Internal status for a phase re-identification in the middle of a stage iteration. This
-   * condition forces the iteration to restart.  This should always be transitory.
+   * condition forces the iteration to restart. This should always be transitory.
    */
   PHASEID_CHANGED(20), // Phase identification has changed
-  
-  /**
-   * Internal status denoting a step length damping trial.  This should always be transitory.
-   */
+
+  /** Internal status denoting a step length damping trial. This should always be transitory. */
   DAMP_STEP_LENGTH(21),
-  
-  
+
   /** Internal status resulting from exceptions. */
 
   /**
@@ -80,24 +76,19 @@ public enum LocStatus {
    * trapped in the travel-time package, so it should never happen.
    */
   BAD_DEPTH(30), // Depth out of range
-  
-  /**
-   * Internal status meaning that the tau integration over one depth increment was negative.
-   */
+
+  /** Internal status meaning that the tau integration over one depth increment was negative. */
   BAD_INTEGRAL(31), // Bad tau integral
-  
+
   /**
-   *  Internal status meaning that the phase was not found when computing the up-going travel 
-   *  time and distance.
+   * Internal status meaning that the phase was not found when computing the up-going travel time
+   * and distance.
    */
   PHASE_NOT_FOUND(32),
-  
-  /**
-   * Any unhandled system exception.
-   */
+
+  /** Any unhandled system exception. */
   FAILED(32),
-  
-  
+
   /** External status codes */
 
   /** External (exit) status for a successful location. */
@@ -121,9 +112,7 @@ public enum LocStatus {
    */
   LOCATION_FAILED(101), // Location failed (singular or insufficient data)
 
-  /**
-   * External (exit) status meaning that there wasn't enough data to locate the event.
-   */
+  /** External (exit) status meaning that there wasn't enough data to locate the event. */
   NOT_ENOUGH_DATA(104), // Insufficient data
 
   /** Internal status for a location that can't be improved, but has clearly not converged. */
