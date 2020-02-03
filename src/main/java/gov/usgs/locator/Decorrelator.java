@@ -196,6 +196,7 @@ public class Decorrelator {
    */
   private void triagePicks() {
     if (weightedResidualsOrg.size() > LocUtil.MAXPICKSTODECORRELATE) {
+
       if (LOGGER.getLevel() == Level.FINEST) {
         LOGGER.finest(LocUtil.printMatrix(covMatrix, "Raw Covariance Matrix"));
       }
@@ -285,8 +286,8 @@ public class Decorrelator {
         }
       }
       // We may have some weighted residuals left.
-      if (i > 0) {
-        for (; i >= 0; i--) {
+      if(i >= 0) {
+      	for (; i >= 0; i--) {
           weightedResidualsOrg.get(i).getPick().setIsTriage(true);
           weightedResidualsOrg.remove(i);
         }

@@ -40,6 +40,7 @@ public class LocMain {
   public static final String FILEPATH_ARGUMENT = "--filePath=";
 
   /** A String containing the argument for specifying the input file type. */
+
   public static final String INPUTTYPE_ARGUMENT = "--inputType=";
 
   /** A String containing the argument for specifying the output file type. */

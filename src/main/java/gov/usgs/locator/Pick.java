@@ -408,7 +408,12 @@ public class Pick implements Comparable<Pick> {
       String currentPhaseCode) {
     // Remember the inputs.
     this.station = station;
-    this.channelCode = channelCode;
+    if(channelCode != null) {
+    	this.channelCode = channelCode;
+    } else {
+    	this.channelCode = "--";
+    }
+    if(this.channelCode.contentEquals("unknown")) this.channelCode = "--";
     this.arrivalTime = arrivalTime;
     this.externalUse = externalUse;
     this.currentPhaseCode = currentPhaseCode;
