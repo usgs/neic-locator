@@ -5,7 +5,6 @@ import gov.usgs.traveltime.TTSessionLocal;
 import gov.usgs.traveltime.TTime;
 import gov.usgs.traveltime.TTimeData;
 import gov.usgs.traveltime.tables.TauIntegralException;
-
 import java.util.ArrayList;
 import java.util.logging.Logger;
 
@@ -145,14 +144,15 @@ public class InitialPhaseID {
           if (pick.getIsUsed()) {
             String phCode = pick.getCurrentPhaseCode();
 
-            if (pick.getIsAutomatic() && (phCode.length() == 0 || 
-          		(!"PK".equals(phCode.substring(0, 1))
-              && !"P'".equals(phCode.substring(0, 1))
-              && !"Sc".equals(phCode.substring(0, 1))
-              && !"Sg".equals(phCode)
-              && !"Sb".equals(phCode)
-              && !"Sn".equals(phCode)
-              && !"Lg".equals(phCode)))) {
+            if (pick.getIsAutomatic()
+                && (phCode.length() == 0
+                    || (!"PK".equals(phCode.substring(0, 1))
+                        && !"P'".equals(phCode.substring(0, 1))
+                        && !"Sc".equals(phCode.substring(0, 1))
+                        && !"Sg".equals(phCode)
+                        && !"Sb".equals(phCode)
+                        && !"Sn".equals(phCode)
+                        && !"Lg".equals(phCode)))) {
               travelTime = ttList.getPhase(0);
 
               if (!phCode.equals(travelTime.getPhCode())) {
@@ -164,8 +164,7 @@ public class InitialPhaseID {
 
               if (!phCode.equals(travelTime.getPhCode())) {
                 LOGGER.finer(
-                    String.format(
-                        "InitialPhaseID: %s -> %s auto", phCode, travelTime.getPhCode()));
+                    String.format("InitialPhaseID: %s -> %s auto", phCode, travelTime.getPhCode()));
               }
             } else {
               found = false;
@@ -194,19 +193,19 @@ public class InitialPhaseID {
               }
             }
 
-              weightedResiduals.add(
-                  new WeightedResidual(
-                      pick, pick.getResidual(), pick.getWeight(), false, 0d, 0d, 0d, 0d, 0d));
+            weightedResiduals.add(
+                new WeightedResidual(
+                    pick, pick.getResidual(), pick.getWeight(), false, 0d, 0d, 0d, 0d, 0d));
 
-              LOGGER.finer(
-                  String.format(
-                      "InitialPhaseID push: %s %s %5.2f %7.4f %5.2f" + "%5.2f",
-                      pick.getStation().getStationID().getStationCode(),
-                      pick.getCurrentPhaseCode(),
-                      pick.getResidual(),
-                      pick.getWeight(),
-                      travelTime.getTT(),
-                      travelTime.getSpread()));
+            LOGGER.finer(
+                String.format(
+                    "InitialPhaseID push: %s %s %5.2f %7.4f %5.2f" + "%5.2f",
+                    pick.getStation().getStationID().getStationCode(),
+                    pick.getCurrentPhaseCode(),
+                    pick.getResidual(),
+                    pick.getWeight(),
+                    travelTime.getTT(),
+                    travelTime.getSpread()));
           }
         }
       }

@@ -179,20 +179,20 @@ public class RankSumEstimator {
       weightedResiduals.get(j).deMedianDerivatives(medianValues);
     }
   }
-  
+
   /**
    * This function finds the Bayesian depth residual information and updates it.
-   * 
+   *
    * @param newDepth New Bayesian depth residual in kilometers
    * @param newWeight New Bayesian depth weight
    */
   public void updateBayesianResidual(double newResidual, double newWeight) {
-  	for (int j = 0; j < weightedResiduals.size(); j++) {
-  		if(weightedResiduals.get(j).getIsBayesianDepth()) {
-  			weightedResiduals.get(j).updateBayesianResidual(newResidual, newWeight);
-  			break;
-  		}
-  	}
+    for (int j = 0; j < weightedResiduals.size(); j++) {
+      if (weightedResiduals.get(j).getIsBayesianDepth()) {
+        weightedResiduals.get(j).updateBayesianResidual(newResidual, newWeight);
+        break;
+      }
+    }
   }
 
   /**

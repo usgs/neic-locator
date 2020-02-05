@@ -3,7 +3,6 @@ package gov.usgs.locator;
 import gov.usgs.traveltime.BadDepthException;
 import gov.usgs.traveltime.TTSessionLocal;
 import gov.usgs.traveltime.tables.TauIntegralException;
-
 import java.util.ArrayList;
 import java.util.logging.Logger;
 
@@ -229,26 +228,26 @@ public class Locate {
       // Since we're probably close anyway, compute the error bars for the analyst to see.
       status = close.compFinalStats(LocStatus.FULL_ITERATIONS);
       return LocStatus.FULL_ITERATIONS;
-      
+
     } catch (BadDepthException e) {
       // This should never happen.
       LOGGER.severe("Source depth out of range");
-//    e.printStackTrace();
-//    System.out.println(e.toString());
+      //    e.printStackTrace();
+      //    System.out.println(e.toString());
       e.printStackTrace();
       return LocStatus.BAD_DEPTH;
     } catch (TauIntegralException e) {
       // This should never happen either.
       LOGGER.severe("Illegal tau partial integral");
-//    e.printStackTrace();
-//    System.out.println(e.toString());
+      //    e.printStackTrace();
+      //    System.out.println(e.toString());
       e.printStackTrace();
       return LocStatus.BAD_INTEGRAL;
     } catch (Exception e) {
-    	LOGGER.severe("Unknown error");
-//  	System.out.println(e.toString());
-    	e.printStackTrace();
-    	return LocStatus.FAILED;
+      LOGGER.severe("Unknown error");
+      //  	System.out.println(e.toString());
+      e.printStackTrace();
+      return LocStatus.FAILED;
     }
   }
 }

@@ -565,9 +565,13 @@ public class Event {
       // Create the station.
       StationID stationID =
           new StationID(pickIn.Site.Station, pickIn.Site.Location, pickIn.Site.Network);
+      // note locator expects elevation in km, but input puts it in m
       Station station =
           new Station(
-              stationID, pickIn.Site.Latitude, pickIn.Site.Longitude, pickIn.Site.Elevation);
+              stationID,
+              pickIn.Site.Latitude,
+              pickIn.Site.Longitude,
+              (pickIn.Site.Elevation * 1000));
       gov.usgs.locator.Pick pick =
           new gov.usgs.locator.Pick(
               station,
@@ -1078,8 +1082,8 @@ public class Event {
         break;
 
       case INSUFFICIENT_DATA:
-      	locatorExitCode = LocStatus.NOT_ENOUGH_DATA;
-      	break;
+        locatorExitCode = LocStatus.NOT_ENOUGH_DATA;
+        break;
 
       default:
         locatorExitCode = LocStatus.LOCATION_FAILED;
