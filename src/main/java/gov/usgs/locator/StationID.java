@@ -77,10 +77,10 @@ public class StationID implements Comparable<StationID> {
     }
     if(this.networkCode.contentEquals("unknown")) this.networkCode = "--";
 
-    stationID = String.format("%-5s%-2s", stationCode, networkCode);
+    stationID = String.format("%-5s%-2s", this.stationCode, this.networkCode);
   }
 
-  /** This fuction converts the stationID contents into a string. */
+  /** This function converts the stationID contents into a string. */
   @Override
   public String toString() {
     return stationID;

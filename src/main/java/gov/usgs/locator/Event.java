@@ -571,7 +571,7 @@ public class Event {
               stationID,
               pickIn.Site.Latitude,
               pickIn.Site.Longitude,
-              (pickIn.Site.Elevation * 1000));
+              (pickIn.Site.Elevation / 1000));
       gov.usgs.locator.Pick pick =
           new gov.usgs.locator.Pick(
               station,
