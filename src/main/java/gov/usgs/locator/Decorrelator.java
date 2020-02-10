@@ -192,10 +192,12 @@ public class Decorrelator {
 
   /**
    * This function removes the most correlated picks until the eigenvalue problem is a reasonable
-   * size.
+   * size.  Note that correlation is assumed to be zero between phases of different types.
    */
   private void triagePicks() {
     if (weightedResidualsOrg.size() > LocUtil.MAXPICKSTODECORRELATE) {
+    	
+      LocUtil.startTimer();
       if (LOGGER.getLevel() == Level.FINEST) {
         LOGGER.finest(LocUtil.printMatrix(covMatrix, "Raw Covariance Matrix"));
       }
@@ -225,13 +227,17 @@ public class Decorrelator {
 
       // Eliminate the biggest correlation sums.
       for (int i = corrSums.size() - 1; i >= LocUtil.MAXPICKSTODECORRELATE; i--) {
-        String corrSumsStr = "F:";
-        for (int j = 0; j < corrSums.size(); j++) {
-          corrSumsStr += "\t" + corrSums.get(j);
+        if (LOGGER.getLevel() == Level.FINEST) {
+	        String corrSumsStr = "F:";
+	        for (int j = 0; j < corrSums.size(); j++) {
+	          corrSumsStr += "\t" + corrSums.get(j);
+	        }
+        	LOGGER.finest(corrSumsStr);
         }
-        LOGGER.finest(corrSumsStr);
 
-        LOGGER.finer(String.format("\tTriage: eliminate %3d %s", i, corrSums.get(i)));
+        if (LOGGER.getLevel() == Level.FINER) {
+        	LOGGER.finer(String.format("\tTriage: eliminate %3d %s", i, corrSums.get(i)));
+      	}
 
         int k = corrSums.get(i).getRowIndex();
         corrSums.remove(i);
@@ -285,8 +291,8 @@ public class Decorrelator {
         }
       }
       // We may have some weighted residuals left.
-      if (i > 0) {
-        for (; i >= 0; i--) {
+      if(i >= 0) {
+      	for (; i >= 0; i--) {
           weightedResidualsOrg.get(i).getPick().setIsTriage(true);
           weightedResidualsOrg.remove(i);
         }
@@ -298,6 +304,7 @@ public class Decorrelator {
       if (LOGGER.getLevel() == Level.FINER) {
         LOGGER.finer(event.printWeightedResiduals("Org", true));
       }
+      LOGGER.fine(LocUtil.endTimer("Triage"));
     } else {
       // We're OK.  Just create the correlation matrix in a form
       // suitable for extracting the eigenvalues.

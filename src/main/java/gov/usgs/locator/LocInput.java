@@ -246,7 +246,7 @@ public class LocInput extends LocationRequest {
       newSite.Location = scan.next();
       newSite.Latitude = scan.nextDouble();
       newSite.Longitude = scan.nextDouble();
-      newSite.Elevation = scan.nextDouble() / 1000; // elevation in hydra files is in km
+      newSite.Elevation = scan.nextDouble() * 1000; // elevation in hydra files is in km
       newPick.Site = newSite;
 
       // Get the rest of the pick information.  Note that some

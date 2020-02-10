@@ -64,13 +64,23 @@ public class StationID implements Comparable<StationID> {
    */
   public StationID(String stationCode, String locationCode, String networkCode) {
     this.stationCode = stationCode;
-    this.locationCode = locationCode;
-    this.networkCode = networkCode;
+    if(locationCode != null) {
+      this.locationCode = locationCode;
+    } else {
+    	this.locationCode = "--";
+    }
+    if(this.locationCode.contentEquals("unknown")) this.locationCode = "--";
+    if(networkCode != null) {
+    	this.networkCode = networkCode;
+    } else {
+    	this.networkCode = "--";
+    }
+    if(this.networkCode.contentEquals("unknown")) this.networkCode = "--";
 
-    stationID = String.format("%-5s%-2s", stationCode, networkCode);
+    stationID = String.format("%-5s%-2s", this.stationCode, this.networkCode);
   }
 
-  /** This fuction converts the stationID contents into a string. */
+  /** This function converts the stationID contents into a string. */
   @Override
   public String toString() {
     return stationID;
