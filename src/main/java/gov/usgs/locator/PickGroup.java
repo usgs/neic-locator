@@ -253,7 +253,7 @@ public class PickGroup {
                 LocUtil.getTimeString(pick.getArrivalTime()),
                 pick.getExternalUse(),
                 pick.getOriginalAuthorType(),
-                pick.getOriginalPhaseCode(),
+                pick.getOriginalAssocPhaseCode(),
                 pick.getOriginalPhaseAffinity());
 
         pickInput += "\n";
@@ -274,7 +274,7 @@ public class PickGroup {
                 pick.getArrivalTime(),
                 LocUtil.getBoolChar(pick.getExternalUse()),
                 LocUtil.getNumericAuthCode(pick.getOriginalAuthorType()),
-                pick.getOriginalPhaseCode(),
+                pick.getOriginalAssocPhaseCode(),
                 pick.getOriginalPhaseAffinity());
 
         pickInput += "\n";
@@ -301,7 +301,7 @@ public class PickGroup {
             "%-5s %-8s %-8s %7.2f %6.2f %3.0f\n",
             station.getStationID().getStationCode(),
             pick.getCurrentPhaseCode(),
-            pick.getOriginalPhaseCode(),
+            pick.getOriginalAssocPhaseCode(),
             pick.getTravelTime(),
             distance,
             azimuth);
@@ -312,7 +312,7 @@ public class PickGroup {
         pickString +=
             String.format(
                 "      %-8s %-8s %7.2f\n",
-                pick.getCurrentPhaseCode(), pick.getOriginalPhaseCode(), pick.getTravelTime());
+                pick.getCurrentPhaseCode(), pick.getOriginalAssocPhaseCode(), pick.getTravelTime());
       }
     }
 

@@ -538,8 +538,10 @@ public class Event {
 
       // make sure phCode and obsCode are not null
       String phCode = "";
+      String pickedCode = "";
       if (pickIn.PickedPhase != null) {
         phCode = pickIn.PickedPhase;
+        pickedCode = pickIn.PickedPhase;
       }
       String obsCode = "";
       if (pickIn.AssociatedPhase != null) {
@@ -584,6 +586,7 @@ public class Event {
           pickIn.ID,
           pickIn.Quality,
           obsCode,
+          pickedCode,
           LocUtil.getAuthCodeFromNumericCode(authorType),
           pickIn.Affinity);
       pickList.add(pick);
@@ -655,7 +658,8 @@ public class Event {
             pick.getStation().getElevation(),
             LocUtil.toJavaTime(pick.getArrivalTime()),
             pick.getCurrentPhaseCode(),
-            pick.getOriginalPhaseCode(),
+            pick.getOriginalAssocPhaseCode(),
+            pick.getOriginalPickedPhaseCode(),
             pick.getResidual(),
             group.getDistance(),
             group.getAzimuth(),
