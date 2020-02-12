@@ -64,18 +64,18 @@ public class StationID implements Comparable<StationID> {
    */
   public StationID(String stationCode, String locationCode, String networkCode) {
     this.stationCode = stationCode;
-    if(locationCode != null) {
+    if (locationCode != null) {
       this.locationCode = locationCode;
     } else {
-    	this.locationCode = "--";
+      this.locationCode = "--";
     }
-    if(this.locationCode.contentEquals("unknown")) this.locationCode = "--";
-    if(networkCode != null) {
-    	this.networkCode = networkCode;
+    if (this.locationCode.contentEquals("unknown")) this.locationCode = "--";
+    if (networkCode != null) {
+      this.networkCode = networkCode;
     } else {
-    	this.networkCode = "--";
+      this.networkCode = "--";
     }
-    if(this.networkCode.contentEquals("unknown")) this.networkCode = "--";
+    if (this.networkCode.contentEquals("unknown")) this.networkCode = "--";
 
     stationID = String.format("%-5s%-2s", this.stationCode, this.networkCode);
   }

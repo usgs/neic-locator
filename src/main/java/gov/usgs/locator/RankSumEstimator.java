@@ -183,7 +183,7 @@ public class RankSumEstimator {
   /**
    * This function finds the Bayesian depth residual information and updates it.
    *
-   * @param newDepth New Bayesian depth residual in kilometers
+   * @param newResidual New Bayesian depth residual in kilometers
    * @param newWeight New Bayesian depth weight
    */
   public void updateBayesianResidual(double newResidual, double newWeight) {

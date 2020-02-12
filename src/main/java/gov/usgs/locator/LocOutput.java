@@ -196,7 +196,8 @@ public class LocOutput extends LocationResult {
    * @param stationElevation A double containing the station elevation in meters
    * @param pickTime A double containing the pick time in milliseconds.
    * @param locatorPhase A String containing the final seismic phase code.
-   * @param originalPhase A String containing the original seismic phase code.
+   * @param originalAssocPhase A String containing the original assoc seismic phase code.
+   * @param originalPickedPhase A String containing the original picked seismic phase code.
    * @param residual A double containing the pick residual in seconds.
    * @param delta A double containing the source-receiver distance in degrees.
    * @param azimuth A double containing the receiver azimuth (clockwise from north) in degrees.
@@ -221,7 +222,8 @@ public class LocOutput extends LocationResult {
       double stationElevation,
       long pickTime,
       String locatorPhase,
-      String originalPhase,
+      String originalAssocPhase,
+      String originalPickedPhase,
       double residual,
       double delta,
       double azimuth,
@@ -252,9 +254,13 @@ public class LocOutput extends LocationResult {
     }
 
     // empty phases become null in proc formats
-    String originalPhaseCode = null;
-    if (!"".equals(originalPhase)) {
-      originalPhaseCode = originalPhase;
+    String originalPickedPhaseCode = null;
+    if (!"".equals(originalPickedPhase)) {
+      originalPickedPhaseCode = originalPickedPhase;
+    }
+    String originalAssocPhaseCode = null;
+    if (!"".equals(originalAssocPhase)) {
+      originalAssocPhaseCode = originalAssocPhase;
     }
     String locatorPhaseCode = null;
     if (!"".equals(locatorPhase)) {
@@ -280,8 +286,8 @@ public class LocOutput extends LocationResult {
             pickAffinity,
             pickQuality,
             useFlag,
-            null,
-            originalPhaseCode,
+            originalPickedPhaseCode,
+            originalAssocPhaseCode,
             locatorPhaseCode,
             residual,
             delta,

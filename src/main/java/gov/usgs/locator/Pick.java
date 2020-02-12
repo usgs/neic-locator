@@ -31,8 +31,11 @@ public class Pick implements Comparable<Pick> {
   /** A boolean indicating whether the pick may be used in the location (external command). */
   private boolean externalUse;
 
-  /** A String containing the original phase identification for this pick. */
-  private String originalPhaseCode;
+  /** A String containing the original Assoc phase identification for this pick. */
+  private String originalAssocPhaseCode;
+
+  /** A String containing the original picked phase identification for this pick. */
+  private String originalPickedPhaseCode;
 
   /** An AuthorType object containing the author type for the original phase identification. */
   private AuthorType originalAuthorType;
@@ -164,12 +167,21 @@ public class Pick implements Comparable<Pick> {
   }
 
   /**
+   * Function to return the original assoc phase code for the pick.
+   *
+   * @return A String containing the original assoc phase code for the pick
+   */
+  public String getOriginalAssocPhaseCode() {
+    return originalAssocPhaseCode;
+  }
+
+  /**
    * Function to return the original phase code for the pick.
    *
-   * @return A String containing the original phase code for the pick
+   * @return A String containing the original pick phase code for the pick
    */
-  public String getOriginalPhaseCode() {
-    return originalPhaseCode;
+  public String getOriginalPickedPhaseCode() {
+    return originalPickedPhaseCode;
   }
 
   /**
@@ -408,12 +420,12 @@ public class Pick implements Comparable<Pick> {
       String currentPhaseCode) {
     // Remember the inputs.
     this.station = station;
-    if(channelCode != null) {
-    	this.channelCode = channelCode;
+    if (channelCode != null) {
+      this.channelCode = channelCode;
     } else {
-    	this.channelCode = "--";
+      this.channelCode = "--";
     }
-    if(this.channelCode.contentEquals("unknown")) this.channelCode = "--";
+    if (this.channelCode.contentEquals("unknown")) this.channelCode = "--";
     this.arrivalTime = arrivalTime;
     this.externalUse = externalUse;
     this.currentPhaseCode = currentPhaseCode;
@@ -421,7 +433,8 @@ public class Pick implements Comparable<Pick> {
     // Set defaults.
     pickID = "0";
     quality = 0d;
-    originalPhaseCode = null;
+    originalAssocPhaseCode = null;
+    originalPickedPhaseCode = null;
     originalAuthorType = null;
     originalPhaseAffinity = 3d;
     isUsed = externalUse;
@@ -448,8 +461,10 @@ public class Pick implements Comparable<Pick> {
    * @param pickID A String containing the pick's external ID
    * @param quality A double containing the pick uncertainty in seconds (not currently used in phase
    *     identification and location)
-   * @param originalPhaseCode A String containing the original associator or other external pick
-   *     phase identification
+   * @param originalAssocPhaseCode A String containing the original associator external pick phase
+   *     identification
+   * @param originaPickedPhaseCode A String containing the original picker external pick phase
+   *     identification
    * @param originalAuthorType An AuthorType object containing the type (e.g., human or auto) of the
    *     original phase identification
    * @param originalPhaseAffinity Higher numbers make it harder to re-identify the phase
@@ -458,13 +473,15 @@ public class Pick implements Comparable<Pick> {
       String sourceID,
       String pickID,
       double quality,
-      String originalPhaseCode,
+      String originalAssocPhaseCode,
+      String originalPickedPhaseCode,
       AuthorType originalAuthorType,
       double originalPhaseAffinity) {
     this.sourceID = sourceID;
     this.pickID = pickID;
     this.quality = quality;
-    this.originalPhaseCode = originalPhaseCode;
+    this.originalAssocPhaseCode = originalAssocPhaseCode;
+    this.originalPickedPhaseCode = originalPickedPhaseCode;
     this.originalAuthorType = originalAuthorType;
     this.originalPhaseAffinity = originalAuthorType.affinity(originalPhaseAffinity);
 
@@ -472,8 +489,8 @@ public class Pick implements Comparable<Pick> {
     switch (originalAuthorType) {
       case CONTRIB_HUMAN:
       case LOCAL_HUMAN:
-        currentPhaseCode = originalPhaseCode;
-        bestPhaseCode = originalPhaseCode;
+        currentPhaseCode = originalAssocPhaseCode;
+        bestPhaseCode = originalAssocPhaseCode;
         isAutomatic = false;
         break;
 
