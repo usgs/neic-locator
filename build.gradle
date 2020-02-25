@@ -77,7 +77,7 @@ dependencies {
 ext.addExternalProject = { path, url, srcDir ->
   File projDir = new File("$path")
 
-  // cleanup local copy if it exists 
+  // cleanup local copy if it exists
   // (we do this because grgit.pull doesn't seem to update
   // local files, yes this is slow)
   if(projDir.exists()) {
@@ -187,18 +187,6 @@ shadowJar {
   mergeServiceFiles()
 }
 
-// set jar entry point
-// jar {
-//   manifest {
-//     attributes(
-//       'Class-Path': configurations.compile.collect { it.getName() }.join(' '),
-//       'Main-Class': 'gov.usgs.locator.LocMain'
-//     )
-//   }
-//   from {
-//       configurations.compile.collect { it.isDirectory() ? it : zipTree(it) }
-//   }
-// }
 
 // create javadocs
 javadoc {
