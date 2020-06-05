@@ -1,5 +1,7 @@
 package gov.usgs.locator;
 
+import gov.usgs.locaux.AuthorType;
+import gov.usgs.locaux.LocUtil;
 import gov.usgs.traveltime.AuxTtRef;
 import gov.usgs.traveltime.BadDepthException;
 import gov.usgs.traveltime.TTSessionLocal;

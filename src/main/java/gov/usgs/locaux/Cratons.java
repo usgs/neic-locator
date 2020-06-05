@@ -1,4 +1,4 @@
-package gov.usgs.locator;
+package gov.usgs.locaux;
 
 import java.io.Serializable;
 import java.util.ArrayList;

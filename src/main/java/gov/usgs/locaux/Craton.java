@@ -1,4 +1,4 @@
-package gov.usgs.locator;
+package gov.usgs.locaux;
 
 import gov.usgs.traveltime.TauUtil;
 import java.io.Serializable;

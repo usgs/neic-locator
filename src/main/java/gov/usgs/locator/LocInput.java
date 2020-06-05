@@ -1,6 +1,7 @@
 package gov.usgs.locator;
 
 import gov.usgs.detectionformats.Detection;
+import gov.usgs.locaux.LocUtil;
 import gov.usgs.processingformats.LocationRequest;
 import java.util.ArrayList;
 import java.util.Date;

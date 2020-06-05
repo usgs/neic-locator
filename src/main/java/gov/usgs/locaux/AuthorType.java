@@ -1,4 +1,4 @@
-package gov.usgs.locator;
+package gov.usgs.locaux;
 
 /**
  * AuthorType is an enumeration that defines the possible pick author types and default pick

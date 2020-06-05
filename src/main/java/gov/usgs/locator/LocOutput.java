@@ -1,5 +1,7 @@
 package gov.usgs.locator;
 
+import gov.usgs.locaux.AuthorType;
+import gov.usgs.locaux.LocUtil;
 import gov.usgs.processingformats.ErrorEllipseAxis;
 import gov.usgs.processingformats.LocationResult;
 import gov.usgs.processingformats.Utility;

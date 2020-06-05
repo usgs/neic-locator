@@ -3,6 +3,8 @@ package gov.usgs.locator;
 import java.util.ArrayList;
 import java.util.logging.Logger;
 
+import gov.usgs.locaux.LocUtil;
+
 /**
  * The LinearStep class simplifies travel time computations. Computing seismic travel times is
  * expensive, so instead set the steepest descent step length using the linear term of a Taylor

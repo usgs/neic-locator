@@ -1,5 +1,7 @@
 package gov.usgs.locator;
 
+import gov.usgs.locaux.LocUtil;
+
 /**
  * The HypoAudit class is intended to provide a snapshot of the event at different points in the
  * location process for logging purposes. It also provides a handy way of backing down to a previous
