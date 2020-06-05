@@ -1,5 +1,6 @@
 package gov.usgs.locator;
 
+import gov.usgs.locaux.LocUtil;
 import gov.usgs.traveltime.TauUtil;
 import java.util.ArrayList;
 import java.util.Arrays;

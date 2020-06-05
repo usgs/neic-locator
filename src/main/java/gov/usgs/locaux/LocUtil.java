@@ -1,5 +1,9 @@
-package gov.usgs.locator;
+package gov.usgs.locaux;
 
+import gov.usgs.locator.HypoAudit;
+import gov.usgs.locator.Hypocenter;
+import gov.usgs.locator.Pick;
+import gov.usgs.locator.Station;
 import gov.usgs.traveltime.TauUtil;
 import java.util.Calendar;
 import java.util.Date;
@@ -214,6 +218,9 @@ public class LocUtil {
 
   /** A boolean constant that if true indicates that the locator should suppress back branches. */
   public static final boolean SUPRESSBACKBRANCHES = false;
+  
+  /** A double containing the latitude-longitude grid spacing for the slab model. */
+  public static final double SLABINCREMENT = 0.5d;
 
   /**
    * A boolean flag indicating if the decorrelation algorithm is to be used. Note that it is never

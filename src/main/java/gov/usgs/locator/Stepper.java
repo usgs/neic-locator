@@ -1,5 +1,9 @@
 package gov.usgs.locator;
 
+import gov.usgs.locaux.AuxLocRef;
+import gov.usgs.locaux.Cratons;
+import gov.usgs.locaux.LocUtil;
+import gov.usgs.locaux.ZoneStats;
 import gov.usgs.traveltime.BadDepthException;
 import gov.usgs.traveltime.tables.TauIntegralException;
 import java.util.logging.Logger;

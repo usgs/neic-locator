@@ -1,5 +1,7 @@
 package gov.usgs.locator;
 
+import gov.usgs.locaux.AuxLocRef;
+import gov.usgs.locaux.LocUtil;
 import gov.usgs.processingformats.LocationException;
 import gov.usgs.processingformats.LocationRequest;
 import gov.usgs.processingformats.LocationResult;

@@ -2,6 +2,8 @@ package gov.usgs.locator;
 
 import java.util.ArrayList;
 
+import gov.usgs.locaux.LocUtil;
+
 /**
  * The RankSumEstimator class is the Rank-sum estimator implementation for the NEIC Locator.
  *
