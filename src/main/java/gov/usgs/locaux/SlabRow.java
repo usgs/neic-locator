@@ -91,12 +91,12 @@ public class SlabRow implements Serializable {
 	 * @return True if the desired point is within in this row
 	 */
 	public boolean isFound(double lat, double lon) {
-		segFound = -1;
 		if(lat >= this.lat && lat < this.lat + SlabSeg.latIncrement && 
 				lon >= lonRange[0] && lon <= lonRange[1]) {
 			for(int j = 0; j < slabSegs.size(); j++) {
 				if(slabSegs.get(j).isFound(lon)) {
 					segFound = j;
+					System.out.println("Row0: seg = " + j + " " + slabSegs.get(j));
 					return true;
 				}
 			}
@@ -115,9 +115,11 @@ public class SlabRow implements Serializable {
 	public SlabDepth getDepth(double lon) {
 		// If we haven't found the segment yet, get it.
 		if(segFound < 0) {
+		segFound = -1;
 			for(int j = 0; j < slabSegs.size(); j++) {
 				if(slabSegs.get(j).isFound(lon)) {
 					segFound = j;
+					System.out.println("Row1: seg = " + j + " " + slabSegs.get(j));
 				}
 			}
 		}
@@ -153,6 +155,7 @@ public class SlabRow implements Serializable {
 				v[i] = null;
 			}
 		}
+		segFound = -1;
 	}
 	
 	/**

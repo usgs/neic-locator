@@ -34,11 +34,34 @@ public class LocUtil {
   public static final double DEPTHMAX = 700d;
 
   /**
-   * A double constant representing the default Bayesian depth standard error in kilometers for a
-   * free depth solution. This assumes that if we don't have a good estimate for the Bayesian depth,
-   * the event is probably in the crust (i.e., 15 +/- 15 km).
+   * A double constant representing the default Bayesian depth in kilometers for a free depth 
+   * solution.  This is the Bayesian default for all shallow earthquakes.
+   */
+  public static final double DEFAULTDEPTH = 10d;
+  
+  /**
+   * A double constant representing the default Bayesian depth error in kilometers (99th 
+   * percentile) for a free depth solution.  Note that this represents the strength of the 
+   * Bayesian constraint.  There is no problem with the default depth minus the error being 
+   * negative.  The standard error is actually used in the calculation (i.e., 1/3 of the 99th 
+   * percentile for a Gaussian).
    */
   public static final double DEFAULTDEPTHSE = 15d;
+  
+  /** A double containing the latitude-longitude grid spacing for the slab model. */
+  public static final double SLABINCREMENT = 0.5d;
+  
+  /**
+   * A double containing the minimum slab depth in kilometers where the Bayesian depth spread 
+   * will cover both the slab and shallow earthquakes.
+   */
+  public static final double SLABMERGEDEPTH = 70d;
+  
+  /**
+   * A double containing the maximum trial depth in kilometers where the Bayesian depth can be 
+   * shallow if a slab is present.
+   */
+  public static final double SLABMAXSHALLOWDEPTH = 60d;
 
   /**
    * A double constant representing the default Bayesian depth standard error in kilometers for a
@@ -218,9 +241,6 @@ public class LocUtil {
 
   /** A boolean constant that if true indicates that the locator should suppress back branches. */
   public static final boolean SUPRESSBACKBRANCHES = false;
-  
-  /** A double containing the latitude-longitude grid spacing for the slab model. */
-  public static final double SLABINCREMENT = 0.5d;
 
   /**
    * A boolean flag indicating if the decorrelation algorithm is to be used. Note that it is never
