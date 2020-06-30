@@ -383,4 +383,13 @@ public class AuxLocRef {
   public ZoneStats getZoneStats() {
     return zoneStats;
   }
+  
+  /**
+   * Function to return the slabs geometry managed by AuxLocRef.
+   * 
+   * @return A slabs object containing the slab depths
+   */
+  public Slabs getSlabs() {
+  	return slabs;
+  }
 }

@@ -3,6 +3,7 @@ package gov.usgs.locator;
 import gov.usgs.locaux.AuxLocRef;
 import gov.usgs.locaux.Cratons;
 import gov.usgs.locaux.LocUtil;
+import gov.usgs.locaux.Slabs;
 import gov.usgs.locaux.ZoneStats;
 import gov.usgs.traveltime.BadDepthException;
 import gov.usgs.traveltime.tables.TauIntegralException;
@@ -34,6 +35,9 @@ public class Stepper {
 
   /** A ZoneStats object containing earthquake statistics by geographic location. */
   private ZoneStats zoneStats;
+  
+  /** A slabs object containing slab depths by geographic location. */
+  private Slabs slabStats;
 
   /** A PhaseID object containing the phase identification logic. */
   private PhaseID phaseIDLogic;
@@ -73,6 +77,7 @@ public class Stepper {
     hypo = event.getHypo();
     cratons = auxLoc.getCratons();
     zoneStats = auxLoc.getZoneStats();
+    slabStats = auxLoc.getSlabs();
     this.phaseIDLogic = phaseIDLogic;
     rawRankSumEstimator = event.getRawRankSumEstimator();
     projectedRankSumEstimator = event.getProjectedRankSumEstimator();
@@ -378,6 +383,11 @@ public class Stepper {
       // Update the Bayesian depth if it wasn't set by the analyst.
       double bayesDepth = zoneStats.getBayesDepth(hypo.getLatitude(), hypo.getLongitude());
       double bayesSpread = zoneStats.getBayesSpread();
+      System.out.format("\t\tZones: %6.2f +/- %6.2f\n", bayesDepth, bayesSpread / 3d);
+      bayesDepth = slabStats.getBayesDepth(hypo.getLatitude(), hypo.getLongitude(), 
+      		hypo.getDepth());
+      bayesSpread = slabStats.getBayesSpread();
+      System.out.format("\t\tSlabs: %6.2f +/- %6.2f\n", bayesDepth, bayesSpread / 3d);
       hypo.updateBayes(bayesDepth, bayesSpread);
       //    rawRankSumEstimator.updateBayesianResidual(hypo.getBayesianDepthResidual(),
       //    		hypo.getBayesianDepthWeight());

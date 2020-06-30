@@ -53,12 +53,12 @@ public class SlabArea implements Serializable {
 	 * @return True if the point falls in this area
 	 */
 	public boolean isFound(double lat, double lon) {
-		rowFound = -1;
 		if(lat >= latRange[0] && lat <= latRange[1] && lon >= lonRange[0] 
 				&& lon <= lonRange[1]) {
 			for(int j = 0; j < slabRows.size(); j++) {
 				if(slabRows.get(j).isFound(lat, lon)) {
 					rowFound = j;
+					System.out.println("Area: row = " + j + " " + slabRows.get(j));
 					return true;
 				}
 			}
@@ -90,13 +90,12 @@ public class SlabArea implements Serializable {
 				v1 = new double[2][][];
 				slabRows.get(rowFound++).getVectors(lon, v0);
 				slabRows.get(rowFound).getVectors(lon, v1);
+				rowFound = -1;
 				return interp(v0, v1, v);
-			} else {
-				return null;
 			}
-		} else {
-			return null;
 		}
+		rowFound = -1;
+		return null;
 	}
 	
 	/**
