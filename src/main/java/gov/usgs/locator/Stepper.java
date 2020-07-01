@@ -62,6 +62,17 @@ public class Stepper {
 
   /** A double containing the median of the residuals used by the derivative test */
   private double residualsMedian;
+  
+  /**
+   * A double containing the contribution of the Bayesian constraint to the previous dispersion 
+   * computed.
+   */
+  private double lastContribution;
+  /**
+   * A double containing the contribution of the Bayesian constraint to the latest dispersion 
+   * computed.
+   */
+  private double bayesianContribution = 0d;
 
   /**
    * The Stepper constructor. Set the event, phaseID logic, and auxiliary locator information to the
@@ -155,6 +166,7 @@ public class Stepper {
     }
 
     double dispersion;
+    lastContribution = bayesianContribution;
     if (LocUtil.useDecorrelation) {
       // Demedian the raw residuals.
       residualsMedian = rawRankSumEstimator.computeMedian();
@@ -177,8 +189,10 @@ public class Stepper {
 
       // Get the rank-sum-estimator dispersion of the projected data.
       dispersion = projectedRankSumEstimator.computeDispersionValue();
+      bayesianContribution = projectedRankSumEstimator.getContribution();
 
-      LOGGER.fine(String.format("Lsrt: ST av chisq = %8.4f %10.4f", projectedMedian, dispersion));
+      LOGGER.fine(String.format("Lsrt: ST av chisq = %8.4f %10.4f %10.4f", projectedMedian, 
+      		dispersion, dispersion - Math.max(bayesianContribution - lastContribution, 0d)));
     } else {
       // Demedian the raw residuals.
       residualsMedian = rawRankSumEstimator.computeMedian();
@@ -190,8 +204,10 @@ public class Stepper {
 
       // Get the rank-sum-estimator dispersion of the raw data.
       dispersion = rawRankSumEstimator.computeDispersionValue();
+      bayesianContribution = rawRankSumEstimator.getContribution();
 
-      LOGGER.fine(String.format("Lsrt: ST av chisq = %8.4f %10.4f", residualsMedian, dispersion));
+      LOGGER.fine(String.format("Lsrt: ST av chisq = %8.4f %10.4f %10.4f", residualsMedian, 
+      		dispersion, dispersion - Math.max(bayesianContribution - lastContribution, 0d)));
     }
 
     rSumEstResult = new RSumEstResult(0d, residualsMedian, 0d, dispersion);
@@ -234,7 +250,10 @@ public class Stepper {
     LocStatus status = LocStatus.SUCCESS;
 
     // Save the current hypocenter as a reference for the step length damping.
+//    System.out.println("Save hypocenter:");
+//    System.out.println("\tHypo: " + hypo);
     HypoAudit lastHypoAudit = new HypoAudit(hypo, 0, 0, event.getNumPhasesUsed(), status);
+//    System.out.println(lastHypoAudit);
 
     // Get the linearized step.
     hypo.setNumOfTimesStepLengthDampening(0);
@@ -282,8 +301,16 @@ public class Stepper {
       return status;
     }
 
-    // If we're headed down hill, this iteration is done.
-    if (rSumEstResult.getDispersion() < hypo.getEstimatorDispersionValue()) {
+    /**
+     * If we're headed down hill, this iteration is done.  Note that following slabs 
+     * along their slope constantly changes the Bayesian condition.  This results 
+     * in a failure to converge that has nothing to do with fitting the residuals.  
+     * By accounting for the change in the Bayesian contribution to the dispersion, 
+     * this problem can be side stepped without messing with the rest of the 
+     * algorithm.
+     */
+    if (rSumEstResult.getDispersion() - Math.max(bayesianContribution - lastContribution, 0d) < 
+    		hypo.getEstimatorDispersionValue()) {
       // Delay resetting the Bayesian depth for stability reasons.
       hypo.setEstimatorDispersionValue(rSumEstResult.getDispersion());
       //    setLocEnvironment();
@@ -307,7 +334,11 @@ public class Stepper {
           || (hypo.getNumOfTimesStepLengthDampening() > 0
               && LocUtil.compareHypos(hypo, lastHypoAudit))) {
         // We've damped the solution into oblivion.  Give up.
+//        System.out.println("Reset hypocenter:");
+//        System.out.println(lastHypoAudit);
         hypo.resetHypo(lastHypoAudit);
+//        System.out.println("\tHypo: " + hypo);
+        hypo.setStepLength(0d);
         hypo.setHorizontalStepLength(0d);
         hypo.setVerticalStepLength(0d);
 
@@ -350,17 +381,18 @@ public class Stepper {
       // If the phase identification has changed, we have to start over.
       if (event.getHasPhaseIdChanged()) {
         hypo.setEstimatorDispersionValue(rSumEstResult.getDispersion());
+        updateStepDirection();
         status = LocStatus.PHASEID_CHANGED;
-
         logStep("ReID", stage, iteration, status);
-
         return status;
       }
 
       logStep("Damp", stage, iteration, status);
-    } while (rSumEstResult.getDispersion() >= hypo.getEstimatorDispersionValue());
+    } while (rSumEstResult.getDispersion() - Math.max(bayesianContribution - lastContribution, 0d) >= 
+    		hypo.getEstimatorDispersionValue());
 
     // The step length damping actually worked!
+    updateStepDirection();
     return LocStatus.SUCCESS;
   }
 
