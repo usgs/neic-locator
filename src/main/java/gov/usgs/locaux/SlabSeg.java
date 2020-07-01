@@ -66,10 +66,6 @@ public class SlabSeg implements Serializable {
 	public SlabDepth getDepth(double lon) {
 		int j = (int) Math.round((lon - lonRange[0]) / lonIncrement);
 		System.out.format("Seg:  %6.2f %2d %s\n", lon, j, toString());
-		
-		if(j < 0) {
-			System.out.println("Oops!");
-		}
 		if(j < depths.length) {
 			return depths[j];
 		} else {

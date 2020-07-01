@@ -39,6 +39,12 @@ public class RankSumEstimator {
    * deMedianEstResiduals() and computeEstDispersionValue().
    */
   private double linearEstimatesMedian;
+  
+  /**
+   * A double containing the contribution of the Bayesian constraint to the latest dispersion 
+   * computed.
+   */
+  private double bayesianContribution;
 
   /**
    * A double[] holding the interpolation scores used in dispersion(), compSteepestDescDir(), and
@@ -48,6 +54,15 @@ public class RankSumEstimator {
 
   /** An ArrayList of WeightedResidual objects containing the weighted residuals of the picks. */
   private ArrayList<WeightedResidual> weightedResiduals;
+  
+  /**
+   * Get the Bayesian contribution to the latest dispersion computed.
+   * 
+   * @return Bayesian contribution
+   */
+  public double getContribution() {
+  	return bayesianContribution;
+  }
 
   /**
    * The RankSumEstimator constructor. Initializes various cached variables, and stores the weighted
@@ -62,6 +77,7 @@ public class RankSumEstimator {
     weightedResidualsLength = -1;
     residualsMedian = 0d;
     linearEstimatesMedian = 0d;
+    bayesianContribution = 0d;
     this.weightedResiduals = weightedResiduals;
   }
 
@@ -238,7 +254,12 @@ public class RankSumEstimator {
 
     // The dispersion is just a dot product.
     for (int j = 0; j < lastIndex; j++) {
-      dispersion += scores[j] * weightedResiduals.get(j).getSortValue();
+    	if(!weightedResiduals.get(j).getIsBayesianDepth()) {
+    		dispersion += scores[j] * weightedResiduals.get(j).getSortValue();
+    	} else {
+    		bayesianContribution = scores[j] * weightedResiduals.get(j).getSortValue();
+    		dispersion += bayesianContribution;
+    	}
     }
 
     return dispersion;
