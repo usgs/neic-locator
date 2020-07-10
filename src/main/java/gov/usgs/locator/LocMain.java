@@ -257,7 +257,7 @@ public class LocMain {
               filePath,
               inputType,
               outputType,
-              "./",
+              outputPath,
               outputExtension,
               csvFile,
               locationConfig);
