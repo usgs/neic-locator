@@ -257,7 +257,7 @@ public class LocInput extends LocationRequest {
       if (!scan.hasNextDouble()) {
         curPh = scan.next();
       }
-      newPick.PickedPhase = curPh;
+      newPick.AssociatedPhase = curPh;
 
       newPick.Time = new Date(LocUtil.toJavaTime(scan.nextDouble()));
       newPick.Use = LocUtil.getBoolean(scan.next().charAt(0));
@@ -299,8 +299,8 @@ public class LocInput extends LocationRequest {
         }
       }
       newPick.Affinity = aff;
-      newPick.AssociatedPhase = obsPh;
-
+      newPick.PickedPhase = obsPh;
+      
       if (newPick.isValid()) {
         // Add the pick to the list
         pickList.add(newPick);
