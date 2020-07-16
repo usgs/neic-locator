@@ -137,13 +137,15 @@ public class InitialPhaseID {
         // not work correctly.  Note that only some of the first arrivals
         // that are being used are considered and that the tentative ID is
         // not remembered.
+        
         if (group.getDistance() <= 100d) {
           Pick pick = group.getPicks().get(0);
           boolean found;
 
           if (pick.getIsUsed()) {
             String phCode = pick.getCurrentPhaseCode();
-
+            
+            /**
             if (pick.getIsAutomatic()
                 && (phCode.length() == 0
                     || (!"PK".equals(phCode.substring(0, 1))
@@ -167,31 +169,33 @@ public class InitialPhaseID {
                     String.format("InitialPhaseID: %s -> %s auto", phCode, travelTime.getPhCode()));
               }
             } else {
-              found = false;
+            **/	
+          
+          found = false;
+          
+          for (int i = 0; i < ttList.getNumPhases(); i++) {
+            travelTime = ttList.getPhase(i);
 
-              for (int i = 0; i < ttList.getNumPhases(); i++) {
-                travelTime = ttList.getPhase(i);
-
-                if (phCode.equals(travelTime.getPhCode())) {
-                  // Note that this is slightly different from the Fortran
-                  // version where the weight is always from the first arrival.
-                  pick.setResidual(pick.getTravelTime() - travelTime.getTT());
-                  pick.setWeight(1d / travelTime.getSpread());
-                  found = true;
-                  break;
-                }
-              }
-
-              if (!found) {
-                travelTime = ttList.getPhase(0);
-                pick.setResidual(pick.getTravelTime() - travelTime.getTT());
-                pick.setWeight(1d / travelTime.getSpread());
-
-                LOGGER.finer(
-                    String.format(
-                        "InitialPhaseID: " + "%s -> %s human", phCode, travelTime.getPhCode()));
-              }
+            if (phCode.equals(travelTime.getPhCode())) {
+              // Note that this is slightly different from the Fortran
+              // version where the weight is always from the first arrival.
+              pick.setResidual(pick.getTravelTime() - travelTime.getTT());
+              pick.setWeight(1d / travelTime.getSpread());
+              found = true;
+              break;
             }
+          }
+
+          if (!found) {
+            travelTime = ttList.getPhase(0);
+            pick.setResidual(pick.getTravelTime() - travelTime.getTT());
+            pick.setWeight(1d / travelTime.getSpread());
+
+            LOGGER.finer(
+                String.format(
+                    "InitialPhaseID: " + "%s -> %s human", phCode, travelTime.getPhCode()));
+          }
+            //}
 
             weightedResiduals.add(
                 new WeightedResidual(
