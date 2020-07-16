@@ -58,7 +58,7 @@ public class PickGroup {
   }
 
   /**
-   * Function to get he picks observed in this group (station).
+   * Function to get the picks observed in this group (station).
    *
    * @return An ArrayList of Pick objects containing the picks observed in this group (station).
    */
