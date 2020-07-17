@@ -574,7 +574,8 @@ public class Event {
               pickIn.Site.Latitude,
               pickIn.Site.Longitude,
               (pickIn.Site.Elevation / 1000));
-      // when a pick is formed, the associator phase is used as the current phase, not the picked phase which would 
+      // when a pick is formed, the associator phase is used as the current phase, not the picked
+      // phase which would
       // always be set to P
       gov.usgs.locator.Pick pick =
           new gov.usgs.locator.Pick(

@@ -300,7 +300,7 @@ public class LocInput extends LocationRequest {
       }
       newPick.Affinity = aff;
       newPick.PickedPhase = obsPh;
-      
+
       if (newPick.isValid()) {
         // Add the pick to the list
         pickList.add(newPick);
