@@ -51,6 +51,8 @@ public class LocUtil {
   /** A double containing the latitude-longitude grid spacing for the slab model. */
   public static final double SLABINCREMENT = 0.5d;
   
+  public static final double SLABHALFINC = SLABINCREMENT / 2d;
+  
   /**
    * A double containing the minimum slab depth in kilometers where the Bayesian depth spread 
    * will cover both the slab and shallow earthquakes.

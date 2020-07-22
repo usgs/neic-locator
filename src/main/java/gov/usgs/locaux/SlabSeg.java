@@ -13,16 +13,24 @@ import java.util.List;
  */
 public class SlabSeg implements Serializable {
 	private static final long serialVersionUID = 1L;
-	/**
-	 * Increment in the latitude grid.
-	 */
-	public final static double latIncrement = 0.5d;
-	/**
-	 * Increment in the longitude grid.
-	 */
-	public final static double lonIncrement = 0.5d;
+	int pointFound = -1;
+	double lonBase;
 	double[] lonRange;
 	SlabDepth[] depths;
+	
+	 /**
+	  * Get the longitude associated with the point found for 
+	  * interpolation.
+	  * 
+	  * @return Geographic longitude in degrees (0-360 degrees)
+	  */
+	public double getLon() {
+		if(pointFound >= 0) {
+			return lonBase + pointFound * LocUtil.SLABINCREMENT;
+		} else {
+			return Double.NaN;
+		}
+	}
 	
 	/**
 	 * Create the segment from a list of points.
@@ -30,9 +38,10 @@ public class SlabSeg implements Serializable {
 	 * @param points
 	 */
 	public SlabSeg(List<SlabPoint> points) {
+		lonBase = points.get(0).getLon();
 		lonRange = new double[2];
-		lonRange[0] = points.get(0).getLon();
-		lonRange[1] = points.get(points.size() - 1).getLon();
+		lonRange[0] = lonBase - LocUtil.SLABHALFINC;
+		lonRange[1] = points.get(points.size() - 1).getLon() + LocUtil.SLABHALFINC;
 		depths = new SlabDepth[points.size()];
 		for(int j = 0; j < points.size(); j++) {
 			depths[j] = points.get(j).getDep();
@@ -64,13 +73,29 @@ public class SlabSeg implements Serializable {
 	 * @return Slab depth triplet
 	 */
 	public SlabDepth getDepth(double lon) {
-		int j = (int) Math.round((lon - lonRange[0]) / lonIncrement);
-		System.out.format("Seg:  %6.2f %2d %s\n", lon, j, toString());
-		if(j < depths.length) {
-			return depths[j];
-		} else {
-			return null;
+		if(lon >= lonRange[0] && lon <= lonRange[1]) {
+			pointFound = (int) ((lon - lonBase) / LocUtil.SLABINCREMENT);
+			return depths[pointFound];
 		}
+		pointFound = -1;
+		return null;
+	}
+	
+	/**
+	 * Get the next slab depth triplet.  Since the slab depths in a segment 
+	 * are accessed in pairs, this guarantees that two adjacent points are 
+	 * found in SlabRow.
+	 * 
+	 * @return Slab depth triplet
+	 */
+	public SlabDepth getNextDepth() {
+		if(pointFound >= 0) {
+			if(++pointFound < depths.length) {
+				return depths[pointFound];
+			}
+		}
+		pointFound = -1;
+		return null;
 	}
 	
 	@Override

@@ -13,6 +13,7 @@ import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.IntBuffer;
 import java.nio.channels.FileLock;
+import java.util.ArrayList;
 import java.util.Scanner;
 // import java.util.logging.Logger;
 
@@ -315,18 +316,22 @@ public class AuxLocRef {
 	  		row.squeeze();
 	  		// Look for the start of a new area.
 	  		if(Math.abs(point.getLon() - firstLon) > tol) {
+	  			// Add the last row.
+	  			area.add(row);
 	  			// Print a summary of the last area.
 	  			area.printArea(false);
 	  			// Add the last area to all.
 	  			slabs.add(area);
 	  			// Start a new area.
 	  			area = new SlabArea();
+	  			row = new SlabRow();
 	  			firstLon = point.getLon();
+	  		} else {
+	  			// Add the row to the current area.
+		  		area.add(row);
+		  		// Start a new row.
+		  		row = new SlabRow();
 	  		}
-	  		// Add the last row to the current area.
-	  		area.add(row);
-	  		// Start a new row.
-	  		row = new SlabRow();
 	  	}
 	  	// Add the current point to the current row.
 	  	row.add(point);
@@ -339,6 +344,56 @@ public class AuxLocRef {
 		slabs.add(area);
 		// Print the summary for the last area.
 		area.printArea(false);
+		
+		// Now run some tests.
+		double lat;
+		double lon;
+		ArrayList<SlabDepth> depth;
+	
+	// The access looks trivial from here (by design).
+		lon = -151.24d;
+		for(int i = 0; i < 12; i++) {
+			lon += 0.5d;
+			depth = slabs.getDepth(63.76d, lon);
+			// Note that one call may return multiple depths.
+			if(depth != null) {
+				for(int j = 0; j < depth.size(); j++) {
+					System.out.println("Depth: " + depth.get(j));
+				}
+			} else {
+				System.out.println("No slab depth found.");
+			}
+		}
+	
+	// The access looks trivial from here (by design).
+		lon = 174.24d;
+		for(int i = 0; i < 31; i++) {
+			lon += 0.5d;
+			depth = slabs.getDepth(51.26d, lon);
+			// Note that one call may return multiple depths.
+			if(depth != null) {
+				for(int j = 0; j < depth.size(); j++) {
+					System.out.println("Depth: " + depth.get(j));
+				}
+			} else {
+				System.out.println("No slab depth found.");
+			}
+		}
+	
+		// The access looks trivial from here (by design).
+		lat = 11.24d;
+		for(int i = 0; i < 9; i++) {
+			lat -= 0.5d;
+			depth = slabs.getDepth(lat, 124.26d);
+			// Note that one call may return multiple depths.
+			if(depth != null) {
+				for(int j = 0; j < depth.size(); j++) {
+					System.out.println("Depth: " + depth.get(j));
+				}
+			} else {
+				System.out.println("No slab depth found.");
+			}
+		}
   }
   
   /**
