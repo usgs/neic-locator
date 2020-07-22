@@ -15,8 +15,8 @@ public class SlabRow implements Serializable {
 	private static final long serialVersionUID = 1L;
 	int segFound = -1;
 	double lat;
-	double[] lonRange;
-	ArrayList<SlabPoint> slabPoints;
+	double[] lonRange = null;
+	ArrayList<SlabPoint> slabPoints = null;
 	ArrayList<SlabSeg> slabSegs = null;
 	
 	/**
@@ -39,6 +39,16 @@ public class SlabRow implements Serializable {
 	public SlabRow() {
 		slabPoints = new ArrayList<SlabPoint>();
 	}
+	/**
+	 * This alternate constructor is used to create place holder rows.  
+	 * The place holder rows are needed to ensure completeness in 
+	 * longitude.
+	 * 
+	 * @param lat
+	 */
+	public SlabRow(double lat) {
+		this.lat = lat;
+	}
 	
 	/**
 	 * Add a new slab depth point in this latitude row.
@@ -55,7 +65,7 @@ public class SlabRow implements Serializable {
 	 * garbage collection.
 	 */
 	public void squeeze() {
-		int start, end;
+		int start = 0;
 		
 		// Squeeze out points where the earthquake depth is NaN.
 		lat = slabPoints.get(0).getLat();
@@ -64,21 +74,17 @@ public class SlabRow implements Serializable {
 				start = j++;
 				for(; j<slabPoints.size(); j++) {
 					if(Double.isNaN(slabPoints.get(j).getEqDepth())) {
-						end = j;
-						if(slabSegs == null) {
-							slabSegs = new ArrayList<SlabSeg>();
-						}
-						slabSegs.add(new SlabSeg(slabPoints.subList(start, end)));
-						if(lonRange == null) {
-							lonRange = new double[2];
-							lonRange[0] = slabPoints.get(start).getLon();
-						}
-						lonRange[1] = slabPoints.get(end - 1).getLon();
+						addSegment(start, j);
 						break;
 					}
 				}
 			}
 		}
+		// Be sure we get segments that go to the end of the area.
+		if(!Double.isNaN(slabPoints.get(slabPoints.size()-1).getEqDepth())) {
+			addSegment(start, slabPoints.size());
+		}
+		// We don't need slabPoints any more.
 		slabPoints = null;
 	}
 	
@@ -86,24 +92,22 @@ public class SlabRow implements Serializable {
 	 * Test to see if the desired point falls in this row.  If it does, 
 	 * remember which segment it's in.
 	 * 
-	 * @param lat Geographic colatitude in degrees (0-180 degrees)
 	 * @param lon Geographic longitude in degrees (0-360 degrees)
 	 * @return True if the desired point is within in this row
 	 */
-	public boolean isFound(double lat, double lon) {
-		if(lat >= this.lat && lat < this.lat + SlabSeg.latIncrement && 
-				lon >= lonRange[0] && lon <= lonRange[1]) {
-			for(int j = 0; j < slabSegs.size(); j++) {
-				if(slabSegs.get(j).isFound(lon)) {
-					segFound = j;
-					System.out.println("Row0: seg = " + j + " " + slabSegs.get(j));
-					return true;
+	public boolean isFound(double lon) {
+		if(slabSegs != null) {
+			if(lon >= lonRange[0] && lon <= lonRange[1]) {
+				for(int j = 0; j < slabSegs.size(); j++) {
+					if(slabSegs.get(j).isFound(lon)) {
+						segFound = j;
+						return true;
+					}
 				}
 			}
-			return false;
-		} else {
-			return false;
 		}
+		segFound = -1;
+		return false;
 	}
 	
 	/**
@@ -143,19 +147,45 @@ public class SlabRow implements Serializable {
 	public void getVectors(double lon, double[][][] v) {
 		SlabDepth[] depths;
 		
-		double lon0 = SlabSeg.lonIncrement * ((int) (lon / SlabSeg.lonIncrement));
+		// Get the first vector using the longitude.
 		depths = new SlabDepth[2];
-		depths[0] = getDepth(lon0);
-		depths[1] = getDepth(lon0 + SlabSeg.lonIncrement);
+		depths[0] = getDepth(lon);
+		if(depths[0] != null) {
+			v[0] = depths[0].getVectors(lat, slabSegs.get(segFound).getLon());
+		} else {
+			v[0] = null;
+		}
 		
-		for(int i = 0; i < depths.length; i++) {
-			if(depths[i] != null) {
-				v[i] = depths[i].getVectors(lat, lon0 + i * SlabSeg.lonIncrement);
+		// Get the second vector using the next depth for robustness.
+		if(segFound >= 0) {
+			depths[1] = slabSegs.get(segFound).getNextDepth();
+			if(depths[1] != null) {
+				v[1] = depths[1].getVectors(lat, slabSegs.get(segFound).getLon());
 			} else {
-				v[i] = null;
+				v[1] = null;
 			}
+		} else {
+			depths[1] = null;
 		}
 		segFound = -1;
+	}
+	
+	/**
+	 * Copy a run of non-null points into a new segment.
+	 * 
+	 * @param start Start index of raw points
+	 * @param end End index of raw points
+	 */
+	private void addSegment(int start, int end) {
+		if(slabSegs == null) {
+			slabSegs = new ArrayList<SlabSeg>();
+		}
+		slabSegs.add(new SlabSeg(slabPoints.subList(start, end)));
+		if(lonRange == null) {
+			lonRange = new double[2];
+			lonRange[0] = slabPoints.get(start).getLon() - LocUtil.SLABHALFINC;
+		}
+		lonRange[1] = slabPoints.get(end - 1).getLon() + LocUtil.SLABHALFINC;
 	}
 	
 	/**

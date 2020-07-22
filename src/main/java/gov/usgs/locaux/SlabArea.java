@@ -12,6 +12,7 @@ import java.util.ArrayList;
 public class SlabArea implements Serializable {
 	private static final long serialVersionUID = 1L;
 	int rowFound = -1;
+	double latBase;
 	double[] latRange;
 	double[] lonRange;
 	ArrayList<SlabRow> slabRows;
@@ -20,10 +21,11 @@ public class SlabArea implements Serializable {
 	 * Set up storage for the rows, segments, and depths.
 	 */
 	public SlabArea() {
+		latBase = 180d;
 		latRange = new double[2];
 		lonRange = new double[2];
-		latRange[0] = 90d;
-		latRange[1] = -90d;
+		latRange[0] = 180d;
+		latRange[1] = 0d;
 		lonRange[0] = 360d;
 		lonRange[1] = 0d;
 		slabRows = new ArrayList<SlabRow>();
@@ -37,8 +39,9 @@ public class SlabArea implements Serializable {
 	 */
 	public void add(SlabRow slabRow) {
 		if(slabRow.getLonRange() != null) {
-			latRange[0] = Math.min(latRange[0], slabRow.getLat());
-			latRange[1] = Math.max(latRange[1], slabRow.getLat());
+			latBase = Math.min(latBase, slabRow.getLat());
+			latRange[0] = Math.min(latRange[0], slabRow.getLat() - LocUtil.SLABHALFINC);
+			latRange[1] = Math.max(latRange[1], slabRow.getLat() + LocUtil.SLABHALFINC);
 			lonRange[0] = Math.min(lonRange[0], slabRow.getLonRange()[0]);
 			lonRange[1] = Math.max(lonRange[1], slabRow.getLonRange()[1]);
 			slabRows.add(slabRow);
@@ -55,17 +58,17 @@ public class SlabArea implements Serializable {
 	public boolean isFound(double lat, double lon) {
 		if(lat >= latRange[0] && lat <= latRange[1] && lon >= lonRange[0] 
 				&& lon <= lonRange[1]) {
-			for(int j = 0; j < slabRows.size(); j++) {
-				if(slabRows.get(j).isFound(lat, lon)) {
-					rowFound = j;
-					System.out.println("Area: row = " + j + " " + slabRows.get(j));
-					return true;
-				}
+			int j = (int) ((lat - latBase) / LocUtil.SLABINCREMENT);
+			if(slabRows.get(j).isFound(lon)) {
+				rowFound = j;
+				return true;
+			} else if(slabRows.get(++j).isFound(lon)) {
+				rowFound = --j;
+				return true;
 			}
-			return false;
-		} else {
-			return false;
 		}
+		rowFound = -1;
+		return false;
 	}
 	
 	/**
@@ -81,33 +84,70 @@ public class SlabArea implements Serializable {
 		double[] v;
 		double[][][] v0, v1;
 		
-		if(rowFound >= 0 && rowFound < slabRows.size()-1) {
-			if(slabRows.get(rowFound + 1).getLat() - slabRows.get(rowFound).getLat() 
-					<= SlabSeg.latIncrement) {
-				// Get the 3-vectors for interpolation.
-				v = Geometry.vector(lon, lat, Double.NaN);
-				v0 = new double[2][][];
+		if(rowFound >= 0 && rowFound < slabRows.size()) {
+			// Get the 3-vectors for interpolation.
+			v = Geometry.vector(lon, lat, Double.NaN);
+			v0 = new double[2][][];
+			slabRows.get(rowFound++).getVectors(lon, v0);
+			if(rowFound < slabRows.size()) {
 				v1 = new double[2][][];
-				slabRows.get(rowFound++).getVectors(lon, v0);
 				slabRows.get(rowFound).getVectors(lon, v1);
-				rowFound = -1;
-				return interp(v0, v1, v);
+			} else {
+				v1 = null;
 			}
+			// Make sure v0 and v1 are looking at the same place.
+			align(v0, v1);
+			return interp(v0, v1, v);
 		}
 		rowFound = -1;
 		return null;
 	}
 	
 	/**
-	 * Interpolate the slab depth triplet.  The input vector is a 4-vector of 
+	 * We've found the vectors surrounding the desired geographic point, 
+	 * but because we've loosened the criteria for narrow slabs, the 
+	 * longitudes may not line up in the two latitude rows.
+	 * 
+	 * @param v0 Top latitude row vectors
+	 * @param v1 Bottom latitude row vectors
+	 */
+	private void align(double[][][] v0, double [][][] v1) {
+		if(v0 == null || v1 == null) return;
+		if(v0[0] == null || v1[0] == null) return;
+		if(v0[0][0][0] == v1[0][0][0]) return;
+		// Apparently, not aligned.
+		if(v0[0][0][0] < v1[0][0][0]) {
+			// V1 is offset.  Fix it.
+			if(v1[1] == null) {
+				v1[1] = new double[3][3];
+			}
+			for(int j = 0; j < v1[0].length; j++) {
+				v1[1][j] = v1[0][j];
+			}
+			v1[0] = null;
+		} else {
+			// V0 is offset.  Fix it.
+			if(v0[1] == null) {
+				v0[1] = new double[3][3];
+			}
+			for(int j = 0; j < v0[0].length; j++) {
+				v0[1][j] = v0[0][j];
+			}
+			v0[0] = null;
+		}
+	}
+	
+	/**
+	 * Interpolate the slab depth triplet.  The four input vectors should be 
 	 * the depth points surrounding the desired point.  For each point, there 
-	 * is a 3-vector of for the triplet.  For each depth, there is a three 
-	 * vector for the position.
+	 * is a three vector for the spatial position (i.e., longitude, latitude, 
+	 * and depth).  For each depth, there is a 3-vector for the depth triplet 
+	 * (i.e., minimum depth, earthquake depth, and maximum depth).
 	 * 
 	 * @param v0 Vector describing the triplet for the longitude points 
-	 * surrounding the desired point in the first row
+	 * surrounding the desired point in the first latitude row
 	 * @param v1 Vector describing the triplet for the longitude points 
-	 * surrounding the desired point in the second row
+	 * surrounding the desired point in the second latitude row
 	 * @param v Position vector for the desired point
 	 * @return Interpolated slab depth triplet
 	 */
@@ -120,32 +160,38 @@ public class SlabArea implements Serializable {
 			if(v0[j] == null) {
 				nulls++;
 				lastNull = j;
-			System.out.println("v0[" + j + "]: null");
-		} else {
-			System.out.format("v0[%d]: (%7.3f, %7.3f, %7.4f\n", j, v0[j][1][0], 
-					v0[j][1][1], v0[j][1][2]);
-			}
-	}
-	for(int j = 0; j < 2; j++) {
-			if(v1[j] == null) {
-				nulls++;
-				lastNull = j + 2;
-			System.out.println("v1[" + j + "]: null");
-		} else {
-			System.out.format("v1[%d]: (%7.3f, %7.3f, %7.4f\n", j, v1[j][1][0], 
-					v1[j][1][1], v1[j][1][2]);
+				System.out.println("v0[" + j + "]: null");
+			} else {
+				System.out.format("v0[%d]: (%7.3f, %7.3f, %7.4f\n", j, v0[j][1][0], 
+						v0[j][1][1], v0[j][1][2]);
 			}
 		}
-	System.out.format("    v: (%7.3f, %7.3f, %7.4f\n", v[0], v[1], v[2]);
+		if(v1 != null) {
+			for(int j = 0; j < 2; j++) {
+				if(v1[j] == null) {
+					nulls++;
+					lastNull = j + 2;
+					System.out.println("v1[" + j + "]: null");
+				} else {
+					System.out.format("v1[%d]: (%7.3f, %7.3f, %7.4f\n", j, v1[j][1][0], 
+							v1[j][1][1], v1[j][1][2]);
+				}
+			}
+		} else {
+			nulls += 2;
+			lastNull = 3;
+		}
+		System.out.format("    v: (%7.3f, %7.3f, %7.4f\n", v[0], v[1], v[2]);
 		
-		if(nulls == 0) {
-			// We can do bilinear interpolation.
+		switch(nulls) {
+		case 0:
+			// No nulls.  We can do bilinear interpolation.
 			depths = new double[3];
 			for(int j = 0; j < 3; j++) {
 				depths[j] = Linear.threeD(v0[0][j], v0[1][j], v1[0][j], v1[1][j], v);
 			}
 			return new SlabDepth(depths);
-		} else if(nulls == 1) {
+		case 1:
 			// We can handle an edge by doing linear interpolation on the three 
 			// points we have.
 			depths = new double[3];
@@ -177,8 +223,77 @@ public class SlabArea implements Serializable {
 			default:
 				System.out.println("How did lastNull get to be " + lastNull + "?");
 			}
+		case 2:
+			// We still have two points, find them.
+			double[][][] vTemp = new double[2][][];
+			int k = 0;
+			for(int i = 0; i < 2; i++) {
+				if(v0[i] != null) {
+					vTemp[k++] = v0[i];
+				}
+				if(v1 != null) {
+					if(v1[i] != null) {
+						vTemp[k++] = v1[i];
+					}
+				}
+			}
+			depths = new double[3];
+			for(int j = 0; j < 3; j++) {
+				depths[j] = Linear.oneD(vTemp[0][j], vTemp[1][j], v);
+			}
+			System.out.format("Two points: %6.2f < %6.2f < %6.2f\n", depths[0], depths[1], depths[2]);
+			// Now inflate the errors by 50%.
+			depths[0] = Math.max(depths[0] - 0.5d * (depths[1] - depths[0]), 0d);
+			depths[2] += 0.5d * (depths[2] - depths[1]);
+			System.out.format("Inflated: %6.2f < %6.2f < %6.2f\n", depths[0], depths[1], depths[2]);
+			return new SlabDepth(depths);
+		case 3:
+			// We only have one point, so use it and inflate the errors even more.
+			depths = new double[3];
+			for(int i = 0; i < 2; i++) {
+				if(v0[i] != null) {
+					for(int j = 0; j < 3; j++) {
+						depths[j] = v0[i][j][2];
+					}
+					break;
+				}
+				if(v1 != null) {
+					if(v1[i] != null) {
+						for(int j = 0; j < 3; j++) {
+							depths[j] = v1[i][j][2];
+						}
+						break;
+					}
+				}
+			}
+			System.out.format("One point: %6.2f < %6.2f < %6.2f\n", depths[0], depths[1], depths[2]);
+			// Now inflate the errors.
+			depths[0] = Math.max(depths[0] - (depths[1] - depths[0]), 0d);
+			depths[2] += (depths[2] - depths[1]);
+			System.out.format("Inflated: %6.2f < %6.2f < %6.2f\n", depths[0], depths[1], depths[2]);
+			return new SlabDepth(depths);
+		default:
+			// There is no slab.
+			break;
 		}
 		return null;
+	}
+	
+	/**
+	 * In order to jump to the right latitude row, the latitudes need to be 
+	 * complete.  If there are latitude rows missing, add dummies to ensure 
+	 * completeness.
+	 */
+	public void fixGaps() {
+		double lastLat = latBase - LocUtil.SLABINCREMENT;
+		for(int j = 0; j < slabRows.size(); j++) {
+			if(slabRows.get(j).getLat() - lastLat > LocUtil.SLABINCREMENT + 1e-6d) {
+				lastLat += LocUtil.SLABINCREMENT;
+				slabRows.add(j, new SlabRow(lastLat));
+				System.out.format("\tDummy row added: lat = %6.2f\n", lastLat);
+			}
+			lastLat = slabRows.get(j).getLat();
+		}
 	}
 	
 	/**

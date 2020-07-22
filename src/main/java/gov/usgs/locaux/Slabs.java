@@ -5,6 +5,12 @@ import java.util.ArrayList;
 
 import gov.usgs.traveltime.TauUtil;
 
+/**
+ * Provides the primary interface to all the slab data.
+ * 
+ * @author Ray Buland
+ *
+ */
 public class Slabs implements Serializable {
 	private static final long serialVersionUID = 1L;
 	ArrayList<SlabArea> slabs;
@@ -35,6 +41,7 @@ public class Slabs implements Serializable {
 	 * @param slabArea Slab area
 	 */
 	public void add(SlabArea slabArea) {
+		slabArea.fixGaps();
 		slabs.add(slabArea);
 	}
 	
