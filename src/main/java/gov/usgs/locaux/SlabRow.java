@@ -34,7 +34,7 @@ public class SlabRow implements Serializable {
 	}
 	
 	/**
-	 * The constructor just sets up storage for slab depth points.
+	 * The constructor just sets up storage for raw slab depth points.
 	 */
 	public SlabRow() {
 		slabPoints = new ArrayList<SlabPoint>();
@@ -123,7 +123,6 @@ public class SlabRow implements Serializable {
 			for(int j = 0; j < slabSegs.size(); j++) {
 				if(slabSegs.get(j).isFound(lon)) {
 					segFound = j;
-					System.out.println("Row1: seg = " + j + " " + slabSegs.get(j));
 				}
 			}
 		}

@@ -60,7 +60,7 @@ public class SlabDepth implements Serializable {
 	/**
 	 * Create a new slab depth triplet.
 	 * 
-	 * @param depths Slab earthquake depths in km
+	 * @param depths Slab earthquake depths and error bars in km
 	 */
 	public SlabDepth(double[] depths) {
 		eqDepth = Arrays.copyOf(depths, 3);
@@ -71,7 +71,7 @@ public class SlabDepth implements Serializable {
 	 * 
 	 * @param lat Geographic colatitude in degrees (0-180 degrees)
 	 * @param lon Geographic longitude in degrees (0-360 degrees)
-	 * @return An array of three 3-vectors
+	 * @return An array of spatial three 3-vectors
 	 */
 	public double[][] getVectors(double lat, double lon) {
 		double[][] v = new double[3][3];

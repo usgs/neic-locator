@@ -47,9 +47,9 @@ public class SlabPoint implements Serializable {
 	 * 
 	 * @param lat Geographic colatitude in degrees (0-180 degrees)
 	 * @param lon Geographic longitude in degrees (0-360 degrees)
-	 * @param center
-	 * @param lower
-	 * @param upper
+	 * @param center Earthquake depth in km
+	 * @param lower Lower (shallower) earthquake depth standard deviation in km
+	 * @param upper Upper (deeper) earthquake depth standard deviation in km
 	 */
 	public SlabPoint(double lat, double lon, double center, double lower, 
 			double upper) {
@@ -57,12 +57,6 @@ public class SlabPoint implements Serializable {
 		this.lon = lon;
 		lower = Math.min(lower, 0d);
 		dep = new SlabDepth(center, lower, upper);
-		if(!Double.isNaN(center) || !Double.isNaN(lower) || !Double.isNaN(upper)) {
-			if(Double.isNaN(center) || Double.isNaN(lower) || Double.isNaN(upper)) {
-				System.out.format("====> %6.2f %6.2f: %7.2f %7.2f %7.2f\n", lon, 90d - lat, 
-						center, lower, upper);
-			}
-		}
 	}
 	
 	@Override

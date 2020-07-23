@@ -182,7 +182,6 @@ public class Locate {
           }
         }
 
-        System.out.println("End of iterations: stage = " + stage);
         if(!dampingFailed) {
 	        // We're done with this stage.  Collect information for a stage
 	        // level audit instance.
