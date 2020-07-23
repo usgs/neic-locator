@@ -51,7 +51,7 @@ The results of this example (and associated log file) are expected to match the
 results found in the legacy output file `LocOutput1000010563_23.txt` file
 provided in the examples directory.
 
-To run the neic-locator as a web service, run the command `java -jar build/libs/./gra --mode=service`
+To run the neic-locator as a web service, run the command `java -jar build/libs/neic-locator-0.2.0-all.jar --mode=service`
 
 To run the neic-locator from the docker container, run the command `docker run --rm -it -p 8080:8080 usgs/neic-locator:latest`
 
