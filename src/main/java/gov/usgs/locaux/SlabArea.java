@@ -149,21 +149,21 @@ public class SlabArea implements Serializable {
 	 * @param v1 Vector describing the triplet for the longitude points 
 	 * surrounding the desired point in the second latitude row
 	 * @param v Position vector for the desired point
-	 * @return Interpolated slab depth triplet
+	 * @return Array of interpolated slab depth triplets
 	 */
 	private SlabDepth interp(double[][][] v0, double[][][] v1, double[] v) {
 		int nulls = 0, lastNull = -1;
 		double[] depths;
 		
-		// Survey the points to see if we have enough for the interpolation.
+		// Survey the points to see how to do the interpolation.
 		for(int j = 0; j < 2; j++) {
 			if(v0[j] == null) {
 				nulls++;
 				lastNull = j;
-				System.out.println("v0[" + j + "]: null");
+	//		LOGGER.fine("v0[" + j + "]: null");
 			} else {
-				System.out.format("v0[%d]: (%7.3f, %7.3f, %7.4f\n", j, v0[j][1][0], 
-						v0[j][1][1], v0[j][1][2]);
+	/*			LOGGER.fine(String.format("v0[%d]: (%7.3f, %7.3f, %7.4f\n", j, 
+	 						v0[j][1][0], v0[j][1][1], v0[j][1][2])); */
 			}
 		}
 		if(v1 != null) {
@@ -171,17 +171,17 @@ public class SlabArea implements Serializable {
 				if(v1[j] == null) {
 					nulls++;
 					lastNull = j + 2;
-					System.out.println("v1[" + j + "]: null");
+	//			LOGGER.fine("v1[" + j + "]: null");
 				} else {
-					System.out.format("v1[%d]: (%7.3f, %7.3f, %7.4f\n", j, v1[j][1][0], 
-							v1[j][1][1], v1[j][1][2]);
+	/*			LOGGER.fine(String.format("v1[%d]: (%7.3f, %7.3f, %7.4f\n", j, 
+	 						v1[j][1][0], v1[j][1][1], v1[j][1][2])); */
 				}
 			}
 		} else {
 			nulls += 2;
 			lastNull = 3;
 		}
-		System.out.format("    v: (%7.3f, %7.3f, %7.4f\n", v[0], v[1], v[2]);
+//	LOGGER.fine(String.format("    v: (%7.3f, %7.3f, %7.4f\n", v[0], v[1], v[2]));
 		
 		switch(nulls) {
 		case 0:
@@ -221,7 +221,7 @@ public class SlabArea implements Serializable {
 				}
 				return new SlabDepth(depths);
 			default:
-				System.out.println("How did lastNull get to be " + lastNull + "?");
+		//	LOGGER.error("How did lastNull get to be " + lastNull + "?");
 			}
 		case 2:
 			// We still have two points, find them.
@@ -241,11 +241,9 @@ public class SlabArea implements Serializable {
 			for(int j = 0; j < 3; j++) {
 				depths[j] = Linear.oneD(vTemp[0][j], vTemp[1][j], v);
 			}
-			System.out.format("Two points: %6.2f < %6.2f < %6.2f\n", depths[0], depths[1], depths[2]);
 			// Now inflate the errors by 50%.
 			depths[0] = Math.max(depths[0] - 0.5d * (depths[1] - depths[0]), 0d);
 			depths[2] += 0.5d * (depths[2] - depths[1]);
-			System.out.format("Inflated: %6.2f < %6.2f < %6.2f\n", depths[0], depths[1], depths[2]);
 			return new SlabDepth(depths);
 		case 3:
 			// We only have one point, so use it and inflate the errors even more.
@@ -266,11 +264,9 @@ public class SlabArea implements Serializable {
 					}
 				}
 			}
-			System.out.format("One point: %6.2f < %6.2f < %6.2f\n", depths[0], depths[1], depths[2]);
-			// Now inflate the errors.
+			// Now inflate the errors by 100%.
 			depths[0] = Math.max(depths[0] - (depths[1] - depths[0]), 0d);
 			depths[2] += (depths[2] - depths[1]);
-			System.out.format("Inflated: %6.2f < %6.2f < %6.2f\n", depths[0], depths[1], depths[2]);
 			return new SlabDepth(depths);
 		default:
 			// There is no slab.
@@ -290,7 +286,7 @@ public class SlabArea implements Serializable {
 			if(slabRows.get(j).getLat() - lastLat > LocUtil.SLABINCREMENT + 1e-6d) {
 				lastLat += LocUtil.SLABINCREMENT;
 				slabRows.add(j, new SlabRow(lastLat));
-				System.out.format("\tDummy row added: lat = %6.2f\n", lastLat);
+		//	LOGGER.fine(String.format("\tDummy row added: lat = %6.2f\n", lastLat));
 			}
 			lastLat = slabRows.get(j).getLat();
 		}

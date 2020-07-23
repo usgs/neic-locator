@@ -15,9 +15,9 @@ public class Slabs implements Serializable {
 	private static final long serialVersionUID = 1L;
 	ArrayList<SlabArea> slabs;
 	/**
-	 * For Zonestats and analyst input, the spread is interpreted as a 99th 
-	 * percentile.  Here the raw numbers are one sigma (68%).  To make the 
-	 * slab statistics compatible, they must be multiplied by 3.
+	 * For analyst input, the spread is interpreted as a 99th percentile.  
+	 * Here the raw numbers are one sigma (68%).  To make the slab statistics 
+	 * compatible, they must be multiplied by 3.
 	 */
 	double bayesSpread;
 	
@@ -59,16 +59,16 @@ public class Slabs implements Serializable {
 		SlabDepth depth;
 		ArrayList<SlabDepth> depths = null;
 		
+		// The slab lookup works in colatitude and longitude from 0 to 360 
+		// degrees
 		lat0 = 90d - lat;
 		if(lon < 0d) {
 			lon0 = 360d + lon;
 		} else {
 			lon0 = lon;
 		}
-		System.out.format("Input: %7.3f %7.3f\n", lat0, lon0);
 		for(SlabArea area : slabs) {
 			if(area.isFound(lat0, lon0)) {
-				System.out.println("\tGot one: " + area);
 				depth = area.getDepth(lat0, lon0);
 				if(depth != null) {
 					if(depths == null) {
@@ -99,12 +99,13 @@ public class Slabs implements Serializable {
 		SlabDepth slabDepth = null;
 		ArrayList<SlabDepth> depths;
 		
-		System.out.format("Input: %7.3f %8.3f %6.2f\n", latitude, longitude, depth);
 		depths = getDepth(latitude, longitude);
-		System.out.println("Bayesian depths:");
-		System.out.format("\t%6.2f < %6.2f < %6.2f\n", Math.max(LocUtil.DEFAULTDEPTH - 
-				LocUtil.DEFAULTDEPTHSE, 0d), LocUtil.DEFAULTDEPTH, LocUtil.DEFAULTDEPTH + 
-				LocUtil.DEFAULTDEPTHSE);
+/*	if(LOGGER.getLevel() == Level.FINE) {
+			LOGGER.fine("Bayesian depths:");
+			LOGGER.fine(String.format("\t%6.2f < %6.2f < %6.2f\n", 
+					Math.max(LocUtil.DEFAULTDEPTH - LocUtil.DEFAULTDEPTHSE, 0d), 
+					LocUtil.DEFAULTDEPTH, LocUtil.DEFAULTDEPTH + LocUtil.DEFAULTDEPTHSE));
+		} */
 		if(depths == null) {
 			// No slab.  Set up an upper crust constraint.
 			bayesSpread = LocUtil.DEFAULTDEPTHSE;
@@ -112,7 +113,6 @@ public class Slabs implements Serializable {
 		} else {
 			// We have a slab.  See which slab segment is the closest.
 			for(SlabDepth slab : depths) {
-				System.out.println("\t" + slab);
 				if(Math.abs(slab.getEqDepth() - depth) < slabDiff) {
 					slabDepth = slab;
 					slabDiff = Math.abs(slab.getEqDepth() - depth);

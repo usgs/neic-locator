@@ -1,6 +1,7 @@
 package gov.usgs.locaux;
 
 import gov.usgs.traveltime.FileChanged;
+import gov.usgs.traveltime.TauUtil;
 
 import java.io.BufferedInputStream;
 import java.io.FileInputStream;
@@ -8,12 +9,11 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import java.io.RandomAccessFile;
-import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
-import java.nio.IntBuffer;
+// import java.io.RandomAccessFile;
+// import java.nio.ByteBuffer;
+// import java.nio.ByteOrder;
+// import java.nio.IntBuffer;
 import java.nio.channels.FileLock;
-import java.util.ArrayList;
 import java.util.Scanner;
 // import java.util.logging.Logger;
 
@@ -30,7 +30,7 @@ public class AuxLocRef {
   private final Cratons cratons;
 
   /** A ZoneStats object containing earthquake statistics by geographic location. */
-  private final ZoneStats zoneStats;
+//  private final ZoneStats zoneStats;
 
   /** A Slabs object containing the geometry of earthquakes in slabs. */
   private final Slabs slabs;
@@ -38,7 +38,7 @@ public class AuxLocRef {
   /**
    * An integer containing the number of years read from the earthquake statistics zonestats file.
    */
-  private int numberOfYears = -1;
+//  private int numberOfYears = -1;
 
   /** Default path for model files. */
   public static final String DEFAULT_MODEL_PATH = "./models/";
@@ -50,8 +50,9 @@ public class AuxLocRef {
   private String serializedFileName = "locaux.ser";
 
   /** An array of String objects containing the raw input model file names. */
-  private String[] modelFileNames = {"cratons.txt", "zonekey.dat", "zonestat.dat", 
-  		"slabmaster.txt"};
+/*  private String[] modelFileNames = {"cratons.txt", "zonekey.dat", "zonestat.dat", 
+	"slabmaster.txt"}; */
+  private String[] modelFileNames = {"cratons.txt", "slabmaster.txt"};
 
   /**
    * A Scanner object used to read continental craton boundaries and earthquake statistics by
@@ -70,11 +71,11 @@ public class AuxLocRef {
    * @throws ClassNotFoundException In input serialization is hosed
    */
   public AuxLocRef(String modelPath) throws IOException, ClassNotFoundException {
-    int[][] zoneKeys;
+//  int[][] zoneKeys;
     String[] absNames;
-    ZoneStat[] stats;
+//  ZoneStat[] stats;
     BufferedInputStream inCratons, inSlabs;
-    RandomAccessFile inZones;
+//  RandomAccessFile inZones;
     FileInputStream serIn;
     FileOutputStream serOut;
     ObjectInputStream objIn;
@@ -107,7 +108,7 @@ public class AuxLocRef {
       inCratons.close();
 
       // Open and read the zone key file.
-      inZones = new RandomAccessFile(absNames[1], "r");
+  /*  inZones = new RandomAccessFile(absNames[1], "r");
       zoneKeys = readZoneKeys(inZones);
       zoneStats = new ZoneStats(zoneKeys);
       inZones.close();
@@ -116,17 +117,17 @@ public class AuxLocRef {
       inZones = new RandomAccessFile(absNames[2], "r");
       stats = readZoneStats(inZones);
       zoneStats.addStats(numberOfYears, stats);
-      inZones.close();
+      inZones.close(); */
       
       // Open and read the slab geometry model file.
-      inSlabs = new BufferedInputStream(new FileInputStream(absNames[3]));
+      inSlabs = new BufferedInputStream(new FileInputStream(absNames[1]));
       scan = new Scanner(inSlabs);
       slabs = new Slabs();
       readSlabs();
   	  inSlabs.close();
 
       // Write out the serialized file.
-  	  System.out.println("Recreate the serialized file.");
+  //  LOGGER.fine("Recreate the serialized file.");
       serOut = new FileOutputStream(modelPath + serializedFileName);
       objOut = new ObjectOutputStream(serOut);
 
@@ -141,7 +142,7 @@ public class AuxLocRef {
       // that start and stop frequently, the serialization should save some set up
       // time.
       objOut.writeObject(cratons);
-      objOut.writeObject(zoneStats);
+  //  objOut.writeObject(zoneStats);
       objOut.writeObject(slabs);
 
       if (lock.isValid()) {
@@ -153,7 +154,7 @@ public class AuxLocRef {
       serOut.close();
     } else {
       // Read in the serialized file.
-    	System.out.println("Read the serialized file.");
+  //	LOGGER.fine("Read the serialized file.");
       serIn = new FileInputStream(modelPath + serializedFileName);
       objIn = new ObjectInputStream(serIn);
 
@@ -164,7 +165,7 @@ public class AuxLocRef {
 
       // load the cratons and zoneStats
       cratons = (Cratons) objIn.readObject();
-      zoneStats = (ZoneStats) objIn.readObject();
+  //  zoneStats = (ZoneStats) objIn.readObject();
       slabs = (Slabs) objIn.readObject();
 
       if (lock.isValid()) {
@@ -210,7 +211,7 @@ public class AuxLocRef {
    * @return An int[][] containing the zone keys
    * @throws IOException On any read error
    */
-  private int[][] readZoneKeys(RandomAccessFile inKeys) throws IOException {
+/*  private int[][] readZoneKeys(RandomAccessFile inKeys) throws IOException {
     // Read the file.
     int length = (int) inKeys.length();
     byte[] byteArray = new byte[length];
@@ -230,7 +231,7 @@ public class AuxLocRef {
       }
     }
     return zoneKeys;
-  }
+  } */
 
   /**
    * Function to read the zone statistics file. Note that only the small part of the statistics
@@ -240,7 +241,7 @@ public class AuxLocRef {
    * @return A ZoneStat[] conatining the zone statistics
    * @throws IOException On any read error
    */
-  private ZoneStat[] readZoneStats(RandomAccessFile inZones) throws IOException {
+/*  private ZoneStat[] readZoneStats(RandomAccessFile inZones) throws IOException {
     // Read the file.
     int length = (int) inZones.length();
     byte[] byteArray = new byte[length];
@@ -277,14 +278,14 @@ public class AuxLocRef {
       }
     }
     return stats;
-  }
+  } */
   
   /**
    * Read in the slab model.
    */
   private void readSlabs() {
   	boolean first = true;
-  	double firstLon, lastLon, tol = 1e-3d;
+  	double firstLon, lastLon;
   	SlabArea area;
   	SlabRow row;
   	SlabPoint point;
@@ -302,24 +303,26 @@ public class AuxLocRef {
 	  while(scan.hasNextDouble()) {
 	  	point = scanLine();
 	  	// Look for the end of a latitude row.
-	  	if(Math.abs(point.getLon() - lastLon) > LocUtil.SLABINCREMENT + tol) {
+	  	if(Math.abs(point.getLon() - lastLon) > LocUtil.SLABINCREMENT + TauUtil.DTOL) {
 	  		// Print out the first and last points in each area.
-	  		if(first || Math.abs(point.getLon() - firstLon) > tol) {
-	  			row.printRaw();
-	  			if(first) {
-	  				first = false;
-	  			} else {
-	  				first = true;
-	  			}
-	  		}
+	//  	if(LOGGER.getLevel() == Level.FINE) {
+		  		if(first || Math.abs(point.getLon() - firstLon) > TauUtil.DTOL) {
+	// 				LOGGER.fine(row.printRaw());
+		  			if(first) {
+		  				first = false;
+		  			} else {
+		  				first = true;
+		  			}
+		  		}
+	//   	}
 	  		// Squeeze out the NaNs and save the remaining data in segments.
 	  		row.squeeze();
 	  		// Look for the start of a new area.
-	  		if(Math.abs(point.getLon() - firstLon) > tol) {
+	  		if(Math.abs(point.getLon() - firstLon) > TauUtil.DTOL) {
 	  			// Add the last row.
 	  			area.add(row);
 	  			// Print a summary of the last area.
-	  			area.printArea(false);
+	// 			LOGGER.fine(area.printArea(false));
 	  			// Add the last area to all.
 	  			slabs.add(area);
 	  			// Start a new area.
@@ -338,62 +341,12 @@ public class AuxLocRef {
   		lastLon = point.getLon();
 	  }
 	  // Deal with the last point, which closes the last row and area.
-		row.printRaw();
+//  LOGGER.fine(row.printRaw());
 		row.squeeze();
 		area.add(row);
 		slabs.add(area);
 		// Print the summary for the last area.
-		area.printArea(false);
-		
-		// Now run some tests.
-		double lat;
-		double lon;
-		ArrayList<SlabDepth> depth;
-	
-	// The access looks trivial from here (by design).
-		lon = -151.24d;
-		for(int i = 0; i < 12; i++) {
-			lon += 0.5d;
-			depth = slabs.getDepth(63.76d, lon);
-			// Note that one call may return multiple depths.
-			if(depth != null) {
-				for(int j = 0; j < depth.size(); j++) {
-					System.out.println("Depth: " + depth.get(j));
-				}
-			} else {
-				System.out.println("No slab depth found.");
-			}
-		}
-	
-	// The access looks trivial from here (by design).
-		lon = 174.24d;
-		for(int i = 0; i < 31; i++) {
-			lon += 0.5d;
-			depth = slabs.getDepth(51.26d, lon);
-			// Note that one call may return multiple depths.
-			if(depth != null) {
-				for(int j = 0; j < depth.size(); j++) {
-					System.out.println("Depth: " + depth.get(j));
-				}
-			} else {
-				System.out.println("No slab depth found.");
-			}
-		}
-	
-		// The access looks trivial from here (by design).
-		lat = 11.24d;
-		for(int i = 0; i < 9; i++) {
-			lat -= 0.5d;
-			depth = slabs.getDepth(lat, 124.26d);
-			// Note that one call may return multiple depths.
-			if(depth != null) {
-				for(int j = 0; j < depth.size(); j++) {
-					System.out.println("Depth: " + depth.get(j));
-				}
-			} else {
-				System.out.println("No slab depth found.");
-			}
-		}
+//	LOGGER.fine(area.printArea(false));
   }
   
   /**
@@ -435,9 +388,9 @@ public class AuxLocRef {
    *
    * @return A ZoneStats object containing the zone statistics
    */
-  public ZoneStats getZoneStats() {
+/*  public ZoneStats getZoneStats() {
     return zoneStats;
-  }
+  } */
   
   /**
    * Function to return the slabs geometry managed by AuxLocRef.

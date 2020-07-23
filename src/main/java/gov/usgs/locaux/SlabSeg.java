@@ -19,8 +19,7 @@ public class SlabSeg implements Serializable {
 	SlabDepth[] depths;
 	
 	 /**
-	  * Get the longitude associated with the point found for 
-	  * interpolation.
+	  * Get the longitude associated with the latest point found.
 	  * 
 	  * @return Geographic longitude in degrees (0-360 degrees)
 	  */
@@ -35,7 +34,7 @@ public class SlabSeg implements Serializable {
 	/**
 	 * Create the segment from a list of points.
 	 * 
-	 * @param points
+	 * @param points List of slab depth points
 	 */
 	public SlabSeg(List<SlabPoint> points) {
 		lonBase = points.get(0).getLon();

@@ -4,7 +4,7 @@ import gov.usgs.locaux.AuxLocRef;
 import gov.usgs.locaux.Cratons;
 import gov.usgs.locaux.LocUtil;
 import gov.usgs.locaux.Slabs;
-import gov.usgs.locaux.ZoneStats;
+// import gov.usgs.locaux.ZoneStats;
 import gov.usgs.traveltime.BadDepthException;
 import gov.usgs.traveltime.tables.TauIntegralException;
 import java.util.logging.Logger;
@@ -34,7 +34,7 @@ public class Stepper {
   private Cratons cratons;
 
   /** A ZoneStats object containing earthquake statistics by geographic location. */
-  private ZoneStats zoneStats;
+  // private ZoneStats zoneStats;
   
   /** A slabs object containing slab depths by geographic location. */
   private Slabs slabStats;
@@ -87,7 +87,7 @@ public class Stepper {
     this.event = event;
     hypo = event.getHypo();
     cratons = auxLoc.getCratons();
-    zoneStats = auxLoc.getZoneStats();
+//  zoneStats = auxLoc.getZoneStats();
     slabStats = auxLoc.getSlabs();
     this.phaseIDLogic = phaseIDLogic;
     rawRankSumEstimator = event.getRawRankSumEstimator();
@@ -250,10 +250,7 @@ public class Stepper {
     LocStatus status = LocStatus.SUCCESS;
 
     // Save the current hypocenter as a reference for the step length damping.
-//    System.out.println("Save hypocenter:");
-//    System.out.println("\tHypo: " + hypo);
     HypoAudit lastHypoAudit = new HypoAudit(hypo, 0, 0, event.getNumPhasesUsed(), status);
-//    System.out.println(lastHypoAudit);
 
     // Get the linearized step.
     hypo.setNumOfTimesStepLengthDampening(0);
@@ -273,9 +270,7 @@ public class Stepper {
       hypo.setHorizontalStepLength(0d);
       hypo.setVerticalStepLength(0d);
       hypo.setStepLength(0d);
-
       logStep("Step", stage, iteration, status);
-
       return status;
     }
 
@@ -294,7 +289,6 @@ public class Stepper {
     // If the phase identification has changed, we have to start over.
     if (event.getHasPhaseIdChanged()) {
       hypo.setEstimatorDispersionValue(rSumEstResult.getDispersion());
-      //    setLocEnvironment();
       updateStepDirection();
       status = LocStatus.PHASEID_CHANGED;
       logStep("ReID", stage, iteration, status);
@@ -313,7 +307,6 @@ public class Stepper {
     		hypo.getEstimatorDispersionValue()) {
       // Delay resetting the Bayesian depth for stability reasons.
       hypo.setEstimatorDispersionValue(rSumEstResult.getDispersion());
-      //    setLocEnvironment();
       updateStepDirection();
       logStep("Step", stage, iteration, status);
       return status;
@@ -334,10 +327,7 @@ public class Stepper {
           || (hypo.getNumOfTimesStepLengthDampening() > 0
               && LocUtil.compareHypos(hypo, lastHypoAudit))) {
         // We've damped the solution into oblivion.  Give up.
-//        System.out.println("Reset hypocenter:");
-//        System.out.println(lastHypoAudit);
         hypo.resetHypo(lastHypoAudit);
-//        System.out.println("\tHypo: " + hypo);
         hypo.setStepLength(0d);
         hypo.setHorizontalStepLength(0d);
         hypo.setVerticalStepLength(0d);
@@ -352,9 +342,7 @@ public class Stepper {
         } else {
           status = LocStatus.UNSTABLE_SOLUTION;
         }
-
         logStep("Fail", stage, iteration, status);
-
         return status;
       }
 
@@ -413,16 +401,13 @@ public class Stepper {
 
     if (!event.getIsDepthManual()) {
       // Update the Bayesian depth if it wasn't set by the analyst.
-      double bayesDepth = zoneStats.getBayesDepth(hypo.getLatitude(), hypo.getLongitude());
+  /*  double bayesDepth = zoneStats.getBayesDepth(hypo.getLatitude(), hypo.getLongitude());
       double bayesSpread = zoneStats.getBayesSpread();
-      System.out.format("\t\tZones: %6.2f +/- %6.2f\n", bayesDepth, bayesSpread / 3d);
-      bayesDepth = slabStats.getBayesDepth(hypo.getLatitude(), hypo.getLongitude(), 
+      System.out.format("\t\tZones: %6.2f +/- %6.2f\n", bayesDepth, bayesSpread / 3d); */
+      double bayesDepth = slabStats.getBayesDepth(hypo.getLatitude(), hypo.getLongitude(), 
       		hypo.getDepth());
-      bayesSpread = slabStats.getBayesSpread();
-      System.out.format("\t\tSlabs: %6.2f +/- %6.2f\n", bayesDepth, bayesSpread / 3d);
+      double bayesSpread = slabStats.getBayesSpread();
       hypo.updateBayes(bayesDepth, bayesSpread);
-      //    rawRankSumEstimator.updateBayesianResidual(hypo.getBayesianDepthResidual(),
-      //    		hypo.getBayesianDepthWeight());
     }
     LOGGER.fine(
         String.format(
