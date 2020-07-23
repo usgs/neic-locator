@@ -96,18 +96,18 @@ public class LocMain {
   public static void main(String[] args) {
     if (args == null || args.length == 0) {
       System.out.println(
-          "Usage:\nneic-locator --modelPath=[model path] --inputType=[json, detection, or hydra] "
-              + "\n\t--logFile=[optional log file] --logPath=[log file path] --logLevel=[logging level] "
-              + "\n\t--inputFile=[input file path] [--outputType=[optional json or hydra]]"
-              + "\n\t[--locationConfig='optional config file path']"
+          "Version: "
+              + VERSION
+              + "\nUsage:\nneic-locator --modelPath=[model path] --inputType=[json, detection, or hydra] "
+              + "\n\t[--logFile=[optional log file]] --logPath=[log file path] --logLevel=[logging level] "
+              + "\n\t--inputFile=[input file path] [--outputFile=[optional output file path]] "
+              + "\n\t[--outputType=[optional json or hydra]] [--locationConfig='optional config file path']"
               + "\nneic-locator --mode=batch --modelPath=[model path] "
-              + "\n\t--inputType=[json, detection, or hydra] --logFile=[optional log file] "
+              + "\n\t--inputType=[json, detection, or hydra] [--logFile=[optional log file]] "
               + "\n\t--logPath=[log file path] --logLevel=[logging level] "
-              + "\n\t--inputDir=[input directory path] "
-              + "\n\t--outputDir=[output directory path] "
-              + "[--archiveDir=[optional archive path]] "
-              + "\n\t[--outputType=[optional json or hydra]] "
-              + "[--locationConfig='optional config file path']"
+              + "\n\t--inputDir=[input directory path] --outputDir=[output directory path] "
+              + "\n\t[--archiveDir=[optional archive path]] [--outputType=[optional json or hydra]] "
+              + "\n\t[--locationConfig='optional config file path']"
               + "\n\t--csvFile=[optional csv file path]"
               + "\nneic-locator --mode=service");
       System.exit(1);
