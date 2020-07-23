@@ -463,7 +463,7 @@ public class Pick implements Comparable<Pick> {
    *     identification and location)
    * @param originalAssocPhaseCode A String containing the original associator external pick phase
    *     identification
-   * @param originaPickedPhaseCode A String containing the original picker external pick phase
+   * @param originalPickedPhaseCode A String containing the original picker external pick phase
    *     identification
    * @param originalAuthorType An AuthorType object containing the type (e.g., human or auto) of the
    *     original phase identification

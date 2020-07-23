@@ -36,17 +36,23 @@ public class LocMain {
   /** A String containing the argument for specifying the model file path. */
   public static final String MODELPATH_ARGUMENT = "--modelPath=";
 
-  /** A String containing the argument for specifying the input file path. */
-  public static final String FILEPATH_ARGUMENT = "--filePath=";
+  /** A String containing the argument for specifying the input file. */
+  public static final String INPUTFILE_ARGUMENT = "--inputFile=";
 
   /** A String containing the argument for specifying the input file type. */
   public static final String INPUTTYPE_ARGUMENT = "--inputType=";
+
+  /** A String containing the argument for specifying the output file. */
+  public static final String OUTPUTFILE_ARGUMENT = "--outputFile=";
 
   /** A String containing the argument for specifying the output file type. */
   public static final String OUTPUTTYPE_ARGUMENT = "--outputType=";
 
   /** A String containing the argument for requesting the locator version. */
   public static final String VERSION_ARGUMENT = "--version";
+
+  /** A String containing the argument for specifying a log file. */
+  public static final String LOGFILE_ARGUMENT = "--logFile=";
 
   /** A String containing the argument for specifying a log file path. */
   public static final String LOGPATH_ARGUMENT = "--logPath=";
@@ -91,12 +97,13 @@ public class LocMain {
     if (args == null || args.length == 0) {
       System.out.println(
           "Usage:\nneic-locator --modelPath=[model path] --inputType=[json, detection, or hydra] "
-              + "\n\t--logPath=[log file path] --logLevel=[logging level] "
-              + "\n\t--filePath=[input file path] [--outputType=[optional json or hydra]]"
+              + "\n\t--logFile=[optional log file] --logPath=[log file path] --logLevel=[logging level] "
+              + "\n\t--inputFile=[input file path] [--outputType=[optional json or hydra]]"
               + "\n\t[--locationConfig='optional config file path']"
               + "\nneic-locator --mode=batch --modelPath=[model path] "
-              + "\n\t--inputType=[json, detection, or hydra] --logPath=[log file path] "
-              + "\n\t--logLevel=[logging level] --inputDir=[input directory path] "
+              + "\n\t--inputType=[json, detection, or hydra] --logFile=[optional log file] "
+              + "\n\t--logPath=[log file path] --logLevel=[logging level] "
+              + "\n\t--inputDir=[input directory path] "
               + "\n\t--outputDir=[output directory path] "
               + "[--archiveDir=[optional archive path]] "
               + "\n\t[--outputType=[optional json or hydra]] "
@@ -108,11 +115,13 @@ public class LocMain {
 
     // Default paths
     String mode = MODE_SINGLE;
+    String logFile = null;
     String logPath = "./";
     String logLevel = "INFO";
     String modelPath = null;
-    String filePath = null;
+    String inputFile = null;
     String inputType = "hydra";
+    String outputFile = null;
     String outputType = "hydra";
     String inputPath = "./input";
     String inputExtension = null;
@@ -131,16 +140,22 @@ public class LocMain {
       if (arg.startsWith(MODELPATH_ARGUMENT)) {
         // get model path
         modelPath = arg.replace(MODELPATH_ARGUMENT, "");
-      } else if (arg.startsWith(FILEPATH_ARGUMENT)) {
+      } else if (arg.startsWith(INPUTFILE_ARGUMENT)) {
         // get file path
-        filePath = arg.replace(FILEPATH_ARGUMENT, "");
+        inputFile = arg.replace(INPUTFILE_ARGUMENT, "");
       } else if (arg.startsWith(INPUTTYPE_ARGUMENT)) {
         // get file type
         inputType = arg.replace(INPUTTYPE_ARGUMENT, "");
         outputType = inputType;
+      } else if (arg.startsWith(OUTPUTFILE_ARGUMENT)) {
+        // get file path
+        outputFile = arg.replace(OUTPUTFILE_ARGUMENT, "");
       } else if (arg.startsWith(OUTPUTTYPE_ARGUMENT)) {
         // get file type
         outputType = arg.replace(OUTPUTTYPE_ARGUMENT, "");
+      } else if (arg.startsWith(LOGFILE_ARGUMENT)) {
+        // get log file
+        logFile = arg.replace(LOGFILE_ARGUMENT, "");
       } else if (arg.startsWith(LOGPATH_ARGUMENT)) {
         // get log path
         logPath = arg.replace(LOGPATH_ARGUMENT, "");
@@ -199,8 +214,10 @@ public class LocMain {
     LocMain locMain = new LocMain();
 
     // setup logging
-    if (filePath != null) {
-      locMain.setupLogging(logPath, getFileName(filePath) + ".log", logLevel);
+    if (logFile != null) {
+      locMain.setupLogging(null, logFile, logLevel);
+    } else if (inputFile != null) {
+      locMain.setupLogging(logPath, getFileName(inputFile) + ".log", logLevel);
     } else {
       locMain.setupLogging(logPath, getCurrentLocalDateTimeStamp() + "_locator.log", logLevel);
     }
@@ -254,8 +271,9 @@ public class LocMain {
       locRC =
           locMain.locateSingleEvent(
               modelPath,
-              filePath,
+              inputFile,
               inputType,
+              outputFile,
               outputType,
               outputPath,
               outputExtension,
@@ -284,24 +302,39 @@ public class LocMain {
     Level level = getLogLevel(logLevel);
 
     LOGGER.config("Logging Level '" + level + "'");
-    LOGGER.config("Log directory '" + logPath + "'");
+
+    if (logPath != null) {
+      LOGGER.config("Log directory '" + logPath + "'");
+    }
+
+    if (logFile != null) {
+      LOGGER.config("Log file '" + logFile + "'");
+    }
 
     Logger rootLogger = Logger.getLogger("");
     rootLogger.setLevel(level);
 
     // create log directory, log file, and file handler
     try {
-      File logDirectoryFile = new File(logPath);
-      if (!logDirectoryFile.exists()) {
-        LOGGER.fine("Creating log directory");
-        if (!logDirectoryFile.mkdirs()) {
-          LOGGER.warning("Unable to create log directory");
+      if (logPath != null) {
+        File logDirectoryFile = new File(logPath);
+        if (!logDirectoryFile.exists()) {
+          LOGGER.fine("Creating log directory");
+          if (!logDirectoryFile.mkdirs()) {
+            LOGGER.warning("Unable to create log directory");
+          }
         }
       }
 
-      FileHandler fileHandler = new FileHandler(logPath + "/" + logFile);
-      fileHandler.setLevel(level);
+      FileHandler fileHandler;
 
+      if (logPath != null) {
+        fileHandler = new FileHandler(logPath + "/" + logFile);
+      } else {
+        fileHandler = new FileHandler(logFile);
+      }
+
+      fileHandler.setLevel(level);
       rootLogger.addHandler(fileHandler);
     } catch (Exception e) {
       LOGGER.log(Level.WARNING, "Unable to create log file handler", e);
@@ -453,11 +486,13 @@ public class LocMain {
    * This function locates a single event.
    *
    * @param modelPath A String containing the path to the required model files
-   * @param filePath A String containing the full path to the locator input file
+   * @param inputFile A String containing the full path to the locator input file
    * @param inputType A String containing the type of the locator input file
+   * @param outputFile An optional String containing the full path to the locator output file,
+   *     overrides output path
    * @param outputType A String containing the type of the locator output file
-   * @param outputPath A String containing the path to write the results
    * @param outputExtension A String containing the extension to use for output files
+   * @param outputPath A String containing the path to write the locator output file
    * @param csvFile An optional String containing full path to the csv formatted file, null to
    *     disable
    * @param locationConfig An optional JSONObject containing the locator config for detections, null
@@ -466,8 +501,9 @@ public class LocMain {
    */
   public boolean locateSingleEvent(
       String modelPath,
-      String filePath,
+      String inputFile,
       String inputType,
+      String outputFile,
       String outputType,
       String outputPath,
       String outputExtension,
@@ -475,7 +511,7 @@ public class LocMain {
       JSONObject locationConfig) {
 
     // read the file
-    String inputString = loadStringFromFile(filePath);
+    String inputString = loadStringFromFile(inputFile);
 
     if (inputString == null) {
       LOGGER.severe("String from file is null.");
@@ -529,7 +565,7 @@ public class LocMain {
       request = (LocationRequest) hydraIn;
 
       // use file name as ID
-      request.ID = getFileName(filePath);
+      request.ID = getFileName(inputFile);
     }
 
     // do location
@@ -548,8 +584,14 @@ public class LocMain {
     // Write the result to disk
     if (result != null) {
       // create the output file name
-      String outFileName =
-          outputPath + File.separatorChar + getFileName(filePath) + outputExtension;
+      String outFileName;
+
+      if (outputFile == null) {
+        outFileName = outputPath + File.separatorChar + getFileName(inputFile) + outputExtension;
+      } else {
+        outFileName = outputFile;
+      }
+
       LocOutput locOut = (LocOutput) result;
 
       if ("json".equals(outputType)) {
@@ -646,6 +688,7 @@ public class LocMain {
             modelPath,
             filePath,
             inputType,
+            null,
             outputType,
             outputPath,
             outputExtension,
