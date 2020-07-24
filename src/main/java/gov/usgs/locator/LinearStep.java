@@ -1,9 +1,8 @@
 package gov.usgs.locator;
 
+import gov.usgs.locaux.LocUtil;
 import java.util.ArrayList;
 import java.util.logging.Logger;
-
-import gov.usgs.locaux.LocUtil;
 
 /**
  * The LinearStep class simplifies travel time computations. Computing seismic travel times is

@@ -1,8 +1,7 @@
 package gov.usgs.locator;
 
-import java.util.ArrayList;
-
 import gov.usgs.locaux.LocUtil;
+import java.util.ArrayList;
 
 /**
  * The PickGroup class contains all the picks observed at one station for one event. This construct

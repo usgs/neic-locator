@@ -182,47 +182,48 @@ public class Locate {
           }
         }
 
-        if(!dampingFailed) {
-	        // We're done with this stage.  Collect information for a stage
-	        // level audit instance.
-	        if (iter >= LocUtil.ITERATIONSTAGELIMITS[stage]) {
-	          status = LocStatus.FULL_ITERATIONS;
-	        }
-	
-	        // We need to save the last sub-step for the convergence test below.
-	        double lastStepLength = hypo.getStepLength();
-	        // Over write the step length with the total step over the stage for auditing purposes.
-	        hypo.setHorizontalStepLength(
-	            LocUtil.computeDistance(hypo, hypoAuditList.get(hypoAuditList.size() - 1)));
-	        hypo.setVerticalStepLength(
-	            Math.abs(hypo.getDepth() - hypoAuditList.get(hypoAuditList.size() - 1).getDepth()));
-	        hypo.setStepLength(
-	            Math.sqrt(
-	                Math.pow(hypo.getHorizontalStepLength(), 2d)
-	                    + Math.pow(hypo.getVerticalStepLength(), 2d)));
-	
-	        // check to see if we've converged
-	        if (stage > 0 && lastStepLength <= LocUtil.CONVERGENCESTAGELIMITS[stage]) {
-	          // Create the stage level audit anyway.
-	          event.addAudit(stage, iter, status);
-	          // If we've converged, create a final location level audit.  In this case, the step length
-	          // is from the starting location.
-	          hypo.setHorizontalStepLength(LocUtil.computeDistance(hypo, hypoAuditList.get(0)));
-	          hypo.setVerticalStepLength(Math.abs(hypo.getDepth() - hypoAuditList.get(0).getDepth()));
-	          hypo.setStepLength(
-	              Math.sqrt(
-	                  Math.pow(hypo.getHorizontalStepLength(), 2d)
-	                      + Math.pow(hypo.getVerticalStepLength(), 2d)));
-	          event.addAudit(stage, iter, LocStatus.FINAL_HYPOCENTER);
-	
-	          LOGGER.info("Final wrap up: \n" + event.printHypoAudit());
-	
-	          status = close.compFinalStats(status);
-	          return status;
-	        } else {
-	          // Otherwise, create the stage level audit.
-	          event.addAudit(stage, iter, status);
-	        }
+        if (!dampingFailed) {
+          // We're done with this stage.  Collect information for a stage
+          // level audit instance.
+          if (iter >= LocUtil.ITERATIONSTAGELIMITS[stage]) {
+            status = LocStatus.FULL_ITERATIONS;
+          }
+
+          // We need to save the last sub-step for the convergence test below.
+          double lastStepLength = hypo.getStepLength();
+          // Over write the step length with the total step over the stage for auditing purposes.
+          hypo.setHorizontalStepLength(
+              LocUtil.computeDistance(hypo, hypoAuditList.get(hypoAuditList.size() - 1)));
+          hypo.setVerticalStepLength(
+              Math.abs(hypo.getDepth() - hypoAuditList.get(hypoAuditList.size() - 1).getDepth()));
+          hypo.setStepLength(
+              Math.sqrt(
+                  Math.pow(hypo.getHorizontalStepLength(), 2d)
+                      + Math.pow(hypo.getVerticalStepLength(), 2d)));
+
+          // check to see if we've converged
+          if (stage > 0 && lastStepLength <= LocUtil.CONVERGENCESTAGELIMITS[stage]) {
+            // Create the stage level audit anyway.
+            event.addAudit(stage, iter, status);
+            // If we've converged, create a final location level audit.  In this case, the step
+            // length
+            // is from the starting location.
+            hypo.setHorizontalStepLength(LocUtil.computeDistance(hypo, hypoAuditList.get(0)));
+            hypo.setVerticalStepLength(Math.abs(hypo.getDepth() - hypoAuditList.get(0).getDepth()));
+            hypo.setStepLength(
+                Math.sqrt(
+                    Math.pow(hypo.getHorizontalStepLength(), 2d)
+                        + Math.pow(hypo.getVerticalStepLength(), 2d)));
+            event.addAudit(stage, iter, LocStatus.FINAL_HYPOCENTER);
+
+            LOGGER.info("Final wrap up: \n" + event.printHypoAudit());
+
+            status = close.compFinalStats(status);
+            return status;
+          } else {
+            // Otherwise, create the stage level audit.
+            event.addAudit(stage, iter, status);
+          }
         } else {
           // Create the stage level audit so we know what happened.
           event.addAudit(stage, iter, status);

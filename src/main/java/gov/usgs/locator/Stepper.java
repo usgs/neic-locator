@@ -4,7 +4,6 @@ import gov.usgs.locaux.AuxLocRef;
 import gov.usgs.locaux.Cratons;
 import gov.usgs.locaux.LocUtil;
 import gov.usgs.locaux.Slabs;
-// import gov.usgs.locaux.ZoneStats;
 import gov.usgs.traveltime.BadDepthException;
 import gov.usgs.traveltime.tables.TauIntegralException;
 import java.util.logging.Logger;
@@ -35,7 +34,7 @@ public class Stepper {
 
   /** A ZoneStats object containing earthquake statistics by geographic location. */
   // private ZoneStats zoneStats;
-  
+
   /** A slabs object containing slab depths by geographic location. */
   private Slabs slabStats;
 
@@ -62,14 +61,14 @@ public class Stepper {
 
   /** A double containing the median of the residuals used by the derivative test */
   private double residualsMedian;
-  
+
   /**
-   * A double containing the contribution of the Bayesian constraint to the previous dispersion 
+   * A double containing the contribution of the Bayesian constraint to the previous dispersion
    * computed.
    */
   private double lastContribution;
   /**
-   * A double containing the contribution of the Bayesian constraint to the latest dispersion 
+   * A double containing the contribution of the Bayesian constraint to the latest dispersion
    * computed.
    */
   private double bayesianContribution = 0d;
@@ -87,7 +86,7 @@ public class Stepper {
     this.event = event;
     hypo = event.getHypo();
     cratons = auxLoc.getCratons();
-//  zoneStats = auxLoc.getZoneStats();
+    //  zoneStats = auxLoc.getZoneStats();
     slabStats = auxLoc.getSlabs();
     this.phaseIDLogic = phaseIDLogic;
     rawRankSumEstimator = event.getRawRankSumEstimator();
@@ -191,8 +190,12 @@ public class Stepper {
       dispersion = projectedRankSumEstimator.computeDispersionValue();
       bayesianContribution = projectedRankSumEstimator.getContribution();
 
-      LOGGER.fine(String.format("Lsrt: ST av chisq = %8.4f %10.4f %10.4f", projectedMedian, 
-      		dispersion, dispersion - Math.max(bayesianContribution - lastContribution, 0d)));
+      LOGGER.fine(
+          String.format(
+              "Lsrt: ST av chisq = %8.4f %10.4f %10.4f",
+              projectedMedian,
+              dispersion,
+              dispersion - Math.max(bayesianContribution - lastContribution, 0d)));
     } else {
       // Demedian the raw residuals.
       residualsMedian = rawRankSumEstimator.computeMedian();
@@ -206,8 +209,12 @@ public class Stepper {
       dispersion = rawRankSumEstimator.computeDispersionValue();
       bayesianContribution = rawRankSumEstimator.getContribution();
 
-      LOGGER.fine(String.format("Lsrt: ST av chisq = %8.4f %10.4f %10.4f", residualsMedian, 
-      		dispersion, dispersion - Math.max(bayesianContribution - lastContribution, 0d)));
+      LOGGER.fine(
+          String.format(
+              "Lsrt: ST av chisq = %8.4f %10.4f %10.4f",
+              residualsMedian,
+              dispersion,
+              dispersion - Math.max(bayesianContribution - lastContribution, 0d)));
     }
 
     rSumEstResult = new RSumEstResult(0d, residualsMedian, 0d, dispersion);
@@ -296,15 +303,14 @@ public class Stepper {
     }
 
     /**
-     * If we're headed down hill, this iteration is done.  Note that following slabs 
-     * along their slope constantly changes the Bayesian condition.  This results 
-     * in a failure to converge that has nothing to do with fitting the residuals.  
-     * By accounting for the change in the Bayesian contribution to the dispersion, 
-     * this problem can be side stepped without messing with the rest of the 
-     * algorithm.
+     * If we're headed down hill, this iteration is done. Note that following slabs along their
+     * slope constantly changes the Bayesian condition. This results in a failure to converge that
+     * has nothing to do with fitting the residuals. By accounting for the change in the Bayesian
+     * contribution to the dispersion, this problem can be side stepped without messing with the
+     * rest of the algorithm.
      */
-    if (rSumEstResult.getDispersion() - Math.max(bayesianContribution - lastContribution, 0d) < 
-    		hypo.getEstimatorDispersionValue()) {
+    if (rSumEstResult.getDispersion() - Math.max(bayesianContribution - lastContribution, 0d)
+        < hypo.getEstimatorDispersionValue()) {
       // Delay resetting the Bayesian depth for stability reasons.
       hypo.setEstimatorDispersionValue(rSumEstResult.getDispersion());
       updateStepDirection();
@@ -376,8 +382,8 @@ public class Stepper {
       }
 
       logStep("Damp", stage, iteration, status);
-    } while (rSumEstResult.getDispersion() - Math.max(bayesianContribution - lastContribution, 0d) >= 
-    		hypo.getEstimatorDispersionValue());
+    } while (rSumEstResult.getDispersion() - Math.max(bayesianContribution - lastContribution, 0d)
+        >= hypo.getEstimatorDispersionValue());
 
     // The step length damping actually worked!
     updateStepDirection();
@@ -401,11 +407,11 @@ public class Stepper {
 
     if (!event.getIsDepthManual()) {
       // Update the Bayesian depth if it wasn't set by the analyst.
-  /*  double bayesDepth = zoneStats.getBayesDepth(hypo.getLatitude(), hypo.getLongitude());
+      /*  double bayesDepth = zoneStats.getBayesDepth(hypo.getLatitude(), hypo.getLongitude());
       double bayesSpread = zoneStats.getBayesSpread();
       System.out.format("\t\tZones: %6.2f +/- %6.2f\n", bayesDepth, bayesSpread / 3d); */
-      double bayesDepth = slabStats.getBayesDepth(hypo.getLatitude(), hypo.getLongitude(), 
-      		hypo.getDepth());
+      double bayesDepth =
+          slabStats.getBayesDepth(hypo.getLatitude(), hypo.getLongitude(), hypo.getDepth());
       double bayesSpread = slabStats.getBayesSpread();
       hypo.updateBayes(bayesDepth, bayesSpread);
     }
