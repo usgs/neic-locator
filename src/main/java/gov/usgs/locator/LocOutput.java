@@ -305,7 +305,7 @@ public class LocOutput extends LocationResult {
    * @return Returns true if successful, false otherwise
    */
   public boolean writeHydra(String filePath) {
-    LOGGER.fine("Writing a hydra file.");
+    LOGGER.fine("Writing a hydra file to: " + filePath);
     try {
       PrintWriter fileWriter = new PrintWriter(filePath, "UTF-8");
 
@@ -390,7 +390,7 @@ public class LocOutput extends LocationResult {
    * @return Returns true if successful, false otherwise
    */
   public boolean writeJSON(String filePath) {
-    LOGGER.fine("Writing a json file.");
+    LOGGER.info("Writing a json file to: " + filePath);
     try {
       String outputString = Utility.toJSONString(toJSON());
 
