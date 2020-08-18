@@ -1,8 +1,7 @@
 package gov.usgs.locator;
 
-import java.util.ArrayList;
-
 import gov.usgs.locaux.LocUtil;
+import java.util.ArrayList;
 
 /**
  * The RankSumEstimator class is the Rank-sum estimator implementation for the NEIC Locator.
@@ -39,9 +38,9 @@ public class RankSumEstimator {
    * deMedianEstResiduals() and computeEstDispersionValue().
    */
   private double linearEstimatesMedian;
-  
+
   /**
-   * A double containing the contribution of the Bayesian constraint to the latest dispersion 
+   * A double containing the contribution of the Bayesian constraint to the latest dispersion
    * computed.
    */
   private double bayesianContribution;
@@ -54,14 +53,14 @@ public class RankSumEstimator {
 
   /** An ArrayList of WeightedResidual objects containing the weighted residuals of the picks. */
   private ArrayList<WeightedResidual> weightedResiduals;
-  
+
   /**
    * Get the Bayesian contribution to the latest dispersion computed.
-   * 
+   *
    * @return Bayesian contribution
    */
   public double getContribution() {
-  	return bayesianContribution;
+    return bayesianContribution;
   }
 
   /**
@@ -254,12 +253,12 @@ public class RankSumEstimator {
 
     // The dispersion is just a dot product.
     for (int j = 0; j < lastIndex; j++) {
-    	if(!weightedResiduals.get(j).getIsBayesianDepth()) {
-    		dispersion += scores[j] * weightedResiduals.get(j).getSortValue();
-    	} else {
-    		bayesianContribution = scores[j] * weightedResiduals.get(j).getSortValue();
-    		dispersion += bayesianContribution;
-    	}
+      if (!weightedResiduals.get(j).getIsBayesianDepth()) {
+        dispersion += scores[j] * weightedResiduals.get(j).getSortValue();
+      } else {
+        bayesianContribution = scores[j] * weightedResiduals.get(j).getSortValue();
+        dispersion += bayesianContribution;
+      }
     }
 
     return dispersion;

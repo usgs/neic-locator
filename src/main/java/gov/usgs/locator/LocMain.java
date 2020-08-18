@@ -283,8 +283,10 @@ public class LocMain {
 
     // Exit.
     if (locRC) {
+      LOGGER.info("Successful completion of locator (exit 0).");
       System.exit(0);
     }
+    LOGGER.info("Unsuccessful completion of locator (exit 1).");
     System.exit(1);
   }
 
@@ -594,10 +596,14 @@ public class LocMain {
 
       LocOutput locOut = (LocOutput) result;
 
-      if ("json".equals(outputType)) {
-        locOut.writeJSON(outFileName);
-      } else {
-        locOut.writeHydra(outFileName);
+      try {
+        if ("json".equals(outputType)) {
+          locOut.writeJSON(outFileName);
+        } else {
+          locOut.writeHydra(outFileName);
+        }
+      } catch (Exception e) {
+        LOGGER.severe(e.toString());
       }
 
       // append csv to file
