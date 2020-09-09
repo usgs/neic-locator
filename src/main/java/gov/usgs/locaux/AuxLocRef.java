@@ -1,13 +1,17 @@
 package gov.usgs.locaux;
 
 import gov.usgs.traveltime.FileChanged;
-import gov.usgs.traveltime.TauUtil;
+// import gov.usgs.traveltime.TauUtil;
 import java.io.BufferedInputStream;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.io.RandomAccessFile;
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
+import java.nio.IntBuffer;
 import java.nio.channels.FileLock;
 import java.util.Scanner;
 
@@ -24,15 +28,12 @@ public class AuxLocRef {
   private final Cratons cratons;
 
   /** A ZoneStats object containing earthquake statistics by geographic location. */
-  //  private final ZoneStats zoneStats;
-
-  /** A Slabs object containing the geometry of earthquakes in slabs. */
-  private final Slabs slabs;
+  private final ZoneStats zoneStats;
 
   /**
    * An integer containing the number of years read from the earthquake statistics zonestats file.
    */
-  //  private int numberOfYears = -1;
+  private int numberOfYears = -1;
 
   /** Default path for model files. */
   public static final String DEFAULT_MODEL_PATH = "./models/";
@@ -44,9 +45,7 @@ public class AuxLocRef {
   private String serializedFileName = "locaux.ser";
 
   /** An array of String objects containing the raw input model file names. */
-  /*  private String[] modelFileNames = {"cratons.txt", "zonekey.dat", "zonestat.dat",
-  "slabmaster.txt"}; */
-  private String[] modelFileNames = {"cratons.txt", "slabmaster.txt"};
+  private String[] modelFileNames = {"cratons.txt", "zonekey.dat", "zonestat.dat"};
 
   /**
    * A Scanner object used to read continental craton boundaries and earthquake statistics by
@@ -65,11 +64,11 @@ public class AuxLocRef {
    * @throws ClassNotFoundException In input serialization is hosed
    */
   public AuxLocRef(String modelPath) throws IOException, ClassNotFoundException {
-    //  int[][] zoneKeys;
+  	int[][] zoneKeys;
     String[] absNames;
-    //  ZoneStat[] stats;
-    BufferedInputStream inCratons, inSlabs;
-    //  RandomAccessFile inZones;
+    ZoneStat[] stats;
+    BufferedInputStream inCratons;
+    RandomAccessFile inZones;
     FileInputStream serIn;
     FileOutputStream serOut;
     ObjectInputStream objIn;
@@ -102,7 +101,7 @@ public class AuxLocRef {
       inCratons.close();
 
       // Open and read the zone key file.
-      /*  inZones = new RandomAccessFile(absNames[1], "r");
+      inZones = new RandomAccessFile(absNames[1], "r");
       zoneKeys = readZoneKeys(inZones);
       zoneStats = new ZoneStats(zoneKeys);
       inZones.close();
@@ -111,14 +110,7 @@ public class AuxLocRef {
       inZones = new RandomAccessFile(absNames[2], "r");
       stats = readZoneStats(inZones);
       zoneStats.addStats(numberOfYears, stats);
-      inZones.close(); */
-
-      // Open and read the slab geometry model file.
-      inSlabs = new BufferedInputStream(new FileInputStream(absNames[1]));
-      scan = new Scanner(inSlabs);
-      slabs = new Slabs();
-      readSlabs();
-      inSlabs.close();
+      inZones.close();
 
       // Write out the serialized file.
       //  LOGGER.fine("Recreate the serialized file.");
@@ -127,17 +119,18 @@ public class AuxLocRef {
 
       // Wait for an exclusive lock for writing.
       lock = serOut.getChannel().lock();
-      //   LOGGER.fine(
-      //      "AuxLocRef write lock: valid = " + lock.isValid() + " shared = " + lock.isShared());
+  //   LOGGER.fine(
+  //       "AuxLocRef write lock: valid = " + lock.isValid() + " shared = " + lock.isShared());
 
-      // The auxiliary data can be read and written very quickly, so for persistent
-      // applications such as the travel time or location server, serialization is
-      // not necessary.  However, if the travel times are needed for applications
-      // that start and stop frequently, the serialization should save some set up
-      // time.
+      /*
+       * The auxiliary data can be read and written very quickly, so for persistent 
+       * applications such as the travel time or location server, serialization is 
+       * not necessary.  However, if the travel times are needed for applications 
+       * that start and stop frequently, the serialization should save some set up 
+       * time.
+       */
       objOut.writeObject(cratons);
-      //  objOut.writeObject(zoneStats);
-      objOut.writeObject(slabs);
+      objOut.writeObject(zoneStats);
 
       if (lock.isValid()) {
         lock.release();
@@ -159,8 +152,7 @@ public class AuxLocRef {
 
       // load the cratons and zoneStats
       cratons = (Cratons) objIn.readObject();
-      //  zoneStats = (ZoneStats) objIn.readObject();
-      slabs = (Slabs) objIn.readObject();
+      zoneStats = (ZoneStats) objIn.readObject();
 
       if (lock.isValid()) {
         lock.release();
@@ -205,7 +197,7 @@ public class AuxLocRef {
    * @return An int[][] containing the zone keys
    * @throws IOException On any read error
    */
-  /*  private int[][] readZoneKeys(RandomAccessFile inKeys) throws IOException {
+  	private int[][] readZoneKeys(RandomAccessFile inKeys) throws IOException {
     // Read the file.
     int length = (int) inKeys.length();
     byte[] byteArray = new byte[length];
@@ -225,7 +217,7 @@ public class AuxLocRef {
       }
     }
     return zoneKeys;
-  } */
+  }
 
   /**
    * Function to read the zone statistics file. Note that only the small part of the statistics
@@ -235,7 +227,7 @@ public class AuxLocRef {
    * @return A ZoneStat[] conatining the zone statistics
    * @throws IOException On any read error
    */
-  /*  private ZoneStat[] readZoneStats(RandomAccessFile inZones) throws IOException {
+  	private ZoneStat[] readZoneStats(RandomAccessFile inZones) throws IOException {
     // Read the file.
     int length = (int) inZones.length();
     byte[] byteArray = new byte[length];
@@ -272,98 +264,6 @@ public class AuxLocRef {
       }
     }
     return stats;
-  } */
-
-  /** Read in the slab model. */
-  private void readSlabs() {
-    boolean first = true;
-    double firstLon, lastLon;
-    SlabArea area;
-    SlabRow row;
-    SlabPoint point;
-
-    // Prime the pump.
-    area = new SlabArea();
-    row = new SlabRow();
-    // Read in the first point.
-    point = scanLine();
-    row.add(point);
-    firstLon = point.getLon();
-    lastLon = firstLon;
-
-    // As long as there's still data, keep on trucking.
-    while (scan.hasNextDouble()) {
-      point = scanLine();
-      // Look for the end of a latitude row.
-      if (Math.abs(point.getLon() - lastLon) > LocUtil.SLABINCREMENT + TauUtil.DTOL) {
-        // Print out the first and last points in each area.
-        //  	if(LOGGER.getLevel() == Level.FINE) {
-        if (first || Math.abs(point.getLon() - firstLon) > TauUtil.DTOL) {
-          // 				LOGGER.fine(row.printRaw());
-          if (first) {
-            first = false;
-          } else {
-            first = true;
-          }
-        }
-        //   	}
-        // Squeeze out the NaNs and save the remaining data in segments.
-        row.squeeze();
-        // Look for the start of a new area.
-        if (Math.abs(point.getLon() - firstLon) > TauUtil.DTOL) {
-          // Add the last row.
-          area.add(row);
-          // Print a summary of the last area.
-          // 			LOGGER.fine(area.printArea(false));
-          // Add the last area to all.
-          slabs.add(area);
-          // Start a new area.
-          area = new SlabArea();
-          row = new SlabRow();
-          firstLon = point.getLon();
-        } else {
-          // Add the row to the current area.
-          area.add(row);
-          // Start a new row.
-          row = new SlabRow();
-        }
-      }
-      // Add the current point to the current row.
-      row.add(point);
-      lastLon = point.getLon();
-    }
-    // Deal with the last point, which closes the last row and area.
-    //  LOGGER.fine(row.printRaw());
-    row.squeeze();
-    area.add(row);
-    slabs.add(area);
-    // Print the summary for the last area.
-    //	LOGGER.fine(area.printArea(false));
-  }
-
-  /**
-   * Scan an input line.
-   *
-   * @return Slab depth point
-   */
-  private SlabPoint scanLine() {
-    double lat, lon, lower, center, upper;
-
-    // Leave the longitude in the 0-360 degree format because the date
-    // line is in the middle of slab areas.
-    lon = scan.nextDouble();
-    // Convert latitude to colatitude to make the access rounding
-    // consistent.
-    lat = 90d - scan.nextDouble();
-    // Note that the depths in the file are all negative.
-    /**
-     * The center is where the earthquakes are. The lower bound (smaller depth) is shallower. The
-     * upper bound (larger depth) is deeper.
-     */
-    center = scan.nextDouble();
-    lower = scan.nextDouble();
-    upper = scan.nextDouble();
-    return new SlabPoint(lat, lon, center, lower, upper);
   }
 
   /**
@@ -380,16 +280,7 @@ public class AuxLocRef {
    *
    * @return A ZoneStats object containing the zone statistics
    */
-  /*  public ZoneStats getZoneStats() {
+  public ZoneStats getZoneStats() {
     return zoneStats;
-  } */
-
-  /**
-   * Function to return the slabs geometry managed by AuxLocRef.
-   *
-   * @return A slabs object containing the slab depths
-   */
-  public Slabs getSlabs() {
-    return slabs;
   }
 }

@@ -3,9 +3,14 @@ package gov.usgs.locator;
 import gov.usgs.locaux.AuxLocRef;
 import gov.usgs.locaux.Cratons;
 import gov.usgs.locaux.LocUtil;
+import gov.usgs.locaux.SlabDepth;
 import gov.usgs.locaux.Slabs;
+import gov.usgs.locaux.ZoneStats;
 import gov.usgs.traveltime.BadDepthException;
+import gov.usgs.traveltime.TauUtil;
 import gov.usgs.traveltime.tables.TauIntegralException;
+
+import java.util.ArrayList;
 import java.util.logging.Logger;
 
 /**
@@ -33,8 +38,8 @@ public class Stepper {
   private Cratons cratons;
 
   /** A ZoneStats object containing earthquake statistics by geographic location. */
-  // private ZoneStats zoneStats;
-
+  private ZoneStats zoneStats;
+  
   /** A slabs object containing slab depths by geographic location. */
   private Slabs slabStats;
 
@@ -81,13 +86,14 @@ public class Stepper {
    * @param phaseIDLogic A PhaseID object containing the phase identification logic.
    * @param auxLoc An AuxLocRef object containing auxiliary locator information used when performing
    *     Stepper calculations.
+   * @param slabs A Slabs object containing the slab part of the auxiliary data
    */
-  public Stepper(Event event, PhaseID phaseIDLogic, AuxLocRef auxLoc) {
+  public Stepper(Event event, PhaseID phaseIDLogic, AuxLocRef auxLoc, Slabs slabStats) {
     this.event = event;
     hypo = event.getHypo();
     cratons = auxLoc.getCratons();
-    //  zoneStats = auxLoc.getZoneStats();
-    slabStats = auxLoc.getSlabs();
+    zoneStats = auxLoc.getZoneStats();
+    this.slabStats = slabStats;
     this.phaseIDLogic = phaseIDLogic;
     rawRankSumEstimator = event.getRawRankSumEstimator();
     projectedRankSumEstimator = event.getProjectedRankSumEstimator();
@@ -395,8 +401,7 @@ public class Stepper {
    * tectonic area and setting the Bayesian depth.
    */
   protected void setLocEnvironment() {
-    // Set the tectonic flag.  Note that everything outside cratons
-    // is considered tectonic.
+    // Set the tectonic flag.  Note that everything outside cratons is considered tectonic.
     if (cratons.isCraton(hypo.getLatitude(), hypo.getLongitude())) {
       LocUtil.isTectonic = false;
     } else {
@@ -407,19 +412,129 @@ public class Stepper {
 
     if (!event.getIsDepthManual()) {
       // Update the Bayesian depth if it wasn't set by the analyst.
-      /*  double bayesDepth = zoneStats.getBayesDepth(hypo.getLatitude(), hypo.getLongitude());
-      double bayesSpread = zoneStats.getBayesSpread();
-      System.out.format("\t\tZones: %6.2f +/- %6.2f\n", bayesDepth, bayesSpread / 3d); */
-      double bayesDepth =
-          slabStats.getBayesDepth(hypo.getLatitude(), hypo.getLongitude(), hypo.getDepth());
-      double bayesSpread = slabStats.getBayesSpread();
-      hypo.updateBayes(bayesDepth, bayesSpread);
+      BayesianDepth bayesDepth = getBayesDepth(hypo.getLatitude(), hypo.getLongitude(), 
+      		hypo.getDepth());
+      System.out.println("Chosen Bayesian depth: " + bayesDepth);
+      hypo.updateBayes(bayesDepth.getDepth(), bayesDepth.getSpread());
     }
     LOGGER.fine(
         String.format(
             "Bayes: %5.1f %5.3f %b",
             hypo.getBayesianDepth(), hypo.getBayesianDepthWeight(), event.getIsDepthManual()));
   }
+	
+	/**
+	 * Deciding which Bayesian depth to use is complicated.  There is always the 
+	 * possibility of shallow events.  The possibility of deeper events is based 
+	 * on a combination of the slab model and depths from earthquake statistics 
+	 * summarized in ZoneStats.  The slab model will be used if there is one.  If 
+	 * not, a deep zone will be derived from the maximum earthquake depth in 
+	 * ZoneStats provided it is deep enough.  There are four possibilities: 1) 
+	 * there is no deep zone (use the shallow depth), 2) the deep zone is close to 
+	 * the surface (use a combination of the deep and shallow depth), 3) the trial 
+	 * depth is deep (use the deep zone depth), or 4) use the shallow or deep zone 
+	 * depth depending on which is closest to the trial depth.
+	 * 
+	 * @param latitude Trial hypocenter geographic latitude in degrees
+	 * @param longitude Trial hypocenter geographic longitude in degrees
+	 * @param depth Trial hypocenter depth in kilometers
+	 * @return Bayesian depth and error in kilometers
+	 */
+	private BayesianDepth getBayesDepth(double latitude, double longitude, double depth) {
+		double slabDiff = TauUtil.DMAX, deepest, zoneDepth;
+		BayesianDepth slabDepth = null;
+		ArrayList<SlabDepth> slabDepths;
+		ArrayList<BayesianDepth> bayesianDepths;
+		
+		bayesianDepths = new ArrayList<BayesianDepth>();
+		// First add the default shallow zone.
+		bayesianDepths.add(new BayesianDepth(LocUtil.DEFAULTDEPTH, LocUtil.DEFAULTDEPTHSE, 
+				DepthSource.SHALLOW));
+		
+		// Get the slab depths.
+		slabDepths = slabStats.getDepth(latitude, longitude);
+		if(slabDepths != null) {
+			for(SlabDepth slab : slabDepths) {
+				if(slab.getEqDepth() <= LocUtil.SLABMERGEDEPTH) {
+					/**
+					 * The slab is shallow and there may be vertical faults from the slab to the 
+					 * surface, so allow the depth to be anywhere between the deepest slab error 
+					 * and the free surface.
+					 */
+					deepest = slab.getEqDepth() + 3d * (slab.getUpper() - slab.getEqDepth());
+					bayesianDepths.set(0, new BayesianDepth(deepest / 2d, deepest / 2d, 
+							DepthSource.SLABINTERFACE));
+				} else {
+					// Set up a deep zone.
+					bayesianDepths.add(new BayesianDepth(slab.getEqDepth(), 3d * 
+							Math.max(slab.getEqDepth() - slab.getLower(), slab.getUpper() - 
+							slab.getEqDepth()), DepthSource.SLABMODEL));
+				}
+			}
+		} else {
+			// If there aren't any slab depths, see what we can do with ZoneStats.
+			zoneDepth = zoneStats.getBayesDepth(latitude, longitude);
+			// See if the deepest ZoneStats depth is actually deep.
+			if(zoneDepth >= LocUtil.DEFAULTDEPTH + LocUtil.DEFAULTDEPTHSE) {
+				// If so, see if we should do a slab merge.
+				if(zoneDepth <= LocUtil.SLABMERGEDEPTH) {
+					deepest = zoneDepth + LocUtil.DEFAULTDEPTHSE;
+					bayesianDepths.set(0, new BayesianDepth(deepest / 2d, deepest / 2d, 
+							DepthSource.ZONEINTERFACE));
+				// Otherwise, add a new deep zone.
+				} else {
+					bayesianDepths.add(new BayesianDepth(zoneDepth, LocUtil.DEFAULTSLABSE, 
+							DepthSource.ZONESTATS));
+				}
+			}
+		}
+		/*
+		 * At this point, we should have a complete set of possible depths (in increasing 
+		 * depth order).  If the Bayesian condition was set up as a sum of Gaussians, we 
+		 * would be done.
+		 */
+		System.out.println("Bayesian depths:");
+		for(BayesianDepth bayes : bayesianDepths) {
+			System.out.println("\t" + bayes);
+		}
+		
+/*	if(LOGGER.getLevel() == Level.FINE) {
+			LOGGER.fine("Bayesian depths:");
+			LOGGER.fine(String.format("\t%6.2f < %6.2f < %6.2f\n", 
+					Math.max(LocUtil.DEFAULTDEPTH - LocUtil.DEFAULTDEPTHSE, 0d), 
+					LocUtil.DEFAULTDEPTH, LocUtil.DEFAULTDEPTH + LocUtil.DEFAULTDEPTHSE));
+		} */
+		
+		/*
+		 * If, on the other hand, we just want one Bayesian Gaussian, we need to 
+		 * figure out which one to use.
+		 */
+		if(bayesianDepths.size() > 1) {
+			// Find the deep zone closest to the trial depth.
+			for(int j = 1; j < bayesianDepths.size(); j++) {
+				if(Math.abs(bayesianDepths.get(j).getDepth() - depth) < slabDiff) {
+					slabDepth = bayesianDepths.get(j);
+					slabDiff = Math.abs(slabDepth.getDepth() - depth);
+				}
+			}
+			// If the event is clearly not shallow, choose the closest deep zone.
+			if(depth > LocUtil.SLABMAXSHALLOWDEPTH) {
+				return slabDepth;
+			// If the event might be shallow, choose the closest zone.
+			} else {
+				// If the trial depth is closer to the shallow zone, go shallow.
+				if(Math.abs(bayesianDepths.get(0).getDepth() - depth) <= slabDiff) {
+					return bayesianDepths.get(0);
+				// Otherwise, go deep.
+				} else {
+					return slabDepth;
+				}
+			}
+		} else {
+			// If there's only one depth, it will have to do.
+			return bayesianDepths.get(0);
+		}
+	}
 
   /**
    * This function logs the current step. Note that this logging is the principle means of debugging

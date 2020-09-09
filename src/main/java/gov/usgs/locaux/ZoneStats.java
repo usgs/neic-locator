@@ -177,4 +177,37 @@ public class ZoneStats implements Serializable {
       return LocUtil.DEFAULTDEPTHSE;
     }
   }
+  
+  /**
+   * 
+   * 
+   * @param latitude Geographic latitude in degrees
+   * @param longitude Geographic longitude in degrees
+   * @return Probable depth of the deepest earthquake zone
+   */
+  public double getMaxBayesDepth(double latitude, double longitude) {
+    // Get the raw statistics.
+    ZoneStat stat = getStats(latitude, longitude);
+
+    if (stat != null) {
+      // Trap bad depths.
+      double meanDepth =
+          Math.min(Math.max(stat.getMeanFreeDepth(), LocUtil.DEPTHMIN), LocUtil.DEPTHMAX);
+      double maxDepth =
+          Math.min(Math.max(stat.getMaximumFreeDepth(), LocUtil.DEPTHMIN), LocUtil.DEPTHMAX);
+
+      // Trap other ugly errors.
+      if (meanDepth >= maxDepth) {
+        maxDepth = Math.min(meanDepth + LocUtil.DEFAULTSLABSE, LocUtil.DEPTHMAX);
+      }
+      /*
+       * Assume the deepest observed depth is at the 99th percentile of earthquakes in 
+       * a possible slab to estimate the actual depth of the earthquake zone.
+       */
+      return Math.max(maxDepth - LocUtil.DEFAULTSLABSE, LocUtil.DEPTHMIN);
+    } else {
+    	// If there are no statistics, default to a shallow source.
+    	return LocUtil.DEFAULTDEPTH;
+    }
+  }
 }

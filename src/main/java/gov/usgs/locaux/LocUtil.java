@@ -46,12 +46,19 @@ public class LocUtil {
    * is actually used in the calculation (i.e., 1/3 of the 99th percentile for a Gaussian).
    */
   public static final double DEFAULTDEPTHSE = 15d;
-
-  /** A double containing the latitude-longitude grid spacing for the slab model. */
-  public static final double SLABINCREMENT = 0.5d;
-
-  public static final double SLABHALFINC = SLABINCREMENT / 2d;
-
+  
+  /**
+   * A double constant representing the typical slab earthquake depth error in kilometers 
+   * (99th percentile).
+   */
+  public static final double DEFAULTSLABSE = 90d;
+  
+  /** The minimum slab latitude-longitude grid spacing.  Used to separate tilted slabs rows. */
+  public static final double MINSLABINCREMENT = 0.05d;
+  
+  /** Minimum slab latitude-longitude spacing to define a new tilted slabs area */
+  public static final double TILTEDAREAINCREMENT = 7.0d;
+  
   /**
    * A double containing the minimum slab depth in kilometers where the Bayesian depth spread will
    * cover both the slab and shallow earthquakes.

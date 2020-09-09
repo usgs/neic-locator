@@ -1,6 +1,5 @@
 package gov.usgs.locator;
 
-import gov.usgs.locaux.AuxLocRef;
 import gov.usgs.locaux.LocUtil;
 import gov.usgs.processingformats.LocationException;
 import gov.usgs.processingformats.LocationRequest;
@@ -13,19 +12,43 @@ import java.util.ArrayList;
 import java.util.logging.Logger;
 
 public class LocService implements LocationService {
-  /** A String containing the earth model path for the locator, null to use default. */
-  private String modelPath = null;
+	/** Temporary hack to test user selected slab resolutions. */
+	private String slabRes = null;
+	
+  /** Class to manage the travel-time external files. */
+  private TTSessionLocal ttLocal = null;
+  
+  /** Class to manage the locator external files. */
+  private LocSessionLocal locLocal = null;
 
   /** Private logging object. */
   private static final Logger LOGGER = Logger.getLogger(LocService.class.getName());
 
   /**
-   * The LocService constructor. Sets up the earth model path.
+   * The LocService constructor. Sets up the travel-times and locator external files.
    *
    * @param modelPath A String containing the earth model path to use
+   * @throws gov.usgs.processingformats.LocationException Throws a LocationException upon certain
+   *     severe errors. 
    */
-  public LocService(String modelPath) {
-    this.modelPath = modelPath;
+  public LocService(String modelPath) throws LocationException {
+    // init the tt models
+    try {
+      ttLocal = new TTSessionLocal(true, true, true, modelPath);
+    } catch (IOException | ClassNotFoundException e) {
+      LOGGER.severe("Unable to read travel-time auxiliary data.");
+      e.printStackTrace();
+      throw new LocationException("Unable to read travel-time auxiliary data.");
+    }
+
+    // Read the Locator auxiliary files.
+    try {
+      locLocal = new LocSessionLocal(modelPath);
+    } catch (IOException | ClassNotFoundException e) {
+      LOGGER.severe("Unable to read Locator auxiliary data.");
+      e.printStackTrace();
+      throw new LocationException("Unable to read Locator auxiliary data.");
+    }
   }
 
   /**
@@ -96,26 +119,6 @@ public class LocService implements LocationService {
       throw new LocationException("Invalid Input");
     }
 
-    // init the tt models
-    TTSessionLocal ttLocal = null;
-    try {
-      ttLocal = new TTSessionLocal(true, true, true, modelPath);
-    } catch (IOException | ClassNotFoundException e) {
-      LOGGER.severe("Unable to read travel-time auxiliary data.");
-      e.printStackTrace();
-      throw new LocationException("Unable to read travel-time auxiliary data.");
-    }
-
-    // Read the Locator auxiliary files.
-    AuxLocRef auxLoc = null;
-    try {
-      auxLoc = new AuxLocRef(modelPath);
-    } catch (IOException | ClassNotFoundException e) {
-      LOGGER.severe("Unable to read Locator auxiliary data.");
-      e.printStackTrace();
-      throw new LocationException("Unable to read Locator auxiliary data.");
-    }
-
     // make sure we have an earth model
     if (in.EarthModel == null) {
       in.EarthModel = "ak135";
@@ -127,9 +130,21 @@ public class LocService implements LocationService {
 
     // print input for debugging
     LOGGER.info("Input: \n" + event.getHydraInput(false));
+    
+    // make sure we have a slab resolution
+    if(slabRes == null) {
+    	slabRes = "2spd";
+    }
 
-    // setup the locator
-    Locate loc = new Locate(event, ttLocal, auxLoc);
+    // Get a locator with the required slab model resolution
+    Locate loc = null;
+		try {
+			loc = locLocal.getLocate(event, ttLocal, slabRes);
+		} catch (ClassNotFoundException | IOException e) {
+      LOGGER.severe("Unable to read slab model data.");
+      e.printStackTrace();
+      throw new LocationException("Unable to read slab model data.");
+		}
 
     // perform the location
     LocStatus status = loc.doLocation();
