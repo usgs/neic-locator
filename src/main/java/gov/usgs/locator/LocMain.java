@@ -689,6 +689,7 @@ public class LocMain {
         // read the file
         // String fileName = inputFile.getName();
         String filePath = inputFile.getAbsolutePath();
+        System.out.println("File: " + filePath);
 
         if (locateSingleEvent(
             modelPath,

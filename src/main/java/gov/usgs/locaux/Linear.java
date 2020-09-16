@@ -129,12 +129,20 @@ public class Linear {
    * @return Interpolated z-value
    */
   public static double twoD(double[] v0, double[] v1, double[] v2, double[] v) {
-    double b, c;
+	    double a, b, c;
 
-    b = (v1[2] - v0[2]) / (v1[0] - v0[0]);
-    c = (v2[2] - v0[2]) / (v2[1] - v0[1]);
-    v[2] = b * (v[0] - v0[0]) + c * (v[1] - v0[1]) + v0[2];
-    return v[2];
+	if(Math.abs(v2[1] - v0[1]) > Math.abs(v1[1] - v0[1])) {
+		a = ((v2[1] - v0[1]) * (v1[2] - v0[2]) - (v1[1] - v0[1]) * (v2[2] - v0[2])) / 
+				((v1[0] - v0[0]) * (v2[1] - v0[1]) - (v2[0] - v0[0]) * (v1[1] - v0[1]));
+		b = ((v2[2] - v0[2]) - a * (v2[0] - v0[0])) / (v2[1] - v0[1]);
+		} else {
+		a = ((v1[1] - v0[1]) * (v2[2] - v0[2]) - (v2[1] - v0[1]) * (v1[2] - v0[2])) / 
+				((v2[0] - v0[0]) * (v1[1] - v0[1]) - (v1[0] - v0[0]) * (v2[1] - v0[1]));
+		b = ((v1[2] - v0[2]) - a * (v1[0] - v0[0])) / (v1[1] - v0[1]);
+	}
+	c = v0[2] - a * v0[0] - b * v0[1];
+	v[2] = a * v[0] + b * v[1] + c;
+	return v[2];
   }
 
   /**
@@ -150,12 +158,20 @@ public class Linear {
    * @return Interpolated z-value
    */
   public static float twoD(float[] v0, float[] v1, float[] v2, float[] v) {
-    float b, c;
-
-    b = (v1[2] - v0[2]) / (v1[0] - v0[0]);
-    c = (v2[2] - v0[2]) / (v2[1] - v0[1]);
-    v[2] = b * (v[0] - v0[0]) + c * (v[1] - v0[1]) + v0[2];
-    return v[2];
+    float a, b, c;
+    
+	if(Math.abs(v2[1] - v0[1]) > Math.abs(v1[1] - v0[1])) {
+		a = ((v2[1] - v0[1]) * (v1[2] - v0[2]) - (v1[1] - v0[1]) * (v2[2] - v0[2])) / 
+				((v1[0] - v0[0]) * (v2[1] - v0[1]) - (v2[0] - v0[0]) * (v1[1] - v0[1]));
+		b = ((v2[2] - v0[2]) - a * (v2[0] - v0[0])) / (v2[1] - v0[1]);
+		} else {
+		a = ((v1[1] - v0[1]) * (v2[2] - v0[2]) - (v2[1] - v0[1]) * (v1[2] - v0[2])) / 
+				((v2[0] - v0[0]) * (v1[1] - v0[1]) - (v1[0] - v0[0]) * (v2[1] - v0[1]));
+		b = ((v1[2] - v0[2]) - a * (v1[0] - v0[0])) / (v1[1] - v0[1]);
+	}
+	c = v0[2] - a * v0[0] - b * v0[1];
+	v[2] = a * v[0] + b * v[1] + c;
+  return v[2];
   }
 
   /**

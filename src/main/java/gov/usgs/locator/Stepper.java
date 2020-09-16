@@ -442,7 +442,7 @@ public class Stepper {
 	 */
 	private BayesianDepth getBayesDepth(double latitude, double longitude, double depth) {
 		double slabDiff = TauUtil.DMAX, deepest, zoneDepth;
-		BayesianDepth slabDepth = null;
+		BayesianDepth slabDepth = null, bayesianZone = null;
 		ArrayList<SlabDepth> slabDepths;
 		ArrayList<BayesianDepth> bayesianDepths;
 		
@@ -471,6 +471,21 @@ public class Stepper {
 							slab.getEqDepth()), DepthSource.SLABMODEL));
 				}
 			}
+			// Do ZoneStats anyway for comparison.
+			zoneDepth = zoneStats.getBayesDepth(latitude, longitude);
+			// See if the deepest ZoneStats depth is actually deep.
+			if(zoneDepth >= LocUtil.DEFAULTDEPTH + LocUtil.DEFAULTDEPTHSE) {
+				// If so, see if we should do a slab merge.
+				if(zoneDepth <= LocUtil.SLABMERGEDEPTH) {
+					deepest = zoneDepth + 0.5d * LocUtil.DEFAULTSLABSE;
+					bayesianZone = new BayesianDepth(deepest / 2d, deepest / 2d, 
+							DepthSource.ZONEINTERFACE);
+				// Otherwise, add a new deep zone.
+				} else {
+					bayesianZone = new BayesianDepth(zoneDepth, LocUtil.DEFAULTSLABSE, 
+							DepthSource.ZONESTATS);
+				}
+			}
 		} else {
 			// If there aren't any slab depths, see what we can do with ZoneStats.
 			zoneDepth = zoneStats.getBayesDepth(latitude, longitude);
@@ -496,6 +511,9 @@ public class Stepper {
 		System.out.println("Bayesian depths:");
 		for(BayesianDepth bayes : bayesianDepths) {
 			System.out.println("\t" + bayes);
+		}
+		if(bayesianZone != null) {
+			System.out.println("\t" + bayesianZone);
 		}
 		
 /*	if(LOGGER.getLevel() == Level.FINE) {
