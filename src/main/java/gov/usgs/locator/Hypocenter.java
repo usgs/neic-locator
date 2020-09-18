@@ -398,7 +398,7 @@ public class Hypocenter {
 
     depth = bayesianDepth;
     bayesianDepthResidual = 0d;
-    bayesianDepthWeight = 3d / bayesianDepthSpread;
+    bayesianDepthWeight = 1d / bayesianDepthSpread;
   }
 
   /**
@@ -535,7 +535,7 @@ public class Hypocenter {
     bayesianDepthResidual = bayesianDepth - depth;
 
     // The Bayesian spread is actually taken as a 90th percentile.
-    bayesianDepthWeight = 3d / bayesianDepthSpread;
+    bayesianDepthWeight = 1d / bayesianDepthSpread;
   }
 
   /**

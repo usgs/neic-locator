@@ -40,18 +40,23 @@ public class LocUtil {
   public static final double DEFAULTDEPTH = 10d;
 
   /**
-   * A double constant representing the default Bayesian depth error in kilometers (99th percentile)
+   * A double constant representing the default Bayesian depth error in kilometers (68th percentile)
    * for a free depth solution. Note that this represents the strength of the Bayesian constraint.
-   * There is no problem with the default depth minus the error being negative. The standard error
-   * is actually used in the calculation (i.e., 1/3 of the 99th percentile for a Gaussian).
+   * There is no problem with the default depth minus the error being negative.
    */
-  public static final double DEFAULTDEPTHSE = 15d;
+  public static final double DEFAULTDEPTHSE = 5d;
+
+  /**
+   * A double constant representing the default Bayesian depth standard error in kilometers for a
+   * held depth solution.
+   */
+  public static final double HELDDEPTHSE = 1d;
   
   /**
    * A double constant representing the typical slab earthquake depth error in kilometers 
    * (99th percentile).
    */
-  public static final double DEFAULTSLABSE = 90d;
+  public static final double DEFAULTSLABSE = 30d;
   
   /** The minimum slab latitude-longitude grid spacing.  Used to separate tilted slabs rows. */
   public static final double MINSLABINCREMENT = 0.05d;
@@ -70,12 +75,6 @@ public class LocUtil {
    * shallow if a slab is present.
    */
   public static final double SLABMAXSHALLOWDEPTH = 60d;
-
-  /**
-   * A double constant representing the default Bayesian depth standard error in kilometers for a
-   * held depth solution.
-   */
-  public static final double HELDDEPTHSE = 3d;
 
   /** A double constant representing the factor to down weight undesirable phase identifications. */
   public static final double DOWNWEIGHT = 0.5d;

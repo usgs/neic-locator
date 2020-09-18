@@ -462,11 +462,11 @@ public class Stepper {
 					 * and the free surface.
 					 */
 					deepest = slab.getEqDepth() + 3d * (slab.getUpper() - slab.getEqDepth());
-					bayesianDepths.set(0, new BayesianDepth(deepest / 2d, deepest / 2d, 
+					bayesianDepths.set(0, new BayesianDepth(deepest / 2d, deepest / 6d, 
 							DepthSource.SLABINTERFACE));
 				} else {
 					// Set up a deep zone.
-					bayesianDepths.add(new BayesianDepth(slab.getEqDepth(), 3d * 
+					bayesianDepths.add(new BayesianDepth(slab.getEqDepth(), 
 							Math.max(slab.getEqDepth() - slab.getLower(), slab.getUpper() - 
 							slab.getEqDepth()), DepthSource.SLABMODEL));
 				}
@@ -474,11 +474,11 @@ public class Stepper {
 			// Do ZoneStats anyway for comparison.
 			zoneDepth = zoneStats.getBayesDepth(latitude, longitude);
 			// See if the deepest ZoneStats depth is actually deep.
-			if(zoneDepth >= LocUtil.DEFAULTDEPTH + LocUtil.DEFAULTDEPTHSE) {
+			if(zoneDepth >= LocUtil.DEFAULTDEPTH + 3d * LocUtil.DEFAULTDEPTHSE) {
 				// If so, see if we should do a slab merge.
 				if(zoneDepth <= LocUtil.SLABMERGEDEPTH) {
-					deepest = zoneDepth + 0.5d * LocUtil.DEFAULTSLABSE;
-					bayesianZone = new BayesianDepth(deepest / 2d, deepest / 2d, 
+					deepest = zoneDepth + 1.5d * LocUtil.DEFAULTSLABSE;
+					bayesianZone = new BayesianDepth(deepest / 2d, deepest / 6d, 
 							DepthSource.ZONEINTERFACE);
 				// Otherwise, add a new deep zone.
 				} else {
@@ -490,11 +490,13 @@ public class Stepper {
 			// If there aren't any slab depths, see what we can do with ZoneStats.
 			zoneDepth = zoneStats.getBayesDepth(latitude, longitude);
 			// See if the deepest ZoneStats depth is actually deep.
-			if(zoneDepth >= LocUtil.DEFAULTDEPTH + LocUtil.DEFAULTDEPTHSE) {
+			if(zoneDepth >= LocUtil.DEFAULTDEPTH + 3d * LocUtil.DEFAULTDEPTHSE) {
 				// If so, see if we should do a slab merge.
 				if(zoneDepth <= LocUtil.SLABMERGEDEPTH) {
-					deepest = zoneDepth + LocUtil.DEFAULTDEPTHSE;
-					bayesianDepths.set(0, new BayesianDepth(deepest / 2d, deepest / 2d, 
+					// DEFAULTSLABSE works well for deep zones, but it about two times too 
+					// big for shallow slabs (i.e., the earthquake depth resolution is better).
+					deepest = zoneDepth + 1.5d * LocUtil.DEFAULTSLABSE;
+					bayesianDepths.set(0, new BayesianDepth(deepest / 2d, deepest / 6d, 
 							DepthSource.ZONEINTERFACE));
 				// Otherwise, add a new deep zone.
 				} else {

@@ -134,7 +134,7 @@ public class LocOutput extends LocationResult {
 
     this.RMS = residualsStandardError;
     this.BayesianDepth = bayesianDepth;
-    this.BayesianRange = bayesianDepthSpread;
+    this.BayesianRange = 3d * bayesianDepthSpread;
     this.DepthImportance = bayesianDepthDataImportance;
 
     if (errorEllipse != null) {

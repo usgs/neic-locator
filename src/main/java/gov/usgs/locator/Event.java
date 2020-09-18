@@ -101,7 +101,7 @@ public class Event {
   /** A double containing the Bayesian depth in kilometers. */
   private double bayesianDepth;
 
-  /** A double containing the Bayesian depth spread in kilometers. */
+  /** A double containing the Bayesian depth spread (i.e., one standard deviation) in kilometers. */
   private double bayesianDepthSpread;
 
   /** A double containing the data importance of the baysian depth. */
@@ -525,9 +525,15 @@ public class Event {
     isDepthHeld = in.IsDepthHeld;
     isDepthManual = in.IsBayesianDepth;
 
+    /*
+     *  The analysts think in absolutes, so their Bayesian spread is interpreted as a 0.99 
+     *  percentage point.  Dividing by three reduces the spread to one standard deviation 
+     *  (assuming a Gaussian distribution of depths), consistent with the slab model and 
+     *  ZoneStats.
+     */
     if (isDepthManual) {
       bayesianDepth = in.BayesianDepth;
-      bayesianDepthSpread = in.BayesianSpread;
+      bayesianDepthSpread = in.BayesianSpread / 3d;
     }
 
     useDecorrelation = in.UseSVD; // True when noSvd is false
@@ -1208,7 +1214,7 @@ public class Event {
               isDepthHeld,
               isDepthManual,
               hypo.getBayesianDepth(),
-              hypo.getBayesianDepthSpread(),
+              3d * hypo.getBayesianDepthSpread(),
               useDecorrelation);
       hydraInput += "\n";
     } else {
@@ -1223,7 +1229,7 @@ public class Event {
               LocUtil.getBoolChar(isDepthHeld),
               LocUtil.getBoolChar(isDepthManual),
               !Double.isNaN(hypo.getBayesianDepth()) ? hypo.getBayesianDepth() : 0d,
-              !Double.isNaN(hypo.getBayesianDepthSpread()) ? hypo.getBayesianDepthSpread() : 0d,
+              !Double.isNaN(hypo.getBayesianDepthSpread()) ? 3d * hypo.getBayesianDepthSpread() : 0d,
               LocUtil.getBoolChar(!useDecorrelation));
     }
 
@@ -1268,7 +1274,7 @@ public class Event {
             equivalentErrorRadius,
             qualityFlags,
             hypo.getBayesianDepth(),
-            hypo.getBayesianDepthSpread(),
+            3d * hypo.getBayesianDepthSpread(),
             bayesianDepthDataImportance);
     hydraOutput +=
         String.format(
