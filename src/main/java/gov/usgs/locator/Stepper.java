@@ -472,7 +472,7 @@ public class Stepper {
 				}
 			}
 			// Do ZoneStats anyway for comparison.
-			zoneDepth = zoneStats.getBayesDepth(latitude, longitude);
+			zoneDepth = zoneStats.getMaxBayesDepth(latitude, longitude, false);
 			// See if the deepest ZoneStats depth is actually deep.
 			if(zoneDepth >= LocUtil.DEFAULTDEPTH + 3d * LocUtil.DEFAULTDEPTHSE) {
 				// If so, see if we should do a slab merge.
@@ -482,13 +482,14 @@ public class Stepper {
 							DepthSource.ZONEINTERFACE);
 				// Otherwise, add a new deep zone.
 				} else {
+		//		zoneDepth = zoneStats.getMaxBayesDepth(latitude, longitude, true);
 					bayesianZone = new BayesianDepth(zoneDepth, LocUtil.DEFAULTSLABSE, 
 							DepthSource.ZONESTATS);
 				}
 			}
 		} else {
 			// If there aren't any slab depths, see what we can do with ZoneStats.
-			zoneDepth = zoneStats.getBayesDepth(latitude, longitude);
+			zoneDepth = zoneStats.getMaxBayesDepth(latitude, longitude, false);
 			// See if the deepest ZoneStats depth is actually deep.
 			if(zoneDepth >= LocUtil.DEFAULTDEPTH + 3d * LocUtil.DEFAULTDEPTHSE) {
 				// If so, see if we should do a slab merge.

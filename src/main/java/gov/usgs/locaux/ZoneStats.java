@@ -1,6 +1,7 @@
 package gov.usgs.locaux;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 
 /**
  * The ZoneStats class implements the historical free depth statistics portion of the SEDAS zone
@@ -92,42 +93,38 @@ public class ZoneStats implements Serializable {
   }
 
   /**
-   * Function to get the depth statistics for an epicenter.
+   * Function to get the raw depth statistics by latitude/longitude.
    *
    * @param latitude A double containing the geographic latitude in degrees
    * @param longitude A double containing the geographic longitude in degrees
    * @return A ZoneStat object containing the zone statistics
    */
   public ZoneStat getStats(double latitude, double longitude) {
-    // Set up the zone key indices.  First we need colatitude and
-    // longitude in the range of 0-360.
-    latitude = 90d - latitude;
-    if (longitude < 0d) {
-      longitude += 360d;
-    }
-    if (longitude == 0d) {
-      longitude = 360d;
-    }
-
+  	GeoPoint trial;
+  	
+		trial = getZoneCoord(latitude, longitude);
     // Bail on bad coordinates.
-    if (latitude > 180d || latitude < 0d || longitude > 360d || longitude < 0d) {
+    if(trial == null) {
       return null;
     }
 
-    // Now get the indices.
-    int latIndex;
-    if (latitude < 180d) {
-      latIndex = (int) latitude;
+    // Get the statistics.
+    int key = zoneKeys[trial.getLonIndex()][trial.getLatIndex()];
+    if (key >= 0) {
+      return zoneStats[key];
     } else {
-      latIndex = 179;
+      return null;
     }
-    int lonIndex;
-    if (latitude > 0d && latitude < 180d) {
-      lonIndex = (int) longitude;
-    } else {
-      lonIndex = 0;
-    }
-
+  }
+  
+  /**
+   * Function to get the raw depth statistics by latitude/longitude indices.
+   *
+   * @param latIndex ZoneStats colatitude index
+   * @param lonIndex ZoneStats longitude index
+   * @return A ZoneStat object containing the zone statistics
+   */
+  public ZoneStat getStats(int latIndex, int lonIndex) {
     // Get the statistics.
     int key = zoneKeys[lonIndex][latIndex];
     if (key >= 0) {
@@ -138,7 +135,10 @@ public class ZoneStats implements Serializable {
   }
 
   /**
-   * This function gets the best Bayesian depth from the zone statistics.
+   * This function gets a representative Bayesian depth statistic from the zone 
+   * statistics.  Note that this covers the entire range of earthquake depths 
+   * available in the ZoneStats cell referenced.  Unfortunately, this is less 
+   * useful when both shallow and deep earthquakes occur in a cell.
    *
    * @param latitude A double containing the geographic latitude in degrees
    * @param longitude A double containing the geographic longitude in degrees
@@ -179,35 +179,192 @@ public class ZoneStats implements Serializable {
   }
   
   /**
-   * 
+   * This function gets an interpolated version of the maximum probable earthquake 
+   * depth using the deepest earthquakes in the ZoneStats file.
    * 
    * @param latitude Geographic latitude in degrees
    * @param longitude Geographic longitude in degrees
-   * @return Probable depth of the deepest earthquake zone
+   * @return Probable deepest depth of the earthquake zone
    */
   public double getMaxBayesDepth(double latitude, double longitude) {
-    // Get the raw statistics.
-    ZoneStat stat = getStats(latitude, longitude);
+  	double maxDepth;
+  	GeoPoint trial;
+		ArrayList<ZoneSample> coords;
+  	
+		trial = getZoneCoord(latitude, longitude);
+		coords = getCenters(trial);
+		coords.sort(null);
+		maxDepth = zoneInterp(coords, trial);
+//	System.out.format("Interpolated depth: %6.2f\n", maxDepth);
+		return maxDepth;
+  }
+  
+  /**
+   * Stand alone version of the old ZoneStats geographic coordinate 
+   * massaging.  Note that the ZoneStats indices are computed inside 
+   * the geographic point that is returned.
+   * 
+   * @param latitude Geographic latitude in degrees
+   * @param longitude Geographic longitude in degrees
+   * @return A geographic point
+   */
+  private GeoPoint getZoneCoord(double latitude, double longitude) {
+    // We need colatitude and longitude in the range of 0-360.
+    latitude = 90d - latitude;
+    if (longitude < 0d) {
+      longitude += 360d;
+    }
+    if (longitude == 0d) {
+      longitude = 360d;
+    }
 
-    if (stat != null) {
-      // Trap bad depths.
-      double meanDepth =
-          Math.min(Math.max(stat.getMeanFreeDepth(), LocUtil.DEPTHMIN), LocUtil.DEPTHMAX);
-      double maxDepth =
-          Math.min(Math.max(stat.getMaximumFreeDepth(), LocUtil.DEPTHMIN), LocUtil.DEPTHMAX);
-
-      // Trap other ugly errors.
-      if (meanDepth >= maxDepth) {
-        maxDepth = Math.min(meanDepth + LocUtil.DEFAULTSLABSE, LocUtil.DEPTHMAX);
-      }
-      /*
-       * Assume the deepest observed depth is at the 99th percentile of earthquakes in 
-       * a possible slab to estimate the actual depth of the earthquake zone.
-       */
-      return Math.max(maxDepth - LocUtil.DEFAULTSLABSE, LocUtil.DEPTHMIN);
+    // Make sure the coordinates are OK.
+    if (latitude <= 180d && latitude >= 0d && longitude <= 360d && longitude > 0d) {
+    	GeoPoint coord = new GeoPoint(latitude, longitude);
+    	System.out.println("Trial: " + coord);
+    	return coord;
     } else {
-    	// If there are no statistics, default to a shallow source.
-    	return LocUtil.DEFAULTDEPTH;
+      return null;
     }
   }
+  
+  /**
+   * Generate the centers of the ZoneStats cells surrounding a trial point.
+   * 
+   * @param trial Geographic trial point (typically an earthquake epicenter)
+   * @return A list of ZoneStats cells
+   */
+  public ArrayList<ZoneSample> getCenters(GeoPoint trial) {
+	  ArrayList<ZoneSample> coords;
+	  
+  	coords = new ArrayList<ZoneSample>();
+  	// Add the zone samples.
+  	if((trial.getLat() < trial.getLatIndex() + 0.5d  && trial.getLat() >= 0.5d)  || 
+  		trial.getLat() > 179.5d) {
+  		// We just need six cells above and including the trial point.
+  	  for(int i = trial.getLatIndex() - 1; i <= trial.getLatIndex(); i++) {
+  	  	for(int j = trial.getLonIndex() - 1; j <= trial.getLonIndex() + 1; j++) {
+  	  		coords.add(new ZoneSample(i, j, trial));
+  	  	}
+  	  }
+  	} else {
+  		// We just need six cells below and including the trial point.
+  	  for(int i = trial.getLatIndex(); i <= trial.getLatIndex() + 1; i++) {
+  	  	for(int j = trial.getLonIndex() - 1; j <= trial.getLonIndex() + 1; j++) {
+  	  		coords.add(new ZoneSample(i, j, trial));
+  	  	}
+  	  }
+  	}
+  	return coords;
+  }
+  	
+  /**
+   * Interpolate the maximum earthquake depth from ZoneStats cells surrounding 
+   * the trial point.
+   * 
+   * @param coords List of ZoneSamples surrounding the trial point
+   * @param trial Geographic trial point (typically an earthquake epicenter)
+   * @return Interpolated maximum earthquake depth
+   */
+	private double zoneInterp(ArrayList<ZoneSample> coords, GeoPoint trial) {
+		int nulls = 0;
+		double deepest;
+		double[] result = new double[3];
+		double[][] vectors = new double[3][];
+		ArrayList<GeoPoint> poly;
+		
+		// From the six nearest ZoneStat cells, construct a three point polygon 
+		// surrounding the trial point.
+		poly = new ArrayList<GeoPoint>();
+		for(int j = 0; j < 3; j++) {
+			coords.get(j).setBayesDepth(this);
+			poly.add(coords.get(j).getCoord());
+		}
+		
+		// Be careful about ending up with three points in a line and about the poles.
+		if(poly.get(0).getLat() == poly.get(1).getLat() && 
+				poly.get(1).getLat() == poly.get(2).getLat()) {
+			poly.remove(2);
+			coords.get(3).setBayesDepth(this);
+			poly.add(coords.get(3).getCoord());
+		}
+		// Debug print.
+		for(int j = 0; j < 3; j++) {
+			System.out.println("" + j + " " + poly.get(j));
+		}
+		
+		// Get the 3-vectors needed by the interpolation.
+		deepest = 0d;
+		for(int j = 0; j < 3; j++) {
+			vectors[j] = poly.get(j).getVector();
+			deepest = Math.max(deepest, vectors[j][2]);
+		}
+		// Set up the trial point as a 3-vector.
+		result[0] = trial.getLat();
+		result[1] = trial.getLon();
+		result[2] = Double.NaN;
+		
+		// Filter our points that don't fit (presumably on the edge of a structure).
+		if(deepest <= LocUtil.SHALLOWESTDEEP) {
+			// For shallow and intermediate depths, filter points that don't fit the nearest.
+			for(int j = 1; j < vectors.length; j++) {
+				if(Math.abs(vectors[j][2] - vectors[0][2]) > LocUtil.STRUCTURETOL[0]) {
+					vectors[j] = null;
+					nulls++;
+				}
+			}
+		} else {
+			// For deep zones, just use the deep points since there is always a shallow zone.
+			for(int j = 0; j < vectors.length; j++) {
+				if(deepest - vectors[j][2] > LocUtil.STRUCTURETOL[1]) {
+					vectors[j] = null;
+					nulls++;
+				}
+			}
+		}
+		// Debug print.
+		for(int j = 0; j < 3; j++) {
+			if(vectors[j] != null) {
+				System.out.format("%d (%4.2f, %4.2f, %6.2f)\n", j, vectors[j][0], vectors[j][1], 
+						vectors[j][2]);
+			} else {
+				System.out.format("%d null\n", j);
+			}
+		}
+		
+		// Do linear interpolation.
+		switch(nulls) {
+		case 0:
+			// We have three points.  Fit a plane to the triangle defined by the polygon.
+			Linear.twoD(vectors[0], vectors[1], vectors[2], result);
+			System.out.format("Result: %5.2f %6.2f %4.2f\n", result[0], result[1], result[2]);
+			return result[2];
+		case 1:
+			// We have two points.  Interpolate using the intersection between the line and 
+			// a perpendicular through the trial point.
+			int k = 0;
+			for(int j = 0; j < vectors.length; j++) {
+				if(vectors[j] != null) {
+					vectors[k++] = vectors[j];
+				}
+			}
+			double[] intersect = Linear.intersect(vectors[0], vectors[1], result);
+			double distLine = Linear.distance(vectors[0], vectors[1]);
+			double distAlong = Linear.distance(vectors[0], intersect);
+			double distPerp = Linear.distance(result, intersect);
+			System.out.format("Geom: %4.2f of %4.2f, perp = %4.2f\n", distAlong, distLine, distPerp);
+			Linear.oneD(vectors[0], vectors[1], intersect);
+			System.out.format("Intersect: %5.2f %6.2f %4.2f\n", intersect[0], intersect[1], 
+					intersect[2]);
+			return intersect[2];
+		case 2:
+			// We only have one point, so use it.
+			for(int j = 0; j < vectors.length; j++) {
+				if(vectors[j] != null) return vectors[j][2];
+			}
+		default:
+			System.out.println("How can there be too many nulls?");
+			return Double.NaN;
+		}
+	}
 }

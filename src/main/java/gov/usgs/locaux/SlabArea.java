@@ -159,14 +159,16 @@ public class SlabArea implements Serializable {
 	 * @return Array of interpolated slab depth triplets
 	 */
 	private SlabDepth interp(double[][][] v0, double[][][] v1, double[] v) {
-		int nulls = 0, lastNull = -1;
+		int nulls = 0, k;
+//		int lastNull = -1;
 		double[] depths;
+		double[][][] vTemp;
 		
 		// Survey the points to see how to do the interpolation.
 		for(int j = 0; j < 2; j++) {
 			if(v0[j] == null) {
 				nulls++;
-				lastNull = j;
+//				lastNull = j;
 	//		LOGGER.fine("v0[" + j + "]: null");
 			} else {
 	/*			LOGGER.fine(String.format("v0[%d]: (%7.3f, %7.3f, %7.4f\n", j, 
@@ -177,7 +179,7 @@ public class SlabArea implements Serializable {
 			for(int j = 0; j < 2; j++) {
 				if(v1[j] == null) {
 					nulls++;
-					lastNull = j + 2;
+//					lastNull = j + 2;
 	//			LOGGER.fine("v1[" + j + "]: null");
 				} else {
 	/*			LOGGER.fine(String.format("v1[%d]: (%7.3f, %7.3f, %7.4f\n", j, 
@@ -186,7 +188,7 @@ public class SlabArea implements Serializable {
 			}
 		} else {
 			nulls += 2;
-			lastNull = 3;
+//			lastNull = 3;
 		}
 //	LOGGER.fine(String.format("    v: (%7.3f, %7.3f, %7.4f\n", v[0], v[1], v[2]));
 		
@@ -201,8 +203,25 @@ public class SlabArea implements Serializable {
 		case 1:
 			// We can handle an edge by doing linear interpolation on the three 
 			// points we have.
+			vTemp = new double[3][][];
+			k = 0;
+			for(int i = 0; i < 2; i++) {
+				if(v0[i] != null) {
+					vTemp[k++] = v0[i];
+				}
+				if(v1 != null) {
+					if(v1[i] != null) {
+						vTemp[k++] = v1[i];
+					}
+				}
+			}
 			depths = new double[3];
-			switch(lastNull) {
+			for(int j = 0; j < 3; j++) {
+				depths[j] = Linear.twoD(vTemp[0][j], vTemp[1][j], vTemp[2][j], v);
+			}
+			return new SlabDepth(depths);
+				
+	/*	switch(lastNull) {
 			case 0:
 				// Triangle is in the -/- quadrant.
 				for(int j = 0; j < 3; j++) {
@@ -229,11 +248,11 @@ public class SlabArea implements Serializable {
 				return new SlabDepth(depths);
 			default:
 		//	LOGGER.error("How did lastNull get to be " + lastNull + "?");
-			}
+			} */
 		case 2:
 			// We still have two points, find them.
-			double[][][] vTemp = new double[2][][];
-			int k = 0;
+			vTemp = new double[2][][];
+			k = 0;
 			for(int i = 0; i < 2; i++) {
 				if(v0[i] != null) {
 					vTemp[k++] = v0[i];

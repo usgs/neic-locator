@@ -7,6 +7,18 @@ package gov.usgs.locaux;
  * @author Ray Buland
  */
 public class Linear {
+	
+	/**
+	 * Return the Cartesian distance between two points.  Note that this assumes a plane (i.e., 
+	 * it only uses the first two coordinates of each input vector.
+	 * 
+	 * @param v0 First 2-vector
+	 * @param v1 Second 2-vector
+	 * @return Distance between the first and second 2-vectors
+	 */
+	public static double distance(double[] v0, double[] v1) {
+		return Math.sqrt(Math.pow(v1[0] - v0[0], 2d) + Math.pow(v1[1] - v0[1], 2d));
+	}
 
   /**
    * Interpolate the z-values of two 3-vectors using either the x or y values (they should be
@@ -305,4 +317,63 @@ public class Linear {
             + v0[2];
     return v[2];
   }
+	
+  /**
+   * Find where a line defined by 2-vectors v0 and v1 intersects a perpendicular 
+   * line through point v.
+   * 
+   * @param v0 2-vector on the first line
+   * @param v1 2-vector on the first line
+   * @param v 2-vector defining the perpendicular line
+   * @return 2-vector of the intersection point
+   */
+	public static double[] intersect(double[] v0, double[] v1, double[] v) {
+		double a0, b0, a1, b1;
+		
+		// Define the line through v0 and v1.
+		a0 = (v1[1] - v0[1]) / (v1[0] - v0[0]);
+		if(Double.isFinite(a0)) {
+			b0 = v0[1] - a0 * v0[0];
+		} else {
+			// Ugg!  The line is vertical (i.e., y = v0[0]).
+			b0 = v0[0];
+		}
+		
+		// Define the perpendicular line through v.
+		a1 = -1d / a0;
+		if(Double.isFinite(a1)) {
+			b1 = v[1] - a1 * v[0];
+		} else {
+			// Double ugg!  The first line was horizontal.
+			b1 = v[0];
+		}
+		return intersect(a0, b0, a1, b1);
+	}
+	
+	/**
+	 * Given the equations for two lines (i.e., y = a0*x + b0 and y = a1*x + b1) 
+	 * find the point where the lines cross.
+	 * 
+	 * @param a0 Slope of the first line
+	 * @param b0 Offset of the first line
+	 * @param a1 Slope of the second line
+	 * @param b1 Offset of the second line
+	 * @return 2-vector of the intersection point
+	 */
+	public static double[] intersect(double a0, double b0, double a1, double b1) {
+		double[] v = new double[2];
+		if(a0 == 0d) {
+			// The first line is horizontal.
+			v[0] = b1;
+			v[1] = b0;
+		} else if(a1 == 0d) {
+			// The first line is vertical.
+			v[0] = b0;
+			v[1] = b1;
+		} else {
+			v[0] = (b1 - b0) / (a0 - a1);
+			v[1] = a0 * v[0] + b0;
+		}
+		return v;
+	}
 }

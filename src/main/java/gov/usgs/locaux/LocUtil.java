@@ -45,7 +45,25 @@ public class LocUtil {
    * There is no problem with the default depth minus the error being negative.
    */
   public static final double DEFAULTDEPTHSE = 5d;
+  
+  /**
+   * If the statistics are any good, the deepest shallow event should be no deeper than the 
+   * default shallow depth plus three standard deviations (i.e., a 99% level).
+   */
+  public static final double DEEPESTSHALLOW = DEFAULTDEPTH + 3d * DEFAULTDEPTHSE;
 
+  /**
+   * The old Zone statistics change behavior between the shallow and deep regimes defined 
+   * by this boundary in kilometers.
+   */
+  public static final double SHALLOWESTDEEP = 150d;
+  
+  /**
+   * Tolerance in kilometers across a facet of the global ZoneStat tessellation.  Zone depths 
+   * greater than the tolerance from the closest point will be dropped.
+   */
+  public static final double[] STRUCTURETOL = {60d, 150d};
+  
   /**
    * A double constant representing the default Bayesian depth standard error in kilometers for a
    * held depth solution.
@@ -68,7 +86,7 @@ public class LocUtil {
    * A double containing the minimum slab depth in kilometers where the Bayesian depth spread will
    * cover both the slab and shallow earthquakes.
    */
-  public static final double SLABMERGEDEPTH = 70d;
+  public static final double SLABMERGEDEPTH = 75d;
 
   /**
    * A double containing the maximum trial depth in kilometers where the Bayesian depth can be
