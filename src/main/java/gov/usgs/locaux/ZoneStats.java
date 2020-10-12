@@ -3,6 +3,9 @@ package gov.usgs.locaux;
 import java.io.Serializable;
 import java.util.ArrayList;
 
+import gov.usgs.locator.BayesianDepth;
+import gov.usgs.locator.DepthSource;
+
 /**
  * The ZoneStats class implements the historical free depth statistics portion of the SEDAS zone
  * statistics subsystem. Note that the zone keys was a crude SEDAS era accelerator for the
@@ -179,24 +182,26 @@ public class ZoneStats implements Serializable {
   }
   
   /**
-   * This function gets an interpolated version of the maximum probable earthquake 
-   * depth using the deepest earthquakes in the ZoneStats file.
+   * This function gets an interpolated version of the mean free earthquake 
+   * depth in the ZoneStats file.
    * 
    * @param latitude Geographic latitude in degrees
    * @param longitude Geographic longitude in degrees
    * @return Probable deepest depth of the earthquake zone
    */
-  public double getMaxBayesDepth(double latitude, double longitude) {
-  	double maxDepth;
+  public BayesianDepth interpolateBayesDepth(double latitude, double longitude) {
   	GeoPoint trial;
 		ArrayList<ZoneSample> coords;
   	
+		// Set up the epicenter.
 		trial = getZoneCoord(latitude, longitude);
+		// Generate surrounding Zone cells.
 		coords = getCenters(trial);
+		// Sort them by distance to the earthquake
 		coords.sort(null);
-		maxDepth = zoneInterp(coords, trial);
-//	System.out.format("Interpolated depth: %6.2f\n", maxDepth);
-		return maxDepth;
+		// Interpolate from the three closest cell centers to get the depth at the 
+		// epicenter.
+		return zoneInterp(coords, trial);
   }
   
   /**
@@ -220,8 +225,8 @@ public class ZoneStats implements Serializable {
 
     // Make sure the coordinates are OK.
     if (latitude <= 180d && latitude >= 0d && longitude <= 360d && longitude > 0d) {
+    	// Set the trial point as the origin of the Earth flattening.
     	GeoPoint coord = new GeoPoint(latitude, longitude);
-    	System.out.println("Trial: " + coord);
     	return coord;
     } else {
       return null;
@@ -266,10 +271,11 @@ public class ZoneStats implements Serializable {
    * @param trial Geographic trial point (typically an earthquake epicenter)
    * @return Interpolated maximum earthquake depth
    */
-	private double zoneInterp(ArrayList<ZoneSample> coords, GeoPoint trial) {
+	private BayesianDepth zoneInterp(ArrayList<ZoneSample> coords, GeoPoint trial) {
 		int nulls = 0;
 		double deepest;
-		double[] result = new double[3];
+		// The trial point is always at Earth flattening coordinates (0, 0).
+		double[] result = {0d, 0d, Double.NaN}, intersect;
 		double[][] vectors = new double[3][];
 		ArrayList<GeoPoint> poly;
 		
@@ -277,20 +283,22 @@ public class ZoneStats implements Serializable {
 		// surrounding the trial point.
 		poly = new ArrayList<GeoPoint>();
 		for(int j = 0; j < 3; j++) {
-			coords.get(j).setBayesDepth(this);
 			poly.add(coords.get(j).getCoord());
 		}
-		
-		// Be careful about ending up with three points in a line and about the poles.
+		// Be careful about ending up with three points in a line and oddness 
+		// around the poles.
 		if(poly.get(0).getLat() == poly.get(1).getLat() && 
 				poly.get(1).getLat() == poly.get(2).getLat()) {
 			poly.remove(2);
-			coords.get(3).setBayesDepth(this);
 			poly.add(coords.get(3).getCoord());
 		}
 		// Debug print.
-		for(int j = 0; j < 3; j++) {
-			System.out.println("" + j + " " + poly.get(j));
+//		for(int j = 0; j < poly.size(); j++) {
+//			System.out.println("Poly: " + j + " " + poly.get(j));
+//		}
+		// Now set the Bayesian depths.
+		for(int j = 0; j < poly.size(); j++) {
+			poly.get(j).setBayesDepth(this);
 		}
 		
 		// Get the 3-vectors needed by the interpolation.
@@ -299,10 +307,6 @@ public class ZoneStats implements Serializable {
 			vectors[j] = poly.get(j).getVector();
 			deepest = Math.max(deepest, vectors[j][2]);
 		}
-		// Set up the trial point as a 3-vector.
-		result[0] = trial.getLat();
-		result[1] = trial.getLon();
-		result[2] = Double.NaN;
 		
 		// Filter our points that don't fit (presumably on the edge of a structure).
 		if(deepest <= LocUtil.SHALLOWESTDEEP) {
@@ -323,22 +327,22 @@ public class ZoneStats implements Serializable {
 			}
 		}
 		// Debug print.
-		for(int j = 0; j < 3; j++) {
-			if(vectors[j] != null) {
-				System.out.format("%d (%4.2f, %4.2f, %6.2f)\n", j, vectors[j][0], vectors[j][1], 
-						vectors[j][2]);
-			} else {
-				System.out.format("%d null\n", j);
-			}
-		}
+//		for(int j = 0; j < 3; j++) {
+//			if(vectors[j] != null) {
+//				System.out.format("Vector: %d (%5.2f, %5.2f, %6.2f)\n", j, vectors[j][0], 
+//						vectors[j][1], vectors[j][2]);
+//			} else {
+//				System.out.format("Vector: %d null\n", j);
+//			}
+//		}
 		
 		// Do linear interpolation.
 		switch(nulls) {
 		case 0:
 			// We have three points.  Fit a plane to the triangle defined by the polygon.
 			Linear.twoD(vectors[0], vectors[1], vectors[2], result);
-			System.out.format("Result: %5.2f %6.2f %4.2f\n", result[0], result[1], result[2]);
-			return result[2];
+//			System.out.format("3-point interpolation: %4.2f\n", result[2]);
+			return new BayesianDepth(result[2], LocUtil.DEFAULTSLABSE, DepthSource.ZONESTATS);
 		case 1:
 			// We have two points.  Interpolate using the intersection between the line and 
 			// a perpendicular through the trial point.
@@ -348,23 +352,23 @@ public class ZoneStats implements Serializable {
 					vectors[k++] = vectors[j];
 				}
 			}
-			double[] intersect = Linear.intersect(vectors[0], vectors[1], result);
-			double distLine = Linear.distance(vectors[0], vectors[1]);
-			double distAlong = Linear.distance(vectors[0], intersect);
-			double distPerp = Linear.distance(result, intersect);
-			System.out.format("Geom: %4.2f of %4.2f, perp = %4.2f\n", distAlong, distLine, distPerp);
+			intersect = Linear.intersect(vectors[0], vectors[1], result);
 			Linear.oneD(vectors[0], vectors[1], intersect);
-			System.out.format("Intersect: %5.2f %6.2f %4.2f\n", intersect[0], intersect[1], 
-					intersect[2]);
-			return intersect[2];
+//			System.out.format("Intersect: %5.2f %6.2f %4.2f\n", intersect[0], intersect[1], 
+//					intersect[2]);
+			// Inflate the error to reflect the edge uncertainty.
+			return new BayesianDepth(intersect[2], 1.5d * LocUtil.DEFAULTSLABSE, 
+					DepthSource.ZONESTATS);
 		case 2:
 			// We only have one point, so use it.
 			for(int j = 0; j < vectors.length; j++) {
-				if(vectors[j] != null) return vectors[j][2];
+				// Inflate the errors even more as we're hanging a lot on one point.
+				if(vectors[j] != null) return new BayesianDepth(vectors[j][2], 
+						2d * LocUtil.DEFAULTSLABSE, DepthSource.ZONESTATS);
 			}
 		default:
 			System.out.println("How can there be too many nulls?");
-			return Double.NaN;
+			return null;
 		}
 	}
 }

@@ -15,6 +15,7 @@ public class GeoPoint {
 	int lonIndex;		// ZoneStats cell longitude index
 	double x;				// Earth flattened coordinate in degrees positive east
 	double y;				// Earth flattened coordinate in degrees positive north
+	double dist;		// Cartesian distance from the trial point
 	
 	/**
 	 * @return Geographical colatitude (0-180 degrees)
@@ -47,7 +48,13 @@ public class GeoPoint {
 	public double getY() {return y;}
 	
 	/**
-	 * @param depth ZoneStats maximum earthquake depth
+	 * @return The Earth flattened Cartesian distance from the trial 
+	 * point in degrees
+	 */
+	public double getDist() {return dist;}
+	
+	/**
+	 * @param depth ZoneStats mean free earthquake depth in kilometers
 	 */
 	public void setDepth(double depth) {
 		this.depth = depth;
@@ -76,6 +83,7 @@ public class GeoPoint {
 	 * 
 	 * @param latIndex ZoneStats colatitude index
 	 * @param lonIndex ZoneStats longitude index
+	 * @param reference Origin for the Earth flattening algorithm
 	 */
 	public GeoPoint(int latIndex, int lonIndex, GeoPoint reference) {
 		// The actual coordinates are offset from the indices.
@@ -87,6 +95,7 @@ public class GeoPoint {
 		// Do the Earth flattening transformation.
 		x = Math.sin(Math.toRadians(lat)) * (lon - reference.getLon());
 		y = reference.getLat() - lat;
+		dist = getDistance();
 	}
 	
 	/**
@@ -103,12 +112,23 @@ public class GeoPoint {
 	}
 	
 	/**
+	 * Using the Earth flattening, compute the Cartesian distance in degrees 
+	 * between this GeoPoint and the Earth flattening origin (which is always 
+	 * the trial point).
+	 * 
+	 * @return Distance between this geographical point and the Earth flattening 
+	 * origin in degrees
+	 */
+	public double getDistance() {
+		return Math.sqrt(Math.pow(x,  2d) + Math.pow(y, 2d));
+	}
+	
+	/**
 	 * Set the Bayesian depth from the ZoneStats information.
 	 * 
 	 * @param zoneStats Zone statistics class
-	 * @param dist Distance of this cell center from the trial point (debug only)
 	 */
-	public void setBayesDepth(ZoneStats zoneStats, double dist) {
+	public void setBayesDepth(ZoneStats zoneStats) {
     // Get the raw statistics.
     ZoneStat stat = zoneStats.getStats(latIndex, lonIndex);
     
@@ -132,11 +152,14 @@ public class GeoPoint {
         }
       }
       // Print the Bayesian depth and spread.
-      double bayesSpread =
-          Math.max(Math.max(maxDepth - meanDepth, meanDepth - minDepth) / 3d, 
-          		LocUtil.DEFAULTDEPTHSE);
-      System.out.format("BayesDepth: %6.2f < %6.2f < %6.2f +/- %6.2f (%4.2)\n", minDepth, 
-      		meanDepth, maxDepth, bayesSpread, dist);
+  /*  if(LOGGER.getLevel() == Level.FINE) {
+      	double bayesSpread =
+      				Math.max(Math.max(maxDepth - meanDepth, meanDepth - minDepth) / 3d, 
+      					LocUtil.DEFAULTDEPTHSE);
+      	LOGGER.fine(String.format("BayesDepth: %6.2f < %6.2f < %6.2f +/- %6.2f\n", minDepth, 
+      			meanDepth, maxDepth, bayesSpread));
+      } */
+      
       /*
        * Oddly, the mean depth seems to be a better indicator of a deep earthquake zone than 
        * the deepest depth.  There seem to be several historical reasons for this behavior: 
@@ -180,7 +203,6 @@ public class GeoPoint {
 	    } else {
 	      lonIndex = 0;
 	    }
-//	    System.out.format("New indices: %2d %3d\n", latIndex, lonIndex);
 	}
 
 	/**
@@ -203,11 +225,11 @@ public class GeoPoint {
 	  @Override
 	  public String toString() {
 		  if(Double.isNaN(depth)) {
-			  return String.format("%5.2f %6.2f (%2d %3d) => (%4.2f, %4.2f)", 
-					  lat, lon, latIndex, lonIndex, x, y);
+			  return String.format("%5.2f %6.2f (%2d %3d) => (%5.2f, %5.2f) dist = %4.2f", 
+					  lat, lon, latIndex, lonIndex, x, y, dist);
 		  } else {
-			  return String.format("%5.2f %6.2f (%2d %3d) => (%4.2f, %4.2f) depth = %6.2f", 
-					  lat, lon, latIndex, lonIndex, x, y, depth);
+			  return String.format("%5.2f %6.2f (%2d %3d) => (%5.2f, %5.2f) dist = %4.2f depth = %6.2f", 
+					  lat, lon, latIndex, lonIndex, x, y, dist, depth);
 		  }
 
 	  }

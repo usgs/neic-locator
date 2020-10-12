@@ -121,13 +121,15 @@ public class SlabRow implements Serializable {
 	public SlabDepth getDepth(double lon, double slabInc) {
 		// If we haven't found the segment yet, get it.
 		if(segFound < 0) {
-		segFound = -1;
-			for(int j = 0; j < slabSegs.size(); j++) {
-				if(slabSegs.get(j).isFound(lon)) {
-					segFound = j;
+			segFound = -1;
+			// If this row was filler, it may have no segments.
+			if(slabSegs != null) {
+				for(int j = 0; j < slabSegs.size(); j++) {
+					if(slabSegs.get(j).isFound(lon)) {
+						segFound = j;
+					}
 				}
-			}
-		}
+			}		}
 		// Find the point in this segment.
 		if(segFound >= 0) {
 			return slabSegs.get(segFound).getDepth(lon, slabInc);

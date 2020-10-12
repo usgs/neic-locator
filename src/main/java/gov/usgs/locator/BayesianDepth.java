@@ -8,23 +8,32 @@ public class BayesianDepth {
 	/**
 	 * @return Earthquake depth in km
 	 */
-	public double getDepth() {
-		return depth;
-	}
+	public double getDepth() {return depth;}
+	
+	/**
+	 * @param depth Earthquake depth in km
+	 */
+	public void setDepth(double depth) {this.depth = depth;}
 	
 	/**
 	 * @return Standard deviation of the earthquake depth in km
 	 */
-	public double getSpread() {
-		return spread;
-	}
+	public double getSpread() {return spread;}
+	
+	/**
+	 * @param spread Standard deviation of the earthquake depth in km
+	 */
+	public void setSpread(double spread) {this.spread = spread;}
 	
 	/**
 	 * @return Source of the Bayesian statistic
 	 */
-	public DepthSource getSource() {
-		return source;
-	}
+	public DepthSource getSource() {return source;}
+	
+	/**
+	 * @param source New earthquake source
+	 */
+	public void setSource(DepthSource source) {this.source = source;}
 	
 	/**
 	 * Construct this object with all the data it will ever need.

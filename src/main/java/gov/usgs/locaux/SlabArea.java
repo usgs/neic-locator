@@ -69,9 +69,11 @@ public class SlabArea implements Serializable {
 			if(slabRows.get(j).isFound(lon)) {
 				rowFound = j;
 				return true;
-			} else if(slabRows.get(++j).isFound(lon)) {
-				rowFound = --j;
-				return true;
+			} else if(++j < slabRows.size()) {
+				if(slabRows.get(j).isFound(lon)) {
+					rowFound = --j;
+					return true;
+				}
 			}
 		}
 		rowFound = -1;
@@ -160,7 +162,6 @@ public class SlabArea implements Serializable {
 	 */
 	private SlabDepth interp(double[][][] v0, double[][][] v1, double[] v) {
 		int nulls = 0, k;
-//		int lastNull = -1;
 		double[] depths;
 		double[][][] vTemp;
 		
@@ -168,7 +169,6 @@ public class SlabArea implements Serializable {
 		for(int j = 0; j < 2; j++) {
 			if(v0[j] == null) {
 				nulls++;
-//				lastNull = j;
 	//		LOGGER.fine("v0[" + j + "]: null");
 			} else {
 	/*			LOGGER.fine(String.format("v0[%d]: (%7.3f, %7.3f, %7.4f\n", j, 
@@ -179,7 +179,6 @@ public class SlabArea implements Serializable {
 			for(int j = 0; j < 2; j++) {
 				if(v1[j] == null) {
 					nulls++;
-//					lastNull = j + 2;
 	//			LOGGER.fine("v1[" + j + "]: null");
 				} else {
 	/*			LOGGER.fine(String.format("v1[%d]: (%7.3f, %7.3f, %7.4f\n", j, 
@@ -188,7 +187,6 @@ public class SlabArea implements Serializable {
 			}
 		} else {
 			nulls += 2;
-//			lastNull = 3;
 		}
 //	LOGGER.fine(String.format("    v: (%7.3f, %7.3f, %7.4f\n", v[0], v[1], v[2]));
 		
@@ -220,35 +218,6 @@ public class SlabArea implements Serializable {
 				depths[j] = Linear.twoD(vTemp[0][j], vTemp[1][j], vTemp[2][j], v);
 			}
 			return new SlabDepth(depths);
-				
-	/*	switch(lastNull) {
-			case 0:
-				// Triangle is in the -/- quadrant.
-				for(int j = 0; j < 3; j++) {
-					depths[j] = Linear.twoD(v1[1][j], v1[0][j], v0[1][j], v);
-				}
-				return new SlabDepth(depths);
-			case 1:
-				// Triangle is in the +/- quadrant.
-				for(int j = 0; j < 3; j++) {
-					depths[j] = Linear.twoD(v1[0][j], v1[1][j], v0[0][j], v);
-				}
-				return new SlabDepth(depths);
-			case 2:
-				// Triangle is in the -/+ quadrant.
-				for(int j = 0; j < 3; j++) {
-					depths[j] = Linear.twoD(v0[1][j], v0[0][j], v1[1][j], v);
-				}
-				return new SlabDepth(depths);
-			case 3:
-				// Triangle is in the +/+ quadrant.
-				for(int j = 0; j < 3; j++) {
-					depths[j] = Linear.twoD(v0[0][j], v0[1][j], v1[0][j], v);
-				}
-				return new SlabDepth(depths);
-			default:
-		//	LOGGER.error("How did lastNull get to be " + lastNull + "?");
-			} */
 		case 2:
 			// We still have two points, find them.
 			vTemp = new double[2][][];

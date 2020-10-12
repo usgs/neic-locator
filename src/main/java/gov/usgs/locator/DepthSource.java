@@ -10,9 +10,14 @@ package gov.usgs.locator;
 public enum DepthSource {
 	/**
 	 * Shallow events may be possible nearly everywhere on Earth and 
-	 * are typically within 20 km of the surface.
+	 * are typically within 20 km of the surface.  This is the default 
+	 * for all earthquakes.
 	 */
 	SHALLOW,
+	/**
+	 * Shallow earthquake depth from ZoneStats.
+	 */
+	ZONESHALLOW,
 	/**
 	 * For a shallow slab, events may be possible from the slab to the 
 	 * surface due to cracking in the crust above the slab.

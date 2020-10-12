@@ -32,6 +32,12 @@ public class LocUtil {
 
   /** A double constant representing the maximum depth the Locator will allow. */
   public static final double DEPTHMAX = 700d;
+  
+  /**
+   * A double constant representing the default Bayesian depth standard error in kilometers for a
+   * held depth solution.
+   */
+  public static final double HELDDEPTHSE = 1d;
 
   /**
    * A double constant representing the default Bayesian depth in kilometers for a free depth
@@ -63,12 +69,18 @@ public class LocUtil {
    * greater than the tolerance from the closest point will be dropped.
    */
   public static final double[] STRUCTURETOL = {60d, 150d};
-  
+
   /**
-   * A double constant representing the default Bayesian depth standard error in kilometers for a
-   * held depth solution.
+   * A double containing the maximum trial depth in kilometers where the Bayesian depth can be
+   * shallow if a slab is present.
    */
-  public static final double HELDDEPTHSE = 1d;
+  public static final double SLABMAXSHALLOWDEPTH = 50d;
+
+  /**
+   * A double containing the minimum slab depth in kilometers where the Bayesian depth spread will
+   * cover both the slab and shallow earthquakes.
+   */
+  public static final double SLABMERGEDEPTH = 80d;
   
   /**
    * A double constant representing the typical slab earthquake depth error in kilometers 
@@ -81,18 +93,6 @@ public class LocUtil {
   
   /** Minimum slab latitude-longitude spacing to define a new tilted slabs area */
   public static final double TILTEDAREAINCREMENT = 7.0d;
-  
-  /**
-   * A double containing the minimum slab depth in kilometers where the Bayesian depth spread will
-   * cover both the slab and shallow earthquakes.
-   */
-  public static final double SLABMERGEDEPTH = 75d;
-
-  /**
-   * A double containing the maximum trial depth in kilometers where the Bayesian depth can be
-   * shallow if a slab is present.
-   */
-  public static final double SLABMAXSHALLOWDEPTH = 60d;
 
   /** A double constant representing the factor to down weight undesirable phase identifications. */
   public static final double DOWNWEIGHT = 0.5d;

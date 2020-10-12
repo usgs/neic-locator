@@ -240,7 +240,7 @@ public class AuxLocRef {
 
     // Create the zoneStats array by reading the zonestats information
     // skipping the fields we don't need
-    ZoneStat[] stats = new ZoneStat[zoneStats.size()];
+    ZoneStat[] stats = new ZoneStat[zoneStats.size() + 1];
     for (int j = 0; j < stats.length; j++) {
       byteBuf.getInt(); // ndeg, skip
       byteBuf.getFloat(); // events per year, skip

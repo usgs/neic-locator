@@ -1,12 +1,45 @@
 package gov.usgs.locaux;
 
 /**
- * A collection of linear interpolation methods in one, two, and three dimensions (e.g., fitting
+ * A collection of linear functions including distance, intersection, and 
+ * interpolation methods in one, two, and three dimensions (e.g., fitting
  * two, three, and four points).
  *
  * @author Ray Buland
  */
 public class Linear {
+
+  /**
+   * Create a 3-vector a = (x, y, z).
+   *
+   * @param x Distance in the X direction
+   * @param y Distance in the Y direction
+   * @param z Distance in the Z direction
+   * @return Position vector
+   */
+  public static double[] vector(double x, double y, double z) {
+    double[] a = new double[3];
+    a[0] = x;
+    a[1] = y;
+    a[2] = z;
+    return a;
+  }
+
+  /**
+   * Create a 3-vector a = (x, y, z).
+   *
+   * @param x Distance in the X direction
+   * @param y Distance in the Y direction
+   * @param z Distance in the Z direction
+   * @return Position vector
+   */
+  public static float[] vector(float x, float y, float z) {
+    float[] a = new float[3];
+    a[0] = x;
+    a[1] = y;
+    a[2] = z;
+    return a;
+  }
 	
 	/**
 	 * Return the Cartesian distance between two points.  Note that this assumes a plane (i.e., 
@@ -352,7 +385,13 @@ public class Linear {
 	
 	/**
 	 * Given the equations for two lines (i.e., y = a0*x + b0 and y = a1*x + b1) 
-	 * find the point where the lines cross.
+	 * find the point where the lines cross.  There are two special cases: 1) 
+	 * a0 = 0 and 2) a1 = 0.  In the first case, the first line is horizontal and 
+	 * the second is vertical.  In this case, b0 should be the fixed y value of 
+	 * the first line and b1 should be the fixed x value of the second line.  In 
+	 * the second case, the first line is vertical and the second is horizontal.  
+	 * In this case, b0 should be the fixed x value of the first line and b1 
+	 * should be the fixed y value of the second line.
 	 * 
 	 * @param a0 Slope of the first line
 	 * @param b0 Offset of the first line
@@ -361,7 +400,7 @@ public class Linear {
 	 * @return 2-vector of the intersection point
 	 */
 	public static double[] intersect(double a0, double b0, double a1, double b1) {
-		double[] v = new double[2];
+		double[] v = new double[3];
 		if(a0 == 0d) {
 			// The first line is horizontal.
 			v[0] = b1;
@@ -374,6 +413,7 @@ public class Linear {
 			v[0] = (b1 - b0) / (a0 - a1);
 			v[1] = a0 * v[0] + b0;
 		}
+		v[2] = Double.NaN;
 		return v;
 	}
 }

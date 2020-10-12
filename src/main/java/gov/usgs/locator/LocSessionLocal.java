@@ -17,6 +17,7 @@ import gov.usgs.locaux.SlabPoint;
 import gov.usgs.locaux.SlabRow;
 import gov.usgs.locaux.Slabs;
 import gov.usgs.locaux.TiltedArea;
+import gov.usgs.locaux.ZoneStats;
 import gov.usgs.traveltime.FileChanged;
 import gov.usgs.traveltime.TTSessionLocal;
 import gov.usgs.traveltime.TauUtil;
@@ -98,7 +99,7 @@ public class LocSessionLocal {
 	 * @throws ClassNotFoundException If the serialized slab master object doesn't 
 	 * exist
 	 */
-	private Slabs getSlabRes(String slabRes) throws IOException, ClassNotFoundException {
+	public Slabs getSlabRes(String slabRes) throws IOException, ClassNotFoundException {
 		Slabs slabs;
 		String serializedFileName;
 	  String[] absNames;
@@ -351,5 +352,9 @@ public class LocSessionLocal {
   	lower = scan.nextDouble();
   	upper = scan.nextDouble();
   	return new SlabPoint(lat, lon, center, lower, upper);
+  }
+  
+  public ZoneStats getZoneStats() {
+  	return auxLoc.getZoneStats();
   }
 }
