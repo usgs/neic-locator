@@ -29,11 +29,14 @@ RUN yum install -y java-11-openjdk-headless
 # copy shadow jar
 COPY --from=build /project/build/neic-locator-service.jar /project/
 # copy models
-ENV locator.model.path=/project/models/
 COPY --from=build /project/build/models /project/models
 
-# run as unprivileged user
-USER nobody
+# set environment
+ENV locator.model.path=/project/models/
+ENV locator.serialized.path=/project/local/
+
+# run as root to avoid volume writing issues
+USER root
 EXPOSE 8080
 WORKDIR /project
 ENTRYPOINT [ "/usr/bin/java", "-jar", "neic-locator-service.jar" ]
