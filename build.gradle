@@ -74,7 +74,7 @@ dependencies {
 
 // method to add/update an external project from git and add it to the
 // sourceset
-ext.addExternalProject = { path, url, srcDir ->
+ext.addExternalProject = { path, url, branch, srcDir ->
   File projDir = new File("$path")
 
   // cleanup local copy if it exists
@@ -86,18 +86,21 @@ ext.addExternalProject = { path, url, srcDir ->
 
   // clone external project
   logger.quiet('Cloning {}', projDir)
-  grgit.clone(dir: projDir, uri: url)
+  grgit.clone(dir: projDir, uri: url, refToCheckout: branch)
 
   // add to sourceset
   sourceSets {
     main {
       java {
           srcDirs "$path/$srcDir"
+          // Exclude TtMain.java
+          // We do this to avoid build errors due to the
+          // unwanted traveltime web service code
+          exclude '*TtMain.java*'
       }
     }
   }
 }
-
 
 // mainClassName = "gov.usgs.locatorservice.Application"
 mainClassName = "gov.usgs.locator.LocMain"
@@ -147,16 +150,21 @@ task cloneExternalProjects {
 
   doFirst {
     // neic-traveltime
+    // addExternalProject("$projectDir/lib/neic-traveltime",
+    //  "https://github.com/usgs/neic-traveltime.git", "master", "src/main/java/gov/usgs/traveltime")
+    // grab src/main/java/gov/usgs/traveltime subdir of src to avoid compiling tests and the webservice code
     addExternalProject("$projectDir/lib/neic-traveltime",
-      "https://github.com/usgs/neic-traveltime.git", "src")
+      "https://github.com/jpatton-USGS/neic-traveltime.git", "web-service", "src/main/java/gov/usgs/traveltime")
 
     // earthquake-processing-formats
+    // grab the main subdir of src to avoid compiling tests
     addExternalProject("$projectDir/lib/earthquake-processing-formats",
-      "https://github.com/usgs/earthquake-processing-formats.git", "java/src")
+      "https://github.com/usgs/earthquake-processing-formats.git", "master", "java/src/main")
 
     // earthquake-detection-formats
+    // grab the main subdir of src to avoid compiling tests
     addExternalProject("$projectDir/lib/earthquake-detection-formats",
-      "https://github.com/usgs/earthquake-detection-formats.git", "java/src")
+      "https://github.com/usgs/earthquake-detection-formats.git", "master", "java/src/main")
   }
 }
 

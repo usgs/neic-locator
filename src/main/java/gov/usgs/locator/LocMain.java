@@ -575,7 +575,7 @@ public class LocMain {
     if (request != null) {
       try {
         // set up service
-        LocService service = new LocService(modelPath);
+        LocService service = new LocService(modelPath, modelPath);
         result = service.getLocation(request);
       } catch (LocationException e) {
         LOGGER.severe("Exception: " + e.toString());

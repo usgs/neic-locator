@@ -16,6 +16,9 @@ public class LocService implements LocationService {
   /** A String containing the earth model path for the locator, null to use default. */
   private String modelPath = null;
 
+  /** A String containing the serialized path for the locator, null to use default. */
+  private String serializedPath = null;
+
   /** Private logging object. */
   private static final Logger LOGGER = Logger.getLogger(LocService.class.getName());
 
@@ -24,8 +27,9 @@ public class LocService implements LocationService {
    *
    * @param modelPath A String containing the earth model path to use
    */
-  public LocService(String modelPath) {
+  public LocService(String modelPath, String serializedPath) {
     this.modelPath = modelPath;
+    this.serializedPath = serializedPath;
   }
 
   /**
@@ -99,7 +103,7 @@ public class LocService implements LocationService {
     // init the tt models
     TTSessionLocal ttLocal = null;
     try {
-      ttLocal = new TTSessionLocal(true, true, true, modelPath);
+      ttLocal = new TTSessionLocal(true, true, true, modelPath, serializedPath);
     } catch (IOException | ClassNotFoundException e) {
       LOGGER.severe("Unable to read travel-time auxiliary data.");
       e.printStackTrace();
