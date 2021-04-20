@@ -154,7 +154,7 @@ task cloneExternalProjects {
     //  "https://github.com/usgs/neic-traveltime.git", "master", "src/main/java/gov/usgs/traveltime")
     // grab src/main/java/gov/usgs/traveltime subdir of src to avoid compiling tests and the webservice code
     addExternalProject("$projectDir/lib/neic-traveltime",
-      "https://github.com/jpatton-USGS/neic-traveltime.git", "web-service", "src/main/java/gov/usgs/traveltime")
+      "https://github.com/usgs/neic-traveltime.git", "master", "src/main/java/gov/usgs/traveltime")
 
     // earthquake-processing-formats
     // grab the main subdir of src to avoid compiling tests
