@@ -20,6 +20,9 @@ public class LocatorController {
   @Value("${locator.model.path:./build/models/}")
   protected String modelPath;
 
+  @Value("${locator.serialized.path:./build/models/}")
+  protected String serializedPath;
+
   @Get(uri = "/", produces = MediaType.TEXT_HTML)
   @Hidden
   public HttpResponse getIndex() {
@@ -28,7 +31,7 @@ public class LocatorController {
 
   @Post(uri = "/locate", consumes = MediaType.APPLICATION_JSON)
   public LocationResult getLocation(@Body LocationRequest request) throws LocationException {
-    LocService service = new LocService(modelPath);
+    LocService service = new LocService(modelPath, serializedPath);
     return service.getLocation(request);
   }
 }

@@ -174,6 +174,16 @@ public class LocOutput extends LocationResult {
       this.LocatorExitCode = "DidNotMove";
     } else if (locatorExitCode == LocStatus.ERRORS_NOT_COMPUTED) {
       this.LocatorExitCode = "ErrorsNotComputed";
+    } else if (locatorExitCode == LocStatus.NOT_ENOUGH_DATA) {
+      this.LocatorExitCode = "NotEnoughData";
+    } else if (locatorExitCode == LocStatus.DID_NOT_CONVERGE) {
+      this.LocatorExitCode = "DidNotConverge";
+    } else if (locatorExitCode == LocStatus.BAD_EVENT_INPUT) {
+      this.LocatorExitCode = "BadInput";
+    } else if (locatorExitCode == LocStatus.BAD_READ_TT_DATA) {
+      this.LocatorExitCode = "CouldNotReadTTData";
+    } else if (locatorExitCode == LocStatus.BAD_READ_AUX_DATA) {
+      this.LocatorExitCode = "CouldNotReadAuxData";
     } else if (locatorExitCode == LocStatus.LOCATION_FAILED) {
       this.LocatorExitCode = "Failed";
     } else {
