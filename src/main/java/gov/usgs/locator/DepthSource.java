@@ -19,16 +19,36 @@ public enum DepthSource {
 	 */
 	ZONESHALLOW,
 	/**
+	 * Shallow earthquake depth from NewZoneStats.
+	 */
+	NEWZONESHALLOW,
+	/**
+	 * Shallow earthquake depth from the mixed Gaussian ZoneStats.
+	 */
+	MIXZONESHALLOW,
+	/**
 	 * For a shallow slab, events may be possible from the slab to the 
 	 * surface due to cracking in the crust above the slab.
 	 */
 	SLABINTERFACE,
 	/**
-	 * For a zone near the base of the crust, events may be possible 
+	 * For an old zone near the base of the crust, events may be possible 
 	 * from the deep zone to the surface due to cracking in the crust 
 	 * above the slab.
 	 */
 	ZONEINTERFACE,
+	/**
+	 * For a new zone near the base of the crust, events may be possible 
+	 * from the deep zone to the surface due to cracking in the crust 
+	 * above the slab.
+	 */
+	NEWZONEINTERFACE,
+	/**
+	 * For a mixed Gaussian zone near the base of the crust, events may 
+	 * be possible from the deep zone to the surface due to cracking in 
+	 * the crust above the slab.
+	 */
+	MIXZONEINTERFACE,
 	/**
 	 * Events deeper than the shallow range are typically derived from 
 	 * the slab model.
@@ -36,7 +56,17 @@ public enum DepthSource {
 	SLABMODEL,
 	/**
 	 * Deep events for which no slab has been modeled should be picked 
-	 * up from earthquake statistics.
+	 * up from old ZoneStats earthquake statistics.
 	 */
-	ZONESTATS;
+	ZONESTATS,
+	/**
+	 * Deep events for which no slab has been modeled should be picked 
+	 * up from new ZoneStats earthquake statistics.
+	 */
+	NEWZONESTATS,
+	/**
+	 * Deep events for which no slab has been modeled should be picked 
+	 * up from the mixed Gaussian ZoneStats earthquake statistics.
+	 */
+	MIXZONESTATS;
 }

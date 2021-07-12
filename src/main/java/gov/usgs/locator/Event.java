@@ -1327,4 +1327,19 @@ public class Event {
 
     return neicOutput;
   }
+  
+  /**
+   * Temporary method supporting synthetic location experiments.
+   * 
+   * @return String suitable for synthetic location statistics
+   */
+  public String getSynthOut() {
+    double latStep = LocUtil.DEG2KM * (hypo.getLatitude() - hypoAuditList.get(0).getLatitude());
+    double lonStep = LocUtil.DEG2KM * hypo.getCoLatitudeSine() * (hypo.getLongitude() - 
+    		hypoAuditList.get(0).getLongitude());
+    double depStep = hypo.getDepth() - hypoAuditList.get(0).getDepth();
+  	return String.format("%s %4d %4d %7.2f %7.2f %7.2f %6.2f %6.2f %6.2f", id.substring(11), 
+  			numPhasesAssociated, numPhasesUsed, latStep, lonStep, depStep, latitudeStandardError, 
+  			longitudeStandardError, depthStandardError);
+  }
 }

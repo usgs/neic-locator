@@ -289,6 +289,24 @@ public class SlabArea implements Serializable {
 	}
 	
 	/**
+	 * Check the status of all rows in this area for debugging purposes.
+	 */
+	public void rowCensus() {
+		System.out.println("\t" + this);
+		double lat = slabRows.get(0).getLat() - slabInc;
+		for(int j = 0; j < slabRows.size(); j++) {
+			lat += slabInc;
+			while(Math.abs(slabRows.get(j).getLat() - lat) > TauUtil.DTOL) {
+				System.out.format("\t\tMissing row (lat = %6.2f)\n", lat);
+				lat += slabInc;
+			}
+			if(slabRows.get(j).isDummyRow()) {
+				System.out.format("\t\tDummy row (lat = %6.2f)\n", lat);
+			}
+		}
+	}
+	
+	/**
 	 * Print a summary of the slab area.
 	 * 
 	 * @param full If true, print row and segment summaries as well

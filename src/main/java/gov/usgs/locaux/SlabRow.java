@@ -33,6 +33,19 @@ public class SlabRow implements Serializable {
 	}
 	
 	/**
+	 * See if this row is a dummy (i.e., has no data).
+	 * 
+	 * @return True if it is a dummy row
+	 */
+	public boolean isDummyRow() {
+		if(slabSegs != null) {
+			return false;
+		} else {
+			return true;
+		}
+	}
+	
+	/**
 	 * The constructor just sets up storage for raw slab depth points.
 	 */
 	public SlabRow() {

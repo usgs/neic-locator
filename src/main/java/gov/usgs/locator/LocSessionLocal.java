@@ -78,6 +78,8 @@ public class LocSessionLocal {
 			// Locate object with that resolution, and save it for next time.
 			if(locate == null) {
 				Slabs slabStats = getSlabRes(slabRes);
+				// Debug check on the consistency of the slab rows.
+		//	slabStats.doRowCensus();
 		    locate = new Locate(event, ttLocal, auxLoc, slabStats);
 		    locByRes.put(slabRes, locate);
 			}

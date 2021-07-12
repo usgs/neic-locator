@@ -111,6 +111,16 @@ public class Slabs implements Serializable {
 	}
 	
 	/**
+	 * Do a debug check on the status of all rows in all areas.
+	 */
+	public void doRowCensus() {
+		System.out.println("\nRow Census by Area");
+		for(SlabArea area : slabAreas) {
+			area.rowCensus();
+		}
+	}
+	
+	/**
 	 * Print a summary of all slab areas.
 	 * 
 	 * @param full If true, print summaries of rows and segments as well

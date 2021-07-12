@@ -396,9 +396,15 @@ public class Hypocenter {
     this.bayesianDepth = Math.min(Math.max(bayesianDepth, LocUtil.DEPTHMIN), LocUtil.DEPTHMAX);
     this.bayesianDepthSpread = bayesianDepthSpread;
 
-    depth = bayesianDepth;
-    bayesianDepthResidual = 0d;
-    bayesianDepthWeight = 1d / bayesianDepthSpread;
+    if(LocUtil.isSynthetic) {
+    	// For a synthetic run, let the depth float so we can see how much it moves.
+      bayesianDepthResidual = bayesianDepth - depth;
+    } else {
+    	//If this isn't a synthetic run, start at the manually set depth.
+    	depth = bayesianDepth;
+      bayesianDepthResidual = 0d;
+    }
+    bayesianDepthWeight = LocUtil.BAYESIANSTRENGTH / bayesianDepthSpread;
   }
 
   /**
@@ -535,7 +541,7 @@ public class Hypocenter {
     bayesianDepthResidual = bayesianDepth - depth;
 
     // The Bayesian spread is actually taken as a 90th percentile.
-    bayesianDepthWeight = 1d / bayesianDepthSpread;
+    bayesianDepthWeight = LocUtil.BAYESIANSTRENGTH / bayesianDepthSpread;
   }
 
   /**
