@@ -5,9 +5,15 @@ import gov.usgs.locator.Hypocenter;
 import gov.usgs.locator.Pick;
 import gov.usgs.locator.Station;
 import gov.usgs.traveltime.TauUtil;
+
+import java.io.BufferedWriter;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.TimeZone;
+
+import org.json.simple.JSONObject;
 
 /**
  * The LocUtil class maintains the locator static constants and common utilities.
@@ -93,6 +99,9 @@ public class LocUtil {
   
   /** Minimum slab latitude-longitude spacing to define a new tilted slabs area */
   public static final double TILTEDAREAINCREMENT = 7.0d;
+  
+  /** The strength of the Bayesian condition relative to the pick data. */
+  public static final double BAYESIANSTRENGTH = 0.0001d;
 
   /** A double constant representing the factor to down weight undesirable phase identifications. */
   public static final double DOWNWEIGHT = 0.5d;
@@ -280,6 +289,9 @@ public class LocUtil {
    */
   public static boolean isTectonic = false;
 
+  /** Normally false.  Set true only if this is a synthetic bayesian depth test. */
+  public static final boolean isSynthetic = true;
+  
   /**
    * A double containing the receiver azimuth relative to the source in degrees clockwise from north
    * (available after calling computeDistAzm).
@@ -402,6 +414,11 @@ public class LocUtil {
    */
   private static final double MAXGT5AZMLESTGAP = 160d;
 
+  /**
+   * A buffered writer handle for recording bits and pieces from around the Locator for debugging 
+   * experiments.
+   */
+  private static BufferedWriter recordOut = null;
   /*
    * A double representing the system time, used as a timer. Needed by
    * startTimer and endTimer.
@@ -920,6 +937,59 @@ public class LocUtil {
       return 'F';
     }
   }
+  
+  /**
+   * This function extracts a number from a JSON object and returns it as an int.  
+   * JSON only knows about String, Double, and Long.  Getting a primitive int 
+   * generally requires converting a Long into an int.
+   * 
+   * @param JSONobj A JSON object
+   * @param key Key string for the desired field
+   * @return The field converted to an int
+   */
+  public static int getJSONInt(JSONObject JSONobj, String key) {
+  	Number tempNumber;
+  	
+  	try {
+  		// Assume we have a number (or a null).
+  		tempNumber = (Number) JSONobj.get(key);
+  		if(tempNumber != null) {
+  			return tempNumber.intValue();
+  		} else {
+  			return -1;
+  		}
+  	} catch (ClassCastException e) {
+  		// Apparently, we have something else (probably a String).
+  		return -1;
+  	}
+  }
+	
+  /**
+   * This function extracts a number from a JSON object and returns it as a double.  
+   * JSON only knows about String, Double, and Long.  Getting a primitive double 
+   * requires converting either a Double or Long into a double.
+   * 
+   * 
+   * @param JSONobj A JSON object
+   * @param key Key string for the desired field
+   * @return The field converted to a double
+   */
+	public static double getJSONDouble(JSONObject JSONobj, String key) {
+		Number tempNumber;
+		
+		try {
+			// Assume we have a number (or a null).
+			tempNumber = (Number) JSONobj.get(key);
+			if(tempNumber != null) {
+				return tempNumber.doubleValue();
+			} else {
+				return Double.NaN;
+			}
+		} catch (ClassCastException e) {
+			// Apparently, we have something else (probably a String).
+			return Double.NaN;
+		}
+	}
 
   /**
    * This function prints a double vector to the screen for debugging purposes.
@@ -995,6 +1065,39 @@ public class LocUtil {
     }
 
     return matrixString;
+  }
+  
+  /**
+   * Simple file writer for gathering information from throughout the Locator for various 
+   * experiments.  Note this is quick and dirty.  The file name is hard wired, so it will 
+   * be overwritten each time it is opened.  If the string input is null, the file will 
+   * be closed.
+   * 
+   * @param line Text to write the the Record.txt file.
+   */
+  public static void record(String line) {
+  	if(line != null) {
+	  	if(recordOut == null) {
+	  		try {
+					recordOut = new BufferedWriter(new FileWriter("../../LocRun/output/Record.txt"));
+				} catch (IOException e) {
+					System.out.println("Unable to open the Record.txt file");
+				}
+	  	}
+	  	try {
+				recordOut.write(line + "\n");
+			} catch (IOException e) {
+				System.out.println("Unable to record: " + line);
+			}
+  	} else {
+  		if(recordOut != null) {
+  			try {
+					recordOut.close();
+				} catch (IOException e) {
+					System.out.println("Unable to close the Record.txt file");
+				}
+  		}
+  	}
   }
 
   /**

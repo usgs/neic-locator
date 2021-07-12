@@ -424,23 +424,17 @@ public class Stepper {
   		 * depth order).  If the Bayesian condition was set up as a sum of Gaussians, we 
   		 * would be done.
   		 */
-      System.out.println("Bayesian depths:");
+			LOGGER.fine("Bayesian depths:");
   		for(BayesianDepth bayes : bayesList) {
-  			System.out.println("\t" + bayes);
+  			LOGGER.fine("\t" + bayes);
   		}
-  /*	if(LOGGER.getLevel() == Level.FINE) {
-  			LOGGER.fine("Bayesian depths:");
-	  		for(BayesianDepth bayes : bayesList) {
-	  			LOGGER.fine("\t" + bayes);
-	  		}
-  		} */
   		/*
   		 * In the current incarnation, the Locator can only handle one Bayesian 
   		 * condition, so we need to pick one based on the current hypocentral depth.
   		 */
       BayesianDepth bayesDepth = bestBayesDepth(bayesList, hypo.getDepth());
-      System.out.println("Chosen Bayesian depth: " + bayesDepth);
       hypo.updateBayes(bayesDepth.getDepth(), bayesDepth.getSpread());
+//    LocUtil.record("\tBayesian depth: " + bayesDepth);
     }
     LOGGER.fine(
         String.format(
@@ -466,7 +460,7 @@ public class Stepper {
 		ArrayList<SlabDepth> slabDepths;
 		ArrayList<BayesianDepth> bayesList;
 		
-		// Create the empth list.
+		// Create the empty list.
 		bayesList = new ArrayList<BayesianDepth>();
 		// First add the default shallow zone.
 		bayesList.add(new BayesianDepth(LocUtil.DEFAULTDEPTH, LocUtil.DEFAULTDEPTHSE, 
@@ -638,6 +632,20 @@ public class Stepper {
             hypo.getVerticalStepLength(),
             hypo.getEstimatorRMSEquivalent(),
             status));
+/*  LocUtil.record(
+        String.format(
+            "\t%s: %1d %2d %5d %8.4f %8.4f %6.2f del= %5.1f %6.1f " + "rms= %6.2f %s",
+            id,
+            stage,
+            iteration,
+            used,
+            hypo.getLatitude(),
+            hypo.getLongitude(),
+            hypo.getDepth(),
+            hypo.getHorizontalStepLength(),
+            hypo.getVerticalStepLength(),
+            hypo.getEstimatorRMSEquivalent(),
+            status)); */
   }
   
   /**
