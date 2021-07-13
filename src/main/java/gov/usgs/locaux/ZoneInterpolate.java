@@ -41,15 +41,15 @@ public class ZoneInterpolate {
 		// Set up the epicenter.
 		trial = new GeoPoint(zoneStats.coLat, zoneStats.coLon);
 		// Debug print.
-		System.out.println("Epicenter: " + trial);
+//		System.out.println("Epicenter: " + trial);
 		// Generate surrounding Zone cells.
 		coords = getCenters(trial, zoneStats);
 		// Sort them by distance to the earthquake
 		coords.sort(null);
 		// Debug print.
-		for(GeoPoint sample : coords) {
+/*		for(GeoPoint sample : coords) {
 			System.out.println(sample);
-		}
+		} */
 		// Interpolate from the three closest cell centers to get the depth at the 
 		// epicenter.
 		source = zoneStats.getDepthSource();
@@ -64,7 +64,7 @@ public class ZoneInterpolate {
    * @return A list of ZoneStats points (or cell centers)
    */
    public ArrayList<GeoPoint> getCenters(GeoPoint trial, AbstractZoneStats zoneStats) {
-  	int latIndex, lonIndex;
+  	int latIndex, lonIndex, jWrapped;
   	double coLat;
 	  ArrayList<GeoPoint> coords;
 	  
@@ -76,8 +76,9 @@ public class ZoneInterpolate {
 	  lonIndex = zoneStats.lonIndex;
 	  coLat = zoneStats.latFromIndex(latIndex);
   	for(int j = lonIndex - 1; j <= lonIndex + 1; j++) {
-  		coords.add(new GeoPoint(coLat, zoneStats.lonFromIndex(latIndex, j), trial));
-  		coords.get(coords.size() - 1).setDepth(zoneStats.getBayesDepth(latIndex, j));
+  		jWrapped = zoneStats.wrapLonIndex(latIndex, j);
+  		coords.add(new GeoPoint(coLat, zoneStats.lonFromIndex(latIndex, jWrapped), trial));
+  		coords.get(coords.size() - 1).setDepth(zoneStats.getBayesDepth(latIndex, jWrapped));
   	}
   	
   	// Decide which latitude row will best bracket the trial point.  Note that we 
@@ -89,8 +90,9 @@ public class ZoneInterpolate {
   		lonIndex = zoneStats.newLonIndex(latIndex, trial.getLon());
   		coLat = zoneStats.latFromIndex(latIndex);
 	  	for(int j = lonIndex - 1; j <= lonIndex + 1; j++) {
-	  		coords.add(new GeoPoint(coLat, zoneStats.lonFromIndex(latIndex, j), trial));
-	  		coords.get(coords.size() - 1).setDepth(zoneStats.getBayesDepth(latIndex, j));
+	  		jWrapped = zoneStats.wrapLonIndex(latIndex, j);
+	  		coords.add(new GeoPoint(coLat, zoneStats.lonFromIndex(latIndex, jWrapped), trial));
+	  		coords.get(coords.size() - 1).setDepth(zoneStats.getBayesDepth(latIndex, jWrapped));
 	  	}
   	} else {
   		// Add the longitude points in the latitude row below the base latitude row.
@@ -98,8 +100,9 @@ public class ZoneInterpolate {
   		lonIndex = zoneStats.newLonIndex(latIndex, trial.getLon());
   		coLat = zoneStats.latFromIndex(latIndex);
 	  	for(int j = lonIndex - 1; j <= lonIndex + 1; j++) {
-	  		coords.add(new GeoPoint(coLat, zoneStats.lonFromIndex(latIndex, j), trial));
-	  		coords.get(coords.size() - 1).setDepth(zoneStats.getBayesDepth(latIndex, j));
+	  		jWrapped = zoneStats.wrapLonIndex(latIndex, j);
+	  		coords.add(new GeoPoint(coLat, zoneStats.lonFromIndex(latIndex, jWrapped), trial));
+	  		coords.get(coords.size() - 1).setDepth(zoneStats.getBayesDepth(latIndex, jWrapped));
 	  	}
   	}
   	return coords;
@@ -129,9 +132,9 @@ public class ZoneInterpolate {
 			coords.remove(2);
 		}
 		// Debug print.
-		for(int j = 0; j < 3; j++) {
+/*		for(int j = 0; j < 3; j++) {
 			System.out.println("Poly: " + j + " " + coords.get(j));
-		}
+		} */
 		
 		// Get the 3-vectors needed by the interpolation.
 		deepest = 0d;
@@ -160,12 +163,12 @@ public class ZoneInterpolate {
 		}
 		// Debug print.
 		for(int j = 0; j < 3; j++) {
-			if(vectors[j] != null) {
+/*			if(vectors[j] != null) {
 				System.out.format("Vector: %d (%5.2f, %5.2f, %6.2f)\n", j, vectors[j][0], 
 						vectors[j][1], vectors[j][2]);
 			} else {
 				System.out.format("Vector: %d null\n", j);
-			}
+			} */
 		}
 		
 		// Do linear interpolation.
@@ -173,7 +176,7 @@ public class ZoneInterpolate {
 		case 0:
 			// We have three points.  Fit a plane to the triangle defined by the polygon.
 			Linear.twoD(vectors[0], vectors[1], vectors[2], result);
-			System.out.format("3-point interpolation: %4.2f\n", result[2]);
+//			System.out.format("3-point interpolation: %4.2f\n", result[2]);
 			return new BayesianDepth(result[2], LocUtil.DEFAULTSLABSE, source);
 		case 1:
 			// We have two points.  Interpolate using the intersection between the line and 
@@ -186,8 +189,8 @@ public class ZoneInterpolate {
 			}
 			intersect = Linear.intersect(vectors[0], vectors[1], result);
 			Linear.oneD(vectors[0], vectors[1], intersect);
-			System.out.format("Intersect: %5.2f %6.2f %4.2f\n", intersect[0], intersect[1], 
-					intersect[2]);
+//			System.out.format("Intersect: %5.2f %6.2f %4.2f\n", intersect[0], intersect[1], 
+//					intersect[2]);
 			// Inflate the error to reflect the edge uncertainty.
 			return new BayesianDepth(intersect[2], 1.5d * LocUtil.DEFAULTSLABSE, 
 					source);

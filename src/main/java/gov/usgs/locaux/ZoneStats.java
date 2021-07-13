@@ -208,6 +208,19 @@ public class ZoneStats extends AbstractZoneStats implements Serializable {
       return 0;
     }
 	}
+	
+	@Override
+	protected int wrapLonIndex(int latIndex, int lonIndex) {
+		if(lonIndex >= 0 && lonIndex < 360) {
+			return lonIndex;
+		} else {
+			if(lonIndex < 0) {
+				return 360 + lonIndex;
+			} else {
+				return lonIndex - 360;
+			}
+		}
+	}
 
 	@Override
 	protected double latFromIndex(int latIndex) {

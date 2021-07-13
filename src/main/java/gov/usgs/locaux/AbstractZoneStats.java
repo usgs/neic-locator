@@ -161,6 +161,16 @@ public abstract class AbstractZoneStats implements Serializable {
 	protected abstract int newLonIndex(int latIndex, double coLon);
 	
 	/**
+	 * When looking for neighboring samples in longitude, it may be necessary to 
+	 * wrap the longitude index.
+	 * 
+	 * @param latIndex Colatitude row index
+	 * @param lonIndex Longitude column index
+	 * @return Valid longitude column index
+	 */
+	protected abstract int wrapLonIndex(int latIndex, int lonIndex);
+	
+	/**
 	 * Compute the coordinates for any pair of latitude/longitude indices.  Note 
 	 * that for point models, these are the coordinates of the point, but for 
 	 * cell models, these are the center point of the cell.  The indices and 

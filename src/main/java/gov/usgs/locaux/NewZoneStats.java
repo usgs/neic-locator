@@ -186,6 +186,23 @@ public class NewZoneStats extends AbstractZoneStats implements Serializable {
 	}
 	
 	@Override
+	protected int wrapLonIndex(int latIndex, int lonIndex) {
+		if(lonIndex >= 0 && lonIndex < latRows[latIndex].numLons) {
+			return lonIndex;
+		} else {
+			if(lonIndex < 0) {
+//				System.out.format("\tWrap: lonIndex = %d => %d (%d)\n", lonIndex, 
+//						latRows[latIndex].numLons + lonIndex, latRows[latIndex].numLons);
+				return latRows[latIndex].numLons + lonIndex;
+			} else {
+//				System.out.format("\tWrap: lonIndex = %d => %d (%d)\n", lonIndex, 
+//						lonIndex - latRows[latIndex].numLons, latRows[latIndex].numLons);
+				return lonIndex - latRows[latIndex].numLons;
+			}
+		}
+	}
+	
+	@Override
 	protected double latFromIndex(int latIndex) {
 		double coLat = firstRowLat + latIndex * latSpacing;
 		if(coLat < 0d || coLat > 180d) {
@@ -219,10 +236,13 @@ public class NewZoneStats extends AbstractZoneStats implements Serializable {
    */
   public void doTest() {
 //  	double lat = 42.6040, lon = 132.0885;
-  	double lat = -63.8000, lon = 298.1089;
+//  	double lat = -63.8000, lon = 298.1089;
 //  	double lat = -89.9d, lon = 90d;
+  	int maxTrials = 1000000, depthFound = 0;
+  	double lat, lon;
+  	BayesianDepth bayes;
   	
-  	System.out.format("Init: firstRowLat = %8.4f lastRowLat = %8.4f latSpacing = %6.4f lastRowLat = %8.4f\n", 
+/*  	System.out.format("Init: firstRowLat = %8.4f lastRowLat = %8.4f latSpacing = %6.4f lastRowLat = %8.4f\n", 
   			firstRowLat, lastRowLat, latSpacing, lastRowLat);
   	canonicalCoords(lat, lon);
   	getIndices();
@@ -239,6 +259,21 @@ public class NewZoneStats extends AbstractZoneStats implements Serializable {
   	}
   	
   	BayesianDepth bayes = interpolateBayesDepth(lat, lon);
-  	System.out.println(bayes);
+  	System.out.println(bayes); */
+  	
+		for(int i = 0; i < maxTrials; i++) {
+			// Generate the hypocenter.
+			lat = 180d * (Math.random() - 0.5d);
+			lon = 360d * (Math.random() - 0.5d);
+			// Run the Bayesian depth algorithm.
+      bayes = interpolateBayesDepth(lat, lon);
+      if(!Double.isNaN(bayes.getDepth())) {
+      	depthFound++;
+	      System.out.format("i = %5d lat = %8.4f lon = %9.4f depth = %6.2f\n", 
+	      		i, lat, lon,bayes.getDepth());
+      }
+		}
+		System.out.format("A valid depth was found in %6.2f%% of cases.\n", 
+				(100d * depthFound) / maxTrials);
   }
 }
