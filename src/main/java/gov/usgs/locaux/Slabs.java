@@ -3,6 +3,8 @@ package gov.usgs.locaux;
 import java.io.Serializable;
 import java.util.ArrayList;
 
+import gov.usgs.locator.BayesianDepth;
+
 /**
  * Provides the primary interface to all the slab data.
  *
@@ -78,10 +80,10 @@ public class Slabs implements Serializable {
 	 * @param lon Geographic longitude in degrees
 	 * @return List of slab depths
 	 */
-	public ArrayList<SlabDepth> getDepth(double lat, double lon) {
+	public ArrayList<BayesianDepth> getDepth(double lat, double lon) {
 		double lat0, lon0;
 		SlabDepth depth;
-		ArrayList<SlabDepth> depths = null;
+		ArrayList<BayesianDepth> depths = null;
 		
 		// The slab lookup works in colatitude and longitude from 0 to 360 
 		// degrees
@@ -96,9 +98,9 @@ public class Slabs implements Serializable {
 				depth = area.getDepth(lat0, lon0);
 				if(depth != null) {
 					if(depths == null) {
-						depths = new ArrayList<SlabDepth>();
+						depths = new ArrayList<BayesianDepth>();
 					}
-					depths.add(depth);
+					depths.add(new BayesianDepth(depth));
 				}
 			}
 		}

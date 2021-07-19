@@ -45,9 +45,6 @@ public abstract class AbstractZoneStats implements Serializable {
   /** An integer containing the longitude index corresponding to coLon above. */
   protected int lonIndex = -1;
 
-  /** A double containing the best Bayesian spread from the zone statistics in kilometers. */
-  protected double bayesSpread = Double.NaN;
-
   /**
    * The coLat value is computed by the latest call to canonicalCoords.
    * 
@@ -83,25 +80,30 @@ public abstract class AbstractZoneStats implements Serializable {
   public int getLonIndex() {
   	return lonIndex;
   }
-  
-  /**
-   * The function to get the best Bayesian spread from the zone statistics. Note 
-   * that this value is computed by the latest call to bayesDepth.
-   *
-   * @return A double containing the best Bayesian spread from the zone statistics 
-   * in kilometers.
-   */
-  public double getBayesSpread() {
-    return bayesSpread;
-  }
 
+  /**
+   * Compute the Bayesian depth from the ZoneStats information.  Note that this 
+   * returns the values from the nearest grid point.
+   * 
+   * @param latitude Geographic latitude in degrees
+   * @param longitude Geographic longitude in degrees
+   * @return A summary of the depth statistics
+   */
+  public BayesianDepth getBayesDepth(double latitude, double longitude) {
+  	canonicalCoords(latitude, longitude);
+  	getIndices();
+  	return getBayesDepth(latIndex, lonIndex);
+  }
+  
 	/**
-	 * Compute the Bayesian depth from the ZoneStats information.
+	 * Compute the Bayesian depth from the ZoneStats information.  Note that this 
+	 * returns the values from the nearest grid point.
 	 * 
 	 * @param latIndex The colatitude row index
 	 * @param lonIndex The longitude row index
+	 * @return A summary of the depth statistics
 	 */
-	public abstract double getBayesDepth(int latIndex, int lonIndex);
+	protected abstract BayesianDepth getBayesDepth(int latIndex, int lonIndex);
 	
 	/**
 	 * Compute an interpolated Bayesian depth from the ZoneStats information.

@@ -59,6 +59,17 @@ public class LocUtil {
   public static final double DEFAULTDEPTHSE = 5d;
   
   /**
+   * A double constant representing the mid-crustal depth in kilometers (roughly the depth to 
+   * the Conrad discontinuity, if any).
+   */
+  public static final double MIDCRUSTDEPTH = 20d;
+  
+  /**
+   * A double constant representing the default standard error for shallow events in the lower crust.
+   */
+  public static final double LOWERCRUSTSE = 15d;
+  
+  /**
    * If the statistics are any good, the deepest shallow event should be no deeper than the 
    * default shallow depth plus three standard deviations (i.e., a 99% level).
    */

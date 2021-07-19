@@ -121,7 +121,7 @@ public class ZoneStats extends AbstractZoneStats implements Serializable {
   }
 	
 	@Override
-	public double getBayesDepth(int latIndex, int lonIndex) {
+	public BayesianDepth getBayesDepth(int latIndex, int lonIndex) {
     // Get the raw statistics.
     ZoneStat stat = getStats(latIndex, lonIndex);
     
@@ -144,16 +144,6 @@ public class ZoneStats extends AbstractZoneStats implements Serializable {
           minDepth = maxDepth - LocUtil.DEFAULTDEPTHSE;
         }
       }
-      // Compute the Bayesian depth and spread.
-    	bayesSpread =
-  				Math.max(Math.max(maxDepth - meanDepth, meanDepth - minDepth) / 3d, 
-  					LocUtil.DEFAULTDEPTHSE);
-      
-      // Print the Bayesian depth and spread.
-  /*  if(LOGGER.getLevel() == Level.FINE) {
-      	LOGGER.fine(String.format("BayesDepth: %6.2f < %6.2f < %6.2f +/- %6.2f\n", minDepth, 
-      			meanDepth, maxDepth, bayesSpread));
-      } */
       
       /*
        * Oddly, the mean depth seems to be a better indicator of a deep earthquake zone than 
@@ -163,11 +153,10 @@ public class ZoneStats extends AbstractZoneStats implements Serializable {
        * way too deep because of poor depth control (events with depth controlled by P-pP times 
        * were held to the average P-pP depth) and so were not counted in the mean free depth).
        */
-      return meanDepth;
+      return new BayesianDepth(meanDepth, minDepth / 3d, maxDepth / 3d, getDepthSource(), 
+      		LocUtil.DEFAULTDEPTHSE);
     } else {
-    	// If there are no statistics, default to a shallow source.
-    	bayesSpread = LocUtil.DEFAULTDEPTHSE;
-    	return LocUtil.DEFAULTDEPTH;
+    	return null;
     }
 	}
 

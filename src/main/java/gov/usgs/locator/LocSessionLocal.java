@@ -12,6 +12,7 @@ import java.util.TreeMap;
 
 import gov.usgs.locaux.AuxLocRef;
 import gov.usgs.locaux.LocUtil;
+import gov.usgs.locaux.NewZoneStats;
 import gov.usgs.locaux.SlabArea;
 import gov.usgs.locaux.SlabPoint;
 import gov.usgs.locaux.SlabRow;
@@ -119,7 +120,7 @@ public class LocSessionLocal {
     }
     // Fiddle the slab master file to get the required resolution.
     absNames[0] = absNames[0].substring(0, absNames[0].indexOf(".txt")) + slabRes + ".txt";
-    System.out.println("Slab file: " + absNames[0]);
+//    System.out.println("Slab file: " + absNames[0]);
 
     // If any of the raw input files have changed, regenerate the serialized file.
     serializedFileName = "slab" + slabRes + ".ser";
@@ -356,7 +357,17 @@ public class LocSessionLocal {
   	return new SlabPoint(lat, lon, center, lower, upper);
   }
   
+  /**
+   * @return A pointer to the ZoneStats class
+   */
   public ZoneStats getZoneStats() {
   	return auxLoc.getZoneStats();
+  }
+  
+  /**
+   * @return A pointer to the NewZoneStats class
+   */
+  public NewZoneStats getNewZoneStats() {
+  	return auxLoc.getNewZoneStats();
   }
 }

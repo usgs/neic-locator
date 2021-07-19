@@ -28,6 +28,8 @@ public class NewZoneStats extends AbstractZoneStats implements Serializable {
   
 	/** Array of latitude rows. */
 	private NewZoneRow[] latRows;
+	
+	protected static AuxLocRef auxLoc;
 
 	/**
 	 * Initialize ZoneStats storage.
@@ -141,16 +143,16 @@ public class NewZoneStats extends AbstractZoneStats implements Serializable {
 	}
 
 	@Override
-	public double getBayesDepth(int latIndex, int lonIndex) {
+	public BayesianDepth getBayesDepth(int latIndex, int lonIndex) {
 		NewZonePoint point;
 		
 		point = getStats(latIndex, lonIndex);
 		if(point != null) {
-			bayesSpread = point.getDepthError();
-			return point.getDepth();
+			return new BayesianDepth(point.getDepth(), 
+					Math.max(point.getDepthError(), LocUtil.DEFAULTDEPTHSE), 
+					getDepthSource());
 		} else {
-			bayesSpread = Double.NaN;
-			return Double.NaN;
+			return null;
 		}
 	}
   
@@ -191,12 +193,8 @@ public class NewZoneStats extends AbstractZoneStats implements Serializable {
 			return lonIndex;
 		} else {
 			if(lonIndex < 0) {
-//				System.out.format("\tWrap: lonIndex = %d => %d (%d)\n", lonIndex, 
-//						latRows[latIndex].numLons + lonIndex, latRows[latIndex].numLons);
 				return latRows[latIndex].numLons + lonIndex;
 			} else {
-//				System.out.format("\tWrap: lonIndex = %d => %d (%d)\n", lonIndex, 
-//						lonIndex - latRows[latIndex].numLons, latRows[latIndex].numLons);
 				return lonIndex - latRows[latIndex].numLons;
 			}
 		}
@@ -226,7 +224,7 @@ public class NewZoneStats extends AbstractZoneStats implements Serializable {
   public static void main(String[] args) throws ClassNotFoundException, IOException {
   	String modelPath = "../../LocRun/models/";
   	
-		AuxLocRef auxLoc = new AuxLocRef(modelPath);
+		auxLoc = new AuxLocRef(modelPath);
   	NewZoneStats test = auxLoc.getNewZoneStats();
   	test.doTest();
   }
@@ -235,15 +233,17 @@ public class NewZoneStats extends AbstractZoneStats implements Serializable {
    * Do the actual tests here to avoid making everything static.
    */
   public void doTest() {
-//  	double lat = 42.6040, lon = 132.0885;
-//  	double lat = -63.8000, lon = 298.1089;
+//    i = 995386 lat =  83.4908 lon =   -0.2739 depth =  12.43
+//  	double lat = 42.6040d, lon = 132.0885d;
+//  	double lat = -63.8000d, lon = 297.8000d;
 //  	double lat = -89.9d, lon = 90d;
-  	int maxTrials = 1000000, depthFound = 0;
+//  	double lat = 83.4908d, lon = -0.2739d;
+  	int maxTrials = 1000, depthFound = 0;
   	double lat, lon;
-  	BayesianDepth bayes;
+  	BayesianDepth bayesNew, bayesOld;
   	
-/*  	System.out.format("Init: firstRowLat = %8.4f lastRowLat = %8.4f latSpacing = %6.4f lastRowLat = %8.4f\n", 
-  			firstRowLat, lastRowLat, latSpacing, lastRowLat);
+/*  	System.out.format("Init: firstRowLat = %8.4f lastRowLat = %8.4f latSpacing = %6.4f\n", 
+  			firstRowLat, lastRowLat, latSpacing);
   	canonicalCoords(lat, lon);
   	getIndices();
   	System.out.format("lat = %8.4f lon = %9.4f coLat = %8.4f coLon = %9.4f latIndex " + 
@@ -258,22 +258,31 @@ public class NewZoneStats extends AbstractZoneStats implements Serializable {
   		System.out.println("NewZonePoint: null");
   	}
   	
-  	BayesianDepth bayes = interpolateBayesDepth(lat, lon);
+  	bayes = interpolateBayesDepth(lat, lon);
   	System.out.println(bayes); */
   	
-		for(int i = 0; i < maxTrials; i++) {
+  	ZoneStats zoneStats = auxLoc.getZoneStats();
+  	for(int i = 0; i < maxTrials; i++) {
 			// Generate the hypocenter.
 			lat = 180d * (Math.random() - 0.5d);
 			lon = 360d * (Math.random() - 0.5d);
 			// Run the Bayesian depth algorithm.
-      bayes = interpolateBayesDepth(lat, lon);
-      if(!Double.isNaN(bayes.getDepth())) {
+      bayesNew = interpolateBayesDepth(lat, lon);
+      if(bayesNew != null) {
       	depthFound++;
-	      System.out.format("i = %5d lat = %8.4f lon = %9.4f depth = %6.2f\n", 
-	      		i, lat, lon,bayes.getDepth());
+	      bayesOld = zoneStats.interpolateBayesDepth(lat, lon);
+	      if(bayesOld != null) {
+	      	if(Math.abs(bayesNew.getDepth() - bayesOld.getDepth()) > 
+	      			Math.max(30d, 0.2 * Math.max(bayesNew.getDepth(), bayesOld.getDepth()))) {
+			      System.out.format("New: i = %5d lat = %8.4f lon = %9.4f depth = %6.2f +/- %6.2f\n", 
+			      		i, lat, lon, bayesNew.getDepth(), bayesNew.getSpread());
+			      System.out.format("Old: i = %5d lat = %8.4f lon = %9.4f depth = %6.2f +/- %6.2f\n", 
+			      		i, lat, lon, bayesOld.getDepth(), bayesOld.getSpread());
+	      	}
+	      }
       }
 		}
 		System.out.format("A valid depth was found in %6.2f%% of cases.\n", 
-				(100d * depthFound) / maxTrials);
+				(100d * depthFound) / maxTrials); 
   }
 }

@@ -1,5 +1,7 @@
 package gov.usgs.locaux;
 
+import gov.usgs.locator.BayesianDepth;
+
 /**
  * Holds one geographical point for the nearest ZoneStats grid point 
  * (or cell center).
@@ -24,8 +26,8 @@ public class GeoPoint implements Comparable<GeoPoint> {
 	/** Cartesian distance from the trial point. */
 	private double dist;
 	
-	/** Bayesian depth in kilometers. */
-	private double depth;
+	/** Bayesian depth statistics. */
+	private BayesianDepth bayesDepth;
 	
 	/**
 	 * @return Geographical colatitude (0-180 degrees)
@@ -56,15 +58,26 @@ public class GeoPoint implements Comparable<GeoPoint> {
 	/**
 	 * @param depth Bayesian depth in kilometers to set
 	 */
-	public void setDepth(double depth) {
-		this.depth = depth;
+	public void setBayesDepth(BayesianDepth bayesDepth) {
+		this.bayesDepth = bayesDepth;
 	}
 	
 	/**
 	 * @return Bayesian depth in kilometers
 	 */
+	public BayesianDepth getBayesDepth() {
+		return bayesDepth;
+	}
+	
+	/**
+	 * @return The Bayesian depth in kilometers
+	 */
 	public double getDepth() {
-		return depth;
+		if(bayesDepth != null) {
+			return bayesDepth.getDepth();
+		} else {
+			return Double.NaN;
+		}
 	}
 	
 	/**
@@ -81,7 +94,7 @@ public class GeoPoint implements Comparable<GeoPoint> {
 		x = 0d;
 		y = 0d;
 		dist = 0d;
-		depth = Double.NaN;
+		bayesDepth = null;
 	}
 	
 	/**
@@ -101,7 +114,7 @@ public class GeoPoint implements Comparable<GeoPoint> {
 		x = Math.sin(Math.toRadians(lat)) * (lon - reference.getLon());
 		y = reference.getLat() - lat;
 		dist = getDistance();
-		depth = Double.NaN;
+		bayesDepth = null;
 	}
 	
 	/**
@@ -132,15 +145,21 @@ public class GeoPoint implements Comparable<GeoPoint> {
 	/**
 	 * Construct a 3-vector suitable for the linear interpolation.
 	 * 
+	 * @param index Select the depth parameter to include (0 = mean depth, 1 = lower, 
+	 * 2 = upper, and 3 = spread)
 	 * @return A 3-vector containing colatitude, longitude, and maximum 
 	 * ZoneStats earthquake depth
 	 */
-	public double[] getVector() {
-		double[] vector = new double[3];
-		vector[0] = x;
-		vector[1] = y;
-		vector[2] = depth;
-		return vector;
+	public double[] getVector(int index) {
+		if(bayesDepth != null) {
+			double[] vector = new double[3];
+			vector[0] = x;
+			vector[1] = y;
+			vector[2] = bayesDepth.getByIndex(index);
+			return vector;
+		} else {
+			return null;
+		}
 	}
 
 	/**
@@ -173,12 +192,13 @@ public class GeoPoint implements Comparable<GeoPoint> {
 	  
 	  @Override
 	  public String toString() {
-	  	if(Double.isNaN(depth)) {
+	  	if(bayesDepth == null) {
 			  return String.format("%5.2f %6.2f => (%5.2f, %5.2f) dist = %4.2f", 
 					  lat, lon, x, y, dist);
 	  	} else {
 			  return String.format("%5.2f %6.2f => (%5.2f, %5.2f) dist = %4.2f" + 
-			  		" depth = %6.2f", lat, lon, x, y, dist, depth);
+			  		" depth = %6.2f +/- %6.2f", lat, lon, x, y, dist, 
+			  		bayesDepth.getDepth(), bayesDepth.getSpread());
 	  	}
 	  }
 }

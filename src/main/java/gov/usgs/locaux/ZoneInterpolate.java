@@ -40,16 +40,15 @@ public class ZoneInterpolate {
 		}
 		// Set up the epicenter.
 		trial = new GeoPoint(zoneStats.coLat, zoneStats.coLon);
-		// Debug print.
-//		System.out.println("Epicenter: " + trial);
+//	LOGGER.fine("Epicenter: " + trial);
 		// Generate surrounding Zone cells.
 		coords = getCenters(trial, zoneStats);
 		// Sort them by distance to the earthquake
 		coords.sort(null);
 		// Debug print.
-/*		for(GeoPoint sample : coords) {
-			System.out.println(sample);
-		} */
+//	for(GeoPoint sample : coords) {
+//		LOGGER.fine(sample);
+//	}
 		// Interpolate from the three closest cell centers to get the depth at the 
 		// epicenter.
 		source = zoneStats.getDepthSource();
@@ -77,8 +76,10 @@ public class ZoneInterpolate {
 	  coLat = zoneStats.latFromIndex(latIndex);
   	for(int j = lonIndex - 1; j <= lonIndex + 1; j++) {
   		jWrapped = zoneStats.wrapLonIndex(latIndex, j);
-  		coords.add(new GeoPoint(coLat, zoneStats.lonFromIndex(latIndex, jWrapped), trial));
-  		coords.get(coords.size() - 1).setDepth(zoneStats.getBayesDepth(latIndex, jWrapped));
+  		coords.add(new GeoPoint(coLat, zoneStats.lonFromIndex(latIndex, jWrapped), 
+  				trial));
+  		coords.get(coords.size() - 1).setBayesDepth(zoneStats.getBayesDepth(latIndex, 
+  				jWrapped));
   	}
   	
   	// Decide which latitude row will best bracket the trial point.  Note that we 
@@ -91,8 +92,10 @@ public class ZoneInterpolate {
   		coLat = zoneStats.latFromIndex(latIndex);
 	  	for(int j = lonIndex - 1; j <= lonIndex + 1; j++) {
 	  		jWrapped = zoneStats.wrapLonIndex(latIndex, j);
-	  		coords.add(new GeoPoint(coLat, zoneStats.lonFromIndex(latIndex, jWrapped), trial));
-	  		coords.get(coords.size() - 1).setDepth(zoneStats.getBayesDepth(latIndex, jWrapped));
+	  		coords.add(new GeoPoint(coLat, zoneStats.lonFromIndex(latIndex, jWrapped), 
+	  				trial));
+	  		coords.get(coords.size() - 1).setBayesDepth(zoneStats.getBayesDepth(latIndex, 
+	  				jWrapped));
 	  	}
   	} else {
   		// Add the longitude points in the latitude row below the base latitude row.
@@ -101,8 +104,10 @@ public class ZoneInterpolate {
   		coLat = zoneStats.latFromIndex(latIndex);
 	  	for(int j = lonIndex - 1; j <= lonIndex + 1; j++) {
 	  		jWrapped = zoneStats.wrapLonIndex(latIndex, j);
-	  		coords.add(new GeoPoint(coLat, zoneStats.lonFromIndex(latIndex, jWrapped), trial));
-	  		coords.get(coords.size() - 1).setDepth(zoneStats.getBayesDepth(latIndex, jWrapped));
+	  		coords.add(new GeoPoint(coLat, zoneStats.lonFromIndex(latIndex, jWrapped), 
+	  				trial));
+	  		coords.get(coords.size() - 1).setBayesDepth(zoneStats.getBayesDepth(latIndex, 
+	  				jWrapped));
 	  	}
   	}
   	return coords;
@@ -120,10 +125,13 @@ public class ZoneInterpolate {
  	private BayesianDepth zoneInterp(ArrayList<GeoPoint> coords, GeoPoint trial, 
 			DepthSource source) {
 		int nulls = 0;
-		double deepest;
+		double deepest = 0d;
+		double[] depths;
+//	String[] label = {"Depth", "Lower", "Upper", "Spread"};
 		// The trial point is always at Earth flattening coordinates (0, 0).
 		double[] result = {0d, 0d, Double.NaN}, intersect;
 		double[][] vectors = new double[3][];
+		BayesianDepth bayesDepth;
 		
 		// Be careful about ending up with three points in a line and oddness 
 		// around the poles.
@@ -131,80 +139,125 @@ public class ZoneInterpolate {
 				coords.get(1).getLat() == coords.get(2).getLat()) {
 			coords.remove(2);
 		}
-		// Debug print.
-/*		for(int j = 0; j < 3; j++) {
-			System.out.println("Poly: " + j + " " + coords.get(j));
-		} */
+		// Sort coordinates with non-null Bayesian depth statistics to the top.
+		sortOutNulls(coords, 3);
 		
-		// Get the 3-vectors needed by the interpolation.
-		deepest = 0d;
+		// Count coordinates with no depth and compute the deepest depth.
+		depths = new double[3];
 		for(int j = 0; j < 3; j++) {
-			vectors[j] = coords.get(j).getVector();
-			deepest = Math.max(deepest, vectors[j][2]);
+			depths[j] = coords.get(j).getDepth();
+			if(!Double.isNaN(depths[j])) {
+				deepest = Math.max(deepest, depths[j]);
+			} else {
+				nulls++;
+			}
+		}
+		if(nulls >= 3) {
+//		LOGGER.fine("All nulls before filtering.");
+			return null;
 		}
 		
 		// Filter our points that don't fit (presumably on the edge of a structure).
 		if(deepest <= LocUtil.SHALLOWESTDEEP) {
 			// For shallow and intermediate depths, filter points that don't fit the nearest.
-			for(int j = 1; j < vectors.length; j++) {
-				if(Math.abs(vectors[j][2] - vectors[0][2]) > LocUtil.STRUCTURETOL[0]) {
-					vectors[j] = null;
-					nulls++;
+			for(int j = 1; j < depths.length; j++) {
+				if(!Double.isNaN(depths[j])) {
+					if(Math.abs(depths[j] - depths[0]) > LocUtil.STRUCTURETOL[0]) {
+						coords.get(j).setBayesDepth(null);
+						nulls++;
+					}
 				}
 			}
 		} else {
 			// For deep zones, just use the deep points since there is always a shallow zone.
 			for(int j = 0; j < vectors.length; j++) {
-				if(deepest - vectors[j][2] > LocUtil.STRUCTURETOL[1]) {
-					vectors[j] = null;
-					nulls++;
+				if(!Double.isNaN(depths[j])) {
+					if(deepest - depths[j] > LocUtil.STRUCTURETOL[1]) {
+						coords.get(j).setBayesDepth(null);
+						nulls++;
+					}
 				}
 			}
 		}
-		// Debug print.
-		for(int j = 0; j < 3; j++) {
-/*			if(vectors[j] != null) {
-				System.out.format("Vector: %d (%5.2f, %5.2f, %6.2f)\n", j, vectors[j][0], 
-						vectors[j][1], vectors[j][2]);
-			} else {
-				System.out.format("Vector: %d null\n", j);
-			} */
+		if(nulls >= 3) {
+//		LOGGER.fine("All nulls after filtering.");
+			return null;
 		}
+		
+		// Sort coordinates with non-null Bayesian depth statistics to the top in case 
+		// we added some.
+		sortOutNulls(coords, 3);
+//	for(int j = 0; j < 3; j++) {
+//		LOGGER.fine("Poly\": " + j + " " + coords.get(j));
+//	}
+		
+		// Instantiate a mostly empty BayesianDepth object.
+		bayesDepth = new BayesianDepth(source);
 		
 		// Do linear interpolation.
 		switch(nulls) {
 		case 0:
-			// We have three points.  Fit a plane to the triangle defined by the polygon.
-			Linear.twoD(vectors[0], vectors[1], vectors[2], result);
-//			System.out.format("3-point interpolation: %4.2f\n", result[2]);
-			return new BayesianDepth(result[2], LocUtil.DEFAULTSLABSE, source);
+			// We have three points.  Fit a plane to the triangle defined by the polygon 
+			// for mean depth first.
+			for(int i = 0; i <= 3; i++) {
+				for(int j = 0; j < 3; j++) {
+					vectors[j] = coords.get(j).getVector(i);
+				}
+				Linear.twoD(vectors[0], vectors[1], vectors[2], result);
+				bayesDepth.setByIndex(i, result[2]);
+//			LOGGER.finer(String.format("%-6s: values = (%6.2f, %6.2f, %6.2f) result = %6.2f\n", 
+//					label[i], vectors[0][2], vectors[1][2], vectors[2][2], result[2]));
+			}
+//		LOGGER.fine("3-point interpolation: " + bayesDepth);
+			return bayesDepth;
 		case 1:
 			// We have two points.  Interpolate using the intersection between the line and 
-			// a perpendicular through the trial point.
-			int k = 0;
-			for(int j = 0; j < vectors.length; j++) {
-				if(vectors[j] != null) {
-					vectors[k++] = vectors[j];
+			// a perpendicular through the trial point for the mean depth first.
+			for(int i = 0; i <= 3; i++) {
+				for(int j = 0; j < 2; j++) {
+					vectors[j] = coords.get(j).getVector(i);
 				}
+				intersect = Linear.intersect(vectors[0], vectors[1], result);
+				Linear.oneD(vectors[0], vectors[1], intersect);
+				bayesDepth.setByIndex(i, intersect[2]);
+//			LOGGER.finer(String.format("%-6s: values = (%6.2f, %6.2f) result = %6.2f\n", 
+//					label[i], vectors[0][2], vectors[1][2], intersect[2]));
 			}
-			intersect = Linear.intersect(vectors[0], vectors[1], result);
-			Linear.oneD(vectors[0], vectors[1], intersect);
-//			System.out.format("Intersect: %5.2f %6.2f %4.2f\n", intersect[0], intersect[1], 
-//					intersect[2]);
 			// Inflate the error to reflect the edge uncertainty.
-			return new BayesianDepth(intersect[2], 1.5d * LocUtil.DEFAULTSLABSE, 
-					source);
+			bayesDepth.inflateSpread(1.5d);
+//		LOGGER.fine("2-point interpolation: " + bayesDepth);
+			return bayesDepth;
 		case 2:
 			// We only have one point, so use it.
-			for(int j = 0; j < vectors.length; j++) {
-				// Inflate the errors even more as we're hanging a lot on one point.
-				if(vectors[j] != null) return new BayesianDepth(vectors[j][2], 
-						2d * LocUtil.DEFAULTSLABSE, source);
-			}
+			bayesDepth = coords.get(0).getBayesDepth();
+			// Inflate the errors even more as we're hanging a lot on one point.
+			bayesDepth.inflateSpread(2d);
+//		LOGGER.fine("1-point interpolation: " + bayesDepth);
+			return bayesDepth;
 		default:
 			// This should never happen!
 			System.out.println("How can there be too many nulls?");
 			return null;
 		}
 	}
+ 	
+ 	/**
+ 	 * Sort GeoPoints with non-null BayesianDepths to the top.
+ 	 * 
+ 	 * @param coords ArrayList of GeoPoints
+ 	 * @param length Number of values to sort
+ 	 */
+ 	private void sortOutNulls(ArrayList<GeoPoint> coords, int length) {
+		int k = 0;
+		for(int j = 0; j < length; j++) {
+			if(coords.get(j).getBayesDepth() != null) {
+				if(j != k) {
+					GeoPoint temp = coords.get(j);
+					coords.set(j, coords.get(k));
+					coords.set(k, temp);
+				}
+				k++;
+			}
+		}
+ 	}
 }

@@ -3,7 +3,7 @@ package gov.usgs.locator;
 import gov.usgs.locaux.AuxLocRef;
 import gov.usgs.locaux.Cratons;
 import gov.usgs.locaux.LocUtil;
-import gov.usgs.locaux.SlabDepth;
+import gov.usgs.locaux.NewZoneStats;
 import gov.usgs.locaux.Slabs;
 import gov.usgs.locaux.ZoneStats;
 import gov.usgs.traveltime.BadDepthException;
@@ -40,6 +40,9 @@ public class Stepper {
 
   /** A ZoneStats object containing earthquake statistics by geographic location. */
   private ZoneStats zoneStats;
+
+  /** A ZoneStats object containing earthquake statistics by geographic location. */
+  private NewZoneStats newZoneStats;
   
   /** A slabs object containing slab depths by geographic location. */
   private Slabs slabStats;
@@ -94,6 +97,7 @@ public class Stepper {
     hypo = event.getHypo();
     cratons = auxLoc.getCratons();
     zoneStats = auxLoc.getZoneStats();
+    newZoneStats = auxLoc.getNewZoneStats();
     this.slabStats = slabStats;
     this.phaseIDLogic = phaseIDLogic;
     rawRankSumEstimator = event.getRawRankSumEstimator();
@@ -456,8 +460,9 @@ public class Stepper {
 	private ArrayList<BayesianDepth> getBayesDepth(double latitude, double longitude, 
 			boolean debug) {
 		double deepest;
-		BayesianDepth bayesZone = null;
-		ArrayList<SlabDepth> slabDepths;
+		BayesianDepth oldZone = null;
+		BayesianDepth newZone = null;
+		ArrayList<BayesianDepth> slabDepths;
 		ArrayList<BayesianDepth> bayesList;
 		
 		// Create the empty list.
@@ -469,14 +474,14 @@ public class Stepper {
 		// Get the slab depths.
 		slabDepths = slabStats.getDepth(latitude, longitude);
 		if(slabDepths != null) {
-			for(SlabDepth slab : slabDepths) {
-				if(slab.getEqDepth() <= LocUtil.SLABMERGEDEPTH) {
+			for(BayesianDepth slab : slabDepths) {
+				if(slab.getDepth() <= LocUtil.SLABMERGEDEPTH) {
 					/**
 					 * The slab is shallow and there may be vertical faults from the slab to the 
 					 * surface, so allow the depth to be anywhere between the deepest slab error 
 					 * and the free surface.
 					 */
-					deepest = slab.getEqDepth() + 3d * (slab.getUpper() - slab.getEqDepth());
+					deepest = slab.getDepth() + 3d * (slab.getUpperBound() - slab.getDepth());
 					if(!debug) {
 						// The normal earthquake location version.
 						bayesList.set(0, new BayesianDepth(deepest / 2d, deepest / 6d, 
@@ -484,59 +489,104 @@ public class Stepper {
 					} else {
 						// For the random test, we need to be able to untangle the interface depth 
 						// to recover the actual slab depth.
-						bayesList.set(0, new BayesianDepth(deepest / 2d, slab.getUpper() - 
-								slab.getEqDepth(), DepthSource.SLABINTERFACE));
+						bayesList.set(0, new BayesianDepth(deepest / 2d, slab.getUpperBound() - 
+								slab.getDepth(), DepthSource.SLABINTERFACE));
 					}
 				} else {
 					// Set up a deep zone.
-					bayesList.add(new BayesianDepth(slab.getEqDepth(), 
-							Math.max(slab.getEqDepth() - slab.getLower(), slab.getUpper() - 
-							slab.getEqDepth()), DepthSource.SLABMODEL));
+					bayesList.add(new BayesianDepth(slab.getDepth(), 
+							Math.max(slab.getDepth() - slab.getLowerBound(), slab.getUpperBound() - 
+							slab.getDepth()), DepthSource.SLABMODEL));
 				}
 			}
-			// Do ZoneStats anyway for comparison.  Treat it as a deep zone.
-			bayesZone = zoneStats.interpolateBayesDepth(latitude, longitude);
-			// See if the deepest ZoneStats depth is actually deep.
-			if(bayesZone.getDepth() >= LocUtil.DEEPESTSHALLOW) {
-				// If so, see if we should do a slab merge.
-				if(bayesZone.getDepth() <= LocUtil.SLABMERGEDEPTH) {
-					deepest = bayesZone.getDepth() + 1.5d * LocUtil.DEFAULTSLABSE;
-					bayesZone = new BayesianDepth(deepest / 2d, deepest / 6d, 
-							DepthSource.ZONEINTERFACE);
+			// Do new ZoneStats anyway for comparison.  Treat it as a deep zone.
+			if(debug) {
+				newZone = newZoneStats.interpolateBayesDepth(latitude, longitude);
+				if(newZone != null) {
+					// See if the deepest new ZoneStats depth is actually deep.
+					if(newZone.getUpperBound() >= LocUtil.DEEPESTSHALLOW) {
+						// If so, see if we should do a slab merge.
+						if(newZone.getUpperBound() <= LocUtil.SLABMERGEDEPTH) {
+							// Do a slab merge.
+							deepest = newZone.getUpperBound() + 1.5d * LocUtil.DEFAULTSLABSE;
+							newZone = new BayesianDepth(deepest / 2d, deepest / 6d, 
+									DepthSource.NEWZONEINTERFACE);
+						// Otherwise, add a deep zone.
+						} else {
+							newZone = new BayesianDepth(newZone.getUpperBound(), LocUtil.DEFAULTSLABSE, 
+									DepthSource.NEWZONESTATS);
+						}
+					} else {
+						// For comparison purposes, there's no point in a shallow zone.
+						newZone = null;
+					}
 				}
-			} else {
-				// For comparison purposes, there's no point in a shallow zone.
-				bayesZone = null;
 			}
 		} else {
-			// If there aren't any slab depths, see what we can do with ZoneStats.
-			bayesZone = zoneStats.interpolateBayesDepth(latitude, longitude);
-			// See if the deepest ZoneStats depth is actually deep.
-			if(bayesZone.getDepth() >= LocUtil.DEEPESTSHALLOW) {
-				// If so, see if we should do a slab merge.
-				if(bayesZone.getDepth() <= LocUtil.SLABMERGEDEPTH) {
-					// DEFAULTSLABSE works well for deep zones, but it is too big for shallow 
-					// slabs (i.e., the earthquake depth resolution is better).
-					deepest = bayesZone.getDepth() + 1.5d * LocUtil.DEFAULTSLABSE;
-					bayesList.set(0, new BayesianDepth(deepest / 2d, deepest / 6d, 
-							DepthSource.ZONEINTERFACE));
-				// Otherwise, add a new deep zone.
+			// If there aren't any slab depths, see what we can do with new ZoneStats.
+			newZone = newZoneStats.interpolateBayesDepth(latitude, longitude);
+			if(newZone != null) {
+				// See if the deepest new ZoneStats depth is actually deep.
+				if(newZone.getUpperBound() >= LocUtil.DEEPESTSHALLOW) {
+					// If so, see if we should do a slab merge.
+					if(newZone.getUpperBound() <= LocUtil.SLABMERGEDEPTH) {
+						// Do the slab merge. 
+						deepest = newZone.getUpperBound() + 1.5d * LocUtil.DEFAULTSLABSE;
+						bayesList.set(0, new BayesianDepth(deepest / 2d, deepest / 6d, 
+								DepthSource.NEWZONEINTERFACE));
+					// Otherwise, add a new deep zone.
+					} else {
+						bayesList.add(new BayesianDepth(newZone.getUpperBound(), LocUtil.DEFAULTSLABSE, 
+								DepthSource.NEWZONESTATS));
+					}
 				} else {
-					bayesList.add(bayesZone);
+					// If the ZoneStats are shallow, replace the default shallow.
+					if(newZone.getDepth() < LocUtil.MIDCRUSTDEPTH) {
+						bayesList.set(0, new BayesianDepth(newZone.getDepth(), LocUtil.DEFAULTDEPTHSE, 
+								DepthSource.NEWZONESHALLOW));
+					} else {
+						bayesList.set(0, new BayesianDepth(newZone.getDepth(), LocUtil.LOWERCRUSTSE, 
+								DepthSource.NEWZONESHALLOW));
+					}
 				}
-			} else {
-				// If the ZoneStats are shallow, replace the default shallow.
-				bayesZone.setSpread(LocUtil.DEFAULTDEPTHSE);
-				bayesZone.setSource(DepthSource.ZONESHALLOW);
-				bayesList.set(0, bayesZone);
+				newZone = null;
 			}
-			bayesZone = null;
 		}
-		// For debugging we want to see both the slab and zone values.
+		
+		// For debugging we want to see both the slab, zone and new zone values.
 		if(debug) {
-			if(bayesZone != null) {
-				bayesList.add(bayesZone);
+			// Show the new ZoneStats value in addition to the slab values.
+			if(newZone != null) {
+				bayesList.add(newZone);
 			}
+			// Do old ZoneStats for comparison.
+			oldZone = zoneStats.interpolateBayesDepth(latitude, longitude);
+			if(oldZone != null) {
+				// See if the deepest ZoneStats depth is actually deep.
+				if(oldZone.getDepth() >= LocUtil.DEEPESTSHALLOW) {
+					// If so, see if we should do a slab merge.
+					if(oldZone.getDepth() <= LocUtil.SLABMERGEDEPTH) {
+						// Add a zone interface entry. 
+						deepest = oldZone.getDepth() + 1.5d * LocUtil.DEFAULTSLABSE;
+						bayesList.add(new BayesianDepth(deepest / 2d, deepest / 6d, 
+								DepthSource.ZONEINTERFACE));
+					// Otherwise, add a new deep zone.
+					} else {
+						oldZone.setSpread(LocUtil.DEFAULTSLABSE);
+						bayesList.add(oldZone);
+					}
+				} else {
+					// Add a shallow ZoneStats.
+					if(oldZone.getDepth() < LocUtil.MIDCRUSTDEPTH) {
+						bayesList.add(new BayesianDepth(oldZone.getDepth(), LocUtil.DEFAULTDEPTHSE, 
+								DepthSource.ZONESHALLOW));
+					} else {
+						bayesList.add(new BayesianDepth(oldZone.getDepth(), LocUtil.LOWERCRUSTSE, 
+								DepthSource.ZONESHALLOW));
+					}
+				}
+				oldZone = null;
+			} 
 		}
 		return bayesList;
 	}
@@ -671,9 +721,10 @@ public class Stepper {
   	// Number of random trials to run.
 		int maxTrials = 100000;
 		// We want to look at shallow zones and compare deeper events.
-		int defaultShallow = 0, zoneShallow = 0, zoneCrust = 0, slabCrust = 0, 
-				slabOnly = 0, zoneOnly = 0, slabNzone = 0, histIndex;
-		double slabDepth, zoneDepth, dDepth;
+		int defaultShallow = 0, zoneShallow = 0, newZoneShallow = 0, zoneCrust = 0, 
+				newZoneCrust = 0, slabCrust = 0, slabOnly = 0, zoneOnly = 0, newZoneOnly = 0, 
+				slabNzones = 0, slabNzone = 0, slabNnew = 0, zoneNnew = 0, histIndex;
+		double slabDepth, zoneDepth, newZoneDepth, dDepth;
 		// The histogram shows a comparison between the slab and zone depths.
 		int[] hist = new int[201];
 		double lat, lon, depth;
@@ -684,6 +735,7 @@ public class Stepper {
 		// Read in the ZoneStats and Slab model.
 		LocSessionLocal locLocal = new LocSessionLocal(modelPath);
 		zoneStats = locLocal.getZoneStats();
+		newZoneStats = locLocal.getNewZoneStats();
 		slabStats = locLocal.getSlabRes("2spd");
 		
 		// Initialize the histogram.
@@ -718,9 +770,17 @@ public class Stepper {
       	case ZONESHALLOW:
       		zoneShallow++;
       		break;
+      	// Also shallow, but from NewZoneStats.
+      	case NEWZONESHALLOW:
+      		newZoneShallow++;
+      		break;
       	// Deeper than 25 km, but still shallowish from ZoneStats.
       	case ZONEINTERFACE:
       		zoneCrust++;
+      		break;
+        // Deeper than 25 km, but still shallowish from ZoneStats.
+      	case NEWZONEINTERFACE:
+      		newZoneCrust++;
       		break;
         // Deeper than 25 km, but still shallowish from the Slab model.
       	case SLABINTERFACE:
@@ -734,10 +794,12 @@ public class Stepper {
       // Compile some statistics.
       slabDepth = -100d;
       zoneDepth = -100d;
+      newZoneDepth = -100d;
       for(BayesianDepth bayes : bayesList) {
       	switch(bayes.getSource() ) {
       	case SHALLOW:
       	case ZONESHALLOW:
+      	case NEWZONESHALLOW:
       		break;
       	// We have an intermediate depth from the Slab model.
       	case SLABINTERFACE:
@@ -747,6 +809,9 @@ public class Stepper {
       	case ZONEINTERFACE:
       		zoneDepth = 2d * bayes.getDepth() - 1.5d * LocUtil.DEFAULTSLABSE;
       		break;
+      	case NEWZONEINTERFACE:
+      		newZoneDepth = 2d * bayes.getDepth() - 1.5d * LocUtil.DEFAULTSLABSE;
+      		break;
       	// We have a deep depth from the Slab model.
       	case SLABMODEL:
       		slabDepth = bayes.getDepth();
@@ -755,6 +820,9 @@ public class Stepper {
       	case ZONESTATS:
       		zoneDepth = bayes.getDepth();
       		break;
+      	case NEWZONESTATS:
+      		newZoneDepth = bayes.getDepth();
+      		break;
       	default:
         	System.out.println("\tWEIRD: unknown depth source = " + bayes);
       		break;
@@ -762,26 +830,40 @@ public class Stepper {
       }
       // Do some ZoneStats vs SlabModel comparisons.
     	if(slabDepth >= 0d) {
-    		if(zoneDepth >= 0d) {
-    			// We have both.  Add to the histogram.
-    			slabNzone++;
-    			dDepth = slabDepth - zoneDepth;
+    		if(newZoneDepth >= 0d) {
+    			// We have both a slab and a new ZoneStats.  Add to the histogram.
+    			if(zoneDepth >= 0) {
+    				slabNzones++;
+    			} else {
+    				slabNnew++;
+    			}
+    			dDepth = slabDepth - newZoneDepth;
     			histIndex = Math.min(Math.max((int) (dDepth + 100.5d), 0), 200);
   //  		System.out.format("\tIndex: %6.2f => %d\n", dDepth, histIndex);
     			hist[histIndex]++;
+    		} else if(zoneDepth >= 0d) {
+    			slabNzone++;
     		} else {
     			// We have a Slab model depth, but no comparable ZoneStats depth.
     			slabOnly++;
     		}
+    	} else if(newZoneDepth > 0d) {
+    		if(zoneDepth >= 0d) {
+    			zoneNnew++;
+    		} else {
+    			newZoneOnly++;
+    		}
     	} else if(zoneDepth > 0d) {
-    		// We have a ZoneStats depth, but no comparable Slab model depth.
+    		// We have a NewZoneStats depth, but no comparable Slab model depth.
     		zoneOnly++;
     	}
 		}
 		// Dump the statistics:
-		System.out.format("\nShallow: default = %d zone = %d, Crust: zone = %d " + 
-				"slab = %d, Deep: slab = %d zone = %d both = %d\n", defaultShallow, zoneShallow, 
-				zoneCrust, slabCrust, slabOnly, zoneOnly, slabNzone);
+		System.out.format("\nShallow: default = %d zone = %d new = %d\nCrust: zone = %d " + 
+				"new = %d slab = %d\nDeep: slab = %d new = %d zone = %d all = %d slab&new = %d " + 
+				"slab&zone = %d zone&new = %d\n", defaultShallow, zoneShallow, newZoneShallow, 
+				zoneCrust, newZoneCrust, slabCrust, slabOnly, newZoneOnly, zoneOnly, slabNzones, 
+				slabNnew, slabNzone, zoneNnew);
 		System.out.println("Histogram:");
 		for(int j = 0; j < hist.length; j++) {
 			System.out.format(" %5d", hist[j]);
