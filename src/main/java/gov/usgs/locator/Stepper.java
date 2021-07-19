@@ -525,6 +525,14 @@ public class Stepper {
 		} else {
 			// If there aren't any slab depths, see what we can do with new ZoneStats.
 			newZone = newZoneStats.interpolateBayesDepth(latitude, longitude);
+			/*
+			 * Because new ZoneStats does one Gaussian per grid sample, it can be fooled 
+			 * when there are both shallow and deep earthquakes in the same area.  This 
+			 * results in a mean between the earthquake zones in depth and an artificially 
+			 * large standard error.  To combat this, the mean plus standard error is used 
+			 * for depth rather than the mean.  This seems to compare pretty closely with 
+			 * the slab model.
+			 */
 			if(newZone != null) {
 				// See if the deepest new ZoneStats depth is actually deep.
 				if(newZone.getUpperBound() >= LocUtil.DEEPESTSHALLOW) {
@@ -561,6 +569,13 @@ public class Stepper {
 			}
 			// Do old ZoneStats for comparison.
 			oldZone = zoneStats.interpolateBayesDepth(latitude, longitude);
+			/*
+			 * Because old ZoneStats does one mean and range per grid cell, it can be fooled 
+			 * when there are both shallow and deep earthquakes in the same area.  This 
+			 * results in a mean between the earthquake zones in depth and an artificially 
+			 * large standard error.  Oddly, the mean free depth seems to compare better with 
+			 * the slab model than the mean plus standard error.
+			 */
 			if(oldZone != null) {
 				// See if the deepest ZoneStats depth is actually deep.
 				if(oldZone.getDepth() >= LocUtil.DEEPESTSHALLOW) {
