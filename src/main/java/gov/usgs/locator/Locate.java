@@ -2,6 +2,7 @@ package gov.usgs.locator;
 
 import gov.usgs.locaux.AuxLocRef;
 import gov.usgs.locaux.LocUtil;
+import gov.usgs.locaux.Slabs;
 import gov.usgs.traveltime.BadDepthException;
 import gov.usgs.traveltime.TTSessionLocal;
 import gov.usgs.traveltime.tables.TauIntegralException;
@@ -55,13 +56,14 @@ public class Locate {
    *     local implementation to use in computing the location
    * @param auxLoc An AuxLocRef object containing auxiliary location information such as continental
    *     craton boundaries and earthquake statistics
+   * @param slabs A Slabs object containing the slab part of the auxiliary data
    */
-  public Locate(Event event, TTSessionLocal ttLocalSession, AuxLocRef auxLoc) {
+  public Locate(Event event, TTSessionLocal ttLocalSession, AuxLocRef auxLoc, Slabs slabStats) {
     this.event = event;
     hypo = event.getHypo();
     hypoAuditList = event.getHypoAuditList();
     PhaseID phaseID = new PhaseID(event, ttLocalSession);
-    stepper = new Stepper(event, phaseID, auxLoc);
+    stepper = new Stepper(event, phaseID, auxLoc, slabStats);
     initialPhaseID = new InitialPhaseID(event, ttLocalSession, phaseID, stepper);
     close = new CloseOut(event);
     LocUtil.useDecorrelation = false;
@@ -74,6 +76,14 @@ public class Locate {
    */
   public LocStatus doLocation() {
     LOGGER.info("Starting Location");
+/*  LocUtil.record(
+        String.format(
+            "\t%s:      %5d %8.4f %8.4f %6.2f",
+            "Init",
+            event.getNumPhasesUsed(),
+            hypo.getLatitude(),
+            hypo.getLongitude(),
+            hypo.getDepth())); */
 
     // Save the essentials of this event for comparison.
     event.addAudit(0, 0, LocStatus.INITIAL_HYPOCENTER);
@@ -219,6 +229,7 @@ public class Locate {
             LOGGER.info("Final wrap up: \n" + event.printHypoAudit());
 
             status = close.compFinalStats(status);
+            LocUtil.record(event.getSynthOut());
             return status;
           } else {
             // Otherwise, create the stage level audit.

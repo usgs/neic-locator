@@ -1,15 +1,27 @@
 package gov.usgs.locaux;
 
 import gov.usgs.traveltime.FileChanged;
-import gov.usgs.traveltime.TauUtil;
+
 import java.io.BufferedInputStream;
+import java.io.BufferedReader;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.io.FileReader;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.io.RandomAccessFile;
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
+import java.nio.IntBuffer;
 import java.nio.channels.FileLock;
+import java.util.Iterator;
 import java.util.Scanner;
+
+import org.json.simple.JSONArray;
+import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
+import org.json.simple.parser.ParseException;
 
 /**
  * The AuxLocRef class manages auxiliary data files that support the Locator such as the continental
@@ -24,15 +36,16 @@ public class AuxLocRef {
   private final Cratons cratons;
 
   /** A ZoneStats object containing earthquake statistics by geographic location. */
-  //  private final ZoneStats zoneStats;
-
-  /** A Slabs object containing the geometry of earthquakes in slabs. */
-  private final Slabs slabs;
+  private final ZoneStats zoneStats;
+  
+  /** A new ZoneStats object built from Will's JSON file. */
+//  private final NewZoneStats newZoneStats;
+  private NewZoneStats newZoneStats = null;
 
   /**
    * An integer containing the number of years read from the earthquake statistics zonestats file.
    */
-  //  private int numberOfYears = -1;
+  private int numberOfYears = -1;
 
   /** Default path for model files. */
   public static final String DEFAULT_MODEL_PATH = "./models/";
@@ -44,9 +57,9 @@ public class AuxLocRef {
   private String serializedFileName = "locaux.ser";
 
   /** An array of String objects containing the raw input model file names. */
-  /*  private String[] modelFileNames = {"cratons.txt", "zonekey.dat", "zonestat.dat",
-  "slabmaster.txt"}; */
-  private String[] modelFileNames = {"cratons.txt", "slabmaster.txt"};
+  private String[] modelFileNames = {"cratons.txt", "zonekey.dat", "zonestat.dat", 
+			"ZoneStats.json"};
+//  private String[] modelFileNames = {"cratons.txt", "zonekey.dat", "zonestat.dat"};
 
   /**
    * A Scanner object used to read continental craton boundaries and earthquake statistics by
@@ -65,11 +78,12 @@ public class AuxLocRef {
    * @throws ClassNotFoundException In input serialization is hosed
    */
   public AuxLocRef(String modelPath) throws IOException, ClassNotFoundException {
-    //  int[][] zoneKeys;
+  	int[][] zoneKeys;
     String[] absNames;
-    //  ZoneStat[] stats;
-    BufferedInputStream inCratons, inSlabs;
-    //  RandomAccessFile inZones;
+    ZoneStat[] stats;
+    BufferedInputStream inCratons;
+    BufferedReader inNewZoneStats;
+    RandomAccessFile inZones;
     FileInputStream serIn;
     FileOutputStream serOut;
     ObjectInputStream objIn;
@@ -102,7 +116,7 @@ public class AuxLocRef {
       inCratons.close();
 
       // Open and read the zone key file.
-      /*  inZones = new RandomAccessFile(absNames[1], "r");
+      inZones = new RandomAccessFile(absNames[1], "r");
       zoneKeys = readZoneKeys(inZones);
       zoneStats = new ZoneStats(zoneKeys);
       inZones.close();
@@ -111,14 +125,13 @@ public class AuxLocRef {
       inZones = new RandomAccessFile(absNames[2], "r");
       stats = readZoneStats(inZones);
       zoneStats.addStats(numberOfYears, stats);
-      inZones.close(); */
-
-      // Open and read the slab geometry model file.
-      inSlabs = new BufferedInputStream(new FileInputStream(absNames[1]));
-      scan = new Scanner(inSlabs);
-      slabs = new Slabs();
-      readSlabs();
-      inSlabs.close();
+      inZones.close();
+      
+      // Open and read the new zone statistics file.
+      inNewZoneStats = new BufferedReader(new FileReader(absNames[3]));
+  //  LocUtil.startLocationTimer();
+      newZoneStats = readNewZoneStats(inNewZoneStats);
+  //  System.out.println(LocUtil.endLocationTimer());
 
       // Write out the serialized file.
       //  LOGGER.fine("Recreate the serialized file.");
@@ -127,17 +140,19 @@ public class AuxLocRef {
 
       // Wait for an exclusive lock for writing.
       lock = serOut.getChannel().lock();
-      //   LOGGER.fine(
-      //      "AuxLocRef write lock: valid = " + lock.isValid() + " shared = " + lock.isShared());
+  //   LOGGER.fine(
+  //       "AuxLocRef write lock: valid = " + lock.isValid() + " shared = " + lock.isShared());
 
-      // The auxiliary data can be read and written very quickly, so for persistent
-      // applications such as the travel time or location server, serialization is
-      // not necessary.  However, if the travel times are needed for applications
-      // that start and stop frequently, the serialization should save some set up
-      // time.
+      /*
+       * The auxiliary data can be read and written very quickly, so for persistent 
+       * applications such as the travel time or location server, serialization is 
+       * not necessary.  However, if the travel times are needed for applications 
+       * that start and stop frequently, the serialization should save some set up 
+       * time.
+       */
       objOut.writeObject(cratons);
-      //  objOut.writeObject(zoneStats);
-      objOut.writeObject(slabs);
+      objOut.writeObject(zoneStats);
+      objOut.writeObject(newZoneStats);
 
       if (lock.isValid()) {
         lock.release();
@@ -159,8 +174,8 @@ public class AuxLocRef {
 
       // load the cratons and zoneStats
       cratons = (Cratons) objIn.readObject();
-      //  zoneStats = (ZoneStats) objIn.readObject();
-      slabs = (Slabs) objIn.readObject();
+      zoneStats = (ZoneStats) objIn.readObject();
+      newZoneStats = (NewZoneStats) objIn.readObject();
 
       if (lock.isValid()) {
         lock.release();
@@ -205,7 +220,7 @@ public class AuxLocRef {
    * @return An int[][] containing the zone keys
    * @throws IOException On any read error
    */
-  /*  private int[][] readZoneKeys(RandomAccessFile inKeys) throws IOException {
+  	private int[][] readZoneKeys(RandomAccessFile inKeys) throws IOException {
     // Read the file.
     int length = (int) inKeys.length();
     byte[] byteArray = new byte[length];
@@ -225,7 +240,7 @@ public class AuxLocRef {
       }
     }
     return zoneKeys;
-  } */
+  }
 
   /**
    * Function to read the zone statistics file. Note that only the small part of the statistics
@@ -235,7 +250,7 @@ public class AuxLocRef {
    * @return A ZoneStat[] conatining the zone statistics
    * @throws IOException On any read error
    */
-  /*  private ZoneStat[] readZoneStats(RandomAccessFile inZones) throws IOException {
+  	private ZoneStat[] readZoneStats(RandomAccessFile inZones) throws IOException {
     // Read the file.
     int length = (int) inZones.length();
     byte[] byteArray = new byte[length];
@@ -248,7 +263,7 @@ public class AuxLocRef {
 
     // Create the zoneStats array by reading the zonestats information
     // skipping the fields we don't need
-    ZoneStat[] stats = new ZoneStat[zoneStats.size()];
+    ZoneStat[] stats = new ZoneStat[zoneStats.size() + 1];
     for (int j = 0; j < stats.length; j++) {
       byteBuf.getInt(); // ndeg, skip
       byteBuf.getFloat(); // events per year, skip
@@ -272,98 +287,135 @@ public class AuxLocRef {
       }
     }
     return stats;
-  } */
-
-  /** Read in the slab model. */
-  private void readSlabs() {
-    boolean first = true;
-    double firstLon, lastLon;
-    SlabArea area;
-    SlabRow row;
-    SlabPoint point;
-
-    // Prime the pump.
-    area = new SlabArea();
-    row = new SlabRow();
-    // Read in the first point.
-    point = scanLine();
-    row.add(point);
-    firstLon = point.getLon();
-    lastLon = firstLon;
-
-    // As long as there's still data, keep on trucking.
-    while (scan.hasNextDouble()) {
-      point = scanLine();
-      // Look for the end of a latitude row.
-      if (Math.abs(point.getLon() - lastLon) > LocUtil.SLABINCREMENT + TauUtil.DTOL) {
-        // Print out the first and last points in each area.
-        //  	if(LOGGER.getLevel() == Level.FINE) {
-        if (first || Math.abs(point.getLon() - firstLon) > TauUtil.DTOL) {
-          // 				LOGGER.fine(row.printRaw());
-          if (first) {
-            first = false;
-          } else {
-            first = true;
-          }
-        }
-        //   	}
-        // Squeeze out the NaNs and save the remaining data in segments.
-        row.squeeze();
-        // Look for the start of a new area.
-        if (Math.abs(point.getLon() - firstLon) > TauUtil.DTOL) {
-          // Add the last row.
-          area.add(row);
-          // Print a summary of the last area.
-          // 			LOGGER.fine(area.printArea(false));
-          // Add the last area to all.
-          slabs.add(area);
-          // Start a new area.
-          area = new SlabArea();
-          row = new SlabRow();
-          firstLon = point.getLon();
-        } else {
-          // Add the row to the current area.
-          area.add(row);
-          // Start a new row.
-          row = new SlabRow();
-        }
-      }
-      // Add the current point to the current row.
-      row.add(point);
-      lastLon = point.getLon();
-    }
-    // Deal with the last point, which closes the last row and area.
-    //  LOGGER.fine(row.printRaw());
-    row.squeeze();
-    area.add(row);
-    slabs.add(area);
-    // Print the summary for the last area.
-    //	LOGGER.fine(area.printArea(false));
   }
-
+  	
   /**
-   * Scan an input line.
-   *
-   * @return Slab depth point
+   * Function to read in the new zone statistics file.  Note that the JSON file may contain 
+   * other information that isn't relevant to the Locator.  Only the parts of interest are 
+   * picked out.
+   * 
+   * @param inNewZoneStats BufferedReader file handle
+   * @return The new ZoneStats depth data sorted into internal storage
+   * @throws IOException On a read error
    */
-  private SlabPoint scanLine() {
-    double lat, lon, lower, center, upper;
-
-    // Leave the longitude in the 0-360 degree format because the date
-    // line is in the middle of slab areas.
-    lon = scan.nextDouble();
-    // Convert latitude to colatitude to make the access rounding
-    // consistent.
-    lat = 90d - scan.nextDouble();
-    // Note that the depths in the file are all negative.
-    /**
-     * The center is where the earthquakes are. The lower bound (smaller depth) is shallower. The
-     * upper bound (larger depth) is deeper.
-     */
-    center = scan.nextDouble();
-    lower = scan.nextDouble();
-    upper = scan.nextDouble();
-    return new SlabPoint(lat, lon, center, lower, upper);
+  private NewZoneStats readNewZoneStats(BufferedReader inNewZoneStats) 
+  		throws IOException {
+  	int len, numLats, numLons, row, column, count;
+  	double lat, lon, latSpacing, lonSpacing, latSpacingKm, circum, depth, depthError;
+  	char[] charArray;
+  	double[] lats;
+  	StringBuffer jsonString;
+  	NewZoneStats newZoneStats = null;
+    JSONObject zoneStatJSON = null, jsonLatRow, jsonLonStats, jsonAves, jsonSample;
+    JSONArray jsonArray = null, jsonLons;
+    JSONParser parser;
+    Iterator<?> iterLats, iterLatRows, iterLons;
+    
+    // Read the JSON file.
+    charArray = new char[5000];
+    jsonString = new StringBuffer();
+    do {
+    	len = inNewZoneStats.read(charArray, 0, charArray.length);
+    	if(len > 0) {
+    		jsonString.append(charArray, 0, len);
+    	}
+    } while(len > 0);
+    
+    try {
+    	// Parse the JSON string.
+      parser = new JSONParser();
+    	zoneStatJSON = (JSONObject) parser.parse(jsonString.substring(0));
+    	
+    	// Pick out the list of possible latitudes.
+    	jsonArray = (JSONArray) zoneStatJSON.get("Possible Latitudes");
+    	// Copy the latitude data into a local array.
+    	numLats = jsonArray.size();
+    	lats = new double[numLats];
+    	iterLats = jsonArray.iterator();
+    	row = 0;
+    	while(iterLats.hasNext()) {
+    		lats[row++] = (Double) iterLats.next();
+    	}
+    	
+    	// Set up the new ZoneStats storage.
+    	latSpacing = (lats[numLats - 1] - lats[0])/(numLats - 1);
+    	newZoneStats = new NewZoneStats(lats[numLats - 1], lats[0], latSpacing, numLats);
+    	// Debug print.
+    	System.out.format("FirstRowLat = %8.4f lastRowLat = %8.4f Lat Spacing = %7.4f " + 
+    			"Number of Lats = %d\n", lats[numLats - 1], lats[0], latSpacing, numLats);
+    	
+    	// Initialize all latitude rows in the new ZoneStats storage (including those 
+    	// with no data).  This requires reproducing Will's grid calculation.
+    	latSpacingKm = latSpacing * LocUtil.DEG2KM;
+    	for(row = 0; row < numLats; row++) {
+    		circum = 2d * Math.PI * Math.abs(6371d * Math.cos(Math.toRadians(lats[row])));
+    		numLons = (int) (circum / latSpacingKm + 0.5d);
+    		lonSpacing = 360d / numLons;
+    		newZoneStats.initRow(numLats - row - 1, lats[row], lonSpacing, numLons);
+    	}
+    	
+    	// Pick apart the sample point statistics.  First make an array of latitude row data.
+    	jsonArray = (JSONArray) zoneStatJSON.get("ZoneStats");
+    	iterLatRows = jsonArray.iterator();
+    	while(iterLatRows.hasNext()) {
+    		
+    		// Get the next latitude row from the array.
+    		jsonLatRow = (JSONObject) iterLatRows.next();
+    		lat = LocUtil.getJSONDouble(jsonLatRow, "Latitude");
+    		lonSpacing = LocUtil.getJSONDouble(jsonLatRow, "Spacing (deg)");
+    		numLons = LocUtil.getJSONInt(jsonLatRow, "Total Columns");
+				row = numLats - (int) ((lat - lats[0]) / latSpacing + 0.5d) - 1;
+				// Debug print.
+    		System.out.format("LatRow: Lat = %8.4f Row = %3d Lon Spacing = %6.4f Number of " + 
+    				"Lons = %d coLat = %8.4f row' = %d\n", lat, numLats - row - 1, lonSpacing, 
+    				numLons, 90d - lat, row);
+				// Trap rows where Will & Ray differ.  Debug stuff!
+    		if(numLons != newZoneStats.getNumLons(row) || 
+    				Math.abs(lonSpacing - newZoneStats.getLonSpacing(row)) > 1e-5d || 
+    				Math.abs(90d - lat - newZoneStats.getLat(row)) > 1e-5d) {
+	    		System.out.format("Ray's spacing: Lat = %8.4f Lon Spacing = %6.4f Number of Lons = %d\n", 
+	    				newZoneStats.getLat(row), newZoneStats.getLonSpacing(row), newZoneStats.getNumLons(row));
+	    		System.out.println("**********");
+    		}
+    		
+    		// Get the array of longitudes.
+    		jsonLons = (JSONArray) jsonLatRow.get("Longitudes");
+    		iterLons = jsonLons.iterator();
+    		while(iterLons.hasNext()) {
+    			
+    			// Get the next longitude sample.
+    			jsonLonStats = (JSONObject) iterLons.next();
+    			column = LocUtil.getJSONInt(jsonLonStats, "Column Number");
+    			lon = LocUtil.getJSONDouble(jsonLonStats, "Longitude");
+    			// Debug print.
+    			System.out.format("\tLonSample: Lon = %9.4f column = %d coLon = %9.4f\n", lon, column, 
+    					(lon >= 0d) ? lon : 360d + lon);
+    			if(lon < 0d) lon = 360d + lon;
+    			// Get the averaging statistics.
+    			jsonAves = (JSONObject) jsonLonStats.get("Depth Stats");
+    			// Get the 100 km average statistics.
+    			jsonSample = (JSONObject) jsonAves.get("100km");
+    			count = LocUtil.getJSONInt(jsonSample, "Count");
+    			
+    			// If we have at least two earthquakes, keep it.
+    			if(count > 1) {
+    				depth = LocUtil.getJSONDouble(jsonSample, "Mean");
+    				depthError = LocUtil.getJSONDouble(jsonSample, "STD");
+    				newZoneStats.putSample(row, column, new NewZonePoint(lon, count, depth, 
+    						depthError));
+    				// Debug print.
+    				System.out.format("\t\t100km: Count = %4d Depth = %6.2f Depth Error = %6.2f\n", 
+    						count, depth, depthError);
+    			}
+    		}
+    	}
+    	
+		} catch (ParseException e) {
+			System.out.println("\nNewZoneStats JSON parse failed!\n");
+			e.printStackTrace();
+			System.exit(200);
+		}
+    return newZoneStats;
   }
 
   /**
@@ -380,16 +432,16 @@ public class AuxLocRef {
    *
    * @return A ZoneStats object containing the zone statistics
    */
-  /*  public ZoneStats getZoneStats() {
+  public ZoneStats getZoneStats() {
     return zoneStats;
-  } */
+  }
 
   /**
-   * Function to return the slabs geometry managed by AuxLocRef.
+   * Function to return the new zone statistics managed by AuxLocRef.
    *
-   * @return A slabs object containing the slab depths
+   * @return A NewZoneStats object containing the new zone statistics
    */
-  public Slabs getSlabs() {
-    return slabs;
+  public NewZoneStats getNewZoneStats() {
+    return newZoneStats;
   }
 }

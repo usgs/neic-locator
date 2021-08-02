@@ -1,6 +1,10 @@
 package gov.usgs.locaux;
 
+import java.io.IOException;
 import java.io.Serializable;
+
+import gov.usgs.locator.BayesianDepth;
+import gov.usgs.locator.DepthSource;
 
 /**
  * The ZoneStats class implements the historical free depth statistics portion of the SEDAS zone
@@ -12,7 +16,7 @@ import java.io.Serializable;
  *
  * @author Ray Buland
  */
-public class ZoneStats implements Serializable {
+public class ZoneStats extends AbstractZoneStats implements Serializable {
   /**
    * A long containing the serializable class version number, used during deserialization to verify
    * compatibility.
@@ -31,9 +35,6 @@ public class ZoneStats implements Serializable {
   /** An array of ZoneStat objects containing the statistics for one Marsden square. */
   private ZoneStat[] zoneStats;
 
-  /** A double containing the best Bayesian spread from the zone statistics in kilometers. */
-  private double bayesSpread;
-
   /**
    * The ZoneStats constructor. Sets up the zone keys and allocate the zone statistics.
    *
@@ -42,7 +43,6 @@ public class ZoneStats implements Serializable {
   public ZoneStats(int[][] zoneKeys) {
     this.zoneKeys = zoneKeys;
     size = 0;
-    bayesSpread = Double.NaN;
 
     // Find the biggest key.
     for (int j = 0; j < zoneKeys.length; j++) {
@@ -50,6 +50,10 @@ public class ZoneStats implements Serializable {
         size = Math.max(size, zoneKeys[j][i]);
       }
     }
+    // Set the latitude parameters.
+    firstRowLat = 0.5d;
+    lastRowLat = 179.5d;
+    latSpacing = 1d;
   }
 
   /**
@@ -59,16 +63,6 @@ public class ZoneStats implements Serializable {
    */
   public int size() {
     return size;
-  }
-
-  /**
-   * The function to get the best Bayesian spread from the zone statistics. Note that this value is
-   * computed by the latest call to bayesDepth.
-   *
-   * @return A double containing the best Bayesian spread from the zone statistics in kilometers.
-   */
-  public double getBayesSpread() {
-    return bayesSpread;
   }
 
   /**
@@ -92,42 +86,31 @@ public class ZoneStats implements Serializable {
   }
 
   /**
-   * Function to get the depth statistics for an epicenter.
+   * Function to get the raw depth statistics by latitude/longitude.
    *
    * @param latitude A double containing the geographic latitude in degrees
    * @param longitude A double containing the geographic longitude in degrees
    * @return A ZoneStat object containing the zone statistics
    */
   public ZoneStat getStats(double latitude, double longitude) {
-    // Set up the zone key indices.  First we need colatitude and
-    // longitude in the range of 0-360.
-    latitude = 90d - latitude;
-    if (longitude < 0d) {
-      longitude += 360d;
+  	// Get the ZoneStat indices.
+    canonicalCoords(latitude, longitude);
+    if(Double.isNaN(coLat) || Double.isNaN(coLon)) {
+    	return null;
     }
-    if (longitude == 0d) {
-      longitude = 360d;
-    }
-
-    // Bail on bad coordinates.
-    if (latitude > 180d || latitude < 0d || longitude > 360d || longitude < 0d) {
-      return null;
-    }
-
-    // Now get the indices.
-    int latIndex;
-    if (latitude < 180d) {
-      latIndex = (int) latitude;
-    } else {
-      latIndex = 179;
-    }
-    int lonIndex;
-    if (latitude > 0d && latitude < 180d) {
-      lonIndex = (int) longitude;
-    } else {
-      lonIndex = 0;
-    }
-
+    getIndices();
+    // Get the statistics.
+    return getStats(latIndex, lonIndex);
+  }
+  
+  /**
+   * Function to get the raw depth statistics by latitude/longitude indices.
+   *
+   * @param latIndex ZoneStats colatitude index
+   * @param lonIndex ZoneStats longitude index
+   * @return A ZoneStat object containing the zone statistics
+   */
+  public ZoneStat getStats(int latIndex, int lonIndex) {
     // Get the statistics.
     int key = zoneKeys[lonIndex][latIndex];
     if (key >= 0) {
@@ -136,18 +119,12 @@ public class ZoneStats implements Serializable {
       return null;
     }
   }
-
-  /**
-   * This function gets the best Bayesian depth from the zone statistics.
-   *
-   * @param latitude A double containing the geographic latitude in degrees
-   * @param longitude A double containing the geographic longitude in degrees
-   * @return A double holding the bayesian depth in kilometers
-   */
-  public double getBayesDepth(double latitude, double longitude) {
+	
+	@Override
+	public BayesianDepth getBayesDepth(int latIndex, int lonIndex) {
     // Get the raw statistics.
-    ZoneStat stat = getStats(latitude, longitude);
-
+    ZoneStat stat = getStats(latIndex, lonIndex);
+    
     if (stat != null) {
       // Trap bad depths.
       double meanDepth =
@@ -167,14 +144,102 @@ public class ZoneStats implements Serializable {
           minDepth = maxDepth - LocUtil.DEFAULTDEPTHSE;
         }
       }
-      // Compute the Bayesian depth and spread.
-      bayesSpread =
-          Math.max(Math.max(maxDepth - meanDepth, meanDepth - minDepth), LocUtil.DEFAULTDEPTHSE);
-
-      return meanDepth;
+      
+      /*
+       * Oddly, the mean depth seems to be a better indicator of a deep earthquake zone than 
+       * the deepest depth.  There seem to be several historical reasons for this behavior: 
+       * 1) if there are shallow earthquakes in this cell, they must have all had their depths 
+       * held so that the mean just sampled the deep zone and 2) the deepest depth is typically 
+       * way too deep because of poor depth control (events with depth controlled by P-pP times 
+       * were held to the average P-pP depth) and so were not counted in the mean free depth).
+       */
+      return new BayesianDepth(meanDepth, minDepth / 3d, maxDepth / 3d, getDepthSource(), 
+      		LocUtil.DEFAULTDEPTHSE);
     } else {
-      bayesSpread = LocUtil.DEFAULTDEPTHSE;
-      return LocUtil.DEFAULTDEPTHSE;
+    	return null;
     }
+	}
+
+	@Override
+	protected DepthSource getDepthSource() {
+		return DepthSource.ZONESTATS;
+	}
+	
+	@Override
+	protected void canonicalCoords(double lat, double lon) {
+	  // We need colatitude (0-180) and longitude in the range of 0-360.
+	  coLat = 90d - lat;
+	  coLon = (lon > 0d) ? lon : lon + 360d;
+	
+	  // Make sure the coordinates are OK.
+	  if(coLat > 180d || coLat < 0d) {
+	  	coLat = Double.NaN;
+	  }
+	  if(coLon > 360d || coLon < 0d) {
+	  	coLon = Double.NaN;
+	  }
+	}
+
+	@Override
+	protected int newLatIndex(double coLat) {
+    if (coLat < 180d) {
+      return (int) coLat;
+    } else {
+      return 179;
+    }
+	}
+
+	@Override
+	protected int newLonIndex(int latIndex, double coLon) {
+    if (coLat > 0d && coLat < 180d) {
+      return (int) coLon;
+    } else {
+      return 0;
+    }
+	}
+	
+	@Override
+	protected int wrapLonIndex(int latIndex, int lonIndex) {
+		if(lonIndex >= 0 && lonIndex < 360) {
+			return lonIndex;
+		} else {
+			if(lonIndex < 0) {
+				return 360 + lonIndex;
+			} else {
+				return lonIndex - 360;
+			}
+		}
+	}
+
+	@Override
+	protected double latFromIndex(int latIndex) {
+		return latIndex + 0.5d;
+	}
+
+	@Override
+	protected double lonFromIndex(int latIndex, int lonIndex) {
+		return (lonIndex + 0.5d) % 360d;
+	}
+
+  /**
+   * Driver for a test of the ZoneStats/SlabModel subsystem.
+   * 
+   * @param args Not used
+   * @throws IOException On auxiliary data read error
+   * @throws ClassNotFoundException On auxiliary data serialization error
+   */
+  public static void main(String[] args) throws ClassNotFoundException, IOException {
+  	String modelPath = "../../LocRun/models/";
+  	
+		AuxLocRef auxLoc = new AuxLocRef(modelPath);
+  	ZoneStats test = auxLoc.getZoneStats();
+  	test.doTest();
+  }
+  
+  public void doTest() {
+  	double lat = 42.6040, lon = 132.0885;
+  	
+  	BayesianDepth bayes = interpolateBayesDepth(lat, lon);
+  	System.out.println(bayes);
   }
 }

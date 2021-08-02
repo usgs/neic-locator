@@ -5,9 +5,15 @@ import gov.usgs.locator.Hypocenter;
 import gov.usgs.locator.Pick;
 import gov.usgs.locator.Station;
 import gov.usgs.traveltime.TauUtil;
+
+import java.io.BufferedWriter;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.TimeZone;
+
+import org.json.simple.JSONObject;
 
 /**
  * The LocUtil class maintains the locator static constants and common utilities.
@@ -32,6 +38,12 @@ public class LocUtil {
 
   /** A double constant representing the maximum depth the Locator will allow. */
   public static final double DEPTHMAX = 700d;
+  
+  /**
+   * A double constant representing the default Bayesian depth standard error in kilometers for a
+   * held depth solution.
+   */
+  public static final double HELDDEPTHSE = 1d;
 
   /**
    * A double constant representing the default Bayesian depth in kilometers for a free depth
@@ -40,35 +52,67 @@ public class LocUtil {
   public static final double DEFAULTDEPTH = 10d;
 
   /**
-   * A double constant representing the default Bayesian depth error in kilometers (99th percentile)
+   * A double constant representing the default Bayesian depth error in kilometers (68th percentile)
    * for a free depth solution. Note that this represents the strength of the Bayesian constraint.
-   * There is no problem with the default depth minus the error being negative. The standard error
-   * is actually used in the calculation (i.e., 1/3 of the 99th percentile for a Gaussian).
+   * There is no problem with the default depth minus the error being negative.
    */
-  public static final double DEFAULTDEPTHSE = 15d;
-
-  /** A double containing the latitude-longitude grid spacing for the slab model. */
-  public static final double SLABINCREMENT = 0.5d;
-
-  public static final double SLABHALFINC = SLABINCREMENT / 2d;
+  public static final double DEFAULTDEPTHSE = 5d;
+  
+  /**
+   * A double constant representing the mid-crustal depth in kilometers (roughly the depth to 
+   * the Conrad discontinuity, if any).
+   */
+  public static final double MIDCRUSTDEPTH = 20d;
+  
+  /**
+   * A double constant representing the default standard error for shallow events in the lower crust.
+   */
+  public static final double LOWERCRUSTSE = 15d;
+  
+  /**
+   * If the statistics are any good, the deepest shallow event should be no deeper than the 
+   * default shallow depth plus three standard deviations (i.e., a 99% level).
+   */
+  public static final double DEEPESTSHALLOW = DEFAULTDEPTH + 3d * DEFAULTDEPTHSE;
 
   /**
-   * A double containing the minimum slab depth in kilometers where the Bayesian depth spread will
-   * cover both the slab and shallow earthquakes.
+   * The old Zone statistics change behavior between the shallow and deep regimes defined 
+   * by this boundary in kilometers.
    */
-  public static final double SLABMERGEDEPTH = 70d;
+  public static final double SHALLOWESTDEEP = 150d;
+  
+  /**
+   * Tolerance in kilometers across a facet of the global ZoneStat tessellation.  Zone depths 
+   * greater than the tolerance from the closest point will be dropped.
+   */
+  public static final double[] STRUCTURETOL = {60d, 150d};
 
   /**
    * A double containing the maximum trial depth in kilometers where the Bayesian depth can be
    * shallow if a slab is present.
    */
-  public static final double SLABMAXSHALLOWDEPTH = 60d;
+  public static final double SLABMAXSHALLOWDEPTH = 50d;
 
   /**
-   * A double constant representing the default Bayesian depth standard error in kilometers for a
-   * held depth solution.
+   * A double containing the minimum slab depth in kilometers where the Bayesian depth spread will
+   * cover both the slab and shallow earthquakes.
    */
-  public static final double HELDDEPTHSE = 3d;
+  public static final double SLABMERGEDEPTH = 80d;
+  
+  /**
+   * A double constant representing the typical slab earthquake depth error in kilometers 
+   * (99th percentile).
+   */
+  public static final double DEFAULTSLABSE = 30d;
+  
+  /** The minimum slab latitude-longitude grid spacing.  Used to separate tilted slabs rows. */
+  public static final double MINSLABINCREMENT = 0.05d;
+  
+  /** Minimum slab latitude-longitude spacing to define a new tilted slabs area */
+  public static final double TILTEDAREAINCREMENT = 7.0d;
+  
+  /** The strength of the Bayesian condition relative to the pick data. */
+  public static final double BAYESIANSTRENGTH = 0.0001d;
 
   /** A double constant representing the factor to down weight undesirable phase identifications. */
   public static final double DOWNWEIGHT = 0.5d;
@@ -256,6 +300,9 @@ public class LocUtil {
    */
   public static boolean isTectonic = false;
 
+  /** Normally false.  Set true only if this is a synthetic bayesian depth test. */
+  public static final boolean isSynthetic = true;
+  
   /**
    * A double containing the receiver azimuth relative to the source in degrees clockwise from north
    * (available after calling computeDistAzm).
@@ -378,6 +425,11 @@ public class LocUtil {
    */
   private static final double MAXGT5AZMLESTGAP = 160d;
 
+  /**
+   * A buffered writer handle for recording bits and pieces from around the Locator for debugging 
+   * experiments.
+   */
+  private static BufferedWriter recordOut = null;
   /*
    * A double representing the system time, used as a timer. Needed by
    * startTimer and endTimer.
@@ -896,6 +948,59 @@ public class LocUtil {
       return 'F';
     }
   }
+  
+  /**
+   * This function extracts a number from a JSON object and returns it as an int.  
+   * JSON only knows about String, Double, and Long.  Getting a primitive int 
+   * generally requires converting a Long into an int.
+   * 
+   * @param JSONobj A JSON object
+   * @param key Key string for the desired field
+   * @return The field converted to an int
+   */
+  public static int getJSONInt(JSONObject JSONobj, String key) {
+  	Number tempNumber;
+  	
+  	try {
+  		// Assume we have a number (or a null).
+  		tempNumber = (Number) JSONobj.get(key);
+  		if(tempNumber != null) {
+  			return tempNumber.intValue();
+  		} else {
+  			return -1;
+  		}
+  	} catch (ClassCastException e) {
+  		// Apparently, we have something else (probably a String).
+  		return -1;
+  	}
+  }
+	
+  /**
+   * This function extracts a number from a JSON object and returns it as a double.  
+   * JSON only knows about String, Double, and Long.  Getting a primitive double 
+   * requires converting either a Double or Long into a double.
+   * 
+   * 
+   * @param JSONobj A JSON object
+   * @param key Key string for the desired field
+   * @return The field converted to a double
+   */
+	public static double getJSONDouble(JSONObject JSONobj, String key) {
+		Number tempNumber;
+		
+		try {
+			// Assume we have a number (or a null).
+			tempNumber = (Number) JSONobj.get(key);
+			if(tempNumber != null) {
+				return tempNumber.doubleValue();
+			} else {
+				return Double.NaN;
+			}
+		} catch (ClassCastException e) {
+			// Apparently, we have something else (probably a String).
+			return Double.NaN;
+		}
+	}
 
   /**
    * This function prints a double vector to the screen for debugging purposes.
@@ -971,6 +1076,39 @@ public class LocUtil {
     }
 
     return matrixString;
+  }
+  
+  /**
+   * Simple file writer for gathering information from throughout the Locator for various 
+   * experiments.  Note this is quick and dirty.  The file name is hard wired, so it will 
+   * be overwritten each time it is opened.  If the string input is null, the file will 
+   * be closed.
+   * 
+   * @param line Text to write the the Record.txt file.
+   */
+  public static void record(String line) {
+  	if(line != null) {
+	  	if(recordOut == null) {
+	  		try {
+					recordOut = new BufferedWriter(new FileWriter("../../LocRun/output/Record.txt"));
+				} catch (IOException e) {
+					System.out.println("Unable to open the Record.txt file");
+				}
+	  	}
+	  	try {
+				recordOut.write(line + "\n");
+			} catch (IOException e) {
+				System.out.println("Unable to record: " + line);
+			}
+  	} else {
+  		if(recordOut != null) {
+  			try {
+					recordOut.close();
+				} catch (IOException e) {
+					System.out.println("Unable to close the Record.txt file");
+				}
+  		}
+  	}
   }
 
   /**
