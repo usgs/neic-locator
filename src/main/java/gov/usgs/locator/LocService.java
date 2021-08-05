@@ -21,6 +21,9 @@ public class LocService implements LocationService {
   /** Class to manage the locator external files. */
   private LocSessionLocal locLocal = null;
 
+  /** A String containing the serialized path for the locator, null to use default. */
+  private String serializedPath = null;
+
   /** Private logging object. */
   private static final Logger LOGGER = Logger.getLogger(LocService.class.getName());
 
@@ -49,6 +52,8 @@ public class LocService implements LocationService {
       e.printStackTrace();
       throw new LocationException("Unable to read Locator auxiliary data.");
     }
+    this.modelPath = modelPath;
+    this.serializedPath = serializedPath;
   }
 
   /**
