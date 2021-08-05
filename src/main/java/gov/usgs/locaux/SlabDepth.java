@@ -75,7 +75,7 @@ public class SlabDepth implements Serializable, Comparable<SlabDepth> {
 	public double[][] getVectors(double lat, double lon) {
 		double[][] v = new double[3][3];
 		for(int j = 0; j < 3; j++) {
-			v[j] = Geometry.vector(lon, lat, eqDepth[j]);
+			v[j] = Linear.vector(lon, lat, eqDepth[j]);
 		}
 		return v;
 	}
