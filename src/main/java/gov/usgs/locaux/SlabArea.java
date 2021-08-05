@@ -95,7 +95,7 @@ public class SlabArea implements Serializable {
 		
 		if(rowFound >= 0 && rowFound < slabRows.size()) {
 			// Get the 3-vectors for interpolation.
-			v = Geometry.vector(lon, lat, Double.NaN);
+			v = Linear.vector(lon, lat, Double.NaN);
 			v0 = new double[2][][];
 			slabRows.get(rowFound++).getVectors(lon, v0, slabInc);
 			if(rowFound < slabRows.size()) {
