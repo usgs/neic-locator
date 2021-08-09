@@ -1,6 +1,7 @@
 package gov.usgs.locator;
 
 import gov.usgs.detectionformats.Detection;
+import gov.usgs.locaux.LocUtil;
 import gov.usgs.processingformats.LocationException;
 import gov.usgs.processingformats.LocationRequest;
 import gov.usgs.processingformats.LocationResult;
@@ -576,7 +577,7 @@ public class LocMain {
     if (request != null) {
       try {
         // set up service
-        LocService service = new LocService(modelPath);
+        LocService service = new LocService(modelPath, modelPath);
         result = service.getLocation(request);
       } catch (LocationException e) {
         LOGGER.severe("Exception: " + e.toString());

@@ -53,7 +53,7 @@ public class LocatorRegressionTest {
 
     // do location
     LocationResult result = null;
-    LocService service = new LocService("build/models/");
+    LocService service = new LocService("build/models/", "build/models/");
     try {
       result = service.getLocation(request);
     } catch (LocationException e) {

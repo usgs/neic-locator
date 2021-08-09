@@ -53,9 +53,11 @@ provided in the examples directory.
 
 To run the neic-locator as a web service, run the command `java -jar build/libs/neic-locator-0.2.0-all.jar --mode=service`
 
-To run the neic-locator from the docker container, run the command `docker run --rm -it -p 8080:8080 usgs/neic-locator:latest`
+To run the neic-locator from the docker container, first create a docker volume for the temporary files with the command `docker volume create loc-vol`, then run the command `docker run -d --name loc-test --mount source=loc-vol,target=/project/local/ -p 8070:8080 -it usgs/neic-locator:latest` or `docker-compose up` if docker-compose is available.
 
-Once the web service is running, either locally or out of the container , you can access the swagger ui in a browser at `http://localhost:8080/`, and "try out" the locator service using the contents of examples/request.json.
+To attach to the neic-locator container for debugging, use the command `docker container exec -it loc-test /bin/bash`
+
+Once the web service is running, either locally or out of the container, you can access the swagger ui in a browser at `http://localhost:8080/` or `http://localhost:8070/` (if running out of the container), and "try out" the locator service using the contents of examples/request.json.
 
 Further Information and Documentation
 ------
