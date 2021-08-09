@@ -44,6 +44,12 @@ public class LocUtil {
    * held depth solution.
    */
   public static final double HELDDEPTHSE = 1d;
+  
+  /**
+   * A boolean controlling how aggressive to be in fixing phase naming for the initial Locator 
+   * pass.  If false, no fixing will be done.
+   */
+  public static final boolean FIXIT = false;
 
   /**
    * A double constant representing the default Bayesian depth in kilometers for a free depth
@@ -112,7 +118,7 @@ public class LocUtil {
   public static final double TILTEDAREAINCREMENT = 7.0d;
   
   /** The strength of the Bayesian condition relative to the pick data. */
-  public static final double BAYESIANSTRENGTH = 0.0001d;
+  public static final double BAYESIANSTRENGTH = 1d;
 
   /** A double constant representing the factor to down weight undesirable phase identifications. */
   public static final double DOWNWEIGHT = 0.5d;
