@@ -34,10 +34,10 @@ public class LocService implements LocationService {
    * @throws gov.usgs.processingformats.LocationException Throws a LocationException upon certain
    *     severe errors. 
    */
-  public LocService(String modelPath) throws LocationException {
+  public LocService(String modelPath, String serializedPath) throws LocationException {
     // init the tt models
     try {
-      ttLocal = new TTSessionLocal(true, true, true, modelPath);
+      ttLocal = new TTSessionLocal(true, true, true, modelPath, serializedPath);
     } catch (IOException | ClassNotFoundException e) {
       LOGGER.severe("Unable to read travel-time auxiliary data.");
       e.printStackTrace();
@@ -52,7 +52,6 @@ public class LocService implements LocationService {
       e.printStackTrace();
       throw new LocationException("Unable to read Locator auxiliary data.");
     }
-    this.modelPath = modelPath;
     this.serializedPath = serializedPath;
   }
 

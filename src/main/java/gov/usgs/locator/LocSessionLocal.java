@@ -9,6 +9,8 @@ import java.io.ObjectOutputStream;
 import java.nio.channels.FileLock;
 import java.util.Scanner;
 import java.util.TreeMap;
+import java.util.logging.Logger;
+import java.util.logging.Level;
 
 import gov.usgs.locaux.AuxLocRef;
 import gov.usgs.locaux.LocUtil;
@@ -31,13 +33,26 @@ import gov.usgs.traveltime.TauUtil;
  *
  */
 public class LocSessionLocal {
-  String[] modelFileNames = {"slabmaster.txt", "slabtilted.txt"};
-	String lastSlabRes = "";
-	String modelPath;
+	/** An array of String objects containing the raw slab model file names. */
+	private String[] modelFileNames = {"slabmaster.txt", "slabtilted.txt"};
+
+	/** A String object containing the name of the last slab model used */
+	private String lastSlabRes = "";
+
+	/** A String object containing the path to the slab models */
+	private String modelPath;
+
 	TreeMap<String, Locate> locByRes;
-	AuxLocRef auxLoc;
+
+	/** An AuxLocRef object containing the invariant external file data. */
+	private AuxLocRef auxLoc;
+	
+	/** A Locate object */
 	Locate lastLocate;
 	
+	/** Private logging object. */
+	private static final Logger LOGGER = Logger.getLogger(LocSessionLocal.class.getName());
+
 	/**
 	 * Read in the invariant external Locator files.
 	 * 
@@ -48,7 +63,7 @@ public class LocSessionLocal {
 	public LocSessionLocal(String modelPath) throws ClassNotFoundException, IOException {
 		this.modelPath = modelPath;
 		// Read in the invariant external file data.
-    auxLoc = new AuxLocRef(modelPath);
+    	auxLoc = new AuxLocRef(modelPath);
 	}
 	
 	/**
@@ -69,24 +84,29 @@ public class LocSessionLocal {
 		if(!slabRes.contentEquals(lastSlabRes)) {
 			// Otherwise, fetch the proper Locate instantiation.
 			lastSlabRes = slabRes;
+
 			// If necessary, initialize the Locate instance storage.
 			if(locByRes == null) {
 				locByRes = new TreeMap<String, Locate>();
 			}
+
 			// Fetch the saved Locate instance.
 			Locate locate = locByRes.get(slabRes);
+
 			// If there isn't one, get the required slab resolution, create a new 
 			// Locate object with that resolution, and save it for next time.
 			if(locate == null) {
 				Slabs slabStats = getSlabRes(slabRes);
 				// Debug check on the consistency of the slab rows.
-		//	slabStats.doRowCensus();
-		    locate = new Locate(event, ttLocal, auxLoc, slabStats);
-		    locByRes.put(slabRes, locate);
+			//	slabStats.doRowCensus();
+				locate = new Locate(event, ttLocal, auxLoc, slabStats);
+				locByRes.put(slabRes, locate);
 			}
+
 			lastLocate = locate;
 		}
-    return lastLocate;
+
+    	return lastLocate;
 	}
 	
 	/**
@@ -120,7 +140,7 @@ public class LocSessionLocal {
     }
     // Fiddle the slab master file to get the required resolution.
     absNames[0] = absNames[0].substring(0, absNames[0].indexOf(".txt")) + slabRes + ".txt";
-//    System.out.println("Slab file: " + absNames[0]);
+    LOGGER.info("Slab file: " + absNames[0]);
 
     // If any of the raw input files have changed, regenerate the serialized file.
     serializedFileName = "slab" + slabRes + ".ser";
@@ -138,14 +158,14 @@ public class LocSessionLocal {
   	  inSlabs.close();
 
       // Write out the serialized file.
-  //  LOGGER.fine("Recreate the serialized file.");
+      LOGGER.fine("Recreate the serialized file.");
       serOut = new FileOutputStream(modelPath + serializedFileName);
       objOut = new ObjectOutputStream(serOut);
 
       // Wait for an exclusive lock for writing.
       lock = serOut.getChannel().lock();
-  //   LOGGER.fine(
-  //       "AuxLocRef write lock: valid = " + lock.isValid() + " shared = " + lock.isShared());
+      LOGGER.fine(
+         "LocSessionLocal write lock: valid = " + lock.isValid() + " shared = " + lock.isShared());
 
       /*
        * The auxiliary data can be read and written very quickly, so for persistent 
@@ -165,14 +185,14 @@ public class LocSessionLocal {
       serOut.close();
     } else {
       // Read in the serialized file.
-  //	LOGGER.fine("Read the serialized file.");
+ 	  LOGGER.fine("Read the serialized file.");
       serIn = new FileInputStream(modelPath + serializedFileName);
       objIn = new ObjectInputStream(serIn);
 
       // Wait for a shared lock for reading.
       lock = serIn.getChannel().lock(0, Long.MAX_VALUE, true);
-   //	LOGGER.fine(
-   //     "AuxLocRef read lock: valid = " + lock.isValid() + " shared = " + lock.isShared());
+      LOGGER.fine(
+        "LocSessionLocal read lock: valid = " + lock.isValid() + " shared = " + lock.isShared());
 
       // load the cratons and zoneStats
       slabs = (Slabs) objIn.readObject();
@@ -223,14 +243,14 @@ public class LocSessionLocal {
 	  		slabInc = Math.abs(firstLon - point.getLon());
 	  		slabs.setSlabInc(slabInc);
 	  	  area = new SlabArea(slabInc);
-	  		System.out.format("Increment set: %5.3f\n", slabInc);
+			LOGGER.info("Increment set: " + String.valueOf(slabInc));
 	  	}
 	  	// Look for the end of a latitude row.
 	  	if(Math.abs(point.getLon() - lastLon) > slabInc + TauUtil.DTOL) {
 	  		// Print out the first and last points in each area.
-	//  	if(LOGGER.getLevel() == Level.FINE) {
+	    	if(LOGGER.getLevel() == Level.FINE) {
 		  		if(first || Math.abs(point.getLon() - firstLon) > TauUtil.DTOL) {
-	// 				LOGGER.fine(row);
+	 				LOGGER.fine(row.toString());
 		  			row.printRaw();
 		  			if(first) {
 		  				first = false;
@@ -238,7 +258,7 @@ public class LocSessionLocal {
 		  				first = true;
 		  			}
 		  		}
-	//   	}
+		   	}
 	  		// Squeeze out the NaNs and save the remaining data in segments.
 	  		row.squeeze(slabInc);
 	  		// Look for the start of a new area.
@@ -246,7 +266,7 @@ public class LocSessionLocal {
 	  			// Add the last row.
 	  			area.add(row);
 	  			// Print a summary of the last area.
-	// 			LOGGER.fine(area);
+	 			LOGGER.fine(area.toString());
 	  			area.printArea(false);
 	  			// Add the last area to slab storage.
 	  			slabs.add(area);
@@ -266,13 +286,13 @@ public class LocSessionLocal {
   		lastLon = point.getLon();
 	  }
 	  // Deal with the last point, which closes the last row and area.
-//  LOGGER.fine(row);
+	  LOGGER.fine(row.toString());
 	  row.printRaw();
 		row.squeeze(slabInc);
 		area.add(row);
 		slabs.add(area);
 		// Print the summary for the last area.
-//	LOGGER.fine(area);
+		LOGGER.fine(area.toString());
 		area.printArea(false);
   }
   
@@ -311,7 +331,7 @@ public class LocSessionLocal {
 	  		 * they run at odd angles with odd spacings.  We still need to find 
 	  		 * them though so we can detect new areas.
 	  		 */
-	//  	System.out.println("Scan line: " + firstPoint + " - " + lastPoint);
+		  	LOGGER.fine("Scan line: " + firstPoint + " - " + lastPoint);
 		  	if(Math.abs(point.getLat() - firstPoint.getLat()) > LocUtil.TILTEDAREAINCREMENT || 
 		  			Math.abs(point.getLon() - firstPoint.getLon()) > LocUtil.TILTEDAREAINCREMENT) {
 		  		// New area.  Process the data from the last area and start a new one.
