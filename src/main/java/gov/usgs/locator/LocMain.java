@@ -684,7 +684,7 @@ public class LocMain {
       return false;
     }
 
-    LocUtil.record(String.format("%4.2f", LocUtil.BAYESIANSTRENGTH));
+//    LocUtil.record(String.format("%4.2f", LocUtil.BAYESIANSTRENGTH));
     // for all the files currently in the input directory
     for (File inputFile : inputDir.listFiles()) {
       // if the file has the right extension
@@ -721,7 +721,7 @@ public class LocMain {
         }
       }
     }
-    LocUtil.record(null);
+//    LocUtil.record(null);
 
     // done
     return true;

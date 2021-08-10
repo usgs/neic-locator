@@ -1338,8 +1338,14 @@ public class Event {
     double lonStep = LocUtil.DEG2KM * hypo.getCoLatitudeSine() * (hypo.getLongitude() - 
     		hypoAuditList.get(0).getLongitude());
     double depStep = hypo.getDepth() - hypoAuditList.get(0).getDepth();
-  	return String.format("%s %4d %4d %7.2f %7.2f %7.2f %6.2f %6.2f %6.2f", id.substring(11), 
-  			numPhasesAssociated, numPhasesUsed, latStep, lonStep, depStep, latitudeStandardError, 
-  			longitudeStandardError, depthStandardError);
+    if(id != null) {
+	  	return String.format("%s %4d %4d %7.2f %7.2f %7.2f %6.2f %6.2f %6.2f", id.substring(11), 
+	  			numPhasesAssociated, numPhasesUsed, latStep, lonStep, depStep, latitudeStandardError, 
+	  			longitudeStandardError, depthStandardError);
+    } else {
+	  	return String.format("%s %4d %4d %7.2f %7.2f %7.2f %6.2f %6.2f %6.2f", "null", 
+	  			numPhasesAssociated, numPhasesUsed, latStep, lonStep, depStep, latitudeStandardError, 
+	  			longitudeStandardError, depthStandardError);
+    }
   }
 }
