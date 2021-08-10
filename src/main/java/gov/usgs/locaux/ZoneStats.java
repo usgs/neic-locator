@@ -1,10 +1,9 @@
 package gov.usgs.locaux;
 
-import java.io.IOException;
-import java.io.Serializable;
-
 import gov.usgs.locator.BayesianDepth;
 import gov.usgs.locator.DepthSource;
+import java.io.IOException;
+import java.io.Serializable;
 
 /**
  * The ZoneStats class implements the historical free depth statistics portion of the SEDAS zone
@@ -93,16 +92,16 @@ public class ZoneStats extends AbstractZoneStats implements Serializable {
    * @return A ZoneStat object containing the zone statistics
    */
   public ZoneStat getStats(double latitude, double longitude) {
-  	// Get the ZoneStat indices.
-    canonicalCoords(latitude, longitude);
-    if(Double.isNaN(coLat) || Double.isNaN(coLon)) {
-    	return null;
+    // Get the ZoneStat indices.
+    computeCanonicalCoords(latitude, longitude);
+    if (Double.isNaN(coLat) || Double.isNaN(coLon)) {
+      return null;
     }
     getIndices();
     // Get the statistics.
     return getStats(latIndex, lonIndex);
   }
-  
+
   /**
    * Function to get the raw depth statistics by latitude/longitude indices.
    *
@@ -119,12 +118,12 @@ public class ZoneStats extends AbstractZoneStats implements Serializable {
       return null;
     }
   }
-	
-	@Override
-	public BayesianDepth getBayesDepth(int latIndex, int lonIndex) {
+
+  @Override
+  public BayesianDepth getBayesDepth(int latIndex, int lonIndex) {
     // Get the raw statistics.
     ZoneStat stat = getStats(latIndex, lonIndex);
-    
+
     if (stat != null) {
       // Trap bad depths.
       double meanDepth =
@@ -144,102 +143,102 @@ public class ZoneStats extends AbstractZoneStats implements Serializable {
           minDepth = maxDepth - LocUtil.DEFAULTDEPTHSE;
         }
       }
-      
+
       /*
-       * Oddly, the mean depth seems to be a better indicator of a deep earthquake zone than 
-       * the deepest depth.  There seem to be several historical reasons for this behavior: 
-       * 1) if there are shallow earthquakes in this cell, they must have all had their depths 
-       * held so that the mean just sampled the deep zone and 2) the deepest depth is typically 
-       * way too deep because of poor depth control (events with depth controlled by P-pP times 
+       * Oddly, the mean depth seems to be a better indicator of a deep earthquake zone than
+       * the deepest depth.  There seem to be several historical reasons for this behavior:
+       * 1) if there are shallow earthquakes in this cell, they must have all had their depths
+       * held so that the mean just sampled the deep zone and 2) the deepest depth is typically
+       * way too deep because of poor depth control (events with depth controlled by P-pP times
        * were held to the average P-pP depth) and so were not counted in the mean free depth).
        */
-      return new BayesianDepth(meanDepth, minDepth / 3d, maxDepth / 3d, getDepthSource(), 
-      		LocUtil.DEFAULTDEPTHSE);
+      return new BayesianDepth(
+          meanDepth, minDepth / 3d, maxDepth / 3d, getDepthSource(), LocUtil.DEFAULTDEPTHSE);
     } else {
-    	return null;
+      return null;
     }
-	}
+  }
 
-	@Override
-	protected DepthSource getDepthSource() {
-		return DepthSource.ZONESTATS;
-	}
-	
-	@Override
-	protected void canonicalCoords(double lat, double lon) {
-	  // We need colatitude (0-180) and longitude in the range of 0-360.
-	  coLat = 90d - lat;
-	  coLon = (lon > 0d) ? lon : lon + 360d;
-	
-	  // Make sure the coordinates are OK.
-	  if(coLat > 180d || coLat < 0d) {
-	  	coLat = Double.NaN;
-	  }
-	  if(coLon > 360d || coLon < 0d) {
-	  	coLon = Double.NaN;
-	  }
-	}
+  @Override
+  protected DepthSource getDepthSource() {
+    return DepthSource.ZONESTATS;
+  }
 
-	@Override
-	protected int newLatIndex(double coLat) {
+  @Override
+  protected void computeCanonicalCoords(double lat, double lon) {
+    // We need colatitude (0-180) and longitude in the range of 0-360.
+    coLat = 90d - lat;
+    coLon = (lon > 0d) ? lon : lon + 360d;
+
+    // Make sure the coordinates are OK.
+    if (coLat > 180d || coLat < 0d) {
+      coLat = Double.NaN;
+    }
+    if (coLon > 360d || coLon < 0d) {
+      coLon = Double.NaN;
+    }
+  }
+
+  @Override
+  protected int newLatIndex(double coLat) {
     if (coLat < 180d) {
       return (int) coLat;
     } else {
       return 179;
     }
-	}
+  }
 
-	@Override
-	protected int newLonIndex(int latIndex, double coLon) {
+  @Override
+  protected int newLonIndex(int latIndex, double coLon) {
     if (coLat > 0d && coLat < 180d) {
       return (int) coLon;
     } else {
       return 0;
     }
-	}
-	
-	@Override
-	protected int wrapLonIndex(int latIndex, int lonIndex) {
-		if(lonIndex >= 0 && lonIndex < 360) {
-			return lonIndex;
-		} else {
-			if(lonIndex < 0) {
-				return 360 + lonIndex;
-			} else {
-				return lonIndex - 360;
-			}
-		}
-	}
+  }
 
-	@Override
-	protected double latFromIndex(int latIndex) {
-		return latIndex + 0.5d;
-	}
+  @Override
+  protected int wrapLonIndex(int latIndex, int lonIndex) {
+    if (lonIndex >= 0 && lonIndex < 360) {
+      return lonIndex;
+    } else {
+      if (lonIndex < 0) {
+        return 360 + lonIndex;
+      } else {
+        return lonIndex - 360;
+      }
+    }
+  }
 
-	@Override
-	protected double lonFromIndex(int latIndex, int lonIndex) {
-		return (lonIndex + 0.5d) % 360d;
-	}
+  @Override
+  protected double latFromIndex(int latIndex) {
+    return latIndex + 0.5d;
+  }
+
+  @Override
+  protected double lonFromIndex(int latIndex, int lonIndex) {
+    return (lonIndex + 0.5d) % 360d;
+  }
 
   /**
    * Driver for a test of the ZoneStats/SlabModel subsystem.
-   * 
+   *
    * @param args Not used
    * @throws IOException On auxiliary data read error
    * @throws ClassNotFoundException On auxiliary data serialization error
    */
   public static void main(String[] args) throws ClassNotFoundException, IOException {
-  	String modelPath = "../../LocRun/models/";
-  	
-		AuxLocRef auxLoc = new AuxLocRef(modelPath);
-  	ZoneStats test = auxLoc.getZoneStats();
-  	test.doTest();
+    String modelPath = "../../LocRun/models/";
+
+    AuxLocRef auxLoc = new AuxLocRef(modelPath, modelPath);
+    ZoneStats test = auxLoc.getZoneStats();
+    test.doTest();
   }
-  
+
   public void doTest() {
-  	double lat = 42.6040, lon = 132.0885;
-  	
-  	BayesianDepth bayes = interpolateBayesDepth(lat, lon);
-  	System.out.println(bayes);
+    double lat = 42.6040, lon = 132.0885;
+
+    BayesianDepth bayes = interpolateBayesDepth(lat, lon);
+    System.out.println(bayes);
   }
 }

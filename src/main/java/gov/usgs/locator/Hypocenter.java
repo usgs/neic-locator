@@ -396,12 +396,12 @@ public class Hypocenter {
     this.bayesianDepth = Math.min(Math.max(bayesianDepth, LocUtil.DEPTHMIN), LocUtil.DEPTHMAX);
     this.bayesianDepthSpread = bayesianDepthSpread;
 
-    if(LocUtil.isSynthetic) {
-    	// For a synthetic run, let the depth float so we can see how much it moves.
+    if (LocUtil.isSynthetic) {
+      // For a synthetic run, let the depth float so we can see how much it moves.
       bayesianDepthResidual = bayesianDepth - depth;
     } else {
-    	//If this isn't a synthetic run, start at the manually set depth.
-    	depth = bayesianDepth;
+      // If this isn't a synthetic run, start at the manually set depth.
+      depth = bayesianDepth;
       bayesianDepthResidual = 0d;
     }
     bayesianDepthWeight = LocUtil.BAYESIANSTRENGTH / bayesianDepthSpread;
@@ -451,7 +451,7 @@ public class Hypocenter {
   }
 
   /**
-   * This funtion updates the hypocenter based on the linearized optimal step and time shift.
+   * This function updates the hypocenter based on the linearized optimal step and time shift.
    *
    * @param stepLength A double containing the step length in kilometers
    * @param timeShift A double containing the origin time shift in seconds

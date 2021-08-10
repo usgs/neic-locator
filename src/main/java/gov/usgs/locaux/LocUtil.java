@@ -5,14 +5,12 @@ import gov.usgs.locator.Hypocenter;
 import gov.usgs.locator.Pick;
 import gov.usgs.locator.Station;
 import gov.usgs.traveltime.TauUtil;
-
 import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.TimeZone;
-
 import org.json.simple.JSONObject;
 
 /**
@@ -38,16 +36,16 @@ public class LocUtil {
 
   /** A double constant representing the maximum depth the Locator will allow. */
   public static final double DEPTHMAX = 700d;
-  
+
   /**
    * A double constant representing the default Bayesian depth standard error in kilometers for a
    * held depth solution.
    */
   public static final double HELDDEPTHSE = 1d;
-  
+
   /**
-   * A boolean controlling how aggressive to be in fixing phase naming for the initial Locator 
-   * pass.  If false, no fixing will be done.
+   * A boolean controlling how aggressive to be in fixing phase naming for the initial Locator pass.
+   * If false, no fixing will be done.
    */
   public static final boolean FIXIT = false;
 
@@ -63,33 +61,34 @@ public class LocUtil {
    * There is no problem with the default depth minus the error being negative.
    */
   public static final double DEFAULTDEPTHSE = 5d;
-  
+
   /**
-   * A double constant representing the mid-crustal depth in kilometers (roughly the depth to 
-   * the Conrad discontinuity, if any).
+   * A double constant representing the mid-crustal depth in kilometers (roughly the depth to the
+   * Conrad discontinuity, if any).
    */
   public static final double MIDCRUSTDEPTH = 20d;
-  
+
   /**
-   * A double constant representing the default standard error for shallow events in the lower crust.
+   * A double constant representing the default standard error for shallow events in the lower
+   * crust.
    */
   public static final double LOWERCRUSTSE = 15d;
-  
+
   /**
-   * If the statistics are any good, the deepest shallow event should be no deeper than the 
-   * default shallow depth plus three standard deviations (i.e., a 99% level).
+   * If the statistics are any good, the deepest shallow event should be no deeper than the default
+   * shallow depth plus three standard deviations (i.e., a 99% level).
    */
   public static final double DEEPESTSHALLOW = DEFAULTDEPTH + 3d * DEFAULTDEPTHSE;
 
   /**
-   * The old Zone statistics change behavior between the shallow and deep regimes defined 
-   * by this boundary in kilometers.
+   * The old Zone statistics change behavior between the shallow and deep regimes defined by this
+   * boundary in kilometers.
    */
   public static final double SHALLOWESTDEEP = 150d;
-  
+
   /**
-   * Tolerance in kilometers across a facet of the global ZoneStat tessellation.  Zone depths 
-   * greater than the tolerance from the closest point will be dropped.
+   * Tolerance in kilometers across a facet of the global ZoneStat tessellation. Zone depths greater
+   * than the tolerance from the closest point will be dropped.
    */
   public static final double[] STRUCTURETOL = {60d, 150d};
 
@@ -104,19 +103,19 @@ public class LocUtil {
    * cover both the slab and shallow earthquakes.
    */
   public static final double SLABMERGEDEPTH = 80d;
-  
+
   /**
-   * A double constant representing the typical slab earthquake depth error in kilometers 
-   * (99th percentile).
+   * A double constant representing the typical slab earthquake depth error in kilometers (99th
+   * percentile).
    */
   public static final double DEFAULTSLABSE = 30d;
-  
-  /** The minimum slab latitude-longitude grid spacing.  Used to separate tilted slabs rows. */
+
+  /** The minimum slab latitude-longitude grid spacing. Used to separate tilted slabs rows. */
   public static final double MINSLABINCREMENT = 0.05d;
-  
+
   /** Minimum slab latitude-longitude spacing to define a new tilted slabs area */
   public static final double TILTEDAREAINCREMENT = 7.0d;
-  
+
   /** The strength of the Bayesian condition relative to the pick data. */
   public static final double BAYESIANSTRENGTH = 1d;
 
@@ -306,9 +305,9 @@ public class LocUtil {
    */
   public static boolean isTectonic = false;
 
-  /** Normally false.  Set true only if this is a synthetic bayesian depth test. */
+  /** Normally false. Set true only if this is a synthetic bayesian depth test. */
   public static final boolean isSynthetic = true;
-  
+
   /**
    * A double containing the receiver azimuth relative to the source in degrees clockwise from north
    * (available after calling computeDistAzm).
@@ -432,7 +431,7 @@ public class LocUtil {
   private static final double MAXGT5AZMLESTGAP = 160d;
 
   /**
-   * A buffered writer handle for recording bits and pieces from around the Locator for debugging 
+   * A buffered writer handle for recording bits and pieces from around the Locator for debugging
    * experiments.
    */
   private static BufferedWriter recordOut = null;
@@ -478,16 +477,19 @@ public class LocUtil {
                 * (sta.getLongitudeCosine() * hypo.getLongitudeCosine()
                     + sta.getLongitudeSine() * hypo.getLongitudeSine())
             + hypo.getCoLatitudeCosine() * sta.getCoLatitudeCosine();
+
     double tm1 =
         sta.getCoLatitudeSine()
             * (sta.getLongitudeSine() * hypo.getLongitudeCosine()
                 - sta.getLongitudeCosine() * hypo.getLongitudeSine());
+
     double tm2 =
         hypo.getCoLatitudeSine() * sta.getCoLatitudeCosine()
             - hypo.getCoLatitudeCosine()
                 * sta.getCoLatitudeSine()
                 * (sta.getLongitudeCosine() * hypo.getLongitudeCosine()
                     + sta.getLongitudeSine() * hypo.getLongitudeSine());
+
     double sindel = Math.sqrt(Math.pow(tm1, 2d) + Math.pow(tm2, 2d));
 
     // Compute the azimuth.
@@ -527,16 +529,19 @@ public class LocUtil {
                 * (audit.getLongitudeCosine() * hypo.getLongitudeCosine()
                     + audit.getLongitudeSine() * hypo.getLongitudeSine())
             + hypo.getCoLatitudeCosine() * audit.getCoLatitudeCosine();
+
     double tm1 =
         audit.getCoLatitudeSine()
             * (audit.getLongitudeSine() * hypo.getLongitudeCosine()
                 - audit.getLongitudeCosine() * hypo.getLongitudeSine());
+
     double tm2 =
         hypo.getCoLatitudeSine() * audit.getCoLatitudeCosine()
             - hypo.getCoLatitudeCosine()
                 * audit.getCoLatitudeSine()
                 * (audit.getLongitudeCosine() * hypo.getLongitudeCosine()
                     + audit.getLongitudeSine() * hypo.getLongitudeSine());
+
     double sindel = Math.sqrt(Math.pow(tm1, 2d) + Math.pow(tm2, 2d));
 
     // Compute distance (delta).
@@ -600,16 +605,19 @@ public class LocUtil {
                   * (sta2.getLongitudeCosine() * sta1.getLongitudeCosine()
                       + sta2.getLongitudeSine() * sta1.getLongitudeSine())
               + sta1.getCoLatitudeCosine() * sta2.getCoLatitudeCosine();
+
       double tm1 =
           sta2.getCoLatitudeSine()
               * (sta2.getLongitudeSine() * sta1.getLongitudeCosine()
                   - sta2.getLongitudeCosine() * sta1.getLongitudeSine());
+
       double tm2 =
           sta1.getCoLatitudeSine() * sta2.getCoLatitudeCosine()
               - sta1.getCoLatitudeCosine()
                   * sta2.getCoLatitudeSine()
                   * (sta2.getLongitudeCosine() * sta1.getLongitudeCosine()
                       + sta2.getLongitudeSine() * sta1.getLongitudeSine());
+
       double sindel = Math.sqrt(Math.pow(tm1, 2d) + Math.pow(tm2, 2d));
 
       // Compute distance (delta).
@@ -954,59 +962,58 @@ public class LocUtil {
       return 'F';
     }
   }
-  
+
   /**
-   * This function extracts a number from a JSON object and returns it as an int.  
-   * JSON only knows about String, Double, and Long.  Getting a primitive int 
-   * generally requires converting a Long into an int.
-   * 
+   * This function extracts a number from a JSON object and returns it as an int. JSON only knows
+   * about String, Double, and Long. Getting a primitive int generally requires converting a Long
+   * into an int.
+   *
    * @param JSONobj A JSON object
    * @param key Key string for the desired field
    * @return The field converted to an int
    */
   public static int getJSONInt(JSONObject JSONobj, String key) {
-  	Number tempNumber;
-  	
-  	try {
-  		// Assume we have a number (or a null).
-  		tempNumber = (Number) JSONobj.get(key);
-  		if(tempNumber != null) {
-  			return tempNumber.intValue();
-  		} else {
-  			return -1;
-  		}
-  	} catch (ClassCastException e) {
-  		// Apparently, we have something else (probably a String).
-  		return -1;
-  	}
+    Number tempNumber;
+
+    try {
+      // Assume we have a number (or a null).
+      tempNumber = (Number) JSONobj.get(key);
+      if (tempNumber != null) {
+        return tempNumber.intValue();
+      } else {
+        return -1;
+      }
+    } catch (ClassCastException e) {
+      // Apparently, we have something else (probably a String).
+      return -1;
+    }
   }
-	
+
   /**
-   * This function extracts a number from a JSON object and returns it as a double.  
-   * JSON only knows about String, Double, and Long.  Getting a primitive double 
-   * requires converting either a Double or Long into a double.
-   * 
-   * 
+   * This function extracts a number from a JSON object and returns it as a double. JSON only knows
+   * about String, Double, and Long. Getting a primitive double requires converting either a Double
+   * or Long into a double.
+   *
    * @param JSONobj A JSON object
    * @param key Key string for the desired field
    * @return The field converted to a double
    */
-	public static double getJSONDouble(JSONObject JSONobj, String key) {
-		Number tempNumber;
-		
-		try {
-			// Assume we have a number (or a null).
-			tempNumber = (Number) JSONobj.get(key);
-			if(tempNumber != null) {
-				return tempNumber.doubleValue();
-			} else {
-				return Double.NaN;
-			}
-		} catch (ClassCastException e) {
-			// Apparently, we have something else (probably a String).
-			return Double.NaN;
-		}
-	}
+  public static double getJSONDouble(JSONObject JSONobj, String key) {
+    Number tempNumber;
+
+    try {
+      // Assume we have a number (or a null).
+      tempNumber = (Number) JSONobj.get(key);
+      if (tempNumber != null) {
+        return tempNumber.doubleValue();
+      } else {
+        return Double.NaN;
+      }
+    } catch (ClassCastException e) {
+      // Apparently, we have something else (probably a String).
+      return Double.NaN;
+    }
+  }
 
   /**
    * This function prints a double vector to the screen for debugging purposes.
@@ -1083,38 +1090,37 @@ public class LocUtil {
 
     return matrixString;
   }
-  
+
   /**
-   * Simple file writer for gathering information from throughout the Locator for various 
-   * experiments.  Note this is quick and dirty.  The file name is hard wired, so it will 
-   * be overwritten each time it is opened.  If the string input is null, the file will 
-   * be closed.
-   * 
+   * Simple file writer for gathering information from throughout the Locator for various
+   * experiments. Note this is quick and dirty. The file name is hard wired, so it will be
+   * overwritten each time it is opened. If the string input is null, the file will be closed.
+   *
    * @param line Text to write the the Record.txt file.
    */
   public static void record(String line) {
-  	if(line != null) {
-	  	if(recordOut == null) {
-	  		try {
-					recordOut = new BufferedWriter(new FileWriter("../../LocRun/output/Record.txt"));
-				} catch (IOException e) {
-					System.out.println("Unable to open the Record.txt file");
-				}
-	  	}
-	  	try {
-				recordOut.write(line + "\n");
-			} catch (IOException e) {
-				System.out.println("Unable to record: " + line);
-			}
-  	} else {
-  		if(recordOut != null) {
-  			try {
-					recordOut.close();
-				} catch (IOException e) {
-					System.out.println("Unable to close the Record.txt file");
-				}
-  		}
-  	}
+    if (line != null) {
+      if (recordOut == null) {
+        try {
+          recordOut = new BufferedWriter(new FileWriter("../../LocRun/output/Record.txt"));
+        } catch (IOException e) {
+          System.out.println("Unable to open the Record.txt file");
+        }
+      }
+      try {
+        recordOut.write(line + "\n");
+      } catch (IOException e) {
+        System.out.println("Unable to record: " + line);
+      }
+    } else {
+      if (recordOut != null) {
+        try {
+          recordOut.close();
+        } catch (IOException e) {
+          System.out.println("Unable to close the Record.txt file");
+        }
+      }
+    }
   }
 
   /**
@@ -1136,6 +1142,7 @@ public class LocUtil {
     // systemTime);
     String timerString =
         String.format("%s time:%7.3f", label, 0.001 * (System.currentTimeMillis() - systemTime));
+
     return (timerString);
   }
 
@@ -1156,6 +1163,7 @@ public class LocUtil {
     String timerString =
         String.format(
             "Compute time %7.3f seconds", 0.001 * (System.currentTimeMillis() - locationTime));
+
     return (timerString);
   }
 }

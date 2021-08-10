@@ -76,14 +76,14 @@ public class Locate {
    */
   public LocStatus doLocation() {
     LOGGER.info("Starting Location");
-/*  LocUtil.record(
-        String.format(
-            "\t%s:      %5d %8.4f %8.4f %6.2f",
-            "Init",
-            event.getNumPhasesUsed(),
-            hypo.getLatitude(),
-            hypo.getLongitude(),
-            hypo.getDepth())); */
+    /*  LocUtil.record(
+    String.format(
+        "\t%s:      %5d %8.4f %8.4f %6.2f",
+        "Init",
+        event.getNumPhasesUsed(),
+        hypo.getLatitude(),
+        hypo.getLongitude(),
+        hypo.getDepth())); */
 
     // Save the essentials of this event for comparison.
     event.addAudit(0, 0, LocStatus.INITIAL_HYPOCENTER);
@@ -229,7 +229,7 @@ public class Locate {
             LOGGER.info("Final wrap up: \n" + event.printHypoAudit());
 
             status = close.compFinalStats(status);
-//            LocUtil.record(event.getSynthOut());
+            //            LocUtil.record(event.getSynthOut());
             return status;
           } else {
             // Otherwise, create the stage level audit.

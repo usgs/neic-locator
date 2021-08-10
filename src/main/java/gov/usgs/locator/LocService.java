@@ -12,12 +12,12 @@ import java.util.ArrayList;
 import java.util.logging.Logger;
 
 public class LocService implements LocationService {
-	/** Temporary hack to test user selected slab resolutions. */
-	private String slabRes = null;
-	
+  /** Temporary hack to test user selected slab resolutions. */
+  private String slabRes = null;
+
   /** Class to manage the travel-time external files. */
   private TTSessionLocal ttLocal = null;
-  
+
   /** Class to manage the locator external files. */
   private LocSessionLocal locLocal = null;
 
@@ -32,7 +32,7 @@ public class LocService implements LocationService {
    *
    * @param modelPath A String containing the earth model path to use
    * @throws gov.usgs.processingformats.LocationException Throws a LocationException upon certain
-   *     severe errors. 
+   *     severe errors.
    */
   public LocService(String modelPath, String serializedPath) throws LocationException {
     // init the tt models
@@ -46,13 +46,12 @@ public class LocService implements LocationService {
 
     // Read the Locator auxiliary files.
     try {
-      locLocal = new LocSessionLocal(modelPath);
+      locLocal = new LocSessionLocal(modelPath, serializedPath);
     } catch (IOException | ClassNotFoundException e) {
       LOGGER.severe("Unable to read Locator auxiliary data.");
       e.printStackTrace();
       throw new LocationException("Unable to read Locator auxiliary data.");
     }
-    this.serializedPath = serializedPath;
   }
 
   /**
@@ -134,21 +133,21 @@ public class LocService implements LocationService {
 
     // print input for debugging
     LOGGER.info("Input: \n" + event.getHydraInput(false));
-    
+
     // make sure we have a slab resolution
-    if(slabRes == null) {
-    	slabRes = "2spd";
+    if (slabRes == null) {
+      slabRes = "2spd";
     }
 
     // Get a locator with the required slab model resolution
     Locate loc = null;
-		try {
-			loc = locLocal.getLocate(event, ttLocal, slabRes);
-		} catch (ClassNotFoundException | IOException e) {
+    try {
+      loc = locLocal.getLocate(event, ttLocal, slabRes);
+    } catch (ClassNotFoundException | IOException e) {
       LOGGER.severe("Unable to read slab model data.");
       e.printStackTrace();
       throw new LocationException("Unable to read slab model data.");
-		}
+    }
 
     // perform the location
     LocStatus status = loc.doLocation();
