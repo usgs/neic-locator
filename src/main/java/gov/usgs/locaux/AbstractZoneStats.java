@@ -12,7 +12,6 @@ import java.io.Serializable;
  * @author Ray Buland
  */
 public abstract class AbstractZoneStats implements Serializable {
-
   /**
    * A long containing the serializable class version number, used during deserialization to verify
    * compatibility.

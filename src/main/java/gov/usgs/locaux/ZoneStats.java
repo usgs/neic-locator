@@ -22,13 +22,15 @@ public class ZoneStats extends AbstractZoneStats implements Serializable {
    */
   private static final long serialVersionUID = 1L;
 
-  /** An int containing the size of the zone statistics array. */
+  /** An integer containing the size of the zone statistics array. */
   private int size;
 
-  /** An int containing the number of years used to compute the statistics. */
+  /** An integer containing the number of years used to compute the statistics. */
   private int numYears;
 
-  /** An int[][] used to index into the statistics based on Marsden squares. */
+  /**
+   * A two dimensional array of integers used to index into the statistics based on Marsden squares.
+   */
   private int[][] zoneKeys;
 
   /** An array of ZoneStat objects containing the statistics for one Marsden square. */
@@ -37,7 +39,8 @@ public class ZoneStats extends AbstractZoneStats implements Serializable {
   /**
    * The ZoneStats constructor. Sets up the zone keys and allocate the zone statistics.
    *
-   * @param zoneKeys An int[][] used to index into the statistics based on Marsden squares
+   * @param zoneKeys A two dimensional array of integers used to index into the statistics based on
+   *     Marsden squares.
    */
   public ZoneStats(int[][] zoneKeys) {
     this.zoneKeys = zoneKeys;
@@ -49,6 +52,7 @@ public class ZoneStats extends AbstractZoneStats implements Serializable {
         size = Math.max(size, zoneKeys[j][i]);
       }
     }
+
     // Set the latitude parameters.
     firstRowLat = 0.5d;
     lastRowLat = 179.5d;
@@ -58,7 +62,7 @@ public class ZoneStats extends AbstractZoneStats implements Serializable {
   /**
    * Function to get the size of the zone statistics array.
    *
-   * @return An int containing the size of the zone statistics array.
+   * @return An integer containing the size of the zone statistics array.
    */
   public int size() {
     return size;
@@ -67,7 +71,7 @@ public class ZoneStats extends AbstractZoneStats implements Serializable {
   /**
    * Function to get the number of years in the statistics.
    *
-   * @return An int containing the number of years in the statistics
+   * @return An integer containing the number of years in the statistics
    */
   public int getNumYears() {
     return numYears;
@@ -76,8 +80,8 @@ public class ZoneStats extends AbstractZoneStats implements Serializable {
   /**
    * Function to add sdd statistics for a zone.
    *
-   * @param numYears An int holding the number of years in the statistics
-   * @param zoneStats A ZoneStat[] containing the Zone depth statistics
+   * @param numYears An integer holding the number of years in the statistics
+   * @param zoneStats An array of ZoneStat objects containing the Zone depth statistics
    */
   public void addStats(int numYears, ZoneStat[] zoneStats) {
     this.numYears = numYears;
@@ -94,10 +98,13 @@ public class ZoneStats extends AbstractZoneStats implements Serializable {
   public ZoneStat getStats(double latitude, double longitude) {
     // Get the ZoneStat indices.
     computeCanonicalCoords(latitude, longitude);
+
     if (Double.isNaN(coLat) || Double.isNaN(coLon)) {
       return null;
     }
+
     getIndices();
+
     // Get the statistics.
     return getStats(latIndex, lonIndex);
   }
@@ -112,6 +119,7 @@ public class ZoneStats extends AbstractZoneStats implements Serializable {
   public ZoneStat getStats(int latIndex, int lonIndex) {
     // Get the statistics.
     int key = zoneKeys[lonIndex][latIndex];
+
     if (key >= 0) {
       return zoneStats[key];
     } else {
@@ -159,11 +167,24 @@ public class ZoneStats extends AbstractZoneStats implements Serializable {
     }
   }
 
+  /**
+   * Function to get depth source type for this ZoneStats
+   *
+   * @return A DepthSource containing the depth source identification string
+   */
   @Override
   protected DepthSource getDepthSource() {
     return DepthSource.ZONESTATS;
   }
 
+  /**
+   * Function to convert coordinates from geographic latitude and longitude to geographic colatitude
+   * and longitude in the range 0 to 360 degrees. These coordinates are remembered as coLat and
+   * coLon.
+   *
+   * @param lat Geographic latitude in degrees
+   * @param lon Geographic longitude in degrees
+   */
   @Override
   protected void computeCanonicalCoords(double lat, double lon) {
     // We need colatitude (0-180) and longitude in the range of 0-360.
@@ -179,6 +200,12 @@ public class ZoneStats extends AbstractZoneStats implements Serializable {
     }
   }
 
+  /**
+   * Function to compute the latitude index of the nearest latitude row.
+   *
+   * @param coLat Geographical colatitude in degrees
+   * @return Integer containing the index of the nearest latitude row
+   */
   @Override
   protected int newLatIndex(double coLat) {
     if (coLat < 180d) {
@@ -188,6 +215,13 @@ public class ZoneStats extends AbstractZoneStats implements Serializable {
     }
   }
 
+  /**
+   * Function to compute the longitude index of the nearest longitude sample.
+   *
+   * @param latIndex Index of the nearest latitude row
+   * @param coLon Geographic longitude in degrees (0-360)
+   * @return Integer containing the index of the nearest longitude sample
+   */
   @Override
   protected int newLonIndex(int latIndex, double coLon) {
     if (coLat > 0d && coLat < 180d) {
@@ -197,6 +231,16 @@ public class ZoneStats extends AbstractZoneStats implements Serializable {
     }
   }
 
+  /**
+   * Function to wrap the longitude.
+   *
+   * <p>When looking for neighboring samples in longitude, it may be necessary to wrap the longitude
+   * index.
+   *
+   * @param latIndex Colatitude row index
+   * @param lonIndex Longitude column index
+   * @return Integer containing the valid longitude column index
+   */
   @Override
   protected int wrapLonIndex(int latIndex, int lonIndex) {
     if (lonIndex >= 0 && lonIndex < 360) {
@@ -210,18 +254,32 @@ public class ZoneStats extends AbstractZoneStats implements Serializable {
     }
   }
 
+  /**
+   * Function to compute the geographic colatitude of the indexed latitude row (i.e., the colatitude
+   * of the samples in this row).
+   *
+   * @param latIndex Index of a latitude row
+   * @return Double containing geographic colatitude in degrees
+   */
   @Override
   protected double latFromIndex(int latIndex) {
     return latIndex + 0.5d;
   }
 
+  /**
+   * Function to compute the geographic longitude of the indexed sample point.
+   *
+   * @param latIndex Index of a latitude row
+   * @param lonIndex Index of a longitude sample
+   * @return Double containing geographic longitude in degrees (0-360)
+   */
   @Override
   protected double lonFromIndex(int latIndex, int lonIndex) {
     return (lonIndex + 0.5d) % 360d;
   }
 
   /**
-   * Driver for a test of the ZoneStats/SlabModel subsystem.
+   * Main function to act as the driver for a test of the ZoneStats/SlabModel subsystem.
    *
    * @param args Not used
    * @throws IOException On auxiliary data read error
@@ -235,6 +293,11 @@ public class ZoneStats extends AbstractZoneStats implements Serializable {
     test.doTest();
   }
 
+  /**
+   * ZoneStats test function
+   *
+   * <p>Do the actual tests here to avoid making everything static.
+   */
   public void doTest() {
     double lat = 42.6040, lon = 132.0885;
 

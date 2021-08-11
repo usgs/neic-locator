@@ -352,7 +352,7 @@ public class SlabArea implements Serializable {
 
   /** Function to check the status of all rows in this area for debugging purposes. */
   public void rowCensus() {
-    System.out.println("\t" + this);
+    LOGGER.fine("\t" + this);
     double lat = slabRows.get(0).getLat() - slabInc;
 
     for (int j = 0; j < slabRows.size(); j++) {

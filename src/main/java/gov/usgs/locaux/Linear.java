@@ -9,12 +9,12 @@ package gov.usgs.locaux;
 public class Linear {
 
   /**
-   * Create a 3-vector a = (x, y, z).
+   * Function to create a 3-vector a = (x, y, z).
    *
-   * @param x Distance in the X direction
-   * @param y Distance in the Y direction
-   * @param z Distance in the Z direction
-   * @return Position vector
+   * @param x A double containing the distance in the X direction
+   * @param y A double containing the distance in the Y direction
+   * @param z A double containing the distance in the Z direction
+   * @return An array of doubles containing the position vector
    */
   public static double[] vector(double x, double y, double z) {
     double[] a = new double[3];
@@ -26,12 +26,12 @@ public class Linear {
   }
 
   /**
-   * Create a 3-vector a = (x, y, z).
+   * Function to create a 3-vector a = (x, y, z).
    *
-   * @param x Distance in the X direction
-   * @param y Distance in the Y direction
-   * @param z Distance in the Z direction
-   * @return Position vector
+   * @param x A float containing the distance in the X direction
+   * @param y A float containing the distance in the Y direction
+   * @param z A float containing the distance in the Z direction
+   * @return An array of floats containing the position vector
    */
   public static float[] vector(float x, float y, float z) {
     float[] a = new float[3];
@@ -43,12 +43,12 @@ public class Linear {
   }
 
   /**
-   * Return the Cartesian distance between two points. Note that this assumes a plane (i.e., it only
-   * uses the first two coordinates of each input vector.
+   * A function to calculate the Cartesian distance between two points. Note that this assumes a
+   * plane (i.e., it only uses the first two coordinates of each input vector.
    *
-   * @param v0 First 2-vector
-   * @param v1 Second 2-vector
-   * @return Distance between the first and second 2-vectors
+   * @param v0 An array of doubles containing the first 2-vector
+   * @param v1 An array of doubles containing the second 2-vector
+   * @return A double containing the distance between the first and second 2-vectors
    */
   public static double distance(double[] v0, double[] v1) {
     return Math.sqrt(Math.pow(v1[0] - v0[0], 2d) + Math.pow(v1[1] - v0[1], 2d));
@@ -60,10 +60,10 @@ public class Linear {
    * the interpolation. The interpolated value is returned as the z value of the interpolation
    * vector as well.
    *
-   * @param v0 First point vector
-   * @param v1 Second point vector
-   * @param v Interpolated point vector
-   * @return Interpolated z-value
+   * @param v0 An array of doubles containing the first point vector
+   * @param v1 An array of doubles containing the second point vector
+   * @param v An array of doubles containing interpolated point vector
+   * @return A double containing the interpolated z-value
    */
   public static double oneD(double[] v0, double[] v1, double[] v) {
     double b = Double.NaN;
@@ -85,10 +85,10 @@ public class Linear {
    * the interpolation. The interpolated value is returned as the z value of the interpolation
    * vector as well.
    *
-   * @param v0 First point vector
-   * @param v1 Second point vector
-   * @param v Interpolated point vector
-   * @return Interpolated z-value
+   * @param v0 An array of floats containing the first point vector
+   * @param v1 An array of floats containing the second point vector
+   * @param v An array of floats containing interpolated point vector
+   * @return A double containing the interpolated z-value
    */
   public static float oneD(float[] v0, float[] v1, float[] v) {
     float b = Float.NaN;
@@ -105,15 +105,15 @@ public class Linear {
   }
 
   /**
-   * Another approach to the 1-D interpolation problem. The end point vector has been replaced with
-   * increments in x and z. As above, the x value from the interpolated point is needed and the z
-   * value computed is returned in the same vector as well.
+   * This function is another approach to the 1-D interpolation problem. The end point vector has
+   * been replaced with increments in x and z. As above, the x value from the interpolated point is
+   * needed and the z value computed is returned in the same vector as well.
    *
-   * @param v0 First point vector
-   * @param dx X increment to the end point
-   * @param dz Z increment to the end point
-   * @param v Interpolated point vector
-   * @return Interpolated z-value
+   * @param v0 An array of doubles containing the First point vector
+   * @param dx A double containing the X increment to the end point
+   * @param dz A double containing the Z increment to the end point
+   * @param v An array of doubles containing interpolated point vector
+   * @return A double containing the interpolated z-value
    */
   public static double oneD(double[] v0, double dx, double dz, double[] v) {
     v[2] = (dz / dx) * (v[0] - v0[0]) + v0[2];
@@ -121,15 +121,15 @@ public class Linear {
   }
 
   /**
-   * Another approach to the 1-D interpolation problem. The end point vector has been replaced with
-   * increments in x and z. As above, the x value from the interpolated point is needed and the z
-   * value computed is returned in the same vector as well.
+   * This function is another approach to the 1-D interpolation problem. The end point vector has
+   * been replaced with increments in x and z. As above, the x value from the interpolated point is
+   * needed and the z value computed is returned in the same vector as well.
    *
-   * @param v0 First point vector
-   * @param dx X increment to the end point
-   * @param dz Z increment to the end point
-   * @param v Interpolated point vector
-   * @return Interpolated z-value
+   * @param v0 An array of floats containing the First point vector
+   * @param dx A float containing the X increment to the end point
+   * @param dz A float containing the Z increment to the end point
+   * @param v An array of floats containing interpolated point vector
+   * @return A float containing the interpolated z-value
    */
   public static float oneD(float[] v0, float dx, float dz, float[] v) {
     v[2] = (dz / dx) * (v[0] - v0[0]) + v0[2];
@@ -137,28 +137,28 @@ public class Linear {
   }
 
   /**
-   * A third approach to the 1-D problem not using vectors.
+   * This function is a third approach to the 1-D problem not using vectors.
    *
-   * @param x0 First point x value
-   * @param z0 First point z value
-   * @param dx X increment to the end point
-   * @param dz Z increment to the end point
-   * @param x X value to be interpolated
-   * @return Interpolated z value
+   * @param x0 A double containing the First point x value
+   * @param z0 A double containing the First point z value
+   * @param dx A double containing the X increment to the end point
+   * @param dz A double containing the Z increment to the end point
+   * @param x A double containing the X value to be interpolated
+   * @return A double containing the interpolated z-value
    */
   public static double oneD(double x0, double z0, double dx, double dz, double x) {
     return (dz / dx) * (x - x0) + z0;
   }
 
   /**
-   * A third approach to the 1-D problem not using vectors.
+   * This function is a third approach to the 1-D problem not using vectors.
    *
-   * @param x0 First point x value
-   * @param z0 First point z value
-   * @param dx X increment to the end point
-   * @param dz Z increment to the end point
-   * @param x X value to be interpolated
-   * @return Interpolated z value
+   * @param x0 A float containing the First point x value
+   * @param z0 A float containing the First point z value
+   * @param dx A float containing the X increment to the end point
+   * @param dz A float containing the Z increment to the end point
+   * @param x A float containing the X value to be interpolated
+   * @return A float containing the interpolated z-value
    */
   public static float oneD(float x0, float z0, float dx, float dz, float x) {
     return (dz / dx) * (x - x0) + z0;

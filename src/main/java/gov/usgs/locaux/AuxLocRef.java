@@ -74,7 +74,8 @@ public class AuxLocRef {
   /**
    * Read the cratons and zone statistics files and make the data available to the Locator.
    *
-   * @param modelPath If not null, path to model files
+   * @param modelPath A string containing the path to model files, null to use default
+   * @param modelPath A string containing the path to the serialized files, null to use default
    * @throws IOException On any read error
    * @throws ClassNotFoundException In input serialization is hosed
    */
@@ -117,9 +118,11 @@ public class AuxLocRef {
       inCratons = new BufferedInputStream(new FileInputStream(absNames[0]));
       scan = new Scanner(inCratons);
       cratons = new Cratons();
+
       while (scan.hasNext()) {
         readCraton();
       }
+
       scan.close();
       inCratons.close();
 
@@ -137,6 +140,7 @@ public class AuxLocRef {
 
       // Open and read the new zone statistics file.
       inNewZoneStats = new BufferedReader(new FileReader(absNames[3]));
+
       //  LocUtil.startLocationTimer();
       newZoneStats = readNewZoneStats(inNewZoneStats);
       //  System.out.println(LocUtil.endLocationTimer());
@@ -171,7 +175,7 @@ public class AuxLocRef {
       serOut.close();
     } else {
       // Read in the serialized file.
-      //	LOGGER.fine("Read the serialized file.");
+      LOGGER.fine("Read the serialized file.");
       serIn = new FileInputStream(serializedPath + serializedFileName);
       objIn = new ObjectInputStream(serIn);
 
@@ -224,8 +228,8 @@ public class AuxLocRef {
    * keys array is organized by longitude (Greenwich to Greenwich heading east) and co-latitude
    * (north pole to south pole going south).
    *
-   * @param inKeys RandomAccessFile object for the zone keys file
-   * @return An int[][] containing the zone keys
+   * @param inKeys A RandomAccessFile object containing the file handle for the zone keys file
+   * @return A two dimensional array of integers containing the zone keys
    * @throws IOException On any read error
    */
   private int[][] readZoneKeys(RandomAccessFile inKeys) throws IOException {
@@ -254,8 +258,9 @@ public class AuxLocRef {
    * Function to read the zone statistics file. Note that only the small part of the statistics
    * contained in the file are relevant to the Locator, and are retained.
    *
-   * @param inZones File handle for the zone statistics file
-   * @return A ZoneStat[] conatining the zone statistics
+   * @param inZones A RandomAccessFile object containing the file handle for the zone statistics
+   *     file
+   * @return An array of ZoneStat objects conatining the zone statistics
    * @throws IOException On any read error
    */
   private ZoneStat[] readZoneStats(RandomAccessFile inZones) throws IOException {
@@ -294,6 +299,7 @@ public class AuxLocRef {
         stats[j] = null;
       }
     }
+
     return stats;
   }
 
@@ -301,8 +307,9 @@ public class AuxLocRef {
    * Function to read in the new zone statistics file. Note that the JSON file may contain other
    * information that isn't relevant to the Locator. Only the parts of interest are picked out.
    *
-   * @param inNewZoneStats BufferedReader file handle
-   * @return The new ZoneStats depth data sorted into internal storage
+   * @param inNewZoneStats A BufferedReader object containing the file handle
+   * @return A NewZoneStats object containing the new ZoneStats depth data sorted into internal
+   *     storage
    * @throws IOException On a read error
    */
   private NewZoneStats readNewZoneStats(BufferedReader inNewZoneStats) throws IOException {
@@ -334,11 +341,13 @@ public class AuxLocRef {
 
       // Pick out the list of possible latitudes.
       jsonArray = (JSONArray) zoneStatJSON.get("Possible Latitudes");
+
       // Copy the latitude data into a local array.
       numLats = jsonArray.size();
       lats = new double[numLats];
       iterLats = jsonArray.iterator();
       row = 0;
+
       while (iterLats.hasNext()) {
         lats[row++] = (Double) iterLats.next();
       }
@@ -346,10 +355,13 @@ public class AuxLocRef {
       // Set up the new ZoneStats storage.
       latSpacing = (lats[numLats - 1] - lats[0]) / (numLats - 1);
       newZoneStats = new NewZoneStats(lats[numLats - 1], lats[0], latSpacing, numLats);
+
       // Debug print.
-      System.out.format(
-          "FirstRowLat = %8.4f lastRowLat = %8.4f Lat Spacing = %7.4f " + "Number of Lats = %d\n",
-          lats[numLats - 1], lats[0], latSpacing, numLats);
+      LOGGER.finer(
+          String.format(
+              "FirstRowLat = %8.4f lastRowLat = %8.4f Lat Spacing = %7.4f "
+                  + "Number of Lats = %d\n",
+              lats[numLats - 1], lats[0], latSpacing, numLats));
 
       // Initialize all latitude rows in the new ZoneStats storage (including those
       // with no data).  This requires reproducing Will's grid calculation.
@@ -365,46 +377,53 @@ public class AuxLocRef {
       jsonArray = (JSONArray) zoneStatJSON.get("ZoneStats");
       iterLatRows = jsonArray.iterator();
       while (iterLatRows.hasNext()) {
-
         // Get the next latitude row from the array.
         jsonLatRow = (JSONObject) iterLatRows.next();
         lat = LocUtil.getJSONDouble(jsonLatRow, "Latitude");
         lonSpacing = LocUtil.getJSONDouble(jsonLatRow, "Spacing (deg)");
         numLons = LocUtil.getJSONInt(jsonLatRow, "Total Columns");
         row = numLats - (int) ((lat - lats[0]) / latSpacing + 0.5d) - 1;
+
         // Debug print.
-        System.out.format(
-            "LatRow: Lat = %8.4f Row = %3d Lon Spacing = %6.4f Number of "
-                + "Lons = %d coLat = %8.4f row' = %d\n",
-            lat, numLats - row - 1, lonSpacing, numLons, 90d - lat, row);
+        LOGGER.finer(
+            String.format(
+                "LatRow: Lat = %8.4f Row = %3d Lon Spacing = %6.4f Number of "
+                    + "Lons = %d coLat = %8.4f row' = %d",
+                lat, numLats - row - 1, lonSpacing, numLons, 90d - lat, row));
+
         // Trap rows where Will & Ray differ.  Debug stuff!
         if (numLons != newZoneStats.getNumLons(row)
             || Math.abs(lonSpacing - newZoneStats.getLonSpacing(row)) > 1e-5d
             || Math.abs(90d - lat - newZoneStats.getLat(row)) > 1e-5d) {
-          System.out.format(
-              "Ray's spacing: Lat = %8.4f Lon Spacing = %6.4f Number of Lons = %d\n",
-              newZoneStats.getLat(row),
-              newZoneStats.getLonSpacing(row),
-              newZoneStats.getNumLons(row));
-          System.out.println("**********");
+          LOGGER.finer(
+              String.format(
+                  "Ray's spacing: Lat = %8.4f Lon Spacing = %6.4f Number of Lons = %d\n",
+                  newZoneStats.getLat(row),
+                  newZoneStats.getLonSpacing(row),
+                  newZoneStats.getNumLons(row)));
         }
 
         // Get the array of longitudes.
         jsonLons = (JSONArray) jsonLatRow.get("Longitudes");
         iterLons = jsonLons.iterator();
-        while (iterLons.hasNext()) {
 
+        while (iterLons.hasNext()) {
           // Get the next longitude sample.
           jsonLonStats = (JSONObject) iterLons.next();
           column = LocUtil.getJSONInt(jsonLonStats, "Column Number");
           lon = LocUtil.getJSONDouble(jsonLonStats, "Longitude");
+
           // Debug print.
-          System.out.format(
-              "\tLonSample: Lon = %9.4f column = %d coLon = %9.4f\n",
-              lon, column, (lon >= 0d) ? lon : 360d + lon);
+          LOGGER.finer(
+              String.format(
+                  "LonSample: Lon = %9.4f column = %d coLon = %9.4f\n",
+                  lon, column, (lon >= 0d) ? lon : 360d + lon));
+
           if (lon < 0d) lon = 360d + lon;
+
           // Get the averaging statistics.
           jsonAves = (JSONObject) jsonLonStats.get("Depth Stats");
+
           // Get the 100 km average statistics.
           jsonSample = (JSONObject) jsonAves.get("100km");
           count = LocUtil.getJSONInt(jsonSample, "Count");
@@ -414,16 +433,18 @@ public class AuxLocRef {
             depth = LocUtil.getJSONDouble(jsonSample, "Mean");
             depthError = LocUtil.getJSONDouble(jsonSample, "STD");
             newZoneStats.putSample(row, column, new NewZonePoint(lon, count, depth, depthError));
+
             // Debug print.
-            System.out.format(
-                "\t\t100km: Count = %4d Depth = %6.2f Depth Error = %6.2f\n",
-                count, depth, depthError);
+            LOGGER.finer(
+                String.format(
+                    "\t\t100km: Count = %4d Depth = %6.2f Depth Error = %6.2f\n",
+                    count, depth, depthError));
           }
         }
       }
 
     } catch (ParseException e) {
-      System.out.println("\nNewZoneStats JSON parse failed!\n");
+      LOGGER.info("NewZoneStats JSON parse failed!");
       e.printStackTrace();
       System.exit(200);
     }
