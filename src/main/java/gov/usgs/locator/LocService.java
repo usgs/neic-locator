@@ -12,9 +12,6 @@ import java.util.ArrayList;
 import java.util.logging.Logger;
 
 public class LocService implements LocationService {
-  /** Temporary hack to test user selected slab resolutions. */
-  private String slabRes = null;
-
   /** Class to manage the travel-time external files. */
   private TTSessionLocal ttLocal = null;
 
@@ -135,14 +132,14 @@ public class LocService implements LocationService {
     LOGGER.info("Input: \n" + event.getHydraInput(false));
 
     // make sure we have a slab resolution
-    if (slabRes == null) {
-      slabRes = "2spd";
+    if (in.SlabResolution == null) {
+      in.SlabResolution = "2spd";
     }
 
     // Get a locator with the required slab model resolution
     Locate loc = null;
     try {
-      loc = locLocal.getLocate(event, ttLocal, slabRes);
+      loc = locLocal.getLocate(event, ttLocal, in.SlabResolution);
     } catch (ClassNotFoundException | IOException e) {
       LOGGER.severe("Unable to read slab model data.");
       e.printStackTrace();
