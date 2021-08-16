@@ -6,6 +6,8 @@ import gov.usgs.locaux.Slabs;
 import gov.usgs.traveltime.BadDepthException;
 import gov.usgs.traveltime.TTSessionLocal;
 import gov.usgs.traveltime.tables.TauIntegralException;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.logging.Logger;
 
@@ -245,6 +247,7 @@ public class Locate {
       // probably in the ball park despite not converging.
       hypoAuditList.get(hypoAuditList.size() - 1).setLocationStatus(LocStatus.FULL_ITERATIONS);
       LOGGER.info("Did Not Converge: \n" + event.printHypoAudit());
+
       // Since we're probably close anyway, compute the error bars for the analyst to see.
       status = close.compFinalStats(LocStatus.FULL_ITERATIONS);
       return LocStatus.FULL_ITERATIONS;
@@ -252,21 +255,31 @@ public class Locate {
     } catch (BadDepthException e) {
       // This should never happen.
       LOGGER.severe("Source depth out of range");
-      //    e.printStackTrace();
-      //    System.out.println(e.toString());
-      e.printStackTrace();
+
+      StringWriter sw = new StringWriter();
+      e.printStackTrace(new PrintWriter(sw));
+      String exceptionAsString = sw.toString();
+      LOGGER.severe(exceptionAsString);
+
       return LocStatus.BAD_DEPTH;
     } catch (TauIntegralException e) {
       // This should never happen either.
       LOGGER.severe("Illegal tau partial integral");
-      //    e.printStackTrace();
-      //    System.out.println(e.toString());
-      e.printStackTrace();
+
+      StringWriter sw = new StringWriter();
+      e.printStackTrace(new PrintWriter(sw));
+      String exceptionAsString = sw.toString();
+      LOGGER.severe(exceptionAsString);
+
       return LocStatus.BAD_INTEGRAL;
     } catch (Exception e) {
       LOGGER.severe("Unknown error");
-      //  	System.out.println(e.toString());
-      e.printStackTrace();
+
+      StringWriter sw = new StringWriter();
+      e.printStackTrace(new PrintWriter(sw));
+      String exceptionAsString = sw.toString();
+      LOGGER.severe(exceptionAsString);
+
       return LocStatus.FAILED;
     }
   }
