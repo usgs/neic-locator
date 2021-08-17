@@ -45,13 +45,13 @@ build/models/ as part of the gradle build.
 An example legacy input file `LocOutput1000010563_23.txt` is provided in the
 examples directory.
 
-To run this example, run the command  `java -jar build/libs/neic-locator-0.2.0-all.jar --modelPath=./build/models/ --inputFile=./examples/raylocinput1000010563_23.txt  --logLevel=debug`
+To run this example, run the command  `java -jar build/libs/neic-locator-0.3.0-all.jar --modelPath=./build/models/ --inputFile=./examples/raylocinput1000010563_23.txt  --logLevel=debug`
 
 The results of this example (and associated log file) are expected to match the
 results found in the legacy output file `LocOutput1000010563_23.txt` file
 provided in the examples directory.
 
-To run the neic-locator as a web service, run the command `java -jar build/libs/neic-locator-0.2.0-all.jar --mode=service`
+To run the neic-locator as a web service, run the command `java -jar build/libs/neic-locator-0.3.0-all.jar --mode=service`
 
 To run the neic-locator from the docker container, first create a docker volume for the temporary files with the command `docker volume create loc-vol`, then run the command `docker run -d --name loc-test --mount source=loc-vol,target=/project/local/ -p 8070:8080 -it usgs/neic-locator:latest` or `docker-compose up` if docker-compose is available.
 

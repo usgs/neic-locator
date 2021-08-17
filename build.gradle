@@ -27,7 +27,7 @@ plugins {
 
 sourceCompatibility = "1.8"
 targetCompatibility = "1.8"
-version = "0.2.0"
+version = "0.3.0"
 
 repositories {
     mavenCentral()
@@ -150,8 +150,6 @@ task cloneExternalProjects {
 
   doFirst {
     // neic-traveltime
-    // addExternalProject("$projectDir/lib/neic-traveltime",
-    //  "https://github.com/usgs/neic-traveltime.git", "master", "src/main/java/gov/usgs/traveltime")
     // grab src/main/java/gov/usgs/traveltime subdir of src to avoid compiling tests and the webservice code
     addExternalProject("$projectDir/lib/neic-traveltime",
       "https://github.com/usgs/neic-traveltime.git", "master", "src/main/java/gov/usgs/traveltime")
@@ -160,8 +158,6 @@ task cloneExternalProjects {
     // grab the main subdir of src to avoid compiling tests
     addExternalProject("$projectDir/lib/earthquake-processing-formats",
       "https://github.com/usgs/earthquake-processing-formats.git", "master", "java/src/main")
-    //addExternalProject("$projectDir/lib/earthquake-processing-formats",
-    //  "https://github.com/jpatton-USGS/earthquake-processing-formats.git", "cast-fix", "java/src/main")
 
     // earthquake-detection-formats
     // grab the main subdir of src to avoid compiling tests
