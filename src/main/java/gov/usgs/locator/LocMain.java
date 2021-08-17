@@ -1,7 +1,6 @@
 package gov.usgs.locator;
 
 import gov.usgs.detectionformats.Detection;
-import gov.usgs.locaux.LocUtil;
 import gov.usgs.processingformats.LocationException;
 import gov.usgs.processingformats.LocationRequest;
 import gov.usgs.processingformats.LocationResult;
@@ -463,7 +462,7 @@ public class LocMain {
 
         String line = "";
         while ((line = fileBufferedReader.readLine()) != null) {
-        	System.out.println(line);
+          System.out.println(line);
           fileString += line + "\n";
         }
       } catch (FileNotFoundException e) {
@@ -684,7 +683,7 @@ public class LocMain {
       return false;
     }
 
-//    LocUtil.record(String.format("%4.2f", LocUtil.BAYESIANSTRENGTH));
+    //    LocUtil.record(String.format("%4.2f", LocUtil.BAYESIANSTRENGTH));
     // for all the files currently in the input directory
     for (File inputFile : inputDir.listFiles()) {
       // if the file has the right extension
@@ -692,8 +691,8 @@ public class LocMain {
         // read the file
         // String fileName = inputFile.getName();
         String filePath = inputFile.getAbsolutePath();
-   //   System.out.println("File: " + filePath);
-   //   LocUtil.record("\nFile: " + filePath);
+        //   System.out.println("File: " + filePath);
+        //   LocUtil.record("\nFile: " + filePath);
 
         if (locateSingleEvent(
             modelPath,
@@ -721,7 +720,7 @@ public class LocMain {
         }
       }
     }
-//    LocUtil.record(null);
+    //    LocUtil.record(null);
 
     // done
     return true;

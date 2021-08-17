@@ -488,7 +488,7 @@ public class Event {
   }
 
   /**
-   * The Event constructor. This constructor allocate some storage and initializes the earth model
+   * The Event constructor. This constructor allocates some storage and initializes the earth model
    * to the provided vaue.
    *
    * @param earthModel A String containing the name of earth model to be used
@@ -526,9 +526,9 @@ public class Event {
     isDepthManual = in.IsBayesianDepth;
 
     /*
-     *  The analysts think in absolutes, so their Bayesian spread is interpreted as a 0.99 
-     *  percentage point.  Dividing by three reduces the spread to one standard deviation 
-     *  (assuming a Gaussian distribution of depths), consistent with the slab model and 
+     *  The analysts think in absolutes, so their Bayesian spread is interpreted as a 0.99
+     *  percentage point.  Dividing by three reduces the spread to one standard deviation
+     *  (assuming a Gaussian distribution of depths), consistent with the slab model and
      *  ZoneStats.
      */
     if (isDepthManual) {
@@ -1229,7 +1229,9 @@ public class Event {
               LocUtil.getBoolChar(isDepthHeld),
               LocUtil.getBoolChar(isDepthManual),
               !Double.isNaN(hypo.getBayesianDepth()) ? hypo.getBayesianDepth() : 0d,
-              !Double.isNaN(hypo.getBayesianDepthSpread()) ? 3d * hypo.getBayesianDepthSpread() : 0d,
+              !Double.isNaN(hypo.getBayesianDepthSpread())
+                  ? 3d * hypo.getBayesianDepthSpread()
+                  : 0d,
               LocUtil.getBoolChar(!useDecorrelation));
     }
 
@@ -1327,25 +1329,43 @@ public class Event {
 
     return neicOutput;
   }
-  
+
   /**
    * Temporary method supporting synthetic location experiments.
-   * 
+   *
    * @return String suitable for synthetic location statistics
    */
   public String getSynthOut() {
     double latStep = LocUtil.DEG2KM * (hypo.getLatitude() - hypoAuditList.get(0).getLatitude());
-    double lonStep = LocUtil.DEG2KM * hypo.getCoLatitudeSine() * (hypo.getLongitude() - 
-    		hypoAuditList.get(0).getLongitude());
+    double lonStep =
+        LocUtil.DEG2KM
+            * hypo.getCoLatitudeSine()
+            * (hypo.getLongitude() - hypoAuditList.get(0).getLongitude());
     double depStep = hypo.getDepth() - hypoAuditList.get(0).getDepth();
-    if(id != null) {
-	  	return String.format("%s %4d %4d %7.2f %7.2f %7.2f %6.2f %6.2f %6.2f", id.substring(11), 
-	  			numPhasesAssociated, numPhasesUsed, latStep, lonStep, depStep, latitudeStandardError, 
-	  			longitudeStandardError, depthStandardError);
+    if (id != null) {
+      return String.format(
+          "%s %4d %4d %7.2f %7.2f %7.2f %6.2f %6.2f %6.2f",
+          id.substring(11),
+          numPhasesAssociated,
+          numPhasesUsed,
+          latStep,
+          lonStep,
+          depStep,
+          latitudeStandardError,
+          longitudeStandardError,
+          depthStandardError);
     } else {
-	  	return String.format("%s %4d %4d %7.2f %7.2f %7.2f %6.2f %6.2f %6.2f", "null", 
-	  			numPhasesAssociated, numPhasesUsed, latStep, lonStep, depStep, latitudeStandardError, 
-	  			longitudeStandardError, depthStandardError);
+      return String.format(
+          "%s %4d %4d %7.2f %7.2f %7.2f %6.2f %6.2f %6.2f",
+          "null",
+          numPhasesAssociated,
+          numPhasesUsed,
+          latStep,
+          lonStep,
+          depStep,
+          latitudeStandardError,
+          longitudeStandardError,
+          depthStandardError);
     }
   }
 }

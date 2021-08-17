@@ -1,0 +1,705 @@
+{
+    "EarthModel": "ak135",
+    "SlabResolution":"2spd",    
+    "SourceLatitude": -28.02082633972168,
+    "SourceLongitude": -71.19132232666016,
+    "SourceDepth": 35,
+    "SourceOriginTime": "2021-08-12T01:12:07.089Z",
+    "InputData": [
+      {
+        "ID": "56709598",
+        "Site": {
+          "Station": "AC01",
+          "Network": "C1",
+          "Channel": "BHZ",
+          "Location": "--",
+          "Latitude": -26.147899627685547,
+          "Longitude": -70.59870147705078,
+          "Elevation": 346
+        },
+        "Source": {
+          "AgencyID": "NEIC",
+          "Author": "human",
+          "Type": "LocalHuman"
+        },
+        "Time": "2021-08-12T01:12:38.010Z",
+        "Affinity": 3,
+        "Quality": 0,
+        "Use": true,
+        "PickedPhase": "P",
+        "AssociatedPhase": "P"
+      },
+      {
+        "ID": "56709601",
+        "Site": {
+          "Station": "AC02",
+          "Network": "C1",
+          "Channel": "BHZ",
+          "Location": "--",
+          "Latitude": -26.835500717163086,
+          "Longitude": -69.12909698486328,
+          "Elevation": 3980
+        },
+        "Source": {
+          "AgencyID": "NEIC",
+          "Author": "human",
+          "Type": "LocalHuman"
+        },
+        "Time": "2021-08-12T01:12:41.910Z",
+        "Affinity": 3,
+        "Quality": 0,
+        "Use": true,
+        "PickedPhase": "P",
+        "AssociatedPhase": "P"
+      },
+      {
+        "ID": "56709589",
+        "Site": {
+          "Station": "AC04",
+          "Network": "C1",
+          "Channel": "BHZ",
+          "Location": "--",
+          "Latitude": -28.204599380493164,
+          "Longitude": -71.07389831542969,
+          "Elevation": 228
+        },
+        "Source": {
+          "AgencyID": "NEIC",
+          "Author": "human",
+          "Type": "LocalHuman"
+        },
+        "Time": "2021-08-12T01:12:16.530Z",
+        "Affinity": 3,
+        "Quality": 0,
+        "Use": true,
+        "PickedPhase": "Pg",
+        "AssociatedPhase": "Pg"
+      },
+      {
+        "ID": "56710022",
+        "Site": {
+          "Station": "AC04",
+          "Network": "C1",
+          "Channel": "BHN",
+          "Location": "--",
+          "Latitude": -28.204599380493164,
+          "Longitude": -71.07389831542969,
+          "Elevation": 228
+        },
+        "Source": {
+          "AgencyID": "NEIC",
+          "Author": "human",
+          "Type": "LocalHuman"
+        },
+        "Time": "2021-08-12T01:12:22.400Z",
+        "Affinity": 3,
+        "Quality": 0,
+        "Use": true,
+        "PickedPhase": "Sn",
+        "AssociatedPhase": "Sn"
+      },
+      {
+        "ID": "56709595",
+        "Site": {
+          "Station": "AC06",
+          "Network": "C1",
+          "Channel": "BHZ",
+          "Location": "--",
+          "Latitude": -27.357099533081055,
+          "Longitude": -70.35469818115234,
+          "Elevation": 380
+        },
+        "Source": {
+          "AgencyID": "NEIC",
+          "Author": "human",
+          "Type": "LocalHuman"
+        },
+        "Time": "2021-08-12T01:12:24.560Z",
+        "Affinity": 3,
+        "Quality": 0,
+        "Use": true,
+        "PickedPhase": "P",
+        "AssociatedPhase": "P"
+      },
+      {
+        "ID": "56710030",
+        "Site": {
+          "Station": "AC06",
+          "Network": "C1",
+          "Channel": "BHN",
+          "Location": "--",
+          "Latitude": -27.357099533081055,
+          "Longitude": -70.35469818115234,
+          "Elevation": 380
+        },
+        "Source": {
+          "AgencyID": "NEIC",
+          "Author": "human",
+          "Type": "LocalHuman"
+        },
+        "Time": "2021-08-12T01:12:36.320Z",
+        "Affinity": 3,
+        "Quality": 0,
+        "Use": true,
+        "PickedPhase": "Sn",
+        "AssociatedPhase": "Sn"
+      },
+      {
+        "ID": "56709651",
+        "Site": {
+          "Station": "BO01",
+          "Network": "C1",
+          "Channel": "BHZ",
+          "Location": "--",
+          "Latitude": -34.391700744628906,
+          "Longitude": -71.08480072021484,
+          "Elevation": 262.5
+        },
+        "Source": {
+          "AgencyID": "NEIC",
+          "Author": "human",
+          "Type": "LocalHuman"
+        },
+        "Time": "2021-08-12T01:13:37.620Z",
+        "Affinity": 3,
+        "Quality": 0,
+        "Use": true,
+        "PickedPhase": "Pn",
+        "AssociatedPhase": "Pn"
+      },
+      {
+        "ID": "56709650",
+        "Site": {
+          "Station": "BO02",
+          "Network": "C1",
+          "Channel": "BHZ",
+          "Location": "--",
+          "Latitude": -34.79240036010742,
+          "Longitude": -70.78140258789062,
+          "Elevation": 886
+        },
+        "Source": {
+          "AgencyID": "NEIC",
+          "Author": "human",
+          "Type": "LocalHuman"
+        },
+        "Time": "2021-08-12T01:13:43.200Z",
+        "Affinity": 3,
+        "Quality": 0,
+        "Use": true,
+        "PickedPhase": "Pn",
+        "AssociatedPhase": "Pn"
+      },
+      {
+        "ID": "56709648",
+        "Site": {
+          "Station": "BO04",
+          "Network": "C1",
+          "Channel": "BHZ",
+          "Location": "--",
+          "Latitude": -33.988800048828125,
+          "Longitude": -70.60900115966797,
+          "Elevation": 625
+        },
+        "Source": {
+          "AgencyID": "NEIC",
+          "Author": "human",
+          "Type": "LocalHuman"
+        },
+        "Time": "2021-08-12T01:13:32.390Z",
+        "Affinity": 3,
+        "Quality": 0,
+        "Use": true,
+        "PickedPhase": "Pn",
+        "AssociatedPhase": "Pn"
+      },
+      {
+        "ID": "56709600",
+        "Site": {
+          "Station": "CO01",
+          "Network": "C1",
+          "Channel": "BHZ",
+          "Location": "--",
+          "Latitude": -29.9773006439209,
+          "Longitude": -70.09390258789062,
+          "Elevation": 2157
+        },
+        "Source": {
+          "AgencyID": "NEIC",
+          "Author": "human",
+          "Type": "LocalHuman"
+        },
+        "Time": "2021-08-12T01:12:41.220Z",
+        "Affinity": 3,
+        "Quality": 0,
+        "Use": true,
+        "PickedPhase": "P",
+        "AssociatedPhase": "P"
+      },
+      {
+        "ID": "56709610",
+        "Site": {
+          "Station": "CO02",
+          "Network": "C1",
+          "Channel": "BHZ",
+          "Location": "--",
+          "Latitude": -31.203699111938477,
+          "Longitude": -71.00029754638672,
+          "Elevation": 1190
+        },
+        "Source": {
+          "AgencyID": "NEIC",
+          "Author": "human",
+          "Type": "LocalHuman"
+        },
+        "Time": "2021-08-12T01:12:55.000Z",
+        "Affinity": 3,
+        "Quality": 0,
+        "Use": true,
+        "PickedPhase": "Pn",
+        "AssociatedPhase": "Pn"
+      },
+      {
+        "ID": "56709615",
+        "Site": {
+          "Station": "CO04",
+          "Network": "C1",
+          "Channel": "BHZ",
+          "Location": "--",
+          "Latitude": -32.04330062866211,
+          "Longitude": -70.97470092773438,
+          "Elevation": 2401
+        },
+        "Source": {
+          "AgencyID": "NEIC",
+          "Author": "human",
+          "Type": "LocalHuman"
+        },
+        "Time": "2021-08-12T01:13:06.620Z",
+        "Affinity": 3,
+        "Quality": 0,
+        "Use": true,
+        "PickedPhase": "Pn",
+        "AssociatedPhase": "Pn"
+      },
+      {
+        "ID": "56709599",
+        "Site": {
+          "Station": "CO05",
+          "Network": "C1",
+          "Channel": "BHZ",
+          "Location": "--",
+          "Latitude": -29.91860008239746,
+          "Longitude": -71.2384033203125,
+          "Elevation": 101
+        },
+        "Source": {
+          "AgencyID": "NEIC",
+          "Author": "human",
+          "Type": "LocalHuman"
+        },
+        "Time": "2021-08-12T01:12:37.850Z",
+        "Affinity": 3,
+        "Quality": 0,
+        "Use": true,
+        "PickedPhase": "P",
+        "AssociatedPhase": "P"
+      },
+      {
+        "ID": "56709608",
+        "Site": {
+          "Station": "CO06",
+          "Network": "C1",
+          "Channel": "BHZ",
+          "Location": "--",
+          "Latitude": -30.673799514770508,
+          "Longitude": -71.63500213623047,
+          "Elevation": 246.60000610351562
+        },
+        "Source": {
+          "AgencyID": "NEIC",
+          "Author": "human",
+          "Type": "LocalHuman"
+        },
+        "Time": "2021-08-12T01:12:47.780Z",
+        "Affinity": 3,
+        "Quality": 0,
+        "Use": true,
+        "PickedPhase": "P",
+        "AssociatedPhase": "P"
+      },
+      {
+        "ID": "56710709",
+        "Site": {
+          "Station": "DBIC",
+          "Network": "GT",
+          "Channel": "BHZ",
+          "Location": "00",
+          "Latitude": 6.670100212097168,
+          "Longitude": -4.856500148773193,
+          "Elevation": 161.1999969482422
+        },
+        "Source": {
+          "AgencyID": "NEIC",
+          "Author": "human",
+          "Type": "LocalHuman"
+        },
+        "Time": "2021-08-12T01:23:30.130Z",
+        "Affinity": 3,
+        "Quality": 0,
+        "Use": true,
+        "PickedPhase": "P",
+        "AssociatedPhase": "P"
+      },
+      {
+        "ID": "56709592",
+        "Site": {
+          "Station": "GO03",
+          "Network": "C",
+          "Channel": "BHZ",
+          "Location": "--",
+          "Latitude": -27.593700408935547,
+          "Longitude": -70.23470306396484,
+          "Elevation": 730
+        },
+        "Source": {
+          "AgencyID": "NEIC",
+          "Author": "human",
+          "Type": "LocalHuman"
+        },
+        "Time": "2021-08-12T01:12:23.270Z",
+        "Affinity": 3,
+        "Quality": 0,
+        "Use": true,
+        "PickedPhase": "P",
+        "AssociatedPhase": "P"
+      },
+      {
+        "ID": "56710024",
+        "Site": {
+          "Station": "GO03",
+          "Network": "C",
+          "Channel": "BHN",
+          "Location": "--",
+          "Latitude": -27.593700408935547,
+          "Longitude": -70.23470306396484,
+          "Elevation": 730
+        },
+        "Source": {
+          "AgencyID": "NEIC",
+          "Author": "human",
+          "Type": "LocalHuman"
+        },
+        "Time": "2021-08-12T01:12:33.800Z",
+        "Affinity": 3,
+        "Quality": 0,
+        "Use": true,
+        "PickedPhase": "Sn",
+        "AssociatedPhase": "Sn"
+      },
+      {
+        "ID": "56709603",
+        "Site": {
+          "Station": "GO04",
+          "Network": "C",
+          "Channel": "BHZ",
+          "Location": "--",
+          "Latitude": -30.172700881958008,
+          "Longitude": -70.79930114746094,
+          "Elevation": 2076
+        },
+        "Source": {
+          "AgencyID": "NEIC",
+          "Author": "human",
+          "Type": "LocalHuman"
+        },
+        "Time": "2021-08-12T01:12:41.660Z",
+        "Affinity": 3,
+        "Quality": 0,
+        "Use": true,
+        "PickedPhase": "P",
+        "AssociatedPhase": "P"
+      },
+      {
+        "ID": "56709591",
+        "Site": {
+          "Station": "LCO",
+          "Network": "IU",
+          "Channel": "BHZ",
+          "Location": "10",
+          "Latitude": -29.01099967956543,
+          "Longitude": -70.70050048828125,
+          "Elevation": 2274
+        },
+        "Source": {
+          "AgencyID": "NEIC",
+          "Author": "human",
+          "Type": "LocalHuman"
+        },
+        "Time": "2021-08-12T01:12:25.150Z",
+        "Affinity": 3,
+        "Quality": 0,
+        "Use": true,
+        "PickedPhase": "P",
+        "AssociatedPhase": "P"
+      },
+      {
+        "ID": "56709636",
+        "Site": {
+          "Station": "MT01",
+          "Network": "C1",
+          "Channel": "BHZ",
+          "Location": "--",
+          "Latitude": -33.86410140991211,
+          "Longitude": -71.25090026855469,
+          "Elevation": 310
+        },
+        "Source": {
+          "AgencyID": "NEIC",
+          "Author": "human",
+          "Type": "LocalHuman"
+        },
+        "Time": "2021-08-12T01:13:29.600Z",
+        "Affinity": 3,
+        "Quality": 0,
+        "Use": true,
+        "PickedPhase": "Pn",
+        "AssociatedPhase": "Pn"
+      },
+      {
+        "ID": "56709629",
+        "Site": {
+          "Station": "MT02",
+          "Network": "C1",
+          "Channel": "BHZ",
+          "Location": "--",
+          "Latitude": -33.25910186767578,
+          "Longitude": -71.13770294189453,
+          "Elevation": 323
+        },
+        "Source": {
+          "AgencyID": "NEIC",
+          "Author": "human",
+          "Type": "LocalHuman"
+        },
+        "Time": "2021-08-12T01:13:22.520Z",
+        "Affinity": 3,
+        "Quality": 0,
+        "Use": true,
+        "PickedPhase": "Pn",
+        "AssociatedPhase": "Pn"
+      },
+      {
+        "ID": "56709635",
+        "Site": {
+          "Station": "MT09",
+          "Network": "C1",
+          "Channel": "BHZ",
+          "Location": "--",
+          "Latitude": -33.77619934082031,
+          "Longitude": -70.98870086669922,
+          "Elevation": 1371
+        },
+        "Source": {
+          "AgencyID": "NEIC",
+          "Author": "human",
+          "Type": "LocalHuman"
+        },
+        "Time": "2021-08-12T01:13:29.310Z",
+        "Affinity": 3,
+        "Quality": 0,
+        "Use": true,
+        "PickedPhase": "Pn",
+        "AssociatedPhase": "Pn"
+      },
+      {
+        "ID": "56709641",
+        "Site": {
+          "Station": "MT13",
+          "Network": "C1",
+          "Channel": "BHZ",
+          "Location": "--",
+          "Latitude": -33.743499755859375,
+          "Longitude": -70.28610229492188,
+          "Elevation": 1198.5999755859375
+        },
+        "Source": {
+          "AgencyID": "NEIC",
+          "Author": "human",
+          "Type": "LocalHuman"
+        },
+        "Time": "2021-08-12T01:13:30.380Z",
+        "Affinity": 3,
+        "Quality": 0,
+        "Use": true,
+        "PickedPhase": "Pn",
+        "AssociatedPhase": "Pn"
+      },
+      {
+        "ID": "56710066",
+        "Site": {
+          "Station": "PB10",
+          "Network": "CX",
+          "Channel": "BHZ",
+          "Location": "--",
+          "Latitude": -23.513399124145508,
+          "Longitude": -70.5541000366211,
+          "Elevation": 250
+        },
+        "Source": {
+          "AgencyID": "NEIC",
+          "Author": "human",
+          "Type": "LocalHuman"
+        },
+        "Time": "2021-08-12T01:13:11.590Z",
+        "Affinity": 3,
+        "Quality": 0,
+        "Use": true,
+        "PickedPhase": "Pn",
+        "AssociatedPhase": "Pn"
+      },
+      {
+        "ID": "56709626",
+        "Site": {
+          "Station": "PB14",
+          "Network": "CX",
+          "Channel": "BHZ",
+          "Location": "--",
+          "Latitude": -24.625999450683594,
+          "Longitude": -70.40380096435547,
+          "Elevation": 2630
+        },
+        "Source": {
+          "AgencyID": "NEIC",
+          "Author": "human",
+          "Type": "LocalHuman"
+        },
+        "Time": "2021-08-12T01:12:58.320Z",
+        "Affinity": 3,
+        "Quality": 0,
+        "Use": true,
+        "PickedPhase": "Pn",
+        "AssociatedPhase": "Pn"
+      },
+      {
+        "ID": "56709633",
+        "Site": {
+          "Station": "PEL",
+          "Network": "G",
+          "Channel": "BHZ",
+          "Location": "00",
+          "Latitude": -33.14360046386719,
+          "Longitude": -70.67489624023438,
+          "Elevation": 700
+        },
+        "Source": {
+          "AgencyID": "NEIC",
+          "Author": "human",
+          "Type": "LocalHuman"
+        },
+        "Time": "2021-08-12T01:13:21.410Z",
+        "Affinity": 3,
+        "Quality": 0,
+        "Use": true,
+        "PickedPhase": "Pn",
+        "AssociatedPhase": "Pn"
+      },
+      {
+        "ID": "56710558",
+        "Site": {
+          "Station": "SNAA",
+          "Network": "GE",
+          "Channel": "BHZ",
+          "Location": "--",
+          "Latitude": -71.67070007324219,
+          "Longitude": -2.837899923324585,
+          "Elevation": 845
+        },
+        "Source": {
+          "AgencyID": "NEIC",
+          "Author": "human",
+          "Type": "LocalHuman"
+        },
+        "Time": "2021-08-12T01:21:48.530Z",
+        "Affinity": 3,
+        "Quality": 0,
+        "Use": true,
+        "PickedPhase": "P",
+        "AssociatedPhase": "P"
+      },
+      {
+        "ID": "56710109",
+        "Site": {
+          "Station": "VA01",
+          "Network": "C1",
+          "Channel": "BHZ",
+          "Location": "--",
+          "Latitude": -33.02280044555664,
+          "Longitude": -71.64749908447266,
+          "Elevation": 75.5999984741211
+        },
+        "Source": {
+          "AgencyID": "NEIC",
+          "Author": "human",
+          "Type": "LocalHuman"
+        },
+        "Time": "2021-08-12T01:13:18.420Z",
+        "Affinity": 3,
+        "Quality": 0,
+        "Use": true,
+        "PickedPhase": "Pn",
+        "AssociatedPhase": "Pn"
+      },
+      {
+        "ID": "56709624",
+        "Site": {
+          "Station": "VA03",
+          "Network": "C1",
+          "Channel": "BHZ",
+          "Location": "--",
+          "Latitude": -32.76369857788086,
+          "Longitude": -70.55079650878906,
+          "Elevation": 1053
+        },
+        "Source": {
+          "AgencyID": "NEIC",
+          "Author": "human",
+          "Type": "LocalHuman"
+        },
+        "Time": "2021-08-12T01:13:16.860Z",
+        "Affinity": 3,
+        "Quality": 0,
+        "Use": true,
+        "PickedPhase": "Pn",
+        "AssociatedPhase": "Pn"
+      },
+      {
+        "ID": "56709669",
+        "Site": {
+          "Station": "ZON",
+          "Network": "WA",
+          "Channel": "HHZ",
+          "Location": "--",
+          "Latitude": -31.54560089111328,
+          "Longitude": -68.6843032836914,
+          "Elevation": 772.5999755859375
+        },
+        "Source": {
+          "AgencyID": "NEIC",
+          "Author": "human",
+          "Type": "LocalHuman"
+        },
+        "Time": "2021-08-12T01:13:08.120Z",
+        "Affinity": 3,
+        "Quality": 0,
+        "Use": true,
+        "PickedPhase": "Pn",
+        "AssociatedPhase": "Pn"
+      }
+    ],
+    "IsLocationNew": false,
+    "IsLocationHeld": false,
+    "IsDepthHeld": true,
+    "IsBayesianDepth": false,
+    "UseSVD": true
+  }

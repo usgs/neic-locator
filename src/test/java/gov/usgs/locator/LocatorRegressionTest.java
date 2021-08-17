@@ -21,14 +21,39 @@ public class LocatorRegressionTest {
   public static String EMPTYSTRING = "";
 
   /**
-   * This test is designed as a overall regression test for the locator. If the behavior of the
-   * locator is changed in such a that the location result is expected to change, this test
-   * (specifically verification.json) will need to be updated
+   * These tests are designed as a overall regression tests for the locator. If the behavior of the
+   * locator is changed in such a that the location results are expected to change, these tests
+   * (specifically the *verification.json files) will need to be updated
    */
   @Test
-  public void testLocator() {
+  public void runLocalTest() {
+    // Texas 3.0
+    runLocTest(
+        "build/resources/test/localInput.json", "build/resources/test/localVerification.json");
+  }
+
+  @Test
+  public void runGlobalTest() {
+    // Chile 4.5
+    runLocTest(
+        "build/resources/test/globalInput.json", "build/resources/test/globalVerification.json");
+  }
+
+  @Test
+  public void runDeepTest() {
+    // Fiji 5.5 520km
+    runLocTest("build/resources/test/deepInput.json", "build/resources/test/deepVerification.json");
+  }
+
+  @Test
+  public void runBigTest() {
+    // South Sandwich Islands 7.5
+    runLocTest("build/resources/test/bigInput.json", "build/resources/test/bigVerification.json");
+  }
+
+  public void runLocTest(String inputFile, String verificationFile) {
     // parse input string into request
-    String inputString = loadFromFile("build/resources/test/input.json");
+    String inputString = loadFromFile(inputFile);
     Assertions.assertNotEquals(EMPTYSTRING, inputString, "Loaded Input");
     LocationRequest request = null;
     try {
@@ -40,7 +65,7 @@ public class LocatorRegressionTest {
     Assertions.assertNotNull(request, "Location Request");
 
     // parse verification string into result
-    String verificationString = loadFromFile("build/resources/test/verification.json");
+    String verificationString = loadFromFile(verificationFile);
     Assertions.assertNotEquals(EMPTYSTRING, verificationString, "Loaded Verification");
     LocationResult verificationResult = null;
     try {
@@ -53,8 +78,8 @@ public class LocatorRegressionTest {
 
     // do location
     LocationResult result = null;
-    LocService service = new LocService("build/models/", "build/models/");
     try {
+      LocService service = new LocService("build/models/", "build/models/");
       result = service.getLocation(request);
     } catch (LocationException e) {
       Assertions.fail(e.toString());

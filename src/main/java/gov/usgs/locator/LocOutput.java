@@ -137,7 +137,11 @@ public class LocOutput extends LocationResult {
     this.BayesianRange = 3d * bayesianDepthSpread;
     this.DepthImportance = bayesianDepthDataImportance;
 
-    if (errorEllipse != null) {
+    // note don't try to generate the error ellipse if the
+    // locator exit code does not indicate success.
+    if ((errorEllipse != null)
+        && ((locatorExitCode == LocStatus.SUCCESSFUL_LOCATION)
+            || (locatorExitCode == LocStatus.DID_NOT_MOVE))) {
       this.ErrorEllipse.MaximumHorizontalProjection = maxHorizontalError;
       this.ErrorEllipse.MaximumVerticalProjection = maxVerticalError;
       this.ErrorEllipse.EquivalentHorizontalRadius = equivalentErrorRadius;
@@ -165,6 +169,8 @@ public class LocOutput extends LocationResult {
                 errorEllipse[2].getAzimuth(),
                 errorEllipse[2].getPlunge());
       }
+    } else {
+      this.ErrorEllipse = null;
     }
 
     // exit code conversion

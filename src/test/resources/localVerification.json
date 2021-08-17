@@ -1,0 +1,2830 @@
+{
+    "MinimumDistance": 0.08648309493230734,
+    "SupportingData": [
+      {
+        "Site": {
+          "Station": "PB32",
+          "Elevation": 0.861,
+          "Network": "TX",
+          "Channel": "HHZ",
+          "Latitude": 31.103099822998047,
+          "Longitude": -103.372802734375,
+          "Location": "00"
+        },
+        "PickedPhase": "P",
+        "Use": true,
+        "AssociatedPhase": "P",
+        "Time": "2021-08-12T02:25:05.300Z",
+        "Residual": 0.1301064391843636,
+        "Source": {
+          "Type": "ContributedHuman",
+          "AgencyID": "TX",
+          "Author": "Default_Human"
+        },
+        "Weight": 3.9798884282253577,
+        "Importance": 0.23225043738332773,
+        "Azimuth": 332.1965701311103,
+        "Quality": 0,
+        "Affinity": 1.5,
+        "ID": "56740509",
+        "LocatedPhase": "Pg",
+        "Distance": 0.08648309493230734
+      },
+      {
+        "Site": {
+          "Station": "PB32",
+          "Elevation": 0.861,
+          "Network": "TX",
+          "Channel": "HH1",
+          "Latitude": 31.103099822998047,
+          "Longitude": -103.372802734375,
+          "Location": "00"
+        },
+        "PickedPhase": "S",
+        "Use": true,
+        "AssociatedPhase": "S",
+        "Time": "2021-08-12T02:25:07.120Z",
+        "Residual": 0.031235576542806065,
+        "Source": {
+          "Type": "ContributedHuman",
+          "AgencyID": "TX",
+          "Author": "Default_Human"
+        },
+        "Weight": 1.3895446932529505,
+        "Importance": 0.07958590663462956,
+        "Azimuth": 332.1965701311103,
+        "Quality": 0,
+        "Affinity": 1.5,
+        "ID": "56740513",
+        "LocatedPhase": "Sg",
+        "Distance": 0.08648309493230734
+      },
+      {
+        "Site": {
+          "Station": "PB05",
+          "Elevation": 0.957,
+          "Network": "TX",
+          "Channel": "HHZ",
+          "Latitude": 30.9197998046875,
+          "Longitude": -103.32469940185547,
+          "Location": "00"
+        },
+        "PickedPhase": "Pg",
+        "Use": true,
+        "AssociatedPhase": "Pg",
+        "Time": "2021-08-12T02:25:05.800Z",
+        "Residual": 0.343777685628857,
+        "Source": {
+          "Type": "LocalHuman",
+          "AgencyID": "NEIC",
+          "Author": "abreu"
+        },
+        "Weight": 3.8427526326725494,
+        "Importance": 0.19928056343534045,
+        "Azimuth": 179.50158379321385,
+        "Quality": 0,
+        "Affinity": 3,
+        "ID": "56713137",
+        "LocatedPhase": "Pg",
+        "Distance": 0.10623375668483377
+      },
+      {
+        "Site": {
+          "Station": "PB05",
+          "Elevation": 0.957,
+          "Network": "TX",
+          "Channel": "HH1",
+          "Latitude": 30.9197998046875,
+          "Longitude": -103.32469940185547,
+          "Location": "00"
+        },
+        "PickedPhase": "Sg",
+        "Use": true,
+        "AssociatedPhase": "Sg",
+        "Time": "2021-08-12T02:25:08.470Z",
+        "Residual": 0.9000869233150093,
+        "Source": {
+          "Type": "LocalHuman",
+          "AgencyID": "NEIC",
+          "Author": "abreu"
+        },
+        "Weight": 1.377618981218968,
+        "Importance": 0.07189960797235999,
+        "Azimuth": 179.50158379321385,
+        "Quality": 0,
+        "Affinity": 3,
+        "ID": "56713141",
+        "LocatedPhase": "Sg",
+        "Distance": 0.10623375668483377
+      },
+      {
+        "Site": {
+          "Station": "PB16",
+          "Elevation": 0.848,
+          "Network": "TX",
+          "Channel": "HHZ",
+          "Latitude": 31.125,
+          "Longitude": -103.25199890136719,
+          "Location": "00"
+        },
+        "PickedPhase": "P",
+        "Use": true,
+        "AssociatedPhase": "P",
+        "Time": "2021-08-12T02:25:05.370Z",
+        "Residual": -0.23466546650062448,
+        "Source": {
+          "Type": "ContributedHuman",
+          "AgencyID": "TX",
+          "Author": "Default_Human"
+        },
+        "Weight": 3.772316037987278,
+        "Importance": 0.14139518447817684,
+        "Azimuth": 32.75492475031337,
+        "Quality": 0,
+        "Affinity": 1.5,
+        "ID": "56740510",
+        "LocatedPhase": "Pg",
+        "Distance": 0.11693642335767931
+      },
+      {
+        "Site": {
+          "Station": "PB16",
+          "Elevation": 0.848,
+          "Network": "TX",
+          "Channel": "HH1",
+          "Latitude": 31.125,
+          "Longitude": -103.25199890136719,
+          "Location": "00"
+        },
+        "PickedPhase": "S",
+        "Use": true,
+        "AssociatedPhase": "S",
+        "Time": "2021-08-12T02:25:07.120Z",
+        "Residual": -0.6995713971264612,
+        "Source": {
+          "Type": "ContributedHuman",
+          "AgencyID": "TX",
+          "Author": "Default_Human"
+        },
+        "Weight": 1.371241691373288,
+        "Importance": 0.052510036257009854,
+        "Azimuth": 32.75492475031337,
+        "Quality": 0,
+        "Affinity": 1.5,
+        "ID": "56740512",
+        "LocatedPhase": "Sg",
+        "Distance": 0.11693642335767931
+      },
+      {
+        "Site": {
+          "Station": "PB17",
+          "Elevation": 0.734,
+          "Network": "TX",
+          "Channel": "HHZ",
+          "Latitude": 30.996700286865234,
+          "Longitude": -103.15180206298828,
+          "Location": "00"
+        },
+        "PickedPhase": "P",
+        "Use": true,
+        "AssociatedPhase": "P",
+        "Time": "2021-08-12T02:25:05.920Z",
+        "Residual": -0.23995085420454343,
+        "Source": {
+          "Type": "ContributedHuman",
+          "AgencyID": "TX",
+          "Author": "Default_Human"
+        },
+        "Weight": 3.557067013342513,
+        "Importance": 0.21005064690501063,
+        "Azimuth": 101.15438083304115,
+        "Quality": 0,
+        "Affinity": 1.5,
+        "ID": "56740506",
+        "LocatedPhase": "Pg",
+        "Distance": 0.15226980645351593
+      },
+      {
+        "Site": {
+          "Station": "PB17",
+          "Elevation": 0.734,
+          "Network": "TX",
+          "Channel": "HH2",
+          "Latitude": 30.996700286865234,
+          "Longitude": -103.15180206298828,
+          "Location": "00"
+        },
+        "PickedPhase": "S",
+        "Use": true,
+        "AssociatedPhase": "S",
+        "Time": "2021-08-12T02:25:08.840Z",
+        "Residual": 0.087026676949713,
+        "Source": {
+          "Type": "ContributedHuman",
+          "AgencyID": "TX",
+          "Author": "Default_Human"
+        },
+        "Weight": 1.3506008554867448,
+        "Importance": 0.08526206754042866,
+        "Azimuth": 101.15438083304115,
+        "Quality": 0,
+        "Affinity": 1.5,
+        "ID": "56740514",
+        "LocatedPhase": "Sg",
+        "Distance": 0.15226980645351593
+      },
+      {
+        "Site": {
+          "Station": "PB04",
+          "Elevation": 0.812,
+          "Network": "TX",
+          "Channel": "HHZ",
+          "Latitude": 31.187000274658203,
+          "Longitude": -103.26940155029297,
+          "Location": "00"
+        },
+        "PickedPhase": "P",
+        "Use": true,
+        "AssociatedPhase": "P",
+        "Time": "2021-08-12T02:25:06.440Z",
+        "Residual": 0.020265288397422587,
+        "Source": {
+          "Type": "ContributedHuman",
+          "AgencyID": "TX",
+          "Author": "Default_Human"
+        },
+        "Weight": 3.47294417284146,
+        "Importance": 0.11804595227225882,
+        "Azimuth": 16.78809123982044,
+        "Quality": 0,
+        "Affinity": 1.5,
+        "ID": "56740507",
+        "LocatedPhase": "Pg",
+        "Distance": 0.1672690109601589
+      },
+      {
+        "Site": {
+          "Station": "PB04",
+          "Elevation": 0.812,
+          "Network": "TX",
+          "Channel": "HH2",
+          "Latitude": 31.187000274658203,
+          "Longitude": -103.26940155029297,
+          "Location": "00"
+        },
+        "PickedPhase": "S",
+        "Use": true,
+        "AssociatedPhase": "S",
+        "Time": "2021-08-12T02:25:09.090Z",
+        "Residual": -0.09918058382625539,
+        "Source": {
+          "Type": "ContributedHuman",
+          "AgencyID": "TX",
+          "Author": "Default_Human"
+        },
+        "Weight": 1.3420254036346198,
+        "Importance": 0.049579311817253814,
+        "Azimuth": 16.78809123982044,
+        "Quality": 0,
+        "Affinity": 1.5,
+        "ID": "56740516",
+        "LocatedPhase": "Sg",
+        "Distance": 0.1672690109601589
+      },
+      {
+        "Site": {
+          "Station": "PB14",
+          "Elevation": 0.807,
+          "Network": "TX",
+          "Channel": "HHZ",
+          "Latitude": 31.12929916381836,
+          "Longitude": -103.1511001586914,
+          "Location": "00"
+        },
+        "PickedPhase": "P",
+        "Use": true,
+        "AssociatedPhase": "P",
+        "Time": "2021-08-12T02:25:06.590Z",
+        "Residual": -0.0750297594015521,
+        "Source": {
+          "Type": "ContributedHuman",
+          "AgencyID": "TX",
+          "Author": "Default_Human"
+        },
+        "Weight": 3.396050857450832,
+        "Importance": 0.1409371010242159,
+        "Azimuth": 55.5578892371446,
+        "Quality": 0,
+        "Affinity": 1.5,
+        "ID": "56740511",
+        "LocatedPhase": "Pg",
+        "Distance": 0.18162921948342517
+      },
+      {
+        "Site": {
+          "Station": "PB14",
+          "Elevation": 0.807,
+          "Network": "TX",
+          "Channel": "HHE",
+          "Latitude": 31.12929916381836,
+          "Longitude": -103.1511001586914,
+          "Location": "00"
+        },
+        "PickedPhase": "S",
+        "Use": true,
+        "AssociatedPhase": "S",
+        "Time": "2021-08-12T02:25:09.310Z",
+        "Residual": -0.2908173292008627,
+        "Source": {
+          "Type": "ContributedHuman",
+          "AgencyID": "TX",
+          "Author": "Default_Human"
+        },
+        "Weight": 1.3339167038184683,
+        "Importance": 0.06118410871169082,
+        "Azimuth": 55.5578892371446,
+        "Quality": 0,
+        "Affinity": 1.5,
+        "ID": "56740515",
+        "LocatedPhase": "Sg",
+        "Distance": 0.18162921948342517
+      },
+      {
+        "Site": {
+          "Station": "DG05",
+          "Elevation": 0.837,
+          "Network": "TX",
+          "Channel": "CH1",
+          "Latitude": 31.17009925842285,
+          "Longitude": -103.49330139160156,
+          "Location": "00"
+        },
+        "PickedPhase": "S",
+        "Use": true,
+        "AssociatedPhase": "S",
+        "Time": "2021-08-12T02:25:12.450Z",
+        "Residual": 2.2289300884346517,
+        "Source": {
+          "Type": "ContributedHuman",
+          "AgencyID": "TX",
+          "Author": "Default_Human"
+        },
+        "Weight": 1.3220678803839991,
+        "Importance": 0.08179642927176839,
+        "Azimuth": 314.9578369943808,
+        "Quality": 0,
+        "Affinity": 1.5,
+        "ID": "56740518",
+        "LocatedPhase": "Sg",
+        "Distance": 0.20292981441929916
+      },
+      {
+        "Site": {
+          "Station": "PB18",
+          "Elevation": 0.825,
+          "Network": "TX",
+          "Channel": "HHZ",
+          "Latitude": 31.2007999420166,
+          "Longitude": -103.19960021972656,
+          "Location": "00"
+        },
+        "PickedPhase": "P",
+        "Use": true,
+        "AssociatedPhase": "P",
+        "Time": "2021-08-12T02:25:06.790Z",
+        "Residual": -0.276426769475437,
+        "Source": {
+          "Type": "ContributedHuman",
+          "AgencyID": "TX",
+          "Author": "Default_Human"
+        },
+        "Weight": 3.278870451758203,
+        "Importance": 0.1091409157196785,
+        "Azimuth": 31.863579753961634,
+        "Quality": 0,
+        "Affinity": 1.5,
+        "ID": "56740508",
+        "LocatedPhase": "Pg",
+        "Distance": 0.20480854000926013
+      },
+      {
+        "Site": {
+          "Station": "PB18",
+          "Elevation": 0.825,
+          "Network": "TX",
+          "Channel": "HH1",
+          "Latitude": 31.2007999420166,
+          "Longitude": -103.19960021972656,
+          "Location": "00"
+        },
+        "PickedPhase": "S",
+        "Use": true,
+        "AssociatedPhase": "S",
+        "Time": "2021-08-12T02:25:10.130Z",
+        "Residual": -0.14423507177806894,
+        "Source": {
+          "Type": "ContributedHuman",
+          "AgencyID": "TX",
+          "Author": "Default_Human"
+        },
+        "Weight": 1.3210329008353718,
+        "Importance": 0.04983963741350859,
+        "Azimuth": 31.863579753961634,
+        "Quality": 0,
+        "Affinity": 1.5,
+        "ID": "56740517",
+        "LocatedPhase": "Sg",
+        "Distance": 0.20480854000926013
+      },
+      {
+        "Site": {
+          "Station": "PB30",
+          "Elevation": 0.829,
+          "Network": "TX",
+          "Channel": "HHZ",
+          "Latitude": 31.280399322509766,
+          "Longitude": -103.32270050048828,
+          "Location": "00"
+        },
+        "PickedPhase": "P",
+        "Use": false,
+        "AssociatedPhase": "P",
+        "Time": "2021-08-12T02:25:09.570Z",
+        "Residual": 1.6591747377737533,
+        "Source": {
+          "Type": "ContributedHuman",
+          "AgencyID": "TX",
+          "Author": "Default_Human"
+        },
+        "Weight": 0,
+        "Importance": 0,
+        "Azimuth": 0.595497560848877,
+        "Quality": 0,
+        "Affinity": 1.5,
+        "ID": "56740519",
+        "LocatedPhase": "Pg",
+        "Distance": 0.25324928628468363
+      },
+      {
+        "Site": {
+          "Station": "PB30",
+          "Elevation": 0.829,
+          "Network": "TX",
+          "Channel": "HH1",
+          "Latitude": 31.280399322509766,
+          "Longitude": -103.32270050048828,
+          "Location": "00"
+        },
+        "PickedPhase": "S",
+        "Use": false,
+        "AssociatedPhase": "S",
+        "Time": "2021-08-12T02:25:13.160Z",
+        "Residual": 1.4693918380102708,
+        "Source": {
+          "Type": "ContributedHuman",
+          "AgencyID": "TX",
+          "Author": "Default_Human"
+        },
+        "Weight": 0,
+        "Importance": 0,
+        "Azimuth": 0.595497560848877,
+        "Quality": 0,
+        "Affinity": 1.5,
+        "ID": "56740520",
+        "LocatedPhase": "Sg",
+        "Distance": 0.25324928628468363
+      },
+      {
+        "Site": {
+          "Station": "DG04",
+          "Elevation": 0.795,
+          "Network": "TX",
+          "Channel": "CH1",
+          "Latitude": 31.28730010986328,
+          "Longitude": -103.41259765625,
+          "Location": "00"
+        },
+        "PickedPhase": "S",
+        "Use": false,
+        "AssociatedPhase": "S",
+        "Time": "2021-08-12T02:25:14.910Z",
+        "Residual": 2.7146185254497794,
+        "Source": {
+          "Type": "ContributedHuman",
+          "AgencyID": "TX",
+          "Author": "Default_Human"
+        },
+        "Weight": 0,
+        "Importance": 0,
+        "Azimuth": 344.0538018802909,
+        "Quality": 0,
+        "Affinity": 1.5,
+        "ID": "56740523",
+        "LocatedPhase": "Sg",
+        "Distance": 0.27055479512942265
+      },
+      {
+        "Site": {
+          "Station": "PB22",
+          "Elevation": 0.808,
+          "Network": "TX",
+          "Channel": "HHZ",
+          "Latitude": 31.211700439453125,
+          "Longitude": -103.0770034790039,
+          "Location": "00"
+        },
+        "PickedPhase": "P",
+        "Use": false,
+        "AssociatedPhase": "P",
+        "Time": "2021-08-12T02:25:09.990Z",
+        "Residual": 1.5724268329165048,
+        "Source": {
+          "Type": "ContributedHuman",
+          "AgencyID": "TX",
+          "Author": "Default_Human"
+        },
+        "Weight": 0,
+        "Importance": 0,
+        "Azimuth": 49.045448861020866,
+        "Quality": 0,
+        "Affinity": 1.5,
+        "ID": "56740521",
+        "LocatedPhase": "Pg",
+        "Distance": 0.28222685104628775
+      },
+      {
+        "Site": {
+          "Station": "PB22",
+          "Elevation": 0.808,
+          "Network": "TX",
+          "Channel": "HH2",
+          "Latitude": 31.211700439453125,
+          "Longitude": -103.0770034790039,
+          "Location": "00"
+        },
+        "PickedPhase": "S",
+        "Use": false,
+        "AssociatedPhase": "S",
+        "Time": "2021-08-12T02:25:15.660Z",
+        "Residual": 3.1194750942462957,
+        "Source": {
+          "Type": "ContributedHuman",
+          "AgencyID": "TX",
+          "Author": "Default_Human"
+        },
+        "Weight": 0,
+        "Importance": 0,
+        "Azimuth": 49.045448861020866,
+        "Quality": 0,
+        "Affinity": 1.5,
+        "ID": "56740522",
+        "LocatedPhase": "Sg",
+        "Distance": 0.28222685104628775
+      },
+      {
+        "Site": {
+          "Station": "PB19",
+          "Elevation": 0.7824000244140625,
+          "Network": "TX",
+          "Channel": "HHZ",
+          "Latitude": 31.3031005859375,
+          "Longitude": -103.09970092773438,
+          "Location": "00"
+        },
+        "PickedPhase": "P",
+        "Use": false,
+        "AssociatedPhase": "P",
+        "Time": "2021-08-12T02:25:10.780Z",
+        "Residual": 1.3969788317743834,
+        "Source": {
+          "Type": "ContributedHuman",
+          "AgencyID": "TX",
+          "Author": "Default_Human"
+        },
+        "Weight": 0,
+        "Importance": 0,
+        "Azimuth": 35.02960891941346,
+        "Quality": 0,
+        "Affinity": 1.5,
+        "ID": "56740524",
+        "LocatedPhase": "Pg",
+        "Distance": 0.337132324084728
+      },
+      {
+        "Site": {
+          "Station": "PB19",
+          "Elevation": 0.7824000244140625,
+          "Network": "TX",
+          "Channel": "HHE",
+          "Latitude": 31.3031005859375,
+          "Longitude": -103.09970092773438,
+          "Location": "00"
+        },
+        "PickedPhase": "S",
+        "Use": false,
+        "AssociatedPhase": "S",
+        "Time": "2021-08-12T02:25:16.160Z",
+        "Residual": 2.0003180698144742,
+        "Source": {
+          "Type": "ContributedHuman",
+          "AgencyID": "TX",
+          "Author": "Default_Human"
+        },
+        "Weight": 0,
+        "Importance": 0,
+        "Azimuth": 35.02960891941346,
+        "Quality": 0,
+        "Affinity": 1.5,
+        "ID": "56740525",
+        "LocatedPhase": "Sg",
+        "Distance": 0.337132324084728
+      },
+      {
+        "Site": {
+          "Station": "DG01",
+          "Elevation": 0.787,
+          "Network": "TX",
+          "Channel": "CH2",
+          "Latitude": 31.377599716186523,
+          "Longitude": -103.27110290527344,
+          "Location": "00"
+        },
+        "PickedPhase": "S",
+        "Use": false,
+        "AssociatedPhase": "S",
+        "Time": "2021-08-12T02:25:17.230Z",
+        "Residual": 2.592337098219657,
+        "Source": {
+          "Type": "ContributedHuman",
+          "AgencyID": "TX",
+          "Author": "Default_Human"
+        },
+        "Weight": 0,
+        "Importance": 0,
+        "Azimuth": 7.6067110264294975,
+        "Quality": 0,
+        "Affinity": 1.5,
+        "ID": "56740526",
+        "LocatedPhase": "Sg",
+        "Distance": 0.3532549418386137
+      },
+      {
+        "Site": {
+          "Station": "DG08",
+          "Elevation": 0.895,
+          "Network": "TX",
+          "Channel": "CH2",
+          "Latitude": 31.190500259399414,
+          "Longitude": -103.72419738769531,
+          "Location": "00"
+        },
+        "PickedPhase": "S",
+        "Use": false,
+        "AssociatedPhase": "S",
+        "Time": "2021-08-12T02:25:19.010Z",
+        "Residual": 3.601261449979326,
+        "Source": {
+          "Type": "ContributedHuman",
+          "AgencyID": "TX",
+          "Author": "Default_Human"
+        },
+        "Weight": 0,
+        "Importance": 0,
+        "Azimuth": 295.68660058911433,
+        "Quality": 0,
+        "Affinity": 1.5,
+        "ID": "56740531",
+        "LocatedPhase": "Sg",
+        "Distance": 0.37888394359009464
+      },
+      {
+        "Site": {
+          "Station": "DG09",
+          "Elevation": 0.795,
+          "Network": "TX",
+          "Channel": "CH2",
+          "Latitude": 31.37220001220703,
+          "Longitude": -103.51280212402344,
+          "Location": "00"
+        },
+        "PickedPhase": "S",
+        "Use": false,
+        "AssociatedPhase": "S",
+        "Time": "2021-08-12T02:25:18.510Z",
+        "Residual": 3.0737947120682687,
+        "Source": {
+          "Type": "ContributedHuman",
+          "AgencyID": "TX",
+          "Author": "Default_Human"
+        },
+        "Weight": 0,
+        "Importance": 0,
+        "Azimuth": 335.1158209090948,
+        "Quality": 0,
+        "Affinity": 1.5,
+        "ID": "56740529",
+        "LocatedPhase": "Sg",
+        "Distance": 0.3801821943388973
+      },
+      {
+        "Site": {
+          "Station": "PB08",
+          "Elevation": 0.926,
+          "Network": "TX",
+          "Channel": "HH2",
+          "Latitude": 30.891700744628906,
+          "Longitude": -102.90740203857422,
+          "Location": "00"
+        },
+        "PickedPhase": "S",
+        "Use": false,
+        "AssociatedPhase": "S",
+        "Time": "2021-08-12T02:25:17.910Z",
+        "Residual": 2.35671590434343,
+        "Source": {
+          "Type": "ContributedHuman",
+          "AgencyID": "TX",
+          "Author": "Default_Human"
+        },
+        "Weight": 0,
+        "Importance": 0,
+        "Azimuth": 110.37373356352546,
+        "Quality": 0,
+        "Affinity": 1.5,
+        "ID": "56740527",
+        "LocatedPhase": "Sg",
+        "Distance": 0.38365544147176917
+      },
+      {
+        "Site": {
+          "Station": "DG03",
+          "Elevation": 0.83,
+          "Network": "TX",
+          "Channel": "CH2",
+          "Latitude": 31.388599395751953,
+          "Longitude": -103.48419952392578,
+          "Location": "00"
+        },
+        "PickedPhase": "S",
+        "Use": false,
+        "AssociatedPhase": "S",
+        "Time": "2021-08-12T02:25:18.800Z",
+        "Residual": 3.194250657231798,
+        "Source": {
+          "Type": "ContributedHuman",
+          "AgencyID": "TX",
+          "Author": "Default_Human"
+        },
+        "Weight": 0,
+        "Importance": 0,
+        "Azimuth": 339.4387413444724,
+        "Quality": 0,
+        "Affinity": 1.5,
+        "ID": "56740530",
+        "LocatedPhase": "Sg",
+        "Distance": 0.38577169313746174
+      },
+      {
+        "Site": {
+          "Station": "PB21",
+          "Elevation": 0.753,
+          "Network": "TX",
+          "Channel": "HH2",
+          "Latitude": 31.341899871826172,
+          "Longitude": -103.06220245361328,
+          "Location": "00"
+        },
+        "PickedPhase": "S",
+        "Use": false,
+        "AssociatedPhase": "S",
+        "Time": "2021-08-12T02:25:17.730Z",
+        "Residual": 2.088976459426128,
+        "Source": {
+          "Type": "ContributedHuman",
+          "AgencyID": "TX",
+          "Author": "Default_Human"
+        },
+        "Weight": 0,
+        "Importance": 0,
+        "Azimuth": 35.61640952361058,
+        "Quality": 0,
+        "Affinity": 1.5,
+        "ID": "56740528",
+        "LocatedPhase": "Sg",
+        "Distance": 0.38725434012000975
+      },
+      {
+        "Site": {
+          "Station": "PB01",
+          "Elevation": 1.01,
+          "Network": "TX",
+          "Channel": "HHZ",
+          "Latitude": 30.943700790405273,
+          "Longitude": -103.78109741210938,
+          "Location": "00"
+        },
+        "PickedPhase": "Pg",
+        "Use": true,
+        "AssociatedPhase": "Pg",
+        "Time": "2021-08-12T02:25:09.650Z",
+        "Residual": -0.8520066996074451,
+        "Source": {
+          "Type": "LocalHuman",
+          "AgencyID": "NEIC",
+          "Author": "abreu"
+        },
+        "Weight": 2.541737854281664,
+        "Importance": 0.10625329120401426,
+        "Azimuth": 258.2167602491858,
+        "Quality": 0,
+        "Affinity": 3,
+        "ID": "56712107",
+        "LocatedPhase": "Pg",
+        "Distance": 0.39962908287064003
+      },
+      {
+        "Site": {
+          "Station": "MNHN",
+          "Elevation": 0.75,
+          "Network": "TX",
+          "Channel": "HHZ",
+          "Latitude": 31.340200424194336,
+          "Longitude": -102.76139831542969,
+          "Location": "00"
+        },
+        "PickedPhase": "Pg",
+        "Use": true,
+        "AssociatedPhase": "Pg",
+        "Time": "2021-08-12T02:25:14.380Z",
+        "Residual": 0.7753427894958911,
+        "Source": {
+          "Type": "LocalHuman",
+          "AgencyID": "NEIC",
+          "Author": "abreu"
+        },
+        "Weight": 2.1118046997259285,
+        "Importance": 0.05904954395812658,
+        "Azimuth": 56.96048716599648,
+        "Quality": 0,
+        "Affinity": 3,
+        "ID": "56713356",
+        "LocatedPhase": "Pg",
+        "Distance": 0.5760542654023334
+      },
+      {
+        "Site": {
+          "Station": "PECS",
+          "Elevation": 0.914,
+          "Network": "TX",
+          "Channel": "HHZ",
+          "Latitude": 31.370500564575195,
+          "Longitude": -103.86699676513672,
+          "Location": "00"
+        },
+        "PickedPhase": "Pg",
+        "Use": true,
+        "AssociatedPhase": "Pg",
+        "Time": "2021-08-12T02:25:13.630Z",
+        "Residual": -0.000003889378454857706,
+        "Source": {
+          "Type": "LocalHuman",
+          "AgencyID": "NEIC",
+          "Author": "abreu"
+        },
+        "Weight": 2.1101538250881386,
+        "Importance": 0.07697417857571946,
+        "Azimuth": 306.6295001351588,
+        "Quality": 0,
+        "Affinity": 3,
+        "ID": "56712109",
+        "LocatedPhase": "Pg",
+        "Distance": 0.57687026580897
+      },
+      {
+        "Site": {
+          "Station": "PB07",
+          "Elevation": 0.856,
+          "Network": "TX",
+          "Channel": "HHZ",
+          "Latitude": 31.57939910888672,
+          "Longitude": -103.66790008544922,
+          "Location": "00"
+        },
+        "PickedPhase": "P",
+        "Use": true,
+        "AssociatedPhase": "P",
+        "Time": "2021-08-12T02:25:16.040Z",
+        "Residual": 1.575183465524928,
+        "Source": {
+          "Type": "LocalHuman",
+          "AgencyID": "NEIC",
+          "Author": "abreu"
+        },
+        "Weight": 2.018501403825902,
+        "Importance": 0.058217997472792965,
+        "Azimuth": 332.111662770516,
+        "Quality": 0,
+        "Affinity": 3,
+        "ID": "56712118",
+        "LocatedPhase": "Pg",
+        "Distance": 0.624266618056882
+      },
+      {
+        "Site": {
+          "Station": "PB06",
+          "Elevation": 0.831,
+          "Network": "TX",
+          "Channel": "HHZ",
+          "Latitude": 31.647199630737305,
+          "Longitude": -103.21820068359375,
+          "Location": "00"
+        },
+        "PickedPhase": "P",
+        "Use": true,
+        "AssociatedPhase": "P",
+        "Time": "2021-08-12T02:25:15.630Z",
+        "Residual": 1.1411382721720038,
+        "Source": {
+          "Type": "LocalHuman",
+          "AgencyID": "NEIC",
+          "Author": "abreu"
+        },
+        "Weight": 2.0158218579391107,
+        "Importance": 0.04268461229001047,
+        "Azimuth": 8.431565736757355,
+        "Quality": 0,
+        "Affinity": 3,
+        "ID": "56712116",
+        "LocatedPhase": "Pg",
+        "Distance": 0.625717139455284
+      },
+      {
+        "Site": {
+          "Station": "ALPN",
+          "Elevation": 1.368,
+          "Network": "TX",
+          "Channel": "HHZ",
+          "Latitude": 30.374500274658203,
+          "Longitude": -103.63849639892578,
+          "Location": "00"
+        },
+        "PickedPhase": "S",
+        "Use": true,
+        "AssociatedPhase": "S",
+        "Time": "2021-08-12T02:25:15.320Z",
+        "Residual": -0.5780891429725266,
+        "Source": {
+          "Type": "LocalHuman",
+          "AgencyID": "NEIC",
+          "Author": "abreu"
+        },
+        "Weight": 1.8820496026510454,
+        "Importance": 0.03751296440118724,
+        "Azimuth": 202.5962452023264,
+        "Quality": 0,
+        "Affinity": 3,
+        "ID": "56712103",
+        "LocatedPhase": "Pg",
+        "Distance": 0.7033824316905046
+      },
+      {
+        "Site": {
+          "Station": "ALPN",
+          "Elevation": 1.368,
+          "Network": "TX",
+          "Channel": "HH1",
+          "Latitude": 30.374500274658203,
+          "Longitude": -103.63849639892578,
+          "Location": "00"
+        },
+        "PickedPhase": "S",
+        "Use": false,
+        "AssociatedPhase": "S",
+        "Time": "2021-08-12T02:25:27.420Z",
+        "Residual": 2.335509288358722,
+        "Source": {
+          "Type": "ContributedHuman",
+          "AgencyID": "TX",
+          "Author": "Default_Human"
+        },
+        "Weight": 0,
+        "Importance": 0,
+        "Azimuth": 202.5962452023264,
+        "Quality": 0,
+        "Affinity": 1.5,
+        "ID": "56740532",
+        "LocatedPhase": "Sg",
+        "Distance": 0.7033824316905046
+      },
+      {
+        "Site": {
+          "Station": "NMP41",
+          "Elevation": 0.9599000244140625,
+          "Network": "GM",
+          "Channel": "HHZ",
+          "Latitude": 32.00510025024414,
+          "Longitude": -103.59649658203125,
+          "Location": "01"
+        },
+        "PickedPhase": "Pg",
+        "Use": true,
+        "AssociatedPhase": "Pg",
+        "Time": "2021-08-12T02:25:23.470Z",
+        "Residual": -0.16473762263037273,
+        "Source": {
+          "Type": "LocalHuman",
+          "AgencyID": "NEIC",
+          "Author": "abreu"
+        },
+        "Weight": 1.2723948363055408,
+        "Importance": 0.023244681366015773,
+        "Azimuth": 346.73928996370034,
+        "Quality": 0,
+        "Affinity": 3,
+        "ID": "56713399",
+        "LocatedPhase": "Pn",
+        "Distance": 1.0027570551773068
+      },
+      {
+        "Site": {
+          "Station": "PB11",
+          "Elevation": 0.915,
+          "Network": "TX",
+          "Channel": "HHZ",
+          "Latitude": 31.93549919128418,
+          "Longitude": -104.03410339355469,
+          "Location": "00"
+        },
+        "PickedPhase": "Pg",
+        "Use": true,
+        "AssociatedPhase": "Pg",
+        "Time": "2021-08-12T02:25:23.890Z",
+        "Residual": 1.1808618507275668,
+        "Source": {
+          "Type": "LocalHuman",
+          "AgencyID": "NEIC",
+          "Author": "abreu"
+        },
+        "Weight": 1.4148831692887909,
+        "Importance": 0.03010962853261475,
+        "Azimuth": 326.4520193076855,
+        "Quality": 0,
+        "Affinity": 3,
+        "ID": "56713401",
+        "LocatedPhase": "Pg",
+        "Distance": 1.0898064673514662
+      },
+      {
+        "Site": {
+          "Station": "NMP53",
+          "Elevation": 1.037300048828125,
+          "Network": "GM",
+          "Channel": "HHZ",
+          "Latitude": 32.176300048828125,
+          "Longitude": -103.43119812011719,
+          "Location": "01"
+        },
+        "PickedPhase": "P",
+        "Use": true,
+        "AssociatedPhase": "P",
+        "Time": "2021-08-12T02:25:25.740Z",
+        "Residual": 0.037293517700305756,
+        "Source": {
+          "Type": "LocalHuman",
+          "AgencyID": "NEIC",
+          "Author": "abreu"
+        },
+        "Weight": 1.2496583645532227,
+        "Importance": 0.022098530412231834,
+        "Azimuth": 355.5408634393015,
+        "Quality": 0,
+        "Affinity": 3,
+        "ID": "56712133",
+        "LocatedPhase": "Pn",
+        "Distance": 1.1499587103766495
+      },
+      {
+        "Site": {
+          "Station": "NMP02",
+          "Elevation": 0.996,
+          "Network": "GM",
+          "Channel": "HHZ",
+          "Latitude": 32.08940124511719,
+          "Longitude": -103.86139678955078,
+          "Location": "01"
+        },
+        "PickedPhase": "Pn",
+        "Use": true,
+        "AssociatedPhase": "Pn",
+        "Time": "2021-08-12T02:25:25.390Z",
+        "Residual": -0.3658707897422815,
+        "Source": {
+          "Type": "LocalHuman",
+          "AgencyID": "NEIC",
+          "Author": "abreu"
+        },
+        "Weight": 1.2490126537695945,
+        "Importance": 0.02291978790338379,
+        "Azimuth": 336.8012835003125,
+        "Quality": 0,
+        "Affinity": 3,
+        "ID": "56713410",
+        "LocatedPhase": "Pn",
+        "Distance": 1.154217504926713
+      },
+      {
+        "Site": {
+          "Station": "PB28",
+          "Elevation": 1.204,
+          "Network": "TX",
+          "Channel": "HHZ",
+          "Latitude": 31.66860008239746,
+          "Longitude": -104.50080108642578,
+          "Location": "00"
+        },
+        "PickedPhase": "Pn",
+        "Use": true,
+        "AssociatedPhase": "Pn",
+        "Time": "2021-08-12T02:25:25.200Z",
+        "Residual": -1.100654541367419,
+        "Source": {
+          "Type": "LocalHuman",
+          "AgencyID": "NEIC",
+          "Author": "abreu"
+        },
+        "Weight": 1.2433326780344027,
+        "Importance": 0.024067017602133353,
+        "Azimuth": 302.79437285564364,
+        "Quality": 0,
+        "Affinity": 3,
+        "ID": "56713405",
+        "LocatedPhase": "Pn",
+        "Distance": 1.191870556679846
+      },
+      {
+        "Site": {
+          "Station": "PB28",
+          "Elevation": 1.204,
+          "Network": "TX",
+          "Channel": "HHZ",
+          "Latitude": 31.66860008239746,
+          "Longitude": -104.50080108642578,
+          "Location": "00"
+        },
+        "PickedPhase": "P",
+        "Use": true,
+        "AssociatedPhase": "Sg",
+        "Time": "2021-08-12T02:25:42.990Z",
+        "Residual": 0.0612658200005356,
+        "Source": {
+          "Type": "LocalAutomatic",
+          "AgencyID": "NEIC",
+          "Author": "Event_Pick_Assoc"
+        },
+        "Weight": 0.8698707549646044,
+        "Importance": 0.03326502039423226,
+        "Azimuth": 302.79437285564364,
+        "Quality": 0,
+        "Affinity": 1,
+        "ID": "56712148",
+        "LocatedPhase": "Sn",
+        "Distance": 1.191870556679846
+      },
+      {
+        "Site": {
+          "Station": "MB01",
+          "Elevation": 0.859,
+          "Network": "TX",
+          "Channel": "HHZ",
+          "Latitude": 31.667699813842773,
+          "Longitude": -102.08290100097656,
+          "Location": "00"
+        },
+        "PickedPhase": "P",
+        "Use": true,
+        "AssociatedPhase": "P",
+        "Time": "2021-08-12T02:25:26.600Z",
+        "Residual": -0.34352537987436804,
+        "Source": {
+          "Type": "LocalHuman",
+          "AgencyID": "NEIC",
+          "Author": "abreu"
+        },
+        "Weight": 1.2360336610711424,
+        "Importance": 0.025949462735755845,
+        "Azimuth": 58.663288530554944,
+        "Quality": 0,
+        "Affinity": 3,
+        "ID": "56712138",
+        "LocatedPhase": "Pn",
+        "Distance": 1.2407647045666306
+      },
+      {
+        "Site": {
+          "Station": "ODSA",
+          "Elevation": 0.943,
+          "Network": "TX",
+          "Channel": "HHZ",
+          "Latitude": 32.12009811401367,
+          "Longitude": -102.54910278320312,
+          "Location": "00"
+        },
+        "PickedPhase": "P",
+        "Use": true,
+        "AssociatedPhase": "Pg",
+        "Time": "2021-08-12T02:25:26.720Z",
+        "Residual": 0.7110152557037317,
+        "Source": {
+          "Type": "LocalAutomatic",
+          "AgencyID": "NEIC",
+          "Author": "Prod-Glass3-2"
+        },
+        "Weight": 1.2636746590892838,
+        "Importance": 0.017230951170752358,
+        "Azimuth": 31.09626280884983,
+        "Quality": 0,
+        "Affinity": 1,
+        "ID": "56712127",
+        "LocatedPhase": "Pg",
+        "Distance": 1.2760857361901996
+      },
+      {
+        "Site": {
+          "Station": "NMP45",
+          "Elevation": 1.1274000244140625,
+          "Network": "GM",
+          "Channel": "HHZ",
+          "Latitude": 32.33140182495117,
+          "Longitude": -103.58200073242188,
+          "Location": "01"
+        },
+        "PickedPhase": "P",
+        "Use": true,
+        "AssociatedPhase": "Pn",
+        "Time": "2021-08-12T02:25:28.730Z",
+        "Residual": 0.6490703289715967,
+        "Source": {
+          "Type": "LocalAutomatic",
+          "AgencyID": "NEIC",
+          "Author": "Prod-Glass3-2"
+        },
+        "Weight": 1.2244880902653583,
+        "Importance": 0.02137376140561333,
+        "Azimuth": 350.53570287718094,
+        "Quality": 0,
+        "Affinity": 1,
+        "ID": "56712134",
+        "LocatedPhase": "Pn",
+        "Distance": 1.3192962310995382
+      },
+      {
+        "Site": {
+          "Station": "CL2B",
+          "Elevation": 1.046,
+          "Network": "SC",
+          "Channel": "EHZ",
+          "Latitude": 32.26409912109375,
+          "Longitude": -103.87899780273438,
+          "Location": "00"
+        },
+        "PickedPhase": "P",
+        "Use": true,
+        "AssociatedPhase": "P",
+        "Time": "2021-08-12T02:25:27.930Z",
+        "Residual": -0.16565329614108038,
+        "Source": {
+          "Type": "LocalHuman",
+          "AgencyID": "NEIC",
+          "Author": "abreu"
+        },
+        "Weight": 1.2242251251530172,
+        "Importance": 0.021888526821414192,
+        "Azimuth": 339.21868716255136,
+        "Quality": 0,
+        "Affinity": 3,
+        "ID": "56712130",
+        "LocatedPhase": "Pn",
+        "Distance": 1.321102148487628
+      },
+      {
+        "Site": {
+          "Station": "SSS",
+          "Elevation": 1.072,
+          "Network": "SC",
+          "Channel": "EHZ",
+          "Latitude": 32.355098724365234,
+          "Longitude": -103.39859771728516,
+          "Location": "00"
+        },
+        "PickedPhase": "P",
+        "Use": true,
+        "AssociatedPhase": "Pg",
+        "Time": "2021-08-12T02:25:25.550Z",
+        "Residual": -1.3543375280860026,
+        "Source": {
+          "Type": "LocalAutomatic",
+          "AgencyID": "NEIC",
+          "Author": "Prod-Glass3-2"
+        },
+        "Weight": 1.2283797317846448,
+        "Importance": 0.017091952096201894,
+        "Azimuth": 357.3359266977751,
+        "Quality": 0,
+        "Affinity": 1,
+        "ID": "56712125",
+        "LocatedPhase": "Pg",
+        "Distance": 1.326168526874767
+      },
+      {
+        "Site": {
+          "Station": "NMP25",
+          "Elevation": 0.983,
+          "Network": "GM",
+          "Channel": "HHZ",
+          "Latitude": 32.33789825439453,
+          "Longitude": -103.86009979248047,
+          "Location": "01"
+        },
+        "PickedPhase": "P",
+        "Use": true,
+        "AssociatedPhase": "Pn",
+        "Time": "2021-08-12T02:25:30.020Z",
+        "Residual": 1.0432199552572747,
+        "Source": {
+          "Type": "LocalAutomatic",
+          "AgencyID": "NEIC",
+          "Author": "Prod-Glass3-2"
+        },
+        "Weight": 1.2150451218754537,
+        "Importance": 0.02147292832045481,
+        "Azimuth": 340.93153823223594,
+        "Quality": 0,
+        "Affinity": 1,
+        "ID": "56712137",
+        "LocatedPhase": "Pn",
+        "Distance": 1.3846361856469427
+      },
+      {
+        "Site": {
+          "Station": "VHRN",
+          "Elevation": 1.342,
+          "Network": "TX",
+          "Channel": "HHZ",
+          "Latitude": 30.78660011291504,
+          "Longitude": -104.98519897460938,
+          "Location": "00"
+        },
+        "PickedPhase": "P",
+        "Use": true,
+        "AssociatedPhase": "P",
+        "Time": "2021-08-12T02:25:27.060Z",
+        "Residual": -1.986080449365712,
+        "Source": {
+          "Type": "LocalHuman",
+          "AgencyID": "NEIC",
+          "Author": "abreu"
+        },
+        "Weight": 1.1147865487184767,
+        "Importance": 0.020457277912670928,
+        "Azimuth": 260.9121956823862,
+        "Quality": 0,
+        "Affinity": 3,
+        "ID": "56712129",
+        "LocatedPhase": "Pg",
+        "Distance": 1.446181241479075
+      },
+      {
+        "Site": {
+          "Station": "GDL2",
+          "Elevation": 1.211,
+          "Network": "SC",
+          "Channel": "EHZ",
+          "Latitude": 32.200801849365234,
+          "Longitude": -104.36370086669922,
+          "Location": "00"
+        },
+        "PickedPhase": "P",
+        "Use": false,
+        "AssociatedPhase": "Pg",
+        "Time": "2021-08-12T02:25:28.400Z",
+        "Residual": -1.024452118197697,
+        "Source": {
+          "Type": "LocalAutomatic",
+          "AgencyID": "NEIC",
+          "Author": "Prod-Glass3-1"
+        },
+        "Weight": 0,
+        "Importance": 0,
+        "Azimuth": 323.1692875276475,
+        "Quality": 0,
+        "Affinity": 1,
+        "ID": "56712143",
+        "LocatedPhase": "Pg",
+        "Distance": 1.4679976906431929
+      },
+      {
+        "Site": {
+          "Station": "SAND",
+          "Elevation": 0.6887999877929688,
+          "Network": "TX",
+          "Channel": "HHZ",
+          "Latitude": 29.954700469970703,
+          "Longitude": -102.12329864501953,
+          "Location": "00"
+        },
+        "PickedPhase": "Pg",
+        "Use": true,
+        "AssociatedPhase": "Pn",
+        "Time": "2021-08-12T02:25:31.930Z",
+        "Residual": 1.5364120614973338,
+        "Source": {
+          "Type": "ContributedHuman",
+          "AgencyID": "NEIC",
+          "Author": "Prod-Glass3-2"
+        },
+        "Weight": 1.2002061948503664,
+        "Importance": 0.024059190045339296,
+        "Azimuth": 135.51618442985426,
+        "Quality": 0,
+        "Affinity": 1.5,
+        "ID": "56712135",
+        "LocatedPhase": "Pn",
+        "Distance": 1.489391472126903
+      },
+      {
+        "Site": {
+          "Station": "MB06",
+          "Elevation": 0.801,
+          "Network": "TX",
+          "Channel": "HHZ",
+          "Latitude": 31.97800064086914,
+          "Longitude": -101.80000305175781,
+          "Location": "00"
+        },
+        "PickedPhase": "P",
+        "Use": false,
+        "AssociatedPhase": "Pn",
+        "Time": "2021-08-12T02:25:32.620Z",
+        "Residual": 0.4907004949675766,
+        "Source": {
+          "Type": "LocalAutomatic",
+          "AgencyID": "NEIC",
+          "Author": "Event_Pick_Assoc"
+        },
+        "Weight": 0,
+        "Importance": 0,
+        "Azimuth": 53.552557117784374,
+        "Quality": 0,
+        "Affinity": 1,
+        "ID": "56712160",
+        "LocatedPhase": "Pn",
+        "Distance": 1.6119855543931887
+      },
+      {
+        "Site": {
+          "Station": "TX31",
+          "Elevation": 0.9914000244140625,
+          "Network": "IM",
+          "Channel": "BHZ",
+          "Latitude": 29.334299087524414,
+          "Longitude": -103.6677017211914,
+          "Location": "--"
+        },
+        "PickedPhase": "Pg",
+        "Use": false,
+        "AssociatedPhase": "Pn",
+        "Time": "2021-08-12T02:25:35.560Z",
+        "Residual": 2.012462566041126,
+        "Source": {
+          "Type": "ContributedHuman",
+          "AgencyID": "NEIC",
+          "Author": "Event_Pick_Assoc"
+        },
+        "Weight": 0,
+        "Importance": 0,
+        "Azimuth": 190.04354166919418,
+        "Quality": 0,
+        "Affinity": 1.5,
+        "ID": "56712175",
+        "LocatedPhase": "Pn",
+        "Distance": 1.7122185862282187
+      },
+      {
+        "Site": {
+          "Station": "TXAR",
+          "Elevation": 1.013,
+          "Network": "IM",
+          "Channel": "SHZ",
+          "Latitude": 29.333799362182617,
+          "Longitude": -103.66699981689453,
+          "Location": "F0"
+        },
+        "PickedPhase": "P",
+        "Use": false,
+        "AssociatedPhase": "Pn",
+        "Time": "2021-08-12T02:25:30.580Z",
+        "Residual": -2.975481114858848,
+        "Source": {
+          "Type": "LocalAutomatic",
+          "AgencyID": "NEIC",
+          "Author": "Event_Pick_Assoc"
+        },
+        "Weight": 0,
+        "Importance": 0,
+        "Azimuth": 190.02048102896748,
+        "Quality": 0,
+        "Affinity": 1,
+        "ID": "56712195",
+        "LocatedPhase": "Pn",
+        "Distance": 1.7126042402133497
+      },
+      {
+        "Site": {
+          "Station": "MB04",
+          "Elevation": 0.956,
+          "Network": "TX",
+          "Channel": "HHZ",
+          "Latitude": 32.62540054321289,
+          "Longitude": -102.48799896240234,
+          "Location": "00"
+        },
+        "PickedPhase": "P",
+        "Use": false,
+        "AssociatedPhase": "Pn",
+        "Time": "2021-08-12T02:25:34.340Z",
+        "Residual": 0.30804603663597874,
+        "Source": {
+          "Type": "LocalAutomatic",
+          "AgencyID": "NEIC",
+          "Author": "Event_Pick_Assoc"
+        },
+        "Weight": 0,
+        "Importance": 0,
+        "Azimuth": 23.881328408752264,
+        "Quality": 0,
+        "Affinity": 1,
+        "ID": "56712168",
+        "LocatedPhase": "Pn",
+        "Distance": 1.7464588027129253
+      },
+      {
+        "Site": {
+          "Station": "MB04",
+          "Elevation": 0.956,
+          "Network": "TX",
+          "Channel": "HHZ",
+          "Latitude": 32.62540054321289,
+          "Longitude": -102.48799896240234,
+          "Location": "00"
+        },
+        "PickedPhase": "P",
+        "Use": false,
+        "AssociatedPhase": "Sg",
+        "Time": "2021-08-12T02:25:59.140Z",
+        "Residual": 2.988942059142559,
+        "Source": {
+          "Type": "LocalAutomatic",
+          "AgencyID": "NEIC",
+          "Author": "Event_Pick_Assoc"
+        },
+        "Weight": 0,
+        "Importance": 0,
+        "Azimuth": 23.881328408752264,
+        "Quality": 0,
+        "Affinity": 1,
+        "ID": "56712184",
+        "LocatedPhase": "Sn",
+        "Distance": 1.7464588027129253
+      },
+      {
+        "Site": {
+          "Station": "MNTX",
+          "Elevation": 0.4047999877929688,
+          "Network": "US",
+          "Channel": "BHZ",
+          "Latitude": 31.69849967956543,
+          "Longitude": -105.3821029663086,
+          "Location": "00"
+        },
+        "PickedPhase": "P",
+        "Use": false,
+        "AssociatedPhase": "Pn",
+        "Time": "2021-08-12T02:25:37.350Z",
+        "Residual": 1.489440388773545,
+        "Source": {
+          "Type": "LocalAutomatic",
+          "AgencyID": "NEIC",
+          "Author": "Event_Pick_Assoc"
+        },
+        "Weight": 0,
+        "Importance": 0,
+        "Azimuth": 291.3829877171408,
+        "Quality": 0,
+        "Affinity": 1,
+        "ID": "56712158",
+        "LocatedPhase": "Pn",
+        "Distance": 1.8823170901766848
+      },
+      {
+        "Site": {
+          "Station": "MNTX",
+          "Elevation": 0.4047999877929688,
+          "Network": "US",
+          "Channel": "BHZ",
+          "Latitude": 31.69849967956543,
+          "Longitude": -105.3821029663086,
+          "Location": "00"
+        },
+        "PickedPhase": "P",
+        "Use": false,
+        "AssociatedPhase": "Sg",
+        "Time": "2021-08-12T02:26:03.880Z",
+        "Residual": 4.594123070588374,
+        "Source": {
+          "Type": "LocalAutomatic",
+          "AgencyID": "NEIC",
+          "Author": "Event_Pick_Assoc"
+        },
+        "Weight": 0,
+        "Importance": 0,
+        "Azimuth": 291.3829877171408,
+        "Quality": 0,
+        "Affinity": 1,
+        "ID": "56712188",
+        "LocatedPhase": "Sn",
+        "Distance": 1.8823170901766848
+      },
+      {
+        "Site": {
+          "Station": "OZNA",
+          "Elevation": 0.7707999877929688,
+          "Network": "TX",
+          "Channel": "HHZ",
+          "Latitude": 30.921899795532227,
+          "Longitude": -101.1270980834961,
+          "Location": "00"
+        },
+        "PickedPhase": "P",
+        "Use": false,
+        "AssociatedPhase": "Pn",
+        "Time": "2021-08-12T02:25:36.310Z",
+        "Residual": 0.28277165517304326,
+        "Source": {
+          "Type": "LocalAutomatic",
+          "AgencyID": "NEIC",
+          "Author": "Prod-Glass3-2"
+        },
+        "Weight": 0,
+        "Importance": 0,
+        "Azimuth": 92.59283364829989,
+        "Quality": 0,
+        "Affinity": 1,
+        "ID": "56712142",
+        "LocatedPhase": "Pn",
+        "Distance": 1.8913231490121432
+      },
+      {
+        "Site": {
+          "Station": "OZNA",
+          "Elevation": 0.7707999877929688,
+          "Network": "TX",
+          "Channel": "HHZ",
+          "Latitude": 30.921899795532227,
+          "Longitude": -101.1270980834961,
+          "Location": "00"
+        },
+        "PickedPhase": "P",
+        "Use": false,
+        "AssociatedPhase": "Sg",
+        "Time": "2021-08-12T02:26:03.590Z",
+        "Residual": 4.022324611862601,
+        "Source": {
+          "Type": "LocalAutomatic",
+          "AgencyID": "NEIC",
+          "Author": "Event_Pick_Assoc"
+        },
+        "Weight": 0,
+        "Importance": 0,
+        "Azimuth": 92.59283364829989,
+        "Quality": 0,
+        "Affinity": 1,
+        "ID": "56712179",
+        "LocatedPhase": "Sn",
+        "Distance": 1.8913231490121432
+      },
+      {
+        "Site": {
+          "Station": "DAG",
+          "Elevation": 1.28,
+          "Network": "SC",
+          "Channel": "EHZ",
+          "Latitude": 32.590999603271484,
+          "Longitude": -104.69170379638672,
+          "Location": "00"
+        },
+        "PickedPhase": "P",
+        "Use": false,
+        "AssociatedPhase": "Pn",
+        "Time": "2021-08-12T02:25:35.170Z",
+        "Residual": -1.683851828442144,
+        "Source": {
+          "Type": "LocalAutomatic",
+          "AgencyID": "NEIC",
+          "Author": "Prod-Glass3-2"
+        },
+        "Weight": 0,
+        "Importance": 0,
+        "Azimuth": 323.65149418624935,
+        "Quality": 0,
+        "Affinity": 1,
+        "ID": "56712141",
+        "LocatedPhase": "Pn",
+        "Distance": 1.9456752799247303
+      },
+      {
+        "Site": {
+          "Station": "DAG",
+          "Elevation": 1.28,
+          "Network": "SC",
+          "Channel": "EHZ",
+          "Latitude": 32.590999603271484,
+          "Longitude": -104.69170379638672,
+          "Location": "00"
+        },
+        "PickedPhase": "P",
+        "Use": false,
+        "AssociatedPhase": "Sg",
+        "Time": "2021-08-12T02:26:06.110Z",
+        "Residual": 5.134215202609674,
+        "Source": {
+          "Type": "LocalAutomatic",
+          "AgencyID": "NEIC",
+          "Author": "Event_Pick_Assoc"
+        },
+        "Weight": 0,
+        "Importance": 0,
+        "Azimuth": 323.65149418624935,
+        "Quality": 0,
+        "Affinity": 1,
+        "ID": "56712187",
+        "LocatedPhase": "Sn",
+        "Distance": 1.9456752799247303
+      },
+      {
+        "Site": {
+          "Station": "MB05",
+          "Elevation": 0.882,
+          "Network": "TX",
+          "Channel": "HHZ",
+          "Latitude": 32.62649917602539,
+          "Longitude": -101.85970306396484,
+          "Location": "00"
+        },
+        "PickedPhase": "P",
+        "Use": false,
+        "AssociatedPhase": "Pn",
+        "Time": "2021-08-12T02:25:39.370Z",
+        "Residual": 1.4486238194479881,
+        "Source": {
+          "Type": "LocalAutomatic",
+          "AgencyID": "NEIC",
+          "Author": "Prod-Glass3-1"
+        },
+        "Weight": 0,
+        "Importance": 0,
+        "Azimuth": 37.65216096557832,
+        "Quality": 0,
+        "Affinity": 1,
+        "ID": "56712151",
+        "LocatedPhase": "Pn",
+        "Distance": 2.025410123423891
+      },
+      {
+        "Site": {
+          "Station": "CPRX",
+          "Elevation": 1.361,
+          "Network": "SC",
+          "Channel": "EHZ",
+          "Latitude": 33.030799865722656,
+          "Longitude": -103.86730194091797,
+          "Location": "00"
+        },
+        "PickedPhase": "P",
+        "Use": false,
+        "AssociatedPhase": "Pn",
+        "Time": "2021-08-12T02:25:40.040Z",
+        "Residual": 1.705852528224419,
+        "Source": {
+          "Type": "LocalAutomatic",
+          "AgencyID": "NEIC",
+          "Author": "Prod-Glass3-2"
+        },
+        "Weight": 0,
+        "Importance": 0,
+        "Azimuth": 347.1811915976469,
+        "Quality": 0,
+        "Affinity": 1,
+        "ID": "56712140",
+        "LocatedPhase": "Pn",
+        "Distance": 2.050751830258901
+      },
+      {
+        "Site": {
+          "Station": "CPRX",
+          "Elevation": 1.361,
+          "Network": "SC",
+          "Channel": "EHZ",
+          "Latitude": 33.030799865722656,
+          "Longitude": -103.86730194091797,
+          "Location": "00"
+        },
+        "PickedPhase": "P",
+        "Use": false,
+        "AssociatedPhase": "Sg",
+        "Time": "2021-08-12T02:26:08.520Z",
+        "Residual": 5.013648036449226,
+        "Source": {
+          "Type": "LocalAutomatic",
+          "AgencyID": "NEIC",
+          "Author": "Event_Pick_Assoc"
+        },
+        "Weight": 0,
+        "Importance": 0,
+        "Azimuth": 347.1811915976469,
+        "Quality": 0,
+        "Affinity": 1,
+        "ID": "56712190",
+        "LocatedPhase": "Sn",
+        "Distance": 2.050751830258901
+      },
+      {
+        "Site": {
+          "Station": "SGCY",
+          "Elevation": 0.776,
+          "Network": "TX",
+          "Channel": "HHZ",
+          "Latitude": 31.914400100708008,
+          "Longitude": -101.12640380859375,
+          "Location": "00"
+        },
+        "PickedPhase": "P",
+        "Use": false,
+        "AssociatedPhase": "Pn",
+        "Time": "2021-08-12T02:25:40.130Z",
+        "Residual": 1.498688766608609,
+        "Source": {
+          "Type": "LocalAutomatic",
+          "AgencyID": "NEIC",
+          "Author": "Event_Pick_Assoc"
+        },
+        "Weight": 0,
+        "Importance": 0,
+        "Azimuth": 64.20704219652595,
+        "Quality": 0,
+        "Affinity": 1,
+        "ID": "56712144",
+        "LocatedPhase": "Pn",
+        "Distance": 2.077310567321779
+      },
+      {
+        "Site": {
+          "Station": "SGCY",
+          "Elevation": 0.776,
+          "Network": "TX",
+          "Channel": "HHZ",
+          "Latitude": 31.914400100708008,
+          "Longitude": -101.12640380859375,
+          "Location": "00"
+        },
+        "PickedPhase": "P",
+        "Use": false,
+        "AssociatedPhase": "Sg",
+        "Time": "2021-08-12T02:26:08.120Z",
+        "Residual": 4.097644346674642,
+        "Source": {
+          "Type": "LocalAutomatic",
+          "AgencyID": "NEIC",
+          "Author": "Event_Pick_Assoc"
+        },
+        "Weight": 0,
+        "Importance": 0,
+        "Azimuth": 64.20704219652595,
+        "Quality": 0,
+        "Affinity": 1,
+        "ID": "56712192",
+        "LocatedPhase": "Sn",
+        "Distance": 2.077310567321779
+      },
+      {
+        "Site": {
+          "Station": "POST",
+          "Elevation": 0.795,
+          "Network": "TX",
+          "Channel": "HHZ",
+          "Latitude": 33.066200256347656,
+          "Longitude": -101.5010986328125,
+          "Location": "00"
+        },
+        "PickedPhase": "P",
+        "Use": false,
+        "AssociatedPhase": "Pn",
+        "Time": "2021-08-12T02:25:46.410Z",
+        "Residual": 1.0732683960648899,
+        "Source": {
+          "Type": "LocalAutomatic",
+          "AgencyID": "NEIC",
+          "Author": "Event_Pick_Assoc"
+        },
+        "Weight": 0,
+        "Importance": 0,
+        "Azimuth": 36.82527419154462,
+        "Quality": 0,
+        "Affinity": 1,
+        "ID": "56712150",
+        "LocatedPhase": "Pn",
+        "Distance": 2.5567369137126432
+      },
+      {
+        "Site": {
+          "Station": "DRIO",
+          "Elevation": 0.354,
+          "Network": "TX",
+          "Channel": "HHZ",
+          "Latitude": 29.423099517822266,
+          "Longitude": -100.618896484375,
+          "Location": "00"
+        },
+        "PickedPhase": "P",
+        "Use": false,
+        "AssociatedPhase": "Pn",
+        "Time": "2021-08-12T02:25:51.530Z",
+        "Residual": 2.3477455689647186,
+        "Source": {
+          "Type": "LocalAutomatic",
+          "AgencyID": "NEIC",
+          "Author": "Event_Pick_Assoc"
+        },
+        "Weight": 0,
+        "Importance": 0,
+        "Azimuth": 123.61189573312366,
+        "Quality": 0,
+        "Affinity": 1,
+        "ID": "56712153",
+        "LocatedPhase": "Pn",
+        "Distance": 2.8357433279475734
+      },
+      {
+        "Site": {
+          "Station": "DRIO",
+          "Elevation": 0.354,
+          "Network": "TX",
+          "Channel": "HHZ",
+          "Latitude": 29.423099517822266,
+          "Longitude": -100.618896484375,
+          "Location": "00"
+        },
+        "PickedPhase": "P",
+        "Use": false,
+        "AssociatedPhase": "Sg",
+        "Time": "2021-08-12T02:26:30.760Z",
+        "Residual": 2.467678661742241,
+        "Source": {
+          "Type": "LocalAutomatic",
+          "AgencyID": "NEIC",
+          "Author": "Event_Pick_Assoc"
+        },
+        "Weight": 0,
+        "Importance": 0,
+        "Azimuth": 123.61189573312366,
+        "Quality": 0,
+        "Affinity": 1,
+        "ID": "56712213",
+        "LocatedPhase": "Sg",
+        "Distance": 2.8357433279475734
+      },
+      {
+        "Site": {
+          "Station": "SN07",
+          "Elevation": 0.62,
+          "Network": "TX",
+          "Channel": "HHZ",
+          "Latitude": 33.09090042114258,
+          "Longitude": -100.8917007446289,
+          "Location": "00"
+        },
+        "PickedPhase": "P",
+        "Use": false,
+        "AssociatedPhase": "Pn",
+        "Time": "2021-08-12T02:25:51.960Z",
+        "Residual": 1.6147863377296972,
+        "Source": {
+          "Type": "LocalAutomatic",
+          "AgencyID": "NEIC",
+          "Author": "Event_Pick_Assoc"
+        },
+        "Weight": 0,
+        "Importance": 0,
+        "Azimuth": 44.47842710703566,
+        "Quality": 0,
+        "Affinity": 1,
+        "ID": "56712154",
+        "LocatedPhase": "Pn",
+        "Distance": 2.916782339576976
+      },
+      {
+        "Site": {
+          "Station": "MSTX",
+          "Elevation": 1.167,
+          "Network": "N4",
+          "Channel": "HHZ",
+          "Latitude": 33.969600677490234,
+          "Longitude": -102.77239990234375,
+          "Location": "00"
+        },
+        "PickedPhase": "P",
+        "Use": false,
+        "AssociatedPhase": "Pn",
+        "Time": "2021-08-12T02:25:54.580Z",
+        "Residual": -1.115488959028859,
+        "Source": {
+          "Type": "LocalAutomatic",
+          "AgencyID": "NEIC",
+          "Author": "Event_Pick_Assoc"
+        },
+        "Weight": 0,
+        "Importance": 0,
+        "Azimuth": 8.906166953524316,
+        "Quality": 0,
+        "Affinity": 1,
+        "ID": "56712170",
+        "LocatedPhase": "Pg",
+        "Distance": 2.9718412052657874
+      },
+      {
+        "Site": {
+          "Station": "JCT",
+          "Elevation": 0.591,
+          "Network": "US",
+          "Channel": "BHZ",
+          "Latitude": 30.479400634765625,
+          "Longitude": -99.80220031738281,
+          "Location": "00"
+        },
+        "PickedPhase": "P",
+        "Use": false,
+        "AssociatedPhase": "Pn",
+        "Time": "2021-08-12T02:25:55.400Z",
+        "Residual": 2.752431474138163,
+        "Source": {
+          "Type": "LocalAutomatic",
+          "AgencyID": "NEIC",
+          "Author": "Event_Pick_Assoc"
+        },
+        "Weight": 0,
+        "Importance": 0,
+        "Azimuth": 99.28949230434603,
+        "Quality": 0,
+        "Affinity": 1,
+        "ID": "56712185",
+        "LocatedPhase": "Pn",
+        "Distance": 3.0818501273470567
+      },
+      {
+        "Site": {
+          "Station": "DKNS",
+          "Elevation": 0.843,
+          "Network": "TX",
+          "Channel": "HHZ",
+          "Latitude": 33.666500091552734,
+          "Longitude": -100.92359924316406,
+          "Location": "00"
+        },
+        "PickedPhase": "P",
+        "Use": false,
+        "AssociatedPhase": "Pn",
+        "Time": "2021-08-12T02:25:56.760Z",
+        "Residual": 0.6739027667745958,
+        "Source": {
+          "Type": "LocalAutomatic",
+          "AgencyID": "NEIC",
+          "Author": "Event_Pick_Assoc"
+        },
+        "Weight": 0,
+        "Importance": 0,
+        "Azimuth": 37.04857381514191,
+        "Quality": 0,
+        "Affinity": 1,
+        "ID": "56712166",
+        "LocatedPhase": "Pn",
+        "Distance": 3.3260684006224546
+      },
+      {
+        "Site": {
+          "Station": "ABTX",
+          "Elevation": 0.502,
+          "Network": "N4",
+          "Channel": "HHZ",
+          "Latitude": 32.62379837036133,
+          "Longitude": -99.64309692382812,
+          "Location": "00"
+        },
+        "PickedPhase": "P",
+        "Use": false,
+        "AssociatedPhase": "Pn",
+        "Time": "2021-08-12T02:25:59.550Z",
+        "Residual": 0.854364229970443,
+        "Source": {
+          "Type": "LocalAutomatic",
+          "AgencyID": "NEIC",
+          "Author": "Event_Pick_Assoc"
+        },
+        "Weight": 0,
+        "Importance": 0,
+        "Azimuth": 62.10944069708841,
+        "Quality": 0,
+        "Affinity": 1,
+        "ID": "56712167",
+        "LocatedPhase": "Pn",
+        "Distance": 3.515896230452357
+      },
+      {
+        "Site": {
+          "Station": "APMT",
+          "Elevation": 0.501,
+          "Network": "TX",
+          "Channel": "HHZ",
+          "Latitude": 33.32509994506836,
+          "Longitude": -100.12149810791016,
+          "Location": "00"
+        },
+        "PickedPhase": "P",
+        "Use": false,
+        "AssociatedPhase": "Pn",
+        "Time": "2021-08-12T02:25:59.820Z",
+        "Residual": 0.5864487058181567,
+        "Source": {
+          "Type": "LocalAutomatic",
+          "AgencyID": "NEIC",
+          "Author": "Event_Pick_Assoc"
+        },
+        "Weight": 0,
+        "Importance": 0,
+        "Azimuth": 49.01253109132138,
+        "Quality": 0,
+        "Affinity": 1,
+        "ID": "56712169",
+        "LocatedPhase": "Pn",
+        "Distance": 3.554490039878697
+      },
+      {
+        "Site": {
+          "Station": "INDO",
+          "Elevation": 0.721,
+          "Network": "TX",
+          "Channel": "HHZ",
+          "Latitude": 28.467199325561523,
+          "Longitude": -100.29830169677734,
+          "Location": "00"
+        },
+        "PickedPhase": "P",
+        "Use": false,
+        "AssociatedPhase": "Pn",
+        "Time": "2021-08-12T02:26:10.780Z",
+        "Residual": 9.968187450629713,
+        "Source": {
+          "Type": "LocalAutomatic",
+          "AgencyID": "NEIC",
+          "Author": "Event_Pick_Assoc"
+        },
+        "Weight": 0,
+        "Importance": 0,
+        "Azimuth": 133.3321776077246,
+        "Quality": 0,
+        "Affinity": 1,
+        "ID": "56712198",
+        "LocatedPhase": "Pn",
+        "Distance": 3.665230911433779
+      },
+      {
+        "Site": {
+          "Station": "INDO",
+          "Elevation": 0.721,
+          "Network": "TX",
+          "Channel": "HHZ",
+          "Latitude": 28.467199325561523,
+          "Longitude": -100.29830169677734,
+          "Location": "00"
+        },
+        "PickedPhase": "P",
+        "Use": false,
+        "AssociatedPhase": "Pg",
+        "Time": "2021-08-12T02:26:16.570Z",
+        "Residual": 8.910760060347144,
+        "Source": {
+          "Type": "LocalAutomatic",
+          "AgencyID": "NEIC",
+          "Author": "Event_Pick_Assoc"
+        },
+        "Weight": 0,
+        "Importance": 0,
+        "Azimuth": 133.3321776077246,
+        "Quality": 0,
+        "Affinity": 1,
+        "ID": "56712199",
+        "LocatedPhase": "Pg",
+        "Distance": 3.665230911433779
+      },
+      {
+        "Site": {
+          "Station": "BRDY",
+          "Elevation": 0.46,
+          "Network": "TX",
+          "Channel": "HHZ",
+          "Latitude": 31.285900115966797,
+          "Longitude": -98.99939727783203,
+          "Location": "00"
+        },
+        "PickedPhase": "P",
+        "Use": false,
+        "AssociatedPhase": "Pn",
+        "Time": "2021-08-12T02:26:03.020Z",
+        "Residual": 1.5110891423395643,
+        "Source": {
+          "Type": "LocalAutomatic",
+          "AgencyID": "NEIC",
+          "Author": "Event_Pick_Assoc"
+        },
+        "Weight": 0,
+        "Importance": 0,
+        "Azimuth": 84.89762849316881,
+        "Quality": 0,
+        "Affinity": 1,
+        "ID": "56712180",
+        "LocatedPhase": "Pn",
+        "Distance": 3.7177461721071214
+      },
+      {
+        "Site": {
+          "Station": "BRDY",
+          "Elevation": 0.46,
+          "Network": "TX",
+          "Channel": "HHZ",
+          "Latitude": 31.285900115966797,
+          "Longitude": -98.99939727783203,
+          "Location": "00"
+        },
+        "PickedPhase": "P",
+        "Use": false,
+        "AssociatedPhase": "Pg",
+        "Time": "2021-08-12T02:26:11.580Z",
+        "Residual": 3.036720699731802,
+        "Source": {
+          "Type": "LocalAutomatic",
+          "AgencyID": "NEIC",
+          "Author": "Event_Pick_Assoc"
+        },
+        "Weight": 0,
+        "Importance": 0,
+        "Azimuth": 84.89762849316881,
+        "Quality": 0,
+        "Affinity": 1,
+        "ID": "56712208",
+        "LocatedPhase": "Pg",
+        "Distance": 3.7177461721071214
+      },
+      {
+        "Site": {
+          "Station": "HNDO",
+          "Elevation": 0.381,
+          "Network": "TX",
+          "Channel": "HHZ",
+          "Latitude": 29.528799057006836,
+          "Longitude": -99.28079986572266,
+          "Location": "00"
+        },
+        "PickedPhase": "P",
+        "Use": false,
+        "AssociatedPhase": "Pg",
+        "Time": "2021-08-12T02:26:15.490Z",
+        "Residual": 12.786181255825504,
+        "Source": {
+          "Type": "LocalAutomatic",
+          "AgencyID": "NEIC",
+          "Author": "Event_Pick_Assoc"
+        },
+        "Weight": 0,
+        "Importance": 0,
+        "Azimuth": 112.07709901266666,
+        "Quality": 0,
+        "Affinity": 1,
+        "ID": "56712194",
+        "LocatedPhase": "Pn",
+        "Distance": 3.803846706266068
+      },
+      {
+        "Site": {
+          "Station": "121A",
+          "Elevation": 1.652,
+          "Network": "SC",
+          "Channel": "BHZ",
+          "Latitude": 32.53239822387695,
+          "Longitude": -107.78510284423828,
+          "Location": "--"
+        },
+        "PickedPhase": "P",
+        "Use": false,
+        "AssociatedPhase": "Pg",
+        "Time": "2021-08-12T02:26:22.560Z",
+        "Residual": 15.81187407199674,
+        "Source": {
+          "Type": "LocalAutomatic",
+          "AgencyID": "NEIC",
+          "Author": "Event_Pick_Assoc"
+        },
+        "Weight": 0,
+        "Importance": 0,
+        "Azimuth": 292.73045822074045,
+        "Quality": 0,
+        "Affinity": 1,
+        "ID": "56712214",
+        "LocatedPhase": "Pn",
+        "Distance": 4.083412131084138
+      },
+      {
+        "Site": {
+          "Station": "AMTX",
+          "Elevation": 1.01,
+          "Network": "US",
+          "Channel": "BHZ",
+          "Latitude": 34.88370132446289,
+          "Longitude": -101.68080139160156,
+          "Location": "00"
+        },
+        "PickedPhase": "P",
+        "Use": false,
+        "AssociatedPhase": "Pg",
+        "Time": "2021-08-12T02:26:20.410Z",
+        "Residual": 13.683571674187718,
+        "Source": {
+          "Type": "LocalAutomatic",
+          "AgencyID": "NEIC",
+          "Author": "Event_Pick_Assoc"
+        },
+        "Weight": 0,
+        "Importance": 0,
+        "Azimuth": 19.3343101041223,
+        "Quality": 0,
+        "Affinity": 1,
+        "ID": "56712205",
+        "LocatedPhase": "Pn",
+        "Distance": 4.087574154344686
+      },
+      {
+        "Site": {
+          "Station": "CAR",
+          "Elevation": 1.658,
+          "Network": "SC",
+          "Channel": "EHZ",
+          "Latitude": 33.95249938964844,
+          "Longitude": -106.7344970703125,
+          "Location": "--"
+        },
+        "PickedPhase": "P",
+        "Use": false,
+        "AssociatedPhase": "Pg",
+        "Time": "2021-08-12T02:26:18.870Z",
+        "Residual": 3.6360749336179055,
+        "Source": {
+          "Type": "LocalAutomatic",
+          "AgencyID": "NEIC",
+          "Author": "Event_Pick_Assoc"
+        },
+        "Weight": 0,
+        "Importance": 0,
+        "Azimuth": 316.26576939655104,
+        "Quality": 0,
+        "Affinity": 1,
+        "ID": "56712196",
+        "LocatedPhase": "Pg",
+        "Distance": 4.099710282859712
+      },
+      {
+        "Site": {
+          "Station": "PH02",
+          "Elevation": 1.094,
+          "Network": "TX",
+          "Channel": "HHZ",
+          "Latitude": 35.390899658203125,
+          "Longitude": -101.94740295410156,
+          "Location": "00"
+        },
+        "PickedPhase": "P",
+        "Use": false,
+        "AssociatedPhase": "Pn",
+        "Time": "2021-08-12T02:26:23.330Z",
+        "Residual": 1.1618309338617365,
+        "Source": {
+          "Type": "LocalAutomatic",
+          "AgencyID": "NEIC",
+          "Author": "Event_Pick_Assoc"
+        },
+        "Weight": 0,
+        "Importance": 0,
+        "Azimuth": 14.4960411102379,
+        "Quality": 0,
+        "Affinity": 1,
+        "ID": "56712211",
+        "LocatedPhase": "Pg",
+        "Distance": 4.503362876045
+      },
+      {
+        "Site": {
+          "Station": "PH02",
+          "Elevation": 1.094,
+          "Network": "TX",
+          "Channel": "HHZ",
+          "Latitude": 35.390899658203125,
+          "Longitude": -101.94740295410156,
+          "Location": "00"
+        },
+        "PickedPhase": "P",
+        "Use": false,
+        "AssociatedPhase": "Pg",
+        "Time": "2021-08-12T02:26:37.530Z",
+        "Residual": 0,
+        "Source": {
+          "Type": "LocalAutomatic",
+          "AgencyID": "NEIC",
+          "Author": "Event_Pick_Assoc"
+        },
+        "Weight": 0,
+        "Importance": 0,
+        "Azimuth": 14.4960411102379,
+        "Quality": 0,
+        "Affinity": 1,
+        "ID": "56712233",
+        "Distance": 4.503362876045
+      },
+      {
+        "Site": {
+          "Station": "PLPT",
+          "Elevation": 0.336,
+          "Network": "TX",
+          "Channel": "HHZ",
+          "Latitude": 32.812801361083984,
+          "Longitude": -98.31580352783203,
+          "Location": "00"
+        },
+        "PickedPhase": "P",
+        "Use": false,
+        "AssociatedPhase": "Pn",
+        "Time": "2021-08-12T02:26:12.480Z",
+        "Residual": -1.5466490606913226,
+        "Source": {
+          "Type": "LocalAutomatic",
+          "AgencyID": "NEIC",
+          "Author": "Event_Pick_Assoc"
+        },
+        "Weight": 0,
+        "Importance": 0,
+        "Azimuth": 66.00679519615667,
+        "Quality": 0,
+        "Affinity": 1,
+        "ID": "56712186",
+        "LocatedPhase": "Pn",
+        "Distance": 4.617010216227623
+      },
+      {
+        "Site": {
+          "Station": "PLPT",
+          "Elevation": 0.336,
+          "Network": "TX",
+          "Channel": "HHZ",
+          "Latitude": 32.812801361083984,
+          "Longitude": -98.31580352783203,
+          "Location": "00"
+        },
+        "PickedPhase": "P",
+        "Use": false,
+        "AssociatedPhase": "Pg",
+        "Time": "2021-08-12T02:26:29.860Z",
+        "Residual": 5.777769866073285,
+        "Source": {
+          "Type": "LocalAutomatic",
+          "AgencyID": "NEIC",
+          "Author": "Event_Pick_Assoc"
+        },
+        "Weight": 0,
+        "Importance": 0,
+        "Azimuth": 66.00679519615667,
+        "Quality": 0,
+        "Affinity": 1,
+        "ID": "56712216",
+        "LocatedPhase": "Pg",
+        "Distance": 4.617010216227623
+      },
+      {
+        "Site": {
+          "Station": "ASL8",
+          "Elevation": 1.82,
+          "Network": "GS",
+          "Channel": "BHZ",
+          "Latitude": 34.9453010559082,
+          "Longitude": -106.45659637451172,
+          "Location": "00"
+        },
+        "PickedPhase": "P",
+        "Use": false,
+        "AssociatedPhase": "Pg",
+        "Time": "2021-08-12T02:26:29.150Z",
+        "Residual": 3.341370396238034,
+        "Source": {
+          "Type": "LocalAutomatic",
+          "AgencyID": "NEIC",
+          "Author": "Event_Pick_Assoc"
+        },
+        "Weight": 0,
+        "Importance": 0,
+        "Azimuth": 326.88496022969105,
+        "Quality": 0,
+        "Affinity": 1,
+        "ID": "56712221",
+        "LocatedPhase": "Pg",
+        "Distance": 4.7107531767543405
+      },
+      {
+        "Site": {
+          "Station": "ASL9",
+          "Elevation": 1.82,
+          "Network": "GS",
+          "Channel": "BHZ",
+          "Latitude": 34.94540023803711,
+          "Longitude": -106.45649719238281,
+          "Location": "10"
+        },
+        "PickedPhase": "P",
+        "Use": false,
+        "AssociatedPhase": "Pg",
+        "Time": "2021-08-12T02:26:29.680Z",
+        "Residual": 3.8707702334862546,
+        "Source": {
+          "Type": "LocalAutomatic",
+          "AgencyID": "NEIC",
+          "Author": "Event_Pick_Assoc"
+        },
+        "Weight": 0,
+        "Importance": 0,
+        "Azimuth": 326.8864626286975,
+        "Quality": 0,
+        "Affinity": 1,
+        "ID": "56712228",
+        "LocatedPhase": "Pg",
+        "Distance": 4.7107879040747545
+      },
+      {
+        "Site": {
+          "Station": "ANMO",
+          "Elevation": 1.730699951171875,
+          "Network": "IU",
+          "Channel": "BHZ",
+          "Latitude": 34.945899963378906,
+          "Longitude": -106.45719909667969,
+          "Location": "10"
+        },
+        "PickedPhase": "P",
+        "Use": false,
+        "AssociatedPhase": "Pg",
+        "Time": "2021-08-12T02:26:29.620Z",
+        "Residual": 3.804658985046416,
+        "Source": {
+          "Type": "LocalAutomatic",
+          "AgencyID": "NEIC",
+          "Author": "Event_Pick_Assoc"
+        },
+        "Weight": 0,
+        "Importance": 0,
+        "Azimuth": 326.8841640861842,
+        "Quality": 0,
+        "Affinity": 1,
+        "ID": "56712220",
+        "LocatedPhase": "Pg",
+        "Distance": 4.711526420095029
+      },
+      {
+        "Site": {
+          "Station": "SMWD",
+          "Elevation": 0.704,
+          "Network": "TX",
+          "Channel": "HHZ",
+          "Latitude": 35.10459899902344,
+          "Longitude": -100.24250030517578,
+          "Location": "00"
+        },
+        "PickedPhase": "P",
+        "Use": false,
+        "AssociatedPhase": "Pg",
+        "Time": "2021-08-12T02:26:28.810Z",
+        "Residual": 1.1868064294657614,
+        "Source": {
+          "Type": "LocalAutomatic",
+          "AgencyID": "NEIC",
+          "Author": "Event_Pick_Assoc"
+        },
+        "Weight": 0,
+        "Importance": 0,
+        "Azimuth": 31.654241910878582,
+        "Quality": 0,
+        "Affinity": 1,
+        "ID": "56712212",
+        "LocatedPhase": "Pg",
+        "Distance": 4.820548983678593
+      },
+      {
+        "Site": {
+          "Station": "WTFS",
+          "Elevation": 0.277,
+          "Network": "TX",
+          "Channel": "HHZ",
+          "Latitude": 33.76620101928711,
+          "Longitude": -98.464599609375,
+          "Location": "00"
+        },
+        "PickedPhase": "P",
+        "Use": false,
+        "AssociatedPhase": "Pn",
+        "Time": "2021-08-12T02:26:18.830Z",
+        "Residual": 0.3697973212586305,
+        "Source": {
+          "Type": "LocalAutomatic",
+          "AgencyID": "NEIC",
+          "Author": "Event_Pick_Assoc"
+        },
+        "Weight": 0,
+        "Importance": 0,
+        "Azimuth": 55.12487700323049,
+        "Quality": 0,
+        "Affinity": 1,
+        "ID": "56712201",
+        "LocatedPhase": "Pn",
+        "Distance": 4.936202930497169
+      },
+      {
+        "Site": {
+          "Station": "WHTX",
+          "Elevation": 0.19,
+          "Network": "N4",
+          "Channel": "HHZ",
+          "Latitude": 31.991300582885742,
+          "Longitude": -97.45610046386719,
+          "Location": "00"
+        },
+        "PickedPhase": "P",
+        "Use": false,
+        "AssociatedPhase": "Pg",
+        "Time": "2021-08-12T02:26:37.020Z",
+        "Residual": 4.524126188563756,
+        "Source": {
+          "Type": "LocalAutomatic",
+          "AgencyID": "NEIC",
+          "Author": "Event_Pick_Assoc"
+        },
+        "Weight": 0,
+        "Importance": 0,
+        "Azimuth": 77.6200126791899,
+        "Quality": 0,
+        "Affinity": 1,
+        "ID": "56712223",
+        "LocatedPhase": "Pg",
+        "Distance": 5.104144769328837
+      },
+      {
+        "Site": {
+          "Station": "RTBA",
+          "Elevation": 1.284,
+          "Network": "TX",
+          "Channel": "HHZ",
+          "Latitude": 36.4379997253418,
+          "Longitude": -102.73739624023438,
+          "Location": "00"
+        },
+        "PickedPhase": "P",
+        "Use": false,
+        "AssociatedPhase": "Pg",
+        "Time": "2021-08-12T02:26:38.540Z",
+        "Residual": 0.5183720301344295,
+        "Source": {
+          "Type": "LocalAutomatic",
+          "AgencyID": "NEIC",
+          "Author": "Event_Pick_Assoc"
+        },
+        "Weight": 0,
+        "Importance": 0,
+        "Azimuth": 5.0297126704914765,
+        "Quality": 0,
+        "Affinity": 1,
+        "ID": "56712226",
+        "LocatedPhase": "Pg",
+        "Distance": 5.419823171770849
+      },
+      {
+        "Site": {
+          "Station": "HANNA",
+          "Elevation": 2.796,
+          "Network": "AE",
+          "Channel": "HHZ",
+          "Latitude": 33.63639831542969,
+          "Longitude": -109.32029724121094,
+          "Location": "--"
+        },
+        "PickedPhase": "P",
+        "Use": false,
+        "AssociatedPhase": "Pg",
+        "Time": "2021-08-12T02:26:53.540Z",
+        "Residual": 24.138577086100753,
+        "Source": {
+          "Type": "LocalAutomatic",
+          "AgencyID": "NEIC",
+          "Author": "Event_Pick_Assoc"
+        },
+        "Weight": 0,
+        "Importance": 0,
+        "Azimuth": 298.72318156400604,
+        "Quality": 0,
+        "Affinity": 1,
+        "ID": "56712297",
+        "LocatedPhase": "Pn",
+        "Distance": 5.701836397919095
+      },
+      {
+        "Site": {
+          "Station": "LOOK",
+          "Elevation": 0.286,
+          "Network": "OK",
+          "Channel": "HHZ",
+          "Latitude": 33.992401123046875,
+          "Longitude": -97.18000030517578,
+          "Location": "--"
+        },
+        "PickedPhase": "P",
+        "Use": false,
+        "AssociatedPhase": "Pn",
+        "Time": "2021-08-12T02:26:32.680Z",
+        "Residual": -0.20184637523081506,
+        "Source": {
+          "Type": "LocalAutomatic",
+          "AgencyID": "NEIC",
+          "Author": "Event_Pick_Assoc"
+        },
+        "Weight": 0,
+        "Importance": 0,
+        "Azimuth": 58.717021751569675,
+        "Quality": 0,
+        "Affinity": 1,
+        "ID": "56712225",
+        "LocatedPhase": "Pn",
+        "Distance": 5.974228840571012
+      }
+    ],
+    "NumberOfUsedStations": 27,
+    "LocatorExitCode": "Success",
+    "BayesianRange": 3,
+    "ErrorEllipse": {
+      "MaximumVerticalProjection": 2.7650900627928867,
+      "EquivalentHorizontalRadius": 0.7822210844674808,
+      "MaximumHorizontalProjection": 2.184344784256875,
+      "E0": {
+        "Azimuth": 196.78735995593897,
+        "Error": 2.782622976482991,
+        "Dip": 83.56474450929177
+      },
+      "E1": {
+        "Azimuth": 52.424690439193014,
+        "Error": 2.1935030772337947,
+        "Dip": 5.2375356676818585
+      },
+      "E2": {
+        "Azimuth": 322.08240831517026,
+        "Error": 0.6183442081533491,
+        "Dip": 3.7286492741018713
+      }
+    },
+    "Hypocenter": {
+      "LatitudeError": 0.953428816690617,
+      "DepthError": 1.8240190910751766,
+      "TimeError": 1.033901565949068,
+      "Latitude": 31.02636752545245,
+      "Time": "2021-08-12T02:25:02.363Z",
+      "Longitude": -103.32577470183911,
+      "Depth": 10,
+      "LongitudeError": 1.1674098848974965
+    },
+    "DepthImportance": 0.6113207885426758,
+    "Quality": "G G",
+    "Gap": 55.620515046859424,
+    "BayesianDepth": 10,
+    "SecondaryGap": 78.71517645597197,
+    "RMS": 0.5096836874743405,
+    "NumberOfAssociatedStations": 73,
+    "NumberOfAssociatedPhases": 96,
+    "NumberOfUsedPhases": 35
+  }

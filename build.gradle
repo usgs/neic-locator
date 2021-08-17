@@ -27,7 +27,7 @@ plugins {
 
 sourceCompatibility = "1.8"
 targetCompatibility = "1.8"
-version = "0.2.0"
+version = "0.3.0"
 
 repositories {
     mavenCentral()
@@ -150,8 +150,6 @@ task cloneExternalProjects {
 
   doFirst {
     // neic-traveltime
-    // addExternalProject("$projectDir/lib/neic-traveltime",
-    //  "https://github.com/usgs/neic-traveltime.git", "master", "src/main/java/gov/usgs/traveltime")
     // grab src/main/java/gov/usgs/traveltime subdir of src to avoid compiling tests and the webservice code
     addExternalProject("$projectDir/lib/neic-traveltime",
       "https://github.com/usgs/neic-traveltime.git", "master", "src/main/java/gov/usgs/traveltime")
@@ -168,6 +166,15 @@ task cloneExternalProjects {
   }
 }
 
+// unzip large model files
+task unzipModelFiles(type: Copy) {
+    def zipFile = file('models/slabmaster.zip')
+    def outputDir = file('models')
+ 
+    from zipTree(zipFile)
+    into outputDir
+}
+
 // copy required model files
 task copyModelFiles(type: Copy) {
   description "Copies required model files to build directory."
@@ -179,9 +186,10 @@ task copyModelFiles(type: Copy) {
 
 // make sure we always update the external projects and copy models prior to
 // complile
-defaultTasks "cloneExternalProjects", "copyModelFiles"
-copyModelFiles.dependsOn "cloneExternalProjects"
-compileJava.dependsOn "cloneExternalProjects", "copyModelFiles"
+defaultTasks "cloneExternalProjects", "unzipModelFiles", "copyModelFiles"
+unzipModelFiles.dependsOn "cloneExternalProjects"
+copyModelFiles.dependsOn "unzipModelFiles"
+compileJava.dependsOn "cloneExternalProjects", "copyModelFiles", "unzipModelFiles"
 
 // show compile warnings
 tasks.withType(JavaCompile) {

@@ -6,6 +6,8 @@ import gov.usgs.locaux.Slabs;
 import gov.usgs.traveltime.BadDepthException;
 import gov.usgs.traveltime.TTSessionLocal;
 import gov.usgs.traveltime.tables.TauIntegralException;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.logging.Logger;
 
@@ -76,14 +78,14 @@ public class Locate {
    */
   public LocStatus doLocation() {
     LOGGER.info("Starting Location");
-/*  LocUtil.record(
-        String.format(
-            "\t%s:      %5d %8.4f %8.4f %6.2f",
-            "Init",
-            event.getNumPhasesUsed(),
-            hypo.getLatitude(),
-            hypo.getLongitude(),
-            hypo.getDepth())); */
+    /*  LocUtil.record(
+    String.format(
+        "\t%s:      %5d %8.4f %8.4f %6.2f",
+        "Init",
+        event.getNumPhasesUsed(),
+        hypo.getLatitude(),
+        hypo.getLongitude(),
+        hypo.getDepth())); */
 
     // Save the essentials of this event for comparison.
     event.addAudit(0, 0, LocStatus.INITIAL_HYPOCENTER);
@@ -229,7 +231,7 @@ public class Locate {
             LOGGER.info("Final wrap up: \n" + event.printHypoAudit());
 
             status = close.compFinalStats(status);
-//            LocUtil.record(event.getSynthOut());
+            //            LocUtil.record(event.getSynthOut());
             return status;
           } else {
             // Otherwise, create the stage level audit.
@@ -245,6 +247,7 @@ public class Locate {
       // probably in the ball park despite not converging.
       hypoAuditList.get(hypoAuditList.size() - 1).setLocationStatus(LocStatus.FULL_ITERATIONS);
       LOGGER.info("Did Not Converge: \n" + event.printHypoAudit());
+
       // Since we're probably close anyway, compute the error bars for the analyst to see.
       status = close.compFinalStats(LocStatus.FULL_ITERATIONS);
       return LocStatus.FULL_ITERATIONS;
@@ -252,21 +255,31 @@ public class Locate {
     } catch (BadDepthException e) {
       // This should never happen.
       LOGGER.severe("Source depth out of range");
-      //    e.printStackTrace();
-      //    System.out.println(e.toString());
-      e.printStackTrace();
+
+      StringWriter sw = new StringWriter();
+      e.printStackTrace(new PrintWriter(sw));
+      String exceptionAsString = sw.toString();
+      LOGGER.severe(exceptionAsString);
+
       return LocStatus.BAD_DEPTH;
     } catch (TauIntegralException e) {
       // This should never happen either.
       LOGGER.severe("Illegal tau partial integral");
-      //    e.printStackTrace();
-      //    System.out.println(e.toString());
-      e.printStackTrace();
+
+      StringWriter sw = new StringWriter();
+      e.printStackTrace(new PrintWriter(sw));
+      String exceptionAsString = sw.toString();
+      LOGGER.severe(exceptionAsString);
+
       return LocStatus.BAD_INTEGRAL;
     } catch (Exception e) {
       LOGGER.severe("Unknown error");
-      //  	System.out.println(e.toString());
-      e.printStackTrace();
+
+      StringWriter sw = new StringWriter();
+      e.printStackTrace(new PrintWriter(sw));
+      String exceptionAsString = sw.toString();
+      LOGGER.severe(exceptionAsString);
+
       return LocStatus.FAILED;
     }
   }

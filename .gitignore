@@ -9,4 +9,7 @@ build
 lib
 bin
 
+# slab files in zip, don't want to readd them
+slab*.txt
+
 
