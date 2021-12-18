@@ -44,12 +44,6 @@ public class LocUtil {
   public static final double HELDDEPTHSE = 1d;
 
   /**
-   * A boolean controlling how aggressive to be in fixing phase naming for the initial Locator pass.
-   * If false, no fixing will be done.
-   */
-  public static final boolean FIXIT = false;
-
-  /**
    * A double constant representing the default Bayesian depth in kilometers for a free depth
    * solution. This is the Bayesian default for all shallow earthquakes.
    */
@@ -291,6 +285,12 @@ public class LocUtil {
 
   /** A boolean constant that if true indicates that the locator should suppress back branches. */
   public static final boolean SUPRESSBACKBRANCHES = false;
+
+  /**
+   * A boolean controlling how aggressive to be in fixing phase naming for the initial Locator pass.
+   * If false, no fixing will be done.
+   */
+  public static boolean FIXIT = true;
 
   /**
    * A boolean flag indicating if the decorrelation algorithm is to be used. Note that it is never
