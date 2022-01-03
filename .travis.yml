@@ -27,9 +27,9 @@ script:
   - cp -r ${TRAVIS_BUILD_DIR}/build/docs/javadoc/* ${TRAVIS_BUILD_DIR}/doc/javadoc
 
 # upload coverage
-after_success:
-  - bash <(curl -s https://codecov.io/bash)
-  - "./gradlew sendCoverageToCodacy"
+#after_success:
+#  - bash <(curl -s https://codecov.io/bash)
+#  - "./gradlew sendCoverageToCodacy"
 
 # Deploying documentation to github pages
 #deploy:

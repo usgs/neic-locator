@@ -10,19 +10,22 @@ plugins {
     // java application
     id "application"
     // jar bundling
-    id "com.github.johnrengelman.shadow" version "5.0.0"
+    //id "com.github.johnrengelman.shadow" version "5.0.0"
+    id "com.github.johnrengelman.shadow" version "7.1.2"
     // code coverage
     id "jacoco"
     // static code analysis
     // id "pmd"
     // post build results online
-    id "com.gradle.build-scan" version "2.0.2"
+    // id "com.gradle.build-scan" version "3.8"
     // git clone, etc.
     id "org.ajoberstar.grgit" version "2.3.0"
     // google java format
-    id "com.github.sherter.google-java-format" version "0.8"
+    //id "com.github.sherter.google-java-format" version "0.8"
+    id "com.github.sherter.google-java-format" version "0.9"
     // manage micronaut dependencies
-    id "io.spring.dependency-management" version "1.0.8.RELEASE"
+    //id "io.spring.dependency-management" version "1.0.8.RELEASE"
+    id "io.spring.dependency-management" version "1.0.11.RELEASE"
 }
 
 sourceCompatibility = "1.8"
@@ -39,7 +42,8 @@ configurations {
 
 dependencyManagement {
     imports {
-        mavenBom "io.micronaut:micronaut-bom:1.1.0"
+        //mavenBom "io.micronaut:micronaut-bom:1.1.0"
+        mavenBom "io.micronaut:micronaut-bom:3.2.3"
     }
 }
 
@@ -47,28 +51,33 @@ dependencies {
     // micronaut
     annotationProcessor "io.micronaut:micronaut-inject-java"
     annotationProcessor "io.micronaut:micronaut-validation"
-    annotationProcessor "io.micronaut.configuration:micronaut-openapi"
-    compile "io.micronaut:micronaut-inject"
-    compile "io.micronaut:micronaut-validation"
-    compile "io.micronaut:micronaut-runtime"
-    compile "io.micronaut:micronaut-http-client"
-    compile "io.micronaut:micronaut-http-server-netty"
-    compile "io.swagger.core.v3:swagger-annotations"
-    compile "ch.qos.logback:logback-classic:1.2.3"
+    //annotationProcessor "io.micronaut.configuration:micronaut-openapi"
+    annotationProcessor("io.micronaut.openapi:micronaut-openapi:3.2.0")
+    implementation "io.micronaut:micronaut-inject"
+    implementation "io.micronaut:micronaut-validation"
+    implementation "io.micronaut:micronaut-runtime"
+    implementation "io.micronaut:micronaut-http-client"
+    implementation "io.micronaut:micronaut-http-server-netty"
+    implementation "io.swagger.core.v3:swagger-annotations"
+    implementation "ch.qos.logback:logback-classic:1.2.3"
 
     // com.googlecode.json.simple
-    compile "com.googlecode.json-simple:json-simple:1.1.1"
+    implementation "com.googlecode.json-simple:json-simple:1.1.1"
     // org.apache.commons.math3
-    compile "org.apache.commons:commons-math3:3.6.1"
+    implementation "org.apache.commons:commons-math3:3.6.1"
     // gov.nist.math.jama
-    compile "gov.nist.math:jama:1.0.3"
+    implementation "gov.nist.math:jama:1.0.3"
 
     // Use JUnit 5
     testAnnotationProcessor "io.micronaut:micronaut-inject-java"
-    testCompile "io.micronaut.test:micronaut-test-junit5:1.0.4"
-    //testCompile "org.mockito:mockito-junit-jupiter:2.22.0"
-    testCompile "org.junit.jupiter:junit-jupiter-api:5.4.2"
-    testRuntime "org.junit.jupiter:junit-jupiter-engine:5.4.2"
+
+    testImplementation("org.junit.jupiter:junit-jupiter-api")
+    testImplementation("io.micronaut.test:micronaut-test-junit5:3.0.5")
+    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.7.2")
+    //testImplementation "io.micronaut.test:micronaut-test-junit5:1.0.4"
+    //testImplementation "org.mockito:mockito-junit-jupiter:2.22.0"
+    //testImplementation "org.junit.jupiter:junit-jupiter-api:5.4.2"
+    //testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine:5.4.2"
 
 }
 
@@ -217,21 +226,21 @@ javadoc {
 // Tasks for TravisCI
 
 // run with "gradle build --scan" to post build output online
-buildScan {
-  termsOfServiceUrl = "https://gradle.com/terms-of-service"
-  termsOfServiceAgree = "yes"
-}
+//buildScan {
+//  termsOfServiceUrl = "https://gradle.com/terms-of-service"
+//  termsOfServiceAgree = "yes"
+//}
 
 // .travis.yml uses this to upload coverage
-task sendCoverageToCodacy(type: JavaExec, dependsOn: jacocoTestReport) {
-  description = "Upload coverage to codacy (used by TravisCI)"
-  main = "com.codacy.CodacyCoverageReporter"
-  classpath = configurations.codacy
-  args = [
-    "report",
-    "-l",
-    "Java",
-    "-r",
-    "${buildDir}/reports/jacoco/test/jacocoTestReport.xml"
-  ]
-}
+//task sendCoverageToCodacy(type: JavaExec, dependsOn: jacocoTestReport) {
+//  description = "Upload coverage to codacy (used by TravisCI)"
+//  main = "com.codacy.CodacyCoverageReporter"
+//  classpath = configurations.codacy
+//  args = [
+//    "report",
+//    "-l",
+//    "Java",
+//    "-r",
+//    "${buildDir}/reports/jacoco/test/jacocoTestReport.xml"
+//  ]
+//}
