@@ -10,7 +10,6 @@ plugins {
     // java application
     id "application"
     // jar bundling
-    //id "com.github.johnrengelman.shadow" version "5.0.0"
     id "com.github.johnrengelman.shadow" version "7.1.2"
     // code coverage
     id "jacoco"
@@ -19,10 +18,8 @@ plugins {
     // git clone, etc.
     id "org.ajoberstar.grgit" version "2.3.0"
     // google java format
-    //id "com.github.sherter.google-java-format" version "0.8"
     id "com.github.sherter.google-java-format" version "0.9"
     // manage micronaut dependencies
-    //id "io.spring.dependency-management" version "1.0.8.RELEASE"
     id "io.spring.dependency-management" version "1.0.11.RELEASE"
 }
 
@@ -202,7 +199,6 @@ tasks.withType(JavaCompile) {
 shadowJar {
   mergeServiceFiles()
 }
-
 
 // create javadocs
 javadoc {
