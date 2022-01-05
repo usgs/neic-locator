@@ -32,6 +32,12 @@ public class Event {
    */
   private boolean useDecorrelation;
 
+  /**
+   * A boolean flag that if true indicates that this event should use reassess the initial (given)
+   * phase identifications.
+   */
+  private boolean reassessInitialPhaseIDs;
+
   /** A boolean flag that if true indicates that the location has been moved externally. */
   private boolean isLocationRestarted;
 
@@ -231,6 +237,15 @@ public class Event {
    */
   public boolean getUseDecorrelation() {
     return useDecorrelation;
+  }
+
+  /**
+   * Function to return whether to reassess inital phase identifications.
+   *
+   * @return A boolean flag indicating whether to reassess inital phase identifications
+   */
+  public boolean getReassessInitialPhaseIDs() {
+    return reassessInitialPhaseIDs;
   }
 
   /**
@@ -537,6 +552,15 @@ public class Event {
     }
 
     useDecorrelation = in.UseSVD; // True when noSvd is false
+
+    // optional parameter so give it a default
+    if (in.ReassessInitialPhaseIDs != null) {
+      reassessInitialPhaseIDs =
+          in.ReassessInitialPhaseIDs; // True when ReassessInitialPhaseIDs is true
+    } else {
+      reassessInitialPhaseIDs = true;
+    }
+
     isLocationRestarted = in.IsLocationNew;
 
     // process the input pick data.

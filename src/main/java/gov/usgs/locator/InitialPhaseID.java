@@ -145,7 +145,8 @@ public class InitialPhaseID {
           if (pick.getIsUsed()) {
             String phCode = pick.getCurrentPhaseCode();
 
-            if (pick.getIsAutomatic() && LocUtil.FIXIT
+            if (pick.getIsAutomatic()
+                && (event.getReassessInitialPhaseIDs())
                 && (phCode.length() == 0
                     || (!"PK".equals(phCode.substring(0, 1))
                         && !"P'".equals(phCode.substring(0, 1))
@@ -245,15 +246,15 @@ public class InitialPhaseID {
       return;
     }
 
-    if(LocUtil.FIXIT) {
-	    // Based on the number of probably misidentified first arrivals:
-	    if (badPs < LocUtil.BADRATIO * event.getNumStationsUsed()) {
-	      // Just make the obvious re-identifications (i.e., autos).
-	      simplePhaseID();
-	    } else {
-	      // Re-identify any first arrivals that don't look right.
-	      complexPhaseID();
-	    }
+    if (event.getReassessInitialPhaseIDs()) {
+      // Based on the number of probably misidentified first arrivals:
+      if (badPs < LocUtil.BADRATIO * event.getNumStationsUsed()) {
+        // Just make the obvious re-identifications (i.e., autos).
+        simplePhaseID();
+      } else {
+        // Re-identify any first arrivals that don't look right.
+        complexPhaseID();
+      }
     }
   }
 

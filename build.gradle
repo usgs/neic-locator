@@ -16,8 +16,6 @@ plugins {
     id "jacoco"
     // static code analysis
     // id "pmd"
-    // post build results online
-    // id "com.gradle.build-scan" version "3.8"
     // git clone, etc.
     id "org.ajoberstar.grgit" version "2.3.0"
     // google java format
@@ -28,8 +26,8 @@ plugins {
     id "io.spring.dependency-management" version "1.0.11.RELEASE"
 }
 
-sourceCompatibility = "1.8"
-targetCompatibility = "1.8"
+sourceCompatibility = "1.10"
+targetCompatibility = "1.10"
 version = "0.3.0"
 
 repositories {
@@ -42,7 +40,6 @@ configurations {
 
 dependencyManagement {
     imports {
-        //mavenBom "io.micronaut:micronaut-bom:1.1.0"
         mavenBom "io.micronaut:micronaut-bom:3.2.3"
     }
 }
@@ -51,7 +48,6 @@ dependencies {
     // micronaut
     annotationProcessor "io.micronaut:micronaut-inject-java"
     annotationProcessor "io.micronaut:micronaut-validation"
-    //annotationProcessor "io.micronaut.configuration:micronaut-openapi"
     annotationProcessor("io.micronaut.openapi:micronaut-openapi:3.2.0")
     implementation "io.micronaut:micronaut-inject"
     implementation "io.micronaut:micronaut-validation"
@@ -74,11 +70,6 @@ dependencies {
     testImplementation("org.junit.jupiter:junit-jupiter-api")
     testImplementation("io.micronaut.test:micronaut-test-junit5:3.0.5")
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.7.2")
-    //testImplementation "io.micronaut.test:micronaut-test-junit5:1.0.4"
-    //testImplementation "org.mockito:mockito-junit-jupiter:2.22.0"
-    //testImplementation "org.junit.jupiter:junit-jupiter-api:5.4.2"
-    //testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine:5.4.2"
-
 }
 
 // method to add/update an external project from git and add it to the
