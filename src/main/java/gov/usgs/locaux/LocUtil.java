@@ -287,12 +287,6 @@ public class LocUtil {
   public static final boolean SUPRESSBACKBRANCHES = false;
 
   /**
-   * A boolean controlling how aggressive to be in fixing phase naming for the initial Locator pass.
-   * If false, no fixing will be done.
-   */
-  public static boolean FIXIT = true;
-
-  /**
    * A boolean flag indicating if the decorrelation algorithm is to be used. Note that it is never
    * used in the initial pass, hence the default.
    */

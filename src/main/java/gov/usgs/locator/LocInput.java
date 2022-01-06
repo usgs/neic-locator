@@ -49,6 +49,7 @@ public class LocInput extends LocationRequest {
     BayesianDepth = request.BayesianDepth;
     BayesianSpread = request.BayesianSpread;
     UseSVD = request.UseSVD;
+    ReassessInitialPhaseIDs = request.ReassessInitialPhaseIDs;
     OutputData = request.OutputData;
   }
 
@@ -116,6 +117,12 @@ public class LocInput extends LocationRequest {
       UseSVD = (boolean) locationConfig.get("UseSVD");
     } else {
       UseSVD = true;
+    }
+
+    if ((locationConfig != null) && (locationConfig.containsKey("ReassessInitialPhaseIDs"))) {
+      ReassessInitialPhaseIDs = (boolean) locationConfig.get("ReassessInitialPhaseIDs");
+    } else {
+      ReassessInitialPhaseIDs = true;
     }
 
     // default pick values
@@ -218,6 +225,7 @@ public class LocInput extends LocationRequest {
     BayesianSpread = scan.nextDouble();
     scan.next().charAt(0); // rstt (not used)
     UseSVD = !LocUtil.getBoolean(scan.next().charAt(0)); // True when noSvd is false
+    ReassessInitialPhaseIDs = true;
 
     // Fiddle because the analyst command last flag is omitted in earlier
     // data.
