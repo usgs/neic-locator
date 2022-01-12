@@ -214,7 +214,7 @@ public class SlabArea implements Serializable {
       } else {
         LOGGER.fine(
             String.format(
-                "v0[%d]: (%7.3f, %7.3f, %7.4f\n", j, v0[j][1][0], v0[j][1][1], v0[j][1][2]));
+                "v0[%d]: (%7.3f, %7.3f, %7.4f", j, v0[j][1][0], v0[j][1][1], v0[j][1][2]));
       }
     }
 
@@ -226,13 +226,13 @@ public class SlabArea implements Serializable {
         } else {
           LOGGER.fine(
               String.format(
-                  "v1[%d]: (%7.3f, %7.3f, %7.4f\n", j, v1[j][1][0], v1[j][1][1], v1[j][1][2]));
+                  "v1[%d]: (%7.3f, %7.3f, %7.4f", j, v1[j][1][0], v1[j][1][1], v1[j][1][2]));
         }
       }
     } else {
       nulls += 2;
     }
-    LOGGER.fine(String.format("    v: (%7.3f, %7.3f, %7.4f\n", v[0], v[1], v[2]));
+    LOGGER.fine(String.format("    v: (%7.3f, %7.3f, %7.4f", v[0], v[1], v[2]));
 
     switch (nulls) {
       case 0:
@@ -343,7 +343,7 @@ public class SlabArea implements Serializable {
         lastLat += slabInc;
         slabRows.add(j, new SlabRow(lastLat));
 
-        LOGGER.fine(String.format("Dummy row added: lat = %6.2f\n", lastLat));
+        LOGGER.fine(String.format("Dummy row added: lat = %6.2f", lastLat));
       }
 
       lastLat = slabRows.get(j).getLat();
@@ -359,12 +359,12 @@ public class SlabArea implements Serializable {
       lat += slabInc;
 
       while (Math.abs(slabRows.get(j).getLat() - lat) > TauUtil.DTOL) {
-        LOGGER.fine(String.format("Missing row (lat = %6.2f)\n", lat));
+        LOGGER.fine(String.format("Missing row (lat = %6.2f)", lat));
         lat += slabInc;
       }
 
       if (slabRows.get(j).isDummyRow()) {
-        LOGGER.fine(String.format("Dummy row (lat = %6.2f)\n", lat));
+        LOGGER.fine(String.format("Dummy row (lat = %6.2f)", lat));
       }
     }
   }

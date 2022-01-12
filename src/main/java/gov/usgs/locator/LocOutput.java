@@ -180,8 +180,10 @@ public class LocOutput extends LocationResult {
       this.LocatorExitCode = "DidNotMove";
     } else if (locatorExitCode == LocStatus.ERRORS_NOT_COMPUTED) {
       this.LocatorExitCode = "ErrorsNotComputed";
-    } else if (locatorExitCode == LocStatus.NOT_ENOUGH_DATA) {
-      this.LocatorExitCode = "NotEnoughData";
+    } else if (locatorExitCode == LocStatus.NOT_ENOUGH_INPUT_DATA) {
+      this.LocatorExitCode = "NotEnoughInputData";
+    } else if (locatorExitCode == LocStatus.NOT_ENOUGH_USEABLE_DATA) {
+      this.LocatorExitCode = "NotEnoughUseableData";
     } else if (locatorExitCode == LocStatus.DID_NOT_CONVERGE) {
       this.LocatorExitCode = "DidNotConverge";
     } else if (locatorExitCode == LocStatus.BAD_EVENT_INPUT) {

@@ -1117,7 +1117,15 @@ public class Event {
         break;
 
       case INSUFFICIENT_DATA:
-        locatorExitCode = LocStatus.NOT_ENOUGH_DATA;
+        // insufficent data can either mean not enough
+        // input data was provided OR there was not
+        // enough data with a non-zero weight after
+        // phase (re)identification
+        if (numPhasesAssociated < 3) {
+          locatorExitCode = LocStatus.NOT_ENOUGH_INPUT_DATA;
+        } else {
+          locatorExitCode = LocStatus.NOT_ENOUGH_USEABLE_DATA;
+        }
         break;
 
       default:
