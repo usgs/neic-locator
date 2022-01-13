@@ -160,9 +160,7 @@ public class LocUtil {
 
   /** An array of int constants representing the maximum number of iterations for each stage. */
   /** JMP 1/13/2022 Added a third stage due to large number of events that did not converge */
-  public static final int[] ITERATIONSTAGELIMITS = {
-    15, 20, 30
-  };
+  public static final int[] ITERATIONSTAGELIMITS = {15, 20, 30};
 
   /**
    * An array of double constants representing the convergence criteria in kilometers for each
