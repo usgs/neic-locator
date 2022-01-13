@@ -31,7 +31,7 @@ import org.json.simple.parser.ParseException;
  */
 public class LocMain {
   /** A String containing the locator version */
-  public static final String VERSION = "v0.3.1";
+  public static final String VERSION = "v0.3.2";
 
   /** A String containing the argument for specifying the model file path. */
   public static final String MODELPATH_ARGUMENT = "--modelPath=";
