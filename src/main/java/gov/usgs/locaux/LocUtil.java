@@ -152,30 +152,31 @@ public class LocUtil {
   public static final double DEG2KM = 6371d * Math.PI / 180d;
 
   /** An int constant representing the maximum number of iteration stages to attempt. */
-  public static final int STAGELIMIT = 2;
+  /** JMP 1/13/2022 Added a third stage due to large number of events that did not converge */
+  public static final int STAGELIMIT = 3;
 
   /** A double constant representing the initial step length to start each iteration loop with. */
   public static final double INITIALSTEPLEN = 50d;
 
   /** An array of int constants representing the maximum number of iterations for each stage. */
-  // public static final int[] ITERATIONSTAGELIMITS = {15, 20, 20, 20, 20, 20, 20, 20, 20, 20};
+  /** JMP 1/13/2022 Added a third stage due to large number of events that did not converge */
   public static final int[] ITERATIONSTAGELIMITS = {
-    15, 20
-  }; // Collapse to with and without decorrelation sub-loops 9/16/19.
+    15, 20, 30
+  };
 
   /**
    * An array of double constants representing the convergence criteria in kilometers for each
    * stage.
    */
-  // public static final double[] CONVERGENCESTAGELIMITS = {1d, 0.1d, 0.1d, 0.1d, 0.1d, 0.1d, 0.1d,
-  // 		0.1d, 0.1d, 0.1d};
-  public static final double[] CONVERGENCESTAGELIMITS = {1d, 0.1d};
+  /** JMP 1/13/2022 Added a third stage due to large number of events that did not converge */
+  public static final double[] CONVERGENCESTAGELIMITS = {1d, 0.1d, 0.1d};
 
   /**
    * An array of double constants representing the maximum step length in kilometers to allow for
    * each stage.
    */
-  public static final double[] STEPLENSTAGELIMITS = {200d, 50d};
+  /** JMP 1/13/2022 Added a third stage due to large number of events that did not converge */
+  public static final double[] STEPLENSTAGELIMITS = {200d, 50d, 25d};
 
   /**
    * A double constant representing the step tolerance dividing "did not converge" from "unstable
