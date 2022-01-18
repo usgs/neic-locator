@@ -112,8 +112,14 @@ public enum LocStatus {
    */
   LOCATION_FAILED(101), // Location failed (singular or insufficient data)
 
-  /** External (exit) status meaning that there wasn't enough data to locate the event. */
-  NOT_ENOUGH_DATA(104), // Insufficient data
+  /** External (exit) status meaning that there wasn't enough input data to locate the event. */
+  NOT_ENOUGH_INPUT_DATA(103), // Insufficient input data
+
+  /**
+   * External (exit) status meaning that there wasn't enough usable (non-zero-weight) data to locate
+   * the event.
+   */
+  NOT_ENOUGH_USEABLE_DATA(104), // Insufficient data
 
   /** Internal status for a location that can't be improved, but has clearly not converged. */
   DID_NOT_CONVERGE(105), // Unable to improve, but not close to converging
