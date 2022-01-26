@@ -508,6 +508,7 @@ public class Pick implements Comparable<Pick> {
     switch (originalAuthorType) {
       case LOCAL_HUMAN:
         // for a local human we always trust their phase id
+        // we ignore the previous locator phase id
         currentPhaseCode = originalAssocPhaseCode;
         bestPhaseCode = originalAssocPhaseCode;
         isAutomatic = false;
@@ -516,9 +517,9 @@ public class Pick implements Comparable<Pick> {
       case CONTRIB_HUMAN:
       case CONTRIB_AUTO:
       case LOCAL_AUTO:
-        // for all other know types, we use the locator phase
-        // id if we have it, otherwise use the associator's
-        // phase id
+        // for all other known types, we use the locator phase
+        // id if we have it, otherwise we use the associator's
+        // phase id if we do not
         if ((originalLocPhaseCode != null) && 
             (originalLocPhaseCode != "")) {
           currentPhaseCode = originalLocPhaseCode;
@@ -532,8 +533,9 @@ public class Pick implements Comparable<Pick> {
 
       default:
         // if we do no have an author type, we default
-        // to what was set in the constructor, which is the
-        // picker's phase id.
+        // to what the current phase code was set to 
+        // in the constructor, which is currently set the
+        // by Event.java to be the picker's phase id.
         bestPhaseCode = currentPhaseCode;
         break;
     }
