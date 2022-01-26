@@ -923,10 +923,15 @@ public class LocUtil {
    * @return An AuthorType object containing the author type
    */
   public static AuthorType getAuthCodeFromNumericCode(int authCode) {
-    for (AuthorType author : AuthorType.values()) {
-      if (author.ordinal() == authCode) {
-        return author;
-      }
+
+    if (authCode == 1) {
+      return AuthorType.CONTRIB_AUTO;
+    } else if (authCode == 2) {
+      return AuthorType.LOCAL_AUTO;
+    } else if (authCode == 3) {
+      return AuthorType.CONTRIB_HUMAN;
+    } else if (authCode == 4) {
+      return AuthorType.LOCAL_HUMAN;
     }
 
     return AuthorType.UNKNOWN;

@@ -570,13 +570,20 @@ public class Event {
       // make sure phCode and obsCode are not null
       String phCode = "";
       String pickedCode = "";
+      String obsCode = "";
+      String locCode = "";
+
       if (pickIn.PickedPhase != null) {
         phCode = pickIn.PickedPhase;
         pickedCode = pickIn.PickedPhase;
       }
-      String obsCode = "";
+
       if (pickIn.AssociatedPhase != null) {
         obsCode = pickIn.AssociatedPhase;
+      }
+
+      if (pickIn.LocatedPhase != null) {
+        locCode = pickIn.LocatedPhase;
       }
 
       // source type conversion
@@ -618,6 +625,7 @@ public class Event {
           pickIn.Quality,
           obsCode,
           pickedCode,
+          locCode,
           LocUtil.getAuthCodeFromNumericCode(authorType),
           pickIn.Affinity);
       pickList.add(pick);
@@ -1117,11 +1125,11 @@ public class Event {
         break;
 
       case INSUFFICIENT_DATA:
-        // insufficent data can either mean not enough
+        // insufficient data can either mean not enough
         // input data was provided OR there was not
         // enough data with a non-zero weight after
         // phase (re)identification
-        if (numPhasesAssociated < 3) {
+        if (numStationsAssociated < 3) {
           locatorExitCode = LocStatus.NOT_ENOUGH_INPUT_DATA;
         } else {
           locatorExitCode = LocStatus.NOT_ENOUGH_USEABLE_DATA;

@@ -193,6 +193,7 @@ public class LocInput extends LocationRequest {
       requestPick.Use = pickUse;
       requestPick.PickedPhase = detectPick.getPhase();
       requestPick.AssociatedPhase = detectPick.getAssociationInfo().getPhase();
+      requestPick.LocatedPhase = null;
 
       requestInputData.add(requestPick);
     }
@@ -309,6 +310,7 @@ public class LocInput extends LocationRequest {
       }
       newPick.Affinity = aff;
       newPick.AssociatedPhase = obsPh;
+      newPick.LocatedPhase = null;
 
       if (newPick.isValid()) {
         // Add the pick to the list
