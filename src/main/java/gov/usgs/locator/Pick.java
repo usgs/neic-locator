@@ -520,8 +520,7 @@ public class Pick implements Comparable<Pick> {
         // for all other known types, we use the locator phase
         // id if we have it, otherwise we use the associator's
         // phase id if we do not
-        if ((originalLocPhaseCode != null) && 
-            (originalLocPhaseCode != "")) {
+        if ((originalLocPhaseCode != null) && (originalLocPhaseCode != "")) {
           currentPhaseCode = originalLocPhaseCode;
           bestPhaseCode = originalLocPhaseCode;
         } else {
@@ -533,7 +532,7 @@ public class Pick implements Comparable<Pick> {
 
       default:
         // if we do no have an author type, we default
-        // to what the current phase code was set to 
+        // to what the current phase code was set to
         // in the constructor, which is currently set the
         // by Event.java to be the picker's phase id.
         bestPhaseCode = currentPhaseCode;
