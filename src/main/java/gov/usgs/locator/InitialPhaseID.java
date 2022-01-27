@@ -113,7 +113,7 @@ public class InitialPhaseID {
     for (int j = 0; j < event.getNumStations(); j++) {
       PickGroup group = event.getPickGroupList().get(j);
 
-      if (group.getNumPicksUsed() > 0) {
+      if (group.getNumPicksUsed() > 0 && event.getReassessInitialPhaseIDs()) {
         // For the first pick in the group, get the travel times.
         Station station = group.getStation();
         LOGGER.finer("InitialPhaseID: " + station + ":");
@@ -146,7 +146,6 @@ public class InitialPhaseID {
             String phCode = pick.getCurrentPhaseCode();
 
             if (pick.getIsAutomatic()
-                && (event.getReassessInitialPhaseIDs())
                 && (phCode.length() == 0
                     || (!"PK".equals(phCode.substring(0, 1))
                         && !"P'".equals(phCode.substring(0, 1))
@@ -229,13 +228,16 @@ public class InitialPhaseID {
     // Update the hypocenter origin time based on the residuals and weights
     // pushed by the phaseID method.  Adjusting the origin time to something
     // reasonable ensures that succeeding phase identifications have a chance.
-    double median = rankSumEstimator.computeMedian();
-    event.updateOriginTime(median);
 
-    LOGGER.fine(
-        String.format(
-            "Update origin: %f %f %f %d",
-            hypo.getOriginTime(), median, hypo.getOriginTime() + median, badPs));
+    if (event.getReassessInitialPhaseIDs()) {
+      double median = rankSumEstimator.computeMedian();
+      event.updateOriginTime(median);
+
+      LOGGER.fine(
+          String.format(
+              "Update origin: %f %f %f %d",
+              hypo.getOriginTime(), median, hypo.getOriginTime() + median, badPs));
+    }
 
     // On a restart, reidentify all phases to be consistent with the new hypocenter.
     // Note that we still needed the logic above to reset the origin time.
@@ -246,15 +248,13 @@ public class InitialPhaseID {
       return;
     }
 
-    if (event.getReassessInitialPhaseIDs()) {
-      // Based on the number of probably misidentified first arrivals:
-      if (badPs < LocUtil.BADRATIO * event.getNumStationsUsed()) {
-        // Just make the obvious re-identifications (i.e., autos).
-        simplePhaseID();
-      } else {
-        // Re-identify any first arrivals that don't look right.
-        complexPhaseID();
-      }
+    // Based on the number of probably misidentified first arrivals:
+    if (badPs < LocUtil.BADRATIO * event.getNumStationsUsed()) {
+      // Just make the obvious re-identifications (i.e., autos).
+      simplePhaseID();
+    } else {
+      // Re-identify any first arrivals that don't look right.
+      complexPhaseID();
     }
   }
 
@@ -279,7 +279,11 @@ public class InitialPhaseID {
           if (!"Pg".equals(phCode)
               && !"Pb".equals(phCode)
               && !"Pn".equals(phCode)
-              && !"P".equals(phCode)) {
+              && !"P".equals(phCode)
+              && !"Sg".equals(phCode)
+              && !"Sb".equals(phCode)
+              && !"Sn".equals(phCode)
+              && !"S".equals(phCode)) {
             pick.setIsUsed(false);
 
             LOGGER.finer(
@@ -294,7 +298,7 @@ public class InitialPhaseID {
         for (int i = 1; i < group.getNumPicks(); i++) {
           pick = group.getPicks().get(i);
 
-          if (pick.getIsAutomatic() && pick.getIsUsed()) {
+          if (pick.getIsAutomatic() && pick.getIsUsed() && event.getReassessInitialPhaseIDs()) {
             pick.setIsUsed(false);
 
             LOGGER.finer(

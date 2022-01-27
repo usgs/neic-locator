@@ -92,7 +92,7 @@ public class Locate {
 
     // Bail on insufficient data.
     if (event.getNumStationsUsed() < 3) {
-      LOGGER.info("Insufficient Data (Stations Used)");
+      LOGGER.info("Insufficient Data (1) (Stations Used)");
       close.compFinalStats(LocStatus.INSUFFICIENT_DATA);
       return LocStatus.INSUFFICIENT_DATA;
     }
@@ -151,7 +151,7 @@ public class Locate {
 
         // Be sure we still have enough data to continue.
         if (status == LocStatus.INSUFFICIENT_DATA) {
-          LOGGER.info("Insufficient Data");
+          LOGGER.info("Insufficient Data (2)");
           close.compFinalStats(status);
           return status;
         }
@@ -169,7 +169,7 @@ public class Locate {
           // check the iteration status
           switch (status) {
             case INSUFFICIENT_DATA:
-              LOGGER.info("Insufficient Data");
+              LOGGER.info("Insufficient Data (3)");
               // Bail on insufficient data.
               close.compFinalStats(status);
               return status;

@@ -236,6 +236,8 @@ public class PhaseID {
               && (Math.abs(pick.getTravelTime() - travelTime.getTT()) < minResidual)) {
             ttIndex = i;
             minResidual = Math.abs(pick.getTravelTime() - travelTime.getTT());
+            LOGGER.finest(
+                String.format("NoReID: checking for min residual:  %s %6.2f", phCode, minResidual));
           }
         }
 
