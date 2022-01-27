@@ -297,6 +297,17 @@ public class InitialPhaseID {
         // Don't use any secondary automatic phases.
         for (int i = 1; i < group.getNumPicks(); i++) {
           pick = group.getPicks().get(i);
+          String phCode = pick.getCurrentPhaseCode();
+          if (!"Pg".equals(phCode)
+              && !"Pb".equals(phCode)
+              && !"Pn".equals(phCode)
+              && !"P".equals(phCode)
+              && !"Sg".equals(phCode)
+              && !"Sb".equals(phCode)
+              && !"Sn".equals(phCode)
+              && !"S".equals(phCode)) {
+            pick.setIsUsed(false);
+          }
 
           if (pick.getIsAutomatic() && pick.getIsUsed() && event.getReassessInitialPhaseIDs()) {
             pick.setIsUsed(false);
