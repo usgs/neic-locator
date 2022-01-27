@@ -1,5 +1,5 @@
 {
-    "MinimumDistance": 7.189015220157172,
+    "MinimumDistance": 7.187240562499663,
     "SupportingData": [
       {
         "Site": {
@@ -8059,21 +8059,21 @@
       }
     },
     "Hypocenter": {
-      "LatitudeError": 10.334174805604148,
-      "DepthError": 4.516944393998877,
-      "TimeError": 2.314332340503762,
-      "Latitude": -57.55078244049887,
-      "Time": "2021-08-12T18:32:52.335Z",
-      "Longitude": -25.09595398388939,
-      "Depth": 46.72968374757601,
-      "LongitudeError": 9.643337993168855
+      "LatitudeError": 10.376554327626398,
+      "DepthError": 4.518032092211938,
+      "TimeError": 2.2994878674967216,
+      "Latitude": -57.54896641843,
+      "Time": "2021-08-12T18:32:52.328Z",
+      "Longitude": -25.098128296641534,
+      "Depth": 46.64339779219844,
+      "LongitudeError": 9.699393175259418
     },
     "DepthImportance": 0.09878431787875633,
     "Quality": "B* ",
-    "Gap": 37.68506566294704,
+    "Gap": 37.683273016452716,
     "BayesianDepth": 45.595611572265625,
     "SecondaryGap": 50.922150088761995,
-    "RMS": 1.140899172801124,
+    "RMS": 1.1335812752468277,
     "NumberOfAssociatedStations": 267,
     "NumberOfAssociatedPhases": 277,
     "NumberOfUsedPhases": 87

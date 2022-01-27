@@ -39,6 +39,9 @@ public class Pick implements Comparable<Pick> {
   /** A String containing the original picked phase identification for this pick. */
   private String originalPickedPhaseCode;
 
+  /** A String containing the original located phase identification for this pick. */
+  private String originalLocPhaseCode;
+
   /** An AuthorType object containing the author type for the original phase identification. */
   private AuthorType originalAuthorType;
 
@@ -184,6 +187,15 @@ public class Pick implements Comparable<Pick> {
    */
   public String getOriginalPickedPhaseCode() {
     return originalPickedPhaseCode;
+  }
+
+  /**
+   * Function to return the original loc phase code for the pick.
+   *
+   * @return A String containing the original loc pick phase code for the pick
+   */
+  public String getOriginalLocPhaseCode() {
+    return originalLocPhaseCode;
   }
 
   /**
@@ -437,6 +449,7 @@ public class Pick implements Comparable<Pick> {
     quality = 0d;
     originalAssocPhaseCode = null;
     originalPickedPhaseCode = null;
+    originalLocPhaseCode = null;
     originalAuthorType = null;
     originalPhaseAffinity = 3d;
     isUsed = externalUse;
@@ -467,6 +480,8 @@ public class Pick implements Comparable<Pick> {
    *     identification
    * @param originalPickedPhaseCode A String containing the original picker external pick phase
    *     identification
+   * @param originalLocPhaseCode A String containing the original locator external pick phase
+   *     identification
    * @param originalAuthorType An AuthorType object containing the type (e.g., human or auto) of the
    *     original phase identification
    * @param originalPhaseAffinity Higher numbers make it harder to re-identify the phase
@@ -477,6 +492,7 @@ public class Pick implements Comparable<Pick> {
       double quality,
       String originalAssocPhaseCode,
       String originalPickedPhaseCode,
+      String originalLocPhaseCode,
       AuthorType originalAuthorType,
       double originalPhaseAffinity) {
     this.sourceID = sourceID;
@@ -484,19 +500,41 @@ public class Pick implements Comparable<Pick> {
     this.quality = quality;
     this.originalAssocPhaseCode = originalAssocPhaseCode;
     this.originalPickedPhaseCode = originalPickedPhaseCode;
+    this.originalLocPhaseCode = originalLocPhaseCode;
     this.originalAuthorType = originalAuthorType;
     this.originalPhaseAffinity = originalAuthorType.affinity(originalPhaseAffinity);
 
     // Use the enum for the author type.
     switch (originalAuthorType) {
-      case CONTRIB_HUMAN:
       case LOCAL_HUMAN:
+        // for a local human we always trust their phase id
+        // we ignore the previous locator phase id
         currentPhaseCode = originalAssocPhaseCode;
         bestPhaseCode = originalAssocPhaseCode;
         isAutomatic = false;
         break;
 
+      case CONTRIB_HUMAN:
+      case CONTRIB_AUTO:
+      case LOCAL_AUTO:
+        // for all other known types, we use the locator phase
+        // id if we have it, otherwise we use the associator's
+        // phase id if we do not
+        if ((originalLocPhaseCode != null) && (originalLocPhaseCode != "")) {
+          currentPhaseCode = originalLocPhaseCode;
+          bestPhaseCode = originalLocPhaseCode;
+        } else {
+          currentPhaseCode = originalAssocPhaseCode;
+          bestPhaseCode = originalAssocPhaseCode;
+        }
+        isAutomatic = true;
+        break;
+
       default:
+        // if we do no have an author type, we default
+        // to what the current phase code was set to
+        // in the constructor, which is currently set the
+        // by Event.java to be the picker's phase id.
         bestPhaseCode = currentPhaseCode;
         break;
     }
