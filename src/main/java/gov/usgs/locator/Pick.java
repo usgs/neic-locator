@@ -620,6 +620,17 @@ public class Pick implements Comparable<Pick> {
               || forceAssociation)) {
         if (shouldReweight) {
           weight = 1d / Math.max(ttStatisticalMinFoM.getSpread(), 0.2d);
+
+          // Check if weight is NaN. If so warn and set to zero.
+          // NOTE: This indicates something went wrong in the travel time libraries
+          // We should consider investigating
+          Double weightCheck = weight;
+          if (weightCheck.isNaN()) {
+            weight = 0d;
+            LOGGER.fine(
+                "IDphas: Computed weight from travel time spread is NaN, so set weight 0 and isUsed to false");
+            isUsed = false;
+          }
         }
 
         // Add it to weighted residual storage.

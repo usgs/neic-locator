@@ -23,9 +23,9 @@ plugins {
     id "io.spring.dependency-management" version "1.0.11.RELEASE"
 }
 
-sourceCompatibility = "1.10"
-targetCompatibility = "1.10"
-version = "0.3.3"
+sourceCompatibility = "1.11"
+targetCompatibility = "1.11"
+version = "0.3.4"
 
 repositories {
     mavenCentral()
@@ -107,6 +107,10 @@ mainClassName = "gov.usgs.locator.LocMain"
 googleJavaFormat {
   exclude "lib/**"
 }
+
+// always format to google style prior to the build
+compileJava.dependsOn 'googleJavaFormat'
+
 // Google java style is checked automatically as part of the check task
 project.tasks.check.dependsOn(verifyGoogleJavaFormat)
 
