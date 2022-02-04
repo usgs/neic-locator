@@ -79,11 +79,12 @@ public class LocService implements LocationService {
     LOGGER.info(
         "Event: "
             + request.ID
+            + ", Result: "
+            + result.LocatorExitCode
             + ", "
             + LocUtil.endLocationTimer()
-            + ", "
-            + request.InputData.size()
-            + " numData.");
+            + ", numData: "
+            + request.InputData.size());
 
     // always print result as json to log for debugging, if it is valid
     if (result != null) {

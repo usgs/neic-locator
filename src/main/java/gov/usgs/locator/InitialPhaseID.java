@@ -271,8 +271,8 @@ public class InitialPhaseID {
       if (group.getNumPicksUsed() > 0) {
         Pick pick = group.getPicks().get(0);
 
-        // If the first arrival is automatic and not a crust or mantle P, don't
-        // use it.
+        // If the first arrival is automatic and not a crustal, mantle P,
+        // or PKP* don't use it.
         if (pick.getIsAutomatic() && pick.getIsUsed()) {
           String phCode = pick.getCurrentPhaseCode();
 
@@ -283,7 +283,10 @@ public class InitialPhaseID {
               && !"Sg".equals(phCode)
               && !"Sb".equals(phCode)
               && !"Sn".equals(phCode)
-              && !"S".equals(phCode)) {
+              && !"S".equals(phCode)
+              && !"PKPab".equals(phCode)
+              && !"PKPbc".equals(phCode)
+              && !"PKPdf".equals(phCode)) {
             pick.setIsUsed(false);
 
             LOGGER.finer(
@@ -305,7 +308,10 @@ public class InitialPhaseID {
               && !"Sg".equals(phCode)
               && !"Sb".equals(phCode)
               && !"Sn".equals(phCode)
-              && !"S".equals(phCode)) {
+              && !"S".equals(phCode)
+              && !"PKPab".equals(phCode)
+              && !"PKPbc".equals(phCode)
+              && !"PKPdf".equals(phCode)) {
             pick.setIsUsed(false);
           }
 
