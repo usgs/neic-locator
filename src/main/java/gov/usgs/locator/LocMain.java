@@ -1,6 +1,7 @@
 package gov.usgs.locator;
 
 import gov.usgs.detectionformats.Detection;
+import gov.usgs.locaux.LocUtil;
 import gov.usgs.processingformats.LocationException;
 import gov.usgs.processingformats.LocationRequest;
 import gov.usgs.processingformats.LocationResult;
@@ -527,6 +528,7 @@ public class LocMain {
     }
 
     // parse the file
+    long requestStartTime = System.currentTimeMillis();
     LocationRequest request = null;
     if ("json".equals(inputType)) {
       LOGGER.fine("Parsing a json file.");
@@ -571,7 +573,10 @@ public class LocMain {
       request.ID = getFileName(inputFile);
     }
 
+    LOGGER.info(LocUtil.endTimer("Time to parse request", requestStartTime));
+
     // do location
+    long locationStartTime = System.currentTimeMillis();
     LocationResult result = null;
     if (request != null) {
       try {
@@ -580,11 +585,17 @@ public class LocMain {
         result = service.getLocation(request);
       } catch (LocationException e) {
         LOGGER.severe("Exception: " + e.toString());
+
+        LOGGER.info(LocUtil.endTimer("Time to set up and get location", locationStartTime));
+
         return false;
       }
     }
 
+    LOGGER.info(LocUtil.endTimer("Time to set up and get location", locationStartTime));
+
     // Write the result to disk
+    long resultStartTime = System.currentTimeMillis();
     if (result != null) {
       // create the output file name
       String outFileName;
@@ -619,9 +630,13 @@ public class LocMain {
         }
       }
 
+      LOGGER.info(LocUtil.endTimer("Time to generate result", resultStartTime));
+
       // success
       return true;
     }
+
+    LOGGER.info(LocUtil.endTimer("Time to generate result", resultStartTime));
 
     // Exit.
     return false;

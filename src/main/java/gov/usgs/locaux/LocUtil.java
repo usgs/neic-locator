@@ -1164,4 +1164,21 @@ public class LocUtil {
 
     return (timerString);
   }
+
+  /**
+   * This timer function returns a string holding the result in seconds.
+   *
+   * @param label A String used to identify the timer
+   * @param startTime A long value containing the start time of the timer
+   * @return A String containing the timer results
+   */
+  public static String endTimer(String label, long startTime) {
+    long currentTime = System.currentTimeMillis();
+    String dateString = getNEICDateTimeString(toHydraTime(currentTime));
+
+    String timerString =
+        String.format("%s: %s: %7.3f", dateString, label, 0.001 * (currentTime - startTime));
+
+    return (timerString);
+  }
 }
