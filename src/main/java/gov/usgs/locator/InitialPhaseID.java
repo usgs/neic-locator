@@ -7,7 +7,8 @@ import gov.usgs.traveltime.TTime;
 import gov.usgs.traveltime.TTimeData;
 import gov.usgs.traveltime.tables.TauIntegralException;
 import java.util.ArrayList;
-import java.util.logging.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
  * The InitialPhaseID class performs an initial phase identification before any location iterations
@@ -58,7 +59,7 @@ public class InitialPhaseID {
   private Stepper stepper;
 
   /** Private logging object. */
-  private static final Logger LOGGER = Logger.getLogger(InitialPhaseID.class.getName());
+  private static final Logger LOGGER = LogManager.getLogger(InitialPhaseID.class.getName());
 
   /**
    * The InitialPhaseID constructor. This constructor sets the event, tt session, phase
@@ -116,7 +117,7 @@ public class InitialPhaseID {
       if (group.getNumPicksUsed() > 0 && event.getReassessInitialPhaseIDs()) {
         // For the first pick in the group, get the travel times.
         Station station = group.getStation();
-        LOGGER.finer("InitialPhaseID: " + station + ":");
+        LOGGER.trace("InitialPhaseID: " + station + ":");
 
         // Do the travel-time calculation.
         TTime ttList;
@@ -164,7 +165,7 @@ public class InitialPhaseID {
               pick.setWeight(1d / travelTime.getSpread());
 
               if (!phCode.equals(travelTime.getPhCode())) {
-                LOGGER.finer(
+                LOGGER.trace(
                     String.format("InitialPhaseID: %s -> %s auto", phCode, travelTime.getPhCode()));
               }
             } else {
@@ -188,7 +189,7 @@ public class InitialPhaseID {
                 pick.setResidual(pick.getTravelTime() - travelTime.getTT());
                 pick.setWeight(1d / travelTime.getSpread());
 
-                LOGGER.finer(
+                LOGGER.trace(
                     String.format(
                         "InitialPhaseID: " + "%s -> %s human", phCode, travelTime.getPhCode()));
               }
@@ -198,7 +199,7 @@ public class InitialPhaseID {
                 new WeightedResidual(
                     pick, pick.getResidual(), pick.getWeight(), false, 0d, 0d, 0d, 0d, 0d));
 
-            LOGGER.finer(
+            LOGGER.trace(
                 String.format(
                     "InitialPhaseID push: %s %s %5.2f %7.4f %5.2f" + "%5.2f",
                     pick.getStation().getStationID().getStationCode(),
@@ -233,7 +234,7 @@ public class InitialPhaseID {
       double median = rankSumEstimator.computeMedian();
       event.updateOriginTime(median);
 
-      LOGGER.fine(
+      LOGGER.debug(
           String.format(
               "Update origin: %f %f %f %d",
               hypo.getOriginTime(), median, hypo.getOriginTime() + median, badPs));
@@ -289,7 +290,7 @@ public class InitialPhaseID {
               && !"PKPdf".equals(phCode)) {
             pick.setIsUsed(false);
 
-            LOGGER.finer(
+            LOGGER.trace(
                 String.format(
                     "\tIdEasy: don't use %s %s",
                     group.getStation().getStationID().getStationCode(),
@@ -318,7 +319,7 @@ public class InitialPhaseID {
           if (pick.getIsAutomatic() && pick.getIsUsed() && event.getReassessInitialPhaseIDs()) {
             pick.setIsUsed(false);
 
-            LOGGER.finer(
+            LOGGER.trace(
                 String.format(
                     "\tIdEasy: don't use %s %s",
                     group.getStation().getStationID().getStationCode(),
@@ -360,7 +361,7 @@ public class InitialPhaseID {
             // For the first pick in the group, get the travel times.
             station = group.getStation();
 
-            LOGGER.finer("" + station + ":");
+            LOGGER.trace("" + station + ":");
 
             // Do the travel-time calculation.
             TTime ttList =
@@ -377,7 +378,7 @@ public class InitialPhaseID {
             // Set the phase code.  The travel time was already set in phaseID.
             pick.updatePhaseIdentification(ttList.getPhase(0).getPhCode());
 
-            LOGGER.finer(
+            LOGGER.trace(
                 String.format(
                     "IdHard: %s %s -> %s auto",
                     group.getStation().getStationID().getStationCode(),
@@ -388,7 +389,7 @@ public class InitialPhaseID {
             // don't use it.
             pick.setIsUsed(false);
 
-            LOGGER.finer(
+            LOGGER.trace(
                 String.format(
                     "IdHard: don't use %s %s",
                     group.getStation().getStationID().getStationCode(),
@@ -403,7 +404,7 @@ public class InitialPhaseID {
           if (pick.getIsAutomatic() && pick.getIsUsed()) {
             pick.setIsUsed(false);
 
-            LOGGER.finer(
+            LOGGER.trace(
                 String.format(
                     "\tIdHard: don't use %s %s",
                     group.getStation().getStationID().getStationCode(),

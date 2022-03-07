@@ -11,7 +11,8 @@ import gov.usgs.traveltime.TauUtil;
 import gov.usgs.traveltime.tables.TauIntegralException;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.logging.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
  * The Stepper class manages the rank-sum-estimator logic needed to refine the hypocenter.
@@ -65,7 +66,7 @@ public class Stepper {
   private Decorrelator decorrelator;
 
   /** Private logging object. */
-  private static final Logger LOGGER = Logger.getLogger(Stepper.class.getName());
+  private static final Logger LOGGER = LogManager.getLogger(Stepper.class.getName());
 
   /** A double containing the median of the residuals used by the derivative test */
   private double residualsMedian;
@@ -183,7 +184,7 @@ public class Stepper {
       residualsMedian = rawRankSumEstimator.computeMedian();
       rawRankSumEstimator.deMedianResiduals();
 
-      LOGGER.fine(String.format("Lsrt: EL av = %8.4f", residualsMedian));
+      LOGGER.debug(String.format("Lsrt: EL av = %8.4f", residualsMedian));
 
       // Decorrelate the raw data.
       if (event.getHasPhaseIdChanged() || !firstDecorrelationDone) {
@@ -202,7 +203,7 @@ public class Stepper {
       dispersion = projectedRankSumEstimator.computeDispersionValue();
       bayesianContribution = projectedRankSumEstimator.getContribution();
 
-      LOGGER.fine(
+      LOGGER.debug(
           String.format(
               "Lsrt: ST av chisq = %8.4f %10.4f %10.4f",
               projectedMedian,
@@ -221,7 +222,7 @@ public class Stepper {
       dispersion = rawRankSumEstimator.computeDispersionValue();
       bayesianContribution = rawRankSumEstimator.getContribution();
 
-      LOGGER.fine(
+      LOGGER.debug(
           String.format(
               "Lsrt: ST av chisq = %8.4f %10.4f %10.4f",
               residualsMedian,
@@ -251,7 +252,7 @@ public class Stepper {
     for (int j = 0; j < hypo.getStepDirectionUnitVector().length; j++) {
       adderString += String.format(" %7.4f", hypo.getStepDirectionUnitVector()[j]);
     }
-    LOGGER.fine(adderString);
+    LOGGER.debug(adderString);
   }
 
   /**
@@ -371,7 +372,7 @@ public class Stepper {
 
       // Do the damping.
       hypo.setNumOfTimesStepLengthDampening(hypo.getNumOfTimesStepLengthDampening() + 1);
-      LOGGER.fine(
+      LOGGER.debug(
           String.format("Damping: %d %6.4f", hypo.getNumOfTimesStepLengthDampening(), damp));
       hypo.resetHypo(lastHypoAudit);
       hypo.setStepLength(hypo.getStepLength() * damp);
@@ -421,7 +422,7 @@ public class Stepper {
       LocUtil.isTectonic = true;
     }
 
-    LOGGER.fine("Tectonic = " + LocUtil.isTectonic);
+    LOGGER.debug("Tectonic = " + LocUtil.isTectonic);
 
     if (!event.getIsDepthManual()) {
       // Update the Bayesian depth if it wasn't set by the analyst.
@@ -432,9 +433,9 @@ public class Stepper {
        * depth order).  If the Bayesian condition was set up as a sum of Gaussians, we
        * would be done.
        */
-      LOGGER.fine("Bayesian depths:");
+      LOGGER.debug("Bayesian depths:");
       for (BayesianDepth bayes : bayesList) {
-        LOGGER.fine("\t" + bayes);
+        LOGGER.debug("\t" + bayes);
       }
 
       /*
@@ -446,7 +447,7 @@ public class Stepper {
       //    LocUtil.record("\tBayesian depth: " + bayesDepth);
     }
 
-    LOGGER.fine(
+    LOGGER.debug(
         String.format(
             "Bayes: %5.1f %5.3f %b",
             hypo.getBayesianDepth(), hypo.getBayesianDepthWeight(), event.getIsDepthManual()));
@@ -708,7 +709,7 @@ public class Stepper {
       hypo.setEstimatorRMSEquivalent(0d);
     }
 
-    LOGGER.fine(
+    LOGGER.debug(
         String.format(
             "%s: %1d %2d %5d %8.4f %8.4f %6.2f del= %5.1f %6.1f " + "rms= %6.2f %s",
             id,
@@ -809,12 +810,13 @@ public class Stepper {
 
       // Log it if there might be something to compare.
       if (bayesList.size() > 1) {
-        System.out.format(
-            "Random trial %4d: lat = %6.2f lon = %7.2f depth = %6.2f\n", i, lat, lon, depth);
+        LOGGER.debug(
+            System.out.format(
+                "Random trial %4d: lat = %6.2f lon = %7.2f depth = %6.2f\n", i, lat, lon, depth));
 
-        System.out.println("Bayesian depths:");
+        LOGGER.debug("Bayesian depths:");
         for (BayesianDepth bayes : bayesList) {
-          System.out.println("\t" + bayes);
+          LOGGER.debug("\t" + bayes);
         }
       } else {
         // If there was only one depth, see where it came from.
@@ -844,7 +846,7 @@ public class Stepper {
             slabCrust++;
             break;
           default:
-            System.out.println("Unexpected singleton: " + bayesList.get(0));
+            LOGGER.warn("Unexpected singleton: " + bayesList.get(0));
             break;
         }
       }
@@ -883,7 +885,7 @@ public class Stepper {
             newZoneDepth = bayes.getDepth();
             break;
           default:
-            System.out.println("\tWEIRD: unknown depth source = " + bayes);
+            LOGGER.warn("\tWEIRD: unknown depth source = " + bayes);
             break;
         }
       }
@@ -899,7 +901,6 @@ public class Stepper {
           }
           dDepth = slabDepth - newZoneDepth;
           histIndex = Math.min(Math.max((int) (dDepth + 100.5d), 0), 200);
-          //  		System.out.format("\tIndex: %6.2f => %d\n", dDepth, histIndex);
           hist[histIndex]++;
         } else if (zoneDepth >= 0d) {
           slabNzone++;
@@ -920,29 +921,30 @@ public class Stepper {
     }
 
     // Dump the statistics:
-    System.out.format(
-        "\nShallow: default = %d zone = %d new = %d\nCrust: zone = %d "
-            + "new = %d slab = %d\nDeep: slab = %d new = %d zone = %d all = %d slab&new = %d "
-            + "slab&zone = %d zone&new = %d\n",
-        defaultShallow,
-        zoneShallow,
-        newZoneShallow,
-        zoneCrust,
-        newZoneCrust,
-        slabCrust,
-        slabOnly,
-        newZoneOnly,
-        zoneOnly,
-        slabNzones,
-        slabNnew,
-        slabNzone,
-        zoneNnew);
-    System.out.println("Histogram:");
+    LOGGER.debug(
+        System.out.format(
+            "\nShallow: default = %d zone = %d new = %d\nCrust: zone = %d "
+                + "new = %d slab = %d\nDeep: slab = %d new = %d zone = %d all = %d slab&new = %d "
+                + "slab&zone = %d zone&new = %d\n",
+            defaultShallow,
+            zoneShallow,
+            newZoneShallow,
+            zoneCrust,
+            newZoneCrust,
+            slabCrust,
+            slabOnly,
+            newZoneOnly,
+            zoneOnly,
+            slabNzones,
+            slabNnew,
+            slabNzone,
+            zoneNnew));
+    LOGGER.debug("Histogram:");
 
     for (int j = 0; j < hist.length; j++) {
-      System.out.format(" %5d", hist[j]);
+      LOGGER.debug(System.out.format(" %5d", hist[j]));
       if (j > 0 && j % 20 == 0) {
-        System.out.println();
+        LOGGER.debug("\n");
       }
     }
   }

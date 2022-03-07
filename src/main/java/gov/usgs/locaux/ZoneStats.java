@@ -4,6 +4,8 @@ import gov.usgs.locator.BayesianDepth;
 import gov.usgs.locator.DepthSource;
 import java.io.IOException;
 import java.io.Serializable;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
  * The ZoneStats class implements the historical free depth statistics portion of the SEDAS zone
@@ -35,6 +37,9 @@ public class ZoneStats extends AbstractZoneStats implements Serializable {
 
   /** An array of ZoneStat objects containing the statistics for one Marsden square. */
   private ZoneStat[] zoneStats;
+
+  /** Private logging object. */
+  private static final Logger LOGGER = LogManager.getLogger(ZoneStats.class.getName());
 
   /**
    * The ZoneStats constructor. Sets up the zone keys and allocate the zone statistics.
@@ -302,6 +307,6 @@ public class ZoneStats extends AbstractZoneStats implements Serializable {
     double lat = 42.6040, lon = 132.0885;
 
     BayesianDepth bayes = interpolateBayesDepth(lat, lon);
-    System.out.println(bayes);
+    LOGGER.info(bayes);
   }
 }

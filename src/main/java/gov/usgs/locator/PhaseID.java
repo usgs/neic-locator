@@ -10,7 +10,8 @@ import gov.usgs.traveltime.TTimeData;
 import gov.usgs.traveltime.TauUtil;
 import gov.usgs.traveltime.tables.TauIntegralException;
 import java.util.ArrayList;
-import java.util.logging.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
  * The PhaseID class associates theoretical seismic phases with the observed seismicpicks.
@@ -81,7 +82,7 @@ public class PhaseID {
   private String currPhaseGroupName = null;
 
   /** Private logging object. */
-  private static final Logger LOGGER = Logger.getLogger(PhaseID.class.getName());
+  private static final Logger LOGGER = LogManager.getLogger(PhaseID.class.getName());
 
   /**
    * The PhaseID constructor. This constructor sets the event and tt session to the provided values.
@@ -123,7 +124,7 @@ public class PhaseID {
       double otherWeight, double stickyWeight, boolean reidentifyPhases, boolean reweightResiduals)
       throws BadDepthException, TauIntegralException {
 
-    LOGGER.fine("Curr loc: " + hypo);
+    LOGGER.debug("Curr loc: " + hypo);
 
     // Remember the figure-of-merit controls.
     this.otherWeight = otherWeight;
@@ -154,7 +155,7 @@ public class PhaseID {
       currentGroup = event.getPickGroupList().get(j);
       Station station = currentGroup.getStation();
 
-      LOGGER.finer(
+      LOGGER.trace(
           String.format(
               "PhaseID: %s %6.2f %6.2f %6.2f",
               station.getStationID().getStationCode(),
@@ -236,7 +237,7 @@ public class PhaseID {
               && (Math.abs(pick.getTravelTime() - travelTime.getTT()) < minResidual)) {
             ttIndex = i;
             minResidual = Math.abs(pick.getTravelTime() - travelTime.getTT());
-            LOGGER.finest(
+            LOGGER.trace(
                 String.format("NoReID: checking for min residual:  %s %6.2f", phCode, minResidual));
           }
         }
@@ -250,7 +251,7 @@ public class PhaseID {
           pick.setStatisticalFoM(minResidual);
           pick.setForceAssociation(true);
 
-          LOGGER.finer(
+          LOGGER.trace(
               String.format(
                   "NoReID: got it %s %s %6.2f %2d",
                   pick.getStation().getStationID().getStationCode(), phCode, minResidual, ttIndex));
@@ -278,7 +279,7 @@ public class PhaseID {
             pick.setStatisticalFoM(minResidual);
             pick.setForceAssociation(true);
 
-            LOGGER.finer(
+            LOGGER.trace(
                 String.format(
                     "NoReID: group %s %s -> %s %6.2f %2d",
                     pick.getStation().getStationID().getStationCode(),
@@ -288,7 +289,7 @@ public class PhaseID {
                     ttIndex));
           } else {
             if (pick.getIsUsed()) {
-              LOGGER.finer("NoReID: give up " + pick.getStation().getStationID().getStationCode());
+              LOGGER.trace("NoReID: give up " + pick.getStation().getStationID().getStationCode());
 
               currentGroup.initializeFoM(j, j);
               reidentifyPhases();
@@ -326,7 +327,7 @@ public class PhaseID {
 
     // Split the theoretical phase into clusters (groups isolated in
     // travel time).
-    LOGGER.finer("Clusters:");
+    LOGGER.trace("Clusters:");
 
     int i = 0;
     TTimeData travelTime = currentTTList.getPhase(0);
@@ -367,7 +368,7 @@ public class PhaseID {
         // If this cluster has picks, do the identification.
         if (numPicks > 0) {
           // Print the current cluster.
-          LOGGER.finer(
+          LOGGER.trace(
               String.format(
                   "TT: %2d %2d  Pick: %2d %2d  Win: %7.2f %7.2f",
                   firstTTIndex, numTT, firstPhaseIndex, numPicks, minTTWindow, maxTTWindow));
@@ -435,7 +436,7 @@ public class PhaseID {
       ttArrivals[j] = currentTTList.getPhase(i);
     }
 
-    LOGGER.finer(String.format(" Permut: %2d Picks, %2d TTs", numPicks, numTT));
+    LOGGER.trace(String.format(" Permut: %2d Picks, %2d TTs", numPicks, numTT));
 
     // The algorithm depends on which group is the most numerous.
     if (numTT >= numPicks) {
@@ -526,7 +527,7 @@ public class PhaseID {
         double residual = computeResidual(obsPicks[j], ttArrivals[j]);
         double boost = LocUtil.computeProximityBoost(residual);
 
-        LOGGER.finer(
+        LOGGER.trace(
             String.format(
                 "%s %s: %10.4e %10.4e %5.2f",
                 obsPicks[j].getBestPhaseCode(),
@@ -539,7 +540,7 @@ public class PhaseID {
       }
     }
 
-    LOGGER.finest(
+    LOGGER.trace(
         String.format("Cum: %10.4e %10.4e", cumulativeFoM, currentGroup.getCumulativeFoM()));
 
     // Make a second pass if this is the highest figure-of-merit yet.  Note,
@@ -583,15 +584,15 @@ public class PhaseID {
         isGeneric = false;
       }
 
-      LOGGER.finest("New " + currPhaseGroupName);
+      LOGGER.trace("New " + currPhaseGroupName);
       if (isPrimary) {
-        LOGGER.finest(" Pri");
+        LOGGER.trace(" Pri");
       }
       if (isGeneric) {
-        LOGGER.finest(" Gen");
+        LOGGER.trace(" Gen");
       }
     } else {
-      LOGGER.finest("Old");
+      LOGGER.trace("Old");
     }
 
     // initialize the observability amplitude.
@@ -600,7 +601,7 @@ public class PhaseID {
       observabilityAmp = travelTime.getObserv();
     } else {
       observabilityAmp = LocUtil.DOWNWEIGHT * travelTime.getObserv();
-      LOGGER.finest(" Down");
+      LOGGER.trace(" Down");
     }
 
     // Do the group logic.  If the phase codes match drop through
@@ -619,12 +620,12 @@ public class PhaseID {
             || ("Reg".equals(currPhaseGroupName) && travelTime.isRegional())) {
           observabilityAmp *= LocUtil.GROUPWEIGHT;
 
-          LOGGER.finest(" Group1");
+          LOGGER.trace(" Group1");
         } else {
           // Otherwise use the other (non-group) weighting.
           observabilityAmp *= otherWeight;
 
-          LOGGER.finest(" Other1");
+          LOGGER.trace(" Other1");
 
           // If we trust the phase identification and the arrival types
           // of the phases don't match, make re-identifying even harder
@@ -633,7 +634,7 @@ public class PhaseID {
                   != TauUtil.arrivalType(travelTime.getPhCode())) {
             observabilityAmp *= LocUtil.TYPEWEIGHT;
 
-            LOGGER.finest(" Type1");
+            LOGGER.trace(" Type1");
           }
         }
       } else {
@@ -644,12 +645,12 @@ public class PhaseID {
         if (currPhaseGroupName.equals(travelTime.getPhGroup())) {
           observabilityAmp *= LocUtil.GROUPWEIGHT;
 
-          LOGGER.finest(" Group2");
+          LOGGER.trace(" Group2");
         } else {
           // Otherwise use the other (non-group) weighting.
           observabilityAmp *= otherWeight;
 
-          LOGGER.finest(" Other2");
+          LOGGER.trace(" Other2");
 
           // If we trust the phase identification and the arrival types
           // of the phases don't match, make re-identifying even harder
@@ -658,7 +659,7 @@ public class PhaseID {
                   != TauUtil.arrivalType(travelTime.getPhCode())) {
             observabilityAmp *= LocUtil.TYPEWEIGHT;
 
-            LOGGER.finest(" Type2");
+            LOGGER.trace(" Type2");
           }
         }
       }
@@ -668,14 +669,14 @@ public class PhaseID {
     if (pick.getBestPhaseCode().equals(travelTime.getPhCode())) {
       observabilityAmp *= pick.getOriginalPhaseAffinity();
 
-      LOGGER.finest(" Aff");
+      LOGGER.trace(" Aff");
     }
 
     // Make the existing identification harder to change.
     if (pick.getCurrentPhaseCode().equals(travelTime.getPhCode())) {
       observabilityAmp *= stickyWeight;
 
-      LOGGER.finest(" Sticky");
+      LOGGER.trace(" Sticky");
     }
 
     return observabilityAmp;

@@ -3,7 +3,8 @@ package gov.usgs.locaux;
 import gov.usgs.locator.BayesianDepth;
 import gov.usgs.locator.DepthSource;
 import java.util.ArrayList;
-import java.util.logging.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
  * ZoneStats interpolation methods. Note that this code should be common for all different ZoneStats
@@ -13,7 +14,7 @@ import java.util.logging.Logger;
  */
 public class ZoneInterpolate {
   /** Private logging object. */
-  private static final Logger LOGGER = Logger.getLogger(ZoneInterpolate.class.getName());
+  private static final Logger LOGGER = LogManager.getLogger(ZoneInterpolate.class.getName());
 
   /**
    * This function computes an interpolated version of the mean free earthquake depth in the
@@ -45,7 +46,7 @@ public class ZoneInterpolate {
 
     // Set up the epicenter.
     trial = new GeoPoint(zoneStats.coLat, zoneStats.coLon);
-    LOGGER.fine("Epicenter: " + trial);
+    LOGGER.debug("Epicenter: " + trial);
 
     // Generate surrounding Zone cells.
     coords = getCenters(trial, zoneStats);
@@ -54,7 +55,7 @@ public class ZoneInterpolate {
     coords.sort(null);
     // Debug print.
     //	for(GeoPoint sample : coords) {
-    //		LOGGER.fine(sample);
+    //		LOGGER.debug(sample);
     //	}
 
     // Interpolate from the three closest cell centers to get the depth at the
@@ -167,7 +168,7 @@ public class ZoneInterpolate {
     }
 
     if (nulls >= 3) {
-      // LOGGER.fine("All nulls before filtering.");
+      // LOGGER.debug("All nulls before filtering.");
       return null;
     }
 
@@ -195,7 +196,7 @@ public class ZoneInterpolate {
     }
 
     if (nulls >= 3) {
-      // LOGGER.fine("All nulls after filtering.");
+      // LOGGER.debug("All nulls after filtering.");
       return null;
     }
 
@@ -203,7 +204,7 @@ public class ZoneInterpolate {
     // we added some.
     sortOutNulls(coords, 3);
     for (int j = 0; j < 3; j++) {
-      // LOGGER.fine("Poly\": " + j + " " + coords.get(j));
+      // LOGGER.debug("Poly\": " + j + " " + coords.get(j));
     }
 
     // Instantiate a mostly empty BayesianDepth object.
@@ -221,13 +222,13 @@ public class ZoneInterpolate {
 
           Linear.twoD(vectors[0], vectors[1], vectors[2], result);
           bayesDepth.setByIndex(i, result[2]);
-          // LOGGER.finer(
+          // LOGGER.trace(
           //    String.format(
           //        "%-6s: values = (%6.2f, %6.2f, %6.2f) result = %6.2f\n",
           //        label[i], vectors[0][2], vectors[1][2], vectors[2][2], result[2]));
         }
 
-        // LOGGER.fine("3-point interpolation: " + bayesDepth);
+        // LOGGER.debug("3-point interpolation: " + bayesDepth);
         return bayesDepth;
       case 1:
         // We have two points.  Interpolate using the intersection between the line and
@@ -240,7 +241,7 @@ public class ZoneInterpolate {
           intersect = Linear.intersect(vectors[0], vectors[1], result);
           Linear.oneD(vectors[0], vectors[1], intersect);
           bayesDepth.setByIndex(i, intersect[2]);
-          // LOGGER.finer(
+          // LOGGER.trace(
           //    String.format(
           //        "%-6s: values = (%6.2f, %6.2f) result = %6.2f\n",
           //        label[i], vectors[0][2], vectors[1][2], intersect[2]));
@@ -249,7 +250,7 @@ public class ZoneInterpolate {
         // Inflate the error to reflect the edge uncertainty.
         bayesDepth.inflateSpread(1.5d);
 
-        // LOGGER.fine("2-point interpolation: " + bayesDepth);
+        // LOGGER.debug("2-point interpolation: " + bayesDepth);
         return bayesDepth;
       case 2:
         // We only have one point, so use it.
@@ -258,7 +259,7 @@ public class ZoneInterpolate {
         // Inflate the errors even more as we're hanging a lot on one point.
         bayesDepth.inflateSpread(2d);
 
-        // LOGGER.fine("1-point interpolation: " + bayesDepth);
+        // LOGGER.debug("1-point interpolation: " + bayesDepth);
         return bayesDepth;
       default:
         // This should never happen!

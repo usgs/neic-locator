@@ -73,7 +73,6 @@ public class TiltedSample {
        * bars.
        */
       for (SlabPoint point : samples) {
-        //				System.out.println("\t\t" + point);
         lower = Math.min(point.getDep().getLower(), lower);
         center += point.getDep().getEqDepth();
         upper = Math.max(point.getDep().getUpper(), upper);

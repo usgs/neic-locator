@@ -11,6 +11,8 @@ import java.io.IOException;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.TimeZone;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.json.simple.JSONObject;
 
 /**
@@ -439,6 +441,9 @@ public class LocUtil {
    * startLocationTimer and endLocationTimer.
    */
   private static long locationTime;
+
+  /** Private logging object. */
+  private static final Logger LOGGER = LogManager.getLogger(LocUtil.class.getName());
 
   /**
    * This function computes the source-receiver distance and the receiver azimuth. An historically
@@ -1102,20 +1107,20 @@ public class LocUtil {
         try {
           recordOut = new BufferedWriter(new FileWriter("../../LocRun/output/Record.txt"));
         } catch (IOException e) {
-          System.out.println("Unable to open the Record.txt file");
+          LOGGER.error("Unable to open the Record.txt file");
         }
       }
       try {
         recordOut.write(line + "\n");
       } catch (IOException e) {
-        System.out.println("Unable to record: " + line);
+        LOGGER.error("Unable to record: " + line);
       }
     } else {
       if (recordOut != null) {
         try {
           recordOut.close();
         } catch (IOException e) {
-          System.out.println("Unable to close the Record.txt file");
+          LOGGER.error("Unable to close the Record.txt file");
         }
       }
     }
@@ -1174,10 +1179,7 @@ public class LocUtil {
    */
   public static String endTimer(String label, long startTime) {
     long currentTime = System.currentTimeMillis();
-    String dateString = getNEICDateTimeString(toHydraTime(currentTime));
-
-    String timerString =
-        String.format("%s: %s: %7.3f", dateString, label, 0.001 * (currentTime - startTime));
+    String timerString = String.format("%s: %7.3f", label, 0.001 * (currentTime - startTime));
 
     return (timerString);
   }

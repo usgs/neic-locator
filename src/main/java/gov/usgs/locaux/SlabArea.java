@@ -3,7 +3,8 @@ package gov.usgs.locaux;
 import gov.usgs.traveltime.TauUtil;
 import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.logging.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
  * Store slab depth information for one latitude-longitude area.
@@ -39,7 +40,7 @@ public class SlabArea implements Serializable {
   private ArrayList<SlabRow> slabRows;
 
   /** Private logging object. */
-  private static final Logger LOGGER = Logger.getLogger(SlabArea.class.getName());
+  private static final Logger LOGGER = LogManager.getLogger(SlabArea.class.getName());
 
   /**
    * SlabArea constructor, sets up storage for the rows, segments, and depths.
@@ -210,9 +211,9 @@ public class SlabArea implements Serializable {
     for (int j = 0; j < 2; j++) {
       if (v0[j] == null) {
         nulls++;
-        LOGGER.fine("v0[" + j + "]: null");
+        LOGGER.debug("v0[" + j + "]: null");
       } else {
-        LOGGER.fine(
+        LOGGER.debug(
             String.format(
                 "v0[%d]: (%7.3f, %7.3f, %7.4f", j, v0[j][1][0], v0[j][1][1], v0[j][1][2]));
       }
@@ -222,9 +223,9 @@ public class SlabArea implements Serializable {
       for (int j = 0; j < 2; j++) {
         if (v1[j] == null) {
           nulls++;
-          LOGGER.fine("v1[" + j + "]: null");
+          LOGGER.debug("v1[" + j + "]: null");
         } else {
-          LOGGER.fine(
+          LOGGER.debug(
               String.format(
                   "v1[%d]: (%7.3f, %7.3f, %7.4f", j, v1[j][1][0], v1[j][1][1], v1[j][1][2]));
         }
@@ -232,7 +233,7 @@ public class SlabArea implements Serializable {
     } else {
       nulls += 2;
     }
-    LOGGER.fine(String.format("    v: (%7.3f, %7.3f, %7.4f", v[0], v[1], v[2]));
+    LOGGER.debug(String.format("    v: (%7.3f, %7.3f, %7.4f", v[0], v[1], v[2]));
 
     switch (nulls) {
       case 0:
@@ -343,7 +344,7 @@ public class SlabArea implements Serializable {
         lastLat += slabInc;
         slabRows.add(j, new SlabRow(lastLat));
 
-        LOGGER.fine(String.format("Dummy row added: lat = %6.2f", lastLat));
+        LOGGER.debug(String.format("Dummy row added: lat = %6.2f", lastLat));
       }
 
       lastLat = slabRows.get(j).getLat();
@@ -352,19 +353,21 @@ public class SlabArea implements Serializable {
 
   /** Function to check the status of all rows in this area for debugging purposes. */
   public void rowCensus() {
-    LOGGER.fine("\t" + this);
-    double lat = slabRows.get(0).getLat() - slabInc;
+    if (LOGGER.isDebugEnabled()) {
+      LOGGER.debug("\t" + this);
+      double lat = slabRows.get(0).getLat() - slabInc;
 
-    for (int j = 0; j < slabRows.size(); j++) {
-      lat += slabInc;
-
-      while (Math.abs(slabRows.get(j).getLat() - lat) > TauUtil.DTOL) {
-        LOGGER.fine(String.format("Missing row (lat = %6.2f)", lat));
+      for (int j = 0; j < slabRows.size(); j++) {
         lat += slabInc;
-      }
 
-      if (slabRows.get(j).isDummyRow()) {
-        LOGGER.fine(String.format("Dummy row (lat = %6.2f)", lat));
+        while (Math.abs(slabRows.get(j).getLat() - lat) > TauUtil.DTOL) {
+          LOGGER.debug(String.format("Missing row (lat = %6.2f)", lat));
+          lat += slabInc;
+        }
+
+        if (slabRows.get(j).isDummyRow()) {
+          LOGGER.debug(String.format("Dummy row (lat = %6.2f)", lat));
+        }
       }
     }
   }

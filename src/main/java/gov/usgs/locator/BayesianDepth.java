@@ -1,7 +1,8 @@
 package gov.usgs.locator;
 
 import gov.usgs.locaux.SlabDepth;
-import java.util.logging.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 public class BayesianDepth implements Comparable<BayesianDepth> {
 
@@ -30,7 +31,7 @@ public class BayesianDepth implements Comparable<BayesianDepth> {
   private double factor = 1d;
 
   /** Private logging object. */
-  private static final Logger LOGGER = Logger.getLogger(BayesianDepth.class.getName());
+  private static final Logger LOGGER = LogManager.getLogger(BayesianDepth.class.getName());
 
   /** @return Earthquake depth in km */
   public double getDepth() {
@@ -191,7 +192,7 @@ public class BayesianDepth implements Comparable<BayesianDepth> {
         spread = param;
         break;
       default:
-        LOGGER.warning("BayesianDepth.setByIndex: there is no case > 3!");
+        LOGGER.warn("BayesianDepth.setByIndex: there is no case > 3!");
     }
   }
 

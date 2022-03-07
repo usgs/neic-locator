@@ -8,7 +8,8 @@ import gov.usgs.processingformats.LocationService;
 import gov.usgs.traveltime.TTSessionLocal;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.logging.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 public class LocService implements LocationService {
   /** Class to manage the travel-time external files. */
@@ -21,7 +22,7 @@ public class LocService implements LocationService {
   private String serializedPath = null;
 
   /** Private logging object. */
-  private static final Logger LOGGER = Logger.getLogger(LocService.class.getName());
+  private static final Logger LOGGER = LogManager.getLogger(LocService.class.getName());
 
   /**
    * The LocService constructor. Sets up the travel-times and locator external files.
@@ -36,7 +37,7 @@ public class LocService implements LocationService {
     try {
       ttLocal = new TTSessionLocal(true, true, true, modelPath, serializedPath);
     } catch (IOException | ClassNotFoundException e) {
-      LOGGER.severe("Unable to read travel-time auxiliary data.");
+      LOGGER.fatal("Unable to read travel-time auxiliary data.");
       e.printStackTrace();
       throw new LocationException("Unable to read travel-time auxiliary data.");
     }
@@ -48,7 +49,7 @@ public class LocService implements LocationService {
     try {
       locLocal = new LocSessionLocal(modelPath, serializedPath);
     } catch (IOException | ClassNotFoundException e) {
-      LOGGER.severe("Unable to read Locator auxiliary data.");
+      LOGGER.fatal("Unable to read Locator auxiliary data.");
       e.printStackTrace();
       throw new LocationException("Unable to read Locator auxiliary data.");
     }
@@ -68,7 +69,7 @@ public class LocService implements LocationService {
   @Override
   public LocationResult getLocation(final LocationRequest request) throws LocationException {
     if (request == null) {
-      LOGGER.severe("Null request.");
+      LOGGER.fatal("Null request.");
       throw new LocationException("Null request");
     }
     LocUtil.startLocationTimer();
@@ -112,7 +113,7 @@ public class LocService implements LocationService {
         errorString += " " + errorList.get(i);
       }
 
-      LOGGER.severe("Invalid input: " + errorString);
+      LOGGER.fatal("Invalid input: " + errorString);
       throw new LocationException("Invalid Input");
     }
 
@@ -132,7 +133,9 @@ public class LocService implements LocationService {
     LOGGER.info(LocUtil.endTimer("Time to setup event for location", setupStartTime));
 
     // print input for debugging
-    LOGGER.info("Input: \n" + event.getHydraInput(false));
+    if (LOGGER.isDebugEnabled()) {
+      LOGGER.debug("Input: \n" + event.getHydraInput(false));
+    }
 
     // make sure we have a slab resolution
     if (in.SlabResolution == null) {
@@ -145,7 +148,7 @@ public class LocService implements LocationService {
     try {
       loc = locLocal.getLocate(event, ttLocal, in.SlabResolution);
     } catch (ClassNotFoundException | IOException e) {
-      LOGGER.severe("Unable to read slab model data.");
+      LOGGER.fatal("Unable to read slab model data.");
       e.printStackTrace();
       throw new LocationException("Unable to read slab model data.");
     }
@@ -169,7 +172,9 @@ public class LocService implements LocationService {
     LOGGER.info(LocUtil.endTimer("Time to generate output", outputStartTime));
 
     // print output for debugging
-    LOGGER.info("Results: \n" + event.getHydraOutput() + "\n" + event.getNEICOutput());
+    if (LOGGER.isDebugEnabled()) {
+      LOGGER.debug("Results: \n" + event.getHydraOutput() + "\n" + event.getNEICOutput());
+    }
 
     // check output
     if (!out.isValid()) {
@@ -181,7 +186,7 @@ public class LocService implements LocationService {
         errorString += " " + errorList.get(i);
       }
 
-      LOGGER.severe("Invalid output: " + errorString);
+      LOGGER.fatal("Invalid output: " + errorString);
     }
 
     // return the result

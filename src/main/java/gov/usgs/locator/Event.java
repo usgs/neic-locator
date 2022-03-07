@@ -7,7 +7,8 @@ import java.util.Arrays;
 import java.util.Map;
 import java.util.NavigableMap;
 import java.util.TreeMap;
-import java.util.logging.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
  * The Event class keeps all data for one seismic event (earthquake usually).
@@ -165,7 +166,7 @@ public class Event {
   private Decorrelator decorrelator;
 
   /** Private logging object. */
-  private static final Logger LOGGER = Logger.getLogger(LocService.class.getName());
+  private static final Logger LOGGER = LogManager.getLogger(LocService.class.getName());
 
   /**
    * Function to return the event hypocenter object.
@@ -1140,7 +1141,7 @@ public class Event {
         locatorExitCode = LocStatus.LOCATION_FAILED;
         break;
     }
-    LOGGER.fine("Internal/external status: " + status + " -> " + locatorExitCode);
+    LOGGER.debug("Internal/external status: " + status + " -> " + locatorExitCode);
   }
 
   /**

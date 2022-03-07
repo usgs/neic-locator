@@ -9,7 +9,8 @@ import gov.usgs.traveltime.tables.TauIntegralException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.util.ArrayList;
-import java.util.logging.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
  * The Locate class drives the location of one earthquake.
@@ -48,7 +49,7 @@ public class Locate {
   private CloseOut close;
 
   /** Private logging object. */
-  private static final Logger LOGGER = Logger.getLogger(Locate.class.getName());
+  private static final Logger LOGGER = LogManager.getLogger(Locate.class.getName());
 
   /**
    * The Locate constructor. Sets up the class to locate a single event.
@@ -111,7 +112,7 @@ public class Locate {
       // Prepare the event for relocation by performing an initial phase
       // identification
       initialPhaseID.phaseID();
-      LOGGER.finest(initialPhaseID.printInitialID());
+      LOGGER.trace(initialPhaseID.printInitialID());
 
       // Now do the multistage iteration to refine the hypocenter.  Note that
       // this is now just a two iteration process: once without and once with
@@ -179,7 +180,7 @@ public class Locate {
             case UNSTABLE_SOLUTION:
               // If the damping failed, go to the next stage.
               dampingFailed = true;
-              System.out.println("Damping failed!");
+              LOGGER.warn("Damping failed!");
               break;
 
             default:
@@ -254,31 +255,31 @@ public class Locate {
 
     } catch (BadDepthException e) {
       // This should never happen.
-      LOGGER.severe("Source depth out of range");
+      LOGGER.fatal("Source depth out of range");
 
       StringWriter sw = new StringWriter();
       e.printStackTrace(new PrintWriter(sw));
       String exceptionAsString = sw.toString();
-      LOGGER.severe(exceptionAsString);
+      LOGGER.fatal(exceptionAsString);
 
       return LocStatus.BAD_DEPTH;
     } catch (TauIntegralException e) {
       // This should never happen either.
-      LOGGER.severe("Illegal tau partial integral");
+      LOGGER.fatal("Illegal tau partial integral");
 
       StringWriter sw = new StringWriter();
       e.printStackTrace(new PrintWriter(sw));
       String exceptionAsString = sw.toString();
-      LOGGER.severe(exceptionAsString);
+      LOGGER.fatal(exceptionAsString);
 
       return LocStatus.BAD_INTEGRAL;
     } catch (Exception e) {
-      LOGGER.severe("Unknown error");
+      LOGGER.fatal("Unknown error");
 
       StringWriter sw = new StringWriter();
       e.printStackTrace(new PrintWriter(sw));
       String exceptionAsString = sw.toString();
-      LOGGER.severe(exceptionAsString);
+      LOGGER.fatal(exceptionAsString);
 
       return LocStatus.FAILED;
     }

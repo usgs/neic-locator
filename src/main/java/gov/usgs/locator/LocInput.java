@@ -7,8 +7,9 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.Scanner;
-import java.util.logging.Logger;
 import java.util.regex.Pattern;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.json.simple.JSONObject;
 
 /**
@@ -20,7 +21,7 @@ import org.json.simple.JSONObject;
  */
 public class LocInput extends LocationRequest {
   /** Private logging object. */
-  private static final Logger LOGGER = Logger.getLogger(LocInput.class.getName());
+  private static final Logger LOGGER = LogManager.getLogger(LocInput.class.getName());
 
   /** The LocInput default constructor. */
   public LocInput() {
@@ -324,7 +325,7 @@ public class LocInput extends LocationRequest {
           errorString += " " + errorList.get(i);
         }
 
-        LOGGER.warning("Invalid pick: " + errorString);
+        LOGGER.warn("Invalid pick: " + errorString);
       }
     }
 

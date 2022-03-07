@@ -21,8 +21,8 @@ import java.io.ObjectOutputStream;
 import java.nio.channels.FileLock;
 import java.util.Scanner;
 import java.util.TreeMap;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
  * Manage the external Locator files. This includes changing the slab model resolution on demand.
@@ -55,7 +55,7 @@ public class LocSessionLocal {
   private Locate lastLocate;
 
   /** Private logging object. */
-  private static final Logger LOGGER = Logger.getLogger(LocSessionLocal.class.getName());
+  private static final Logger LOGGER = LogManager.getLogger(LocSessionLocal.class.getName());
 
   /**
    * Read in the invariant external Locator files.
@@ -148,6 +148,7 @@ public class LocSessionLocal {
     for (int j = 0; j < modelFileNames.length; j++) {
       absNames[j] = modelPath + modelFileNames[j];
     }
+
     // Fiddle the slab master file to get the required resolution.
     absNames[0] = absNames[0].substring(0, absNames[0].indexOf(".txt")) + slabRes + ".txt";
     LOGGER.info("Slab file: " + absNames[0]);
@@ -168,13 +169,13 @@ public class LocSessionLocal {
       inSlabs.close();
 
       // Write out the serialized file.
-      LOGGER.fine("Recreate the serialized file.");
+      LOGGER.debug("Recreate the serialized file.");
       serOut = new FileOutputStream(serializedPath + serializedFileName);
       objOut = new ObjectOutputStream(serOut);
 
       // Wait for an exclusive lock for writing.
       lock = serOut.getChannel().lock();
-      LOGGER.fine(
+      LOGGER.debug(
           "LocSessionLocal write lock: valid = " + lock.isValid() + " shared = " + lock.isShared());
 
       /*
@@ -195,13 +196,13 @@ public class LocSessionLocal {
       serOut.close();
     } else {
       // Read in the serialized file.
-      LOGGER.fine("Read the serialized file.");
+      LOGGER.debug("Read the serialized file.");
       serIn = new FileInputStream(serializedPath + serializedFileName);
       objIn = new ObjectInputStream(serIn);
 
       // Wait for a shared lock for reading.
       lock = serIn.getChannel().lock(0, Long.MAX_VALUE, true);
-      LOGGER.fine(
+      LOGGER.debug(
           "LocSessionLocal read lock: valid = " + lock.isValid() + " shared = " + lock.isShared());
 
       // load the cratons and zoneStats
@@ -261,9 +262,9 @@ public class LocSessionLocal {
       // Look for the end of a latitude row.
       if (Math.abs(point.getLon() - lastLon) > slabInc + TauUtil.DTOL) {
         // Print out the first and last points in each area.
-        if (LOGGER.getLevel() == Level.FINE) {
+        if (LOGGER.isDebugEnabled()) {
           if (first || Math.abs(point.getLon() - firstLon) > TauUtil.DTOL) {
-            LOGGER.fine(row.toString());
+            LOGGER.debug(row.toString());
             row.printRaw();
 
             if (first) {
@@ -283,7 +284,7 @@ public class LocSessionLocal {
           area.add(row);
 
           // Print a summary of the last area.
-          LOGGER.fine(area.toString());
+          LOGGER.debug(area.toString());
           area.printArea(false);
 
           // Add the last area to slab storage.
@@ -307,14 +308,14 @@ public class LocSessionLocal {
     }
 
     // Deal with the last point, which closes the last row and area.
-    LOGGER.fine(row.toString());
+    LOGGER.debug(row.toString());
     row.printRaw();
     row.squeeze(slabInc);
     area.add(row);
     slabs.add(area);
 
     // Print the summary for the last area.
-    LOGGER.fine(area.toString());
+    LOGGER.debug(area.toString());
     area.printArea(false);
   }
 
@@ -356,7 +357,7 @@ public class LocSessionLocal {
          * they run at odd angles with odd spacings.  We still need to find
          * them though so we can detect new areas.
          */
-        LOGGER.fine("Scan line: " + firstPoint + " - " + lastPoint);
+        LOGGER.debug("Scan line: " + firstPoint + " - " + lastPoint);
         if (Math.abs(point.getLat() - firstPoint.getLat()) > LocUtil.TILTEDAREAINCREMENT
             || Math.abs(point.getLon() - firstPoint.getLon()) > LocUtil.TILTEDAREAINCREMENT) {
           // New area.  Process the data from the last area and start a new one.

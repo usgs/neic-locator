@@ -3,7 +3,8 @@ package gov.usgs.locaux;
 import gov.usgs.locator.BayesianDepth;
 import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.logging.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
  * Provides the primary interface to all the slab data.
@@ -31,7 +32,7 @@ public class Slabs implements Serializable {
   double bayesSpread;
 
   /** Private logging object. */
-  private static final Logger LOGGER = Logger.getLogger(Slabs.class.getName());
+  private static final Logger LOGGER = LogManager.getLogger(Slabs.class.getName());
 
   /**
    * Function to retrieve the slab latitude-longitude grid spacing
@@ -133,10 +134,12 @@ public class Slabs implements Serializable {
 
   /** Function to perform a debug check on the status of all rows in all areas. */
   public void doRowCensus() {
-    LOGGER.fine("Row Census by Area");
+    if (LOGGER.isDebugEnabled()) {
+      LOGGER.debug("Row Census by Area");
 
-    for (SlabArea area : slabAreas) {
-      area.rowCensus();
+      for (SlabArea area : slabAreas) {
+        area.rowCensus();
+      }
     }
   }
 

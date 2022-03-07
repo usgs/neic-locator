@@ -16,7 +16,8 @@ import java.nio.IntBuffer;
 import java.nio.channels.FileLock;
 import java.util.Iterator;
 import java.util.Scanner;
-import java.util.logging.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
@@ -69,7 +70,7 @@ public class AuxLocRef {
   private Scanner scan;
 
   /** Private logging object. */
-  private static final Logger LOGGER = Logger.getLogger(AuxLocRef.class.getName());
+  private static final Logger LOGGER = LogManager.getLogger(AuxLocRef.class.getName());
 
   /**
    * Read the cratons and zone statistics files and make the data available to the Locator.
@@ -141,18 +142,16 @@ public class AuxLocRef {
       // Open and read the new zone statistics file.
       inNewZoneStats = new BufferedReader(new FileReader(absNames[3]));
 
-      //  LocUtil.startLocationTimer();
       newZoneStats = readNewZoneStats(inNewZoneStats);
-      //  System.out.println(LocUtil.endLocationTimer());
 
       // Write out the serialized file.
-      LOGGER.fine("Recreate the serialized file.");
+      LOGGER.debug("Recreate the serialized file.");
       serOut = new FileOutputStream(serializedPath + serializedFileName);
       objOut = new ObjectOutputStream(serOut);
 
       // Wait for an exclusive lock for writing.
       lock = serOut.getChannel().lock();
-      LOGGER.fine(
+      LOGGER.debug(
           "AuxLocRef write lock: valid = " + lock.isValid() + " shared = " + lock.isShared());
 
       /*
@@ -175,13 +174,13 @@ public class AuxLocRef {
       serOut.close();
     } else {
       // Read in the serialized file.
-      LOGGER.fine("Read the serialized file.");
+      LOGGER.debug("Read the serialized file.");
       serIn = new FileInputStream(serializedPath + serializedFileName);
       objIn = new ObjectInputStream(serIn);
 
       // Wait for a shared lock for reading.
       lock = serIn.getChannel().lock(0, Long.MAX_VALUE, true);
-      LOGGER.fine(
+      LOGGER.debug(
           "AuxLocRef read lock: valid = " + lock.isValid() + " shared = " + lock.isShared());
 
       // load the cratons and zoneStats
@@ -271,7 +270,6 @@ public class AuxLocRef {
     ByteBuffer byteBuf = ByteBuffer.wrap(byteArray);
     byteBuf.order(ByteOrder.LITTLE_ENDIAN);
     numberOfYears = byteBuf.getInt();
-    // System.out.println("ZoneStats years = " + numberOfYears);
     byteBuf.position(40); // WHY
 
     // Create the zoneStats array by reading the zonestats information
@@ -292,9 +290,6 @@ public class AuxLocRef {
       if (pctfre > 0. && minDepth < 900d) {
         // locator only cares about zone stats depth statistics
         stats[j] = new ZoneStat(meanDepth, minDepth, maxDepth);
-        // System.out.format("\t%3d %4.1f %4.1f %4.1f %5.1f %5.1f %4.1f %5.1f %3d %4.1f\n",
-        //  ndeg, peryr, maxmag, minmag, minDepth, maxDepth, pctfre, meanDepth, dpmode,
-        //  pctge);
       } else {
         stats[j] = null;
       }
@@ -357,7 +352,7 @@ public class AuxLocRef {
       newZoneStats = new NewZoneStats(lats[numLats - 1], lats[0], latSpacing, numLats);
 
       // Debug print.
-      LOGGER.finer(
+      LOGGER.trace(
           String.format(
               "FirstRowLat = %8.4f lastRowLat = %8.4f Lat Spacing = %7.4f "
                   + "Number of Lats = %d\n",
@@ -385,7 +380,7 @@ public class AuxLocRef {
         row = numLats - (int) ((lat - lats[0]) / latSpacing + 0.5d) - 1;
 
         // Debug print.
-        LOGGER.finer(
+        LOGGER.trace(
             String.format(
                 "LatRow: Lat = %8.4f Row = %3d Lon Spacing = %6.4f Number of "
                     + "Lons = %d coLat = %8.4f row' = %d",
@@ -395,7 +390,7 @@ public class AuxLocRef {
         if (numLons != newZoneStats.getNumLons(row)
             || Math.abs(lonSpacing - newZoneStats.getLonSpacing(row)) > 1e-5d
             || Math.abs(90d - lat - newZoneStats.getLat(row)) > 1e-5d) {
-          LOGGER.finer(
+          LOGGER.trace(
               String.format(
                   "Ray's spacing: Lat = %8.4f Lon Spacing = %6.4f Number of Lons = %d\n",
                   newZoneStats.getLat(row),
@@ -414,7 +409,7 @@ public class AuxLocRef {
           lon = LocUtil.getJSONDouble(jsonLonStats, "Longitude");
 
           // Debug print.
-          LOGGER.finer(
+          LOGGER.trace(
               String.format(
                   "LonSample: Lon = %9.4f column = %d coLon = %9.4f\n",
                   lon, column, (lon >= 0d) ? lon : 360d + lon));
@@ -435,7 +430,7 @@ public class AuxLocRef {
             newZoneStats.putSample(row, column, new NewZonePoint(lon, count, depth, depthError));
 
             // Debug print.
-            LOGGER.finer(
+            LOGGER.trace(
                 String.format(
                     "\t\t100km: Count = %4d Depth = %6.2f Depth Error = %6.2f\n",
                     count, depth, depthError));
