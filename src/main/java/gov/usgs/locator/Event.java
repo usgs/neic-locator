@@ -1108,11 +1108,40 @@ public class Event {
       case SUCCESS:
       case NEARLY_CONVERGED:
       case UNSTABLE_SOLUTION:
-        if ((hypo.getHorizontalStepLength() > LocUtil.DISTANCETOLERANCE)
-            || (hypo.getVerticalStepLength() > LocUtil.DEPTHTOLERANCE)) {
+        LOGGER.debug(
+            " HorizontalStepLength: "
+                + hypo.getHorizontalStepLength()
+                + " (distance tolerance: "
+                + LocUtil.DISTANCETOLERANCE
+                + ") "
+                + " VerticalStepLength: "
+                + hypo.getVerticalStepLength()
+                + " (depth tolerance: "
+                + LocUtil.DEPTHTOLERANCE
+                + ") "
+                + "isDepthHeld: "
+                + this.isDepthHeld);
+
+        if (this.isLocationHeld) {
+          // if the location is held, just return success, by definition
+          // it hasn't moved
           locatorExitCode = LocStatus.SUCCESSFUL_LOCATION;
+        } else if (this.isDepthHeld) {
+          // If the depth is held, only check horizontal step length
+          if (hypo.getHorizontalStepLength() > LocUtil.DISTANCETOLERANCE) {
+            locatorExitCode = LocStatus.SUCCESSFUL_LOCATION;
+          } else {
+            locatorExitCode = LocStatus.DID_NOT_MOVE;
+          }
         } else {
-          locatorExitCode = LocStatus.DID_NOT_MOVE;
+          // Otherwise check both horizontal and vertical step length
+          if (hypo.getHorizontalStepLength() > LocUtil.DISTANCETOLERANCE) {
+            locatorExitCode = LocStatus.SUCCESSFUL_LOCATION;
+          } else if (hypo.getVerticalStepLength() > LocUtil.DEPTHTOLERANCE) {
+            locatorExitCode = LocStatus.SUCCESSFUL_LOCATION;
+          } else {
+            locatorExitCode = LocStatus.DID_NOT_MOVE;
+          }
         }
         break;
 
@@ -1141,6 +1170,7 @@ public class Event {
         locatorExitCode = LocStatus.LOCATION_FAILED;
         break;
     }
+
     LOGGER.debug("Internal/external status: " + status + " -> " + locatorExitCode);
   }
 
@@ -1228,7 +1258,7 @@ public class Event {
     String auditString = "";
 
     for (int j = 0; j < hypoAuditList.size(); j++) {
-      auditString += hypoAuditList.get(j).toString() + "\n";
+      auditString += "\n" + hypoAuditList.get(j).toString();
     }
 
     return auditString;

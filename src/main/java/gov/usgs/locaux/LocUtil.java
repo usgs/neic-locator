@@ -22,21 +22,21 @@ import org.json.simple.JSONObject;
  */
 public class LocUtil {
   /**
-   * A double constant representing the maximum distance the epicenter can move and still be
-   * considered to be the same as the starting epicenter.
+   * A double constant representing the maximum distance in kilometers the epicenter can move and
+   * still be considered to be the same as the starting epicenter.
    */
   public static final double DISTANCETOLERANCE = 3d;
 
   /**
-   * A double constant representing the maximum distance the depth can move and still be considered
-   * to be the same as the starting depth.
+   * A double constant representing the maximum distance the depth in kilometers can move and still
+   * be considered to be the same as the starting depth.
    */
   public static final double DEPTHTOLERANCE = 5d;
 
-  /** A double constant representing the minimum depth the Locator will allow. */
-  public static final double DEPTHMIN = 1d;
+  /** A double constant representing the minimum depth in kilometers the Locator will allow. */
+  public static final double DEPTHMIN = 0d;
 
-  /** A double constant representing the maximum depth the Locator will allow. */
+  /** A double constant representing the maximum depth in kilometers the Locator will allow. */
   public static final double DEPTHMAX = 700d;
 
   /**

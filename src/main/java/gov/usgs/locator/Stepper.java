@@ -248,11 +248,13 @@ public class Stepper {
           rawRankSumEstimator.compSteepestDescDir(hypo.getDegreesOfFreedom()));
     }
 
-    String adderString = "Adder: b =";
-    for (int j = 0; j < hypo.getStepDirectionUnitVector().length; j++) {
-      adderString += String.format(" %7.4f", hypo.getStepDirectionUnitVector()[j]);
+    if (LOGGER.isDebugEnabled()) {
+      String adderString = "Adder: b =";
+      for (int j = 0; j < hypo.getStepDirectionUnitVector().length; j++) {
+        adderString += String.format(" %7.4f", hypo.getStepDirectionUnitVector()[j]);
+      }
+      LOGGER.debug(adderString);
     }
-    LOGGER.debug(adderString);
   }
 
   /**
@@ -433,9 +435,11 @@ public class Stepper {
        * depth order).  If the Bayesian condition was set up as a sum of Gaussians, we
        * would be done.
        */
-      LOGGER.debug("Bayesian depths:");
-      for (BayesianDepth bayes : bayesList) {
-        LOGGER.debug("\t" + bayes);
+      if (LOGGER.isDebugEnabled()) {
+        LOGGER.debug("Bayesian depths:");
+        for (BayesianDepth bayes : bayesList) {
+          LOGGER.debug("\t" + bayes);
+        }
       }
 
       /*
@@ -814,9 +818,11 @@ public class Stepper {
             System.out.format(
                 "Random trial %4d: lat = %6.2f lon = %7.2f depth = %6.2f\n", i, lat, lon, depth));
 
-        LOGGER.debug("Bayesian depths:");
-        for (BayesianDepth bayes : bayesList) {
-          LOGGER.debug("\t" + bayes);
+        if (LOGGER.isDebugEnabled()) {
+          LOGGER.debug("Bayesian depths:");
+          for (BayesianDepth bayes : bayesList) {
+            LOGGER.debug("\t" + bayes);
+          }
         }
       } else {
         // If there was only one depth, see where it came from.
@@ -921,30 +927,32 @@ public class Stepper {
     }
 
     // Dump the statistics:
-    LOGGER.debug(
-        System.out.format(
-            "\nShallow: default = %d zone = %d new = %d\nCrust: zone = %d "
-                + "new = %d slab = %d\nDeep: slab = %d new = %d zone = %d all = %d slab&new = %d "
-                + "slab&zone = %d zone&new = %d\n",
-            defaultShallow,
-            zoneShallow,
-            newZoneShallow,
-            zoneCrust,
-            newZoneCrust,
-            slabCrust,
-            slabOnly,
-            newZoneOnly,
-            zoneOnly,
-            slabNzones,
-            slabNnew,
-            slabNzone,
-            zoneNnew));
-    LOGGER.debug("Histogram:");
+    if (LOGGER.isDebugEnabled()) {
+      LOGGER.debug(
+          System.out.format(
+              "\nShallow: default = %d zone = %d new = %d\nCrust: zone = %d "
+                  + "new = %d slab = %d\nDeep: slab = %d new = %d zone = %d all = %d slab&new = %d "
+                  + "slab&zone = %d zone&new = %d\n",
+              defaultShallow,
+              zoneShallow,
+              newZoneShallow,
+              zoneCrust,
+              newZoneCrust,
+              slabCrust,
+              slabOnly,
+              newZoneOnly,
+              zoneOnly,
+              slabNzones,
+              slabNnew,
+              slabNzone,
+              zoneNnew));
+      LOGGER.debug("Histogram:");
 
-    for (int j = 0; j < hist.length; j++) {
-      LOGGER.debug(System.out.format(" %5d", hist[j]));
-      if (j > 0 && j % 20 == 0) {
-        LOGGER.debug("\n");
+      for (int j = 0; j < hist.length; j++) {
+        LOGGER.debug(System.out.format(" %5d", hist[j]));
+        if (j > 0 && j % 20 == 0) {
+          LOGGER.debug("\n");
+        }
       }
     }
   }

@@ -31,9 +31,9 @@ public class LocatorControllerTest {
     Hypocenter hypocenter = response.Hypocenter;
 
     Assertions.assertEquals(1551739921747L, hypocenter.Time.getTime(), 1, "Time");
-    Assertions.assertEquals(73.6673051076466, hypocenter.Latitude, 1e-4, "Latitude");
-    Assertions.assertEquals(-57.166345963410926, hypocenter.Longitude, 1e-4, "Longitude");
-    Assertions.assertEquals(8.453332413421085, hypocenter.Depth, 1e-2, "Depth");
+    Assertions.assertEquals(73.66259656098615, hypocenter.Latitude, 1e-4, "Latitude");
+    Assertions.assertEquals(-57.15027045506189, hypocenter.Longitude, 1e-4, "Longitude");
+    Assertions.assertEquals(8.271562388098651, hypocenter.Depth, 1e-2, "Depth");
   }
 
   public LocationRequest readRequestJson(final Path path) throws Exception {

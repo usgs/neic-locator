@@ -151,7 +151,7 @@ public class LocSessionLocal {
 
     // Fiddle the slab master file to get the required resolution.
     absNames[0] = absNames[0].substring(0, absNames[0].indexOf(".txt")) + slabRes + ".txt";
-    LOGGER.info("Slab file: " + absNames[0]);
+    LOGGER.debug("Slab file: " + absNames[0]);
 
     // If any of the raw input files have changed, regenerate the serialized file.
     serializedFileName = "slab" + slabRes + ".ser";

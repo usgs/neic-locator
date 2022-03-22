@@ -37,7 +37,7 @@ import org.json.simple.parser.ParseException;
  */
 public class LocMain {
   /** A String containing the locator version */
-  public static final String VERSION = "v0.3.6";
+  public static final String VERSION = "v0.3.7";
 
   /** A String containing the argument for specifying the model file path. */
   public static final String MODELPATH_ARGUMENT = "--modelPath=";
@@ -250,7 +250,7 @@ public class LocMain {
     LOGGER.info("neic-locator " + VERSION);
 
     // log args
-    LOGGER.debug("Command line arguments: " + argumentList.toString().trim());
+    LOGGER.info("Command line arguments: " + argumentList.toString().trim());
 
     // log java and os information
     LOGGER.info("java.vendor = " + System.getProperty("java.vendor"));
@@ -383,9 +383,12 @@ public class LocMain {
       }
 
       // set up either a memory mapped log file or a traditional log file
-      // memory mapped is a bit faster, but has some warnings
-      // associated with it, as such it seemed prudent to support
-      // the option of falling back to a traditional log file setup
+      //
+      // memory mapped should a bit faster, but has some warnings
+      // associated with it, and seems to only show significant improvement
+      // during large bach mode runs, as such it seemed prudent to support
+      // the option of falling back to a traditional log file setup (default)
+      //
       // note that when using memory mapped log files the java option
       // --add-opens=java.base/jdk.internal.ref=ALL-UNNAMED
       // should be used, to prevent some exceptions due to the locator
@@ -409,6 +412,7 @@ public class LocMain {
         AppenderComponentBuilder fileAppenderBuilder =
             builder
                 .newAppender("LogToFile", "File")
+                .addAttribute("append", "false")
                 .addAttribute("fileName", logLocation)
                 .add(layoutBuilder);
 

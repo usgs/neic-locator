@@ -229,7 +229,7 @@ public class Locate {
                         + Math.pow(hypo.getVerticalStepLength(), 2d)));
             event.addAudit(stage, iter, LocStatus.FINAL_HYPOCENTER);
 
-            LOGGER.info("Final wrap up: \n" + event.printHypoAudit());
+            LOGGER.info("Location Converged, Final wrap up:" + event.printHypoAudit());
 
             status = close.compFinalStats(status);
             //            LocUtil.record(event.getSynthOut());
@@ -247,7 +247,7 @@ public class Locate {
       // If we finish the last stage without converging, give up.  Note that the location is
       // probably in the ball park despite not converging.
       hypoAuditList.get(hypoAuditList.size() - 1).setLocationStatus(LocStatus.FULL_ITERATIONS);
-      LOGGER.info("Did Not Converge: \n" + event.printHypoAudit());
+      LOGGER.info("Location Did Not Converge:" + event.printHypoAudit());
 
       // Since we're probably close anyway, compute the error bars for the analyst to see.
       status = close.compFinalStats(LocStatus.FULL_ITERATIONS);
