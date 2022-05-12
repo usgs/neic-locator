@@ -240,7 +240,7 @@ public class PickGroup {
       if (humanReadable) {
         pickInput +=
             String.format(
-                "%10s %-5s %3s %2s %2s %8.4f %9.4f %5.2f %3.1f %-8s %12s %5b %-13s %-8s %3.1f",
+                "%10s %-5s %3s %2s %2s %8.4f %9.4f %5.2f %4.2f %-8s %12s %5b %-13s %-8s %4.2f",
                 pick.getPickID(),
                 station.getStationID().getStationCode(),
                 pick.getChannelCode(),
@@ -261,7 +261,7 @@ public class PickGroup {
       } else {
         pickInput +=
             String.format(
-                "%10s %-5s %3s %2s %2s %8.4f %9.4f %5.2f %3.1f %-8s %14.3f %1c %1d %-8s %3.1f ",
+                "%10s %-5s %3s %2s %2s %8.4f %9.4f %5.2f %3.2f %-8s %14.3f %1c %1d %-8s %4.2f ",
                 pick.getPickID(),
                 station.getStationID().getStationCode(),
                 pick.getChannelCode(),

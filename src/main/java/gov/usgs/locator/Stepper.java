@@ -7,7 +7,7 @@ import gov.usgs.locaux.NewZoneStats;
 import gov.usgs.locaux.Slabs;
 import gov.usgs.locaux.ZoneStats;
 import gov.usgs.traveltime.BadDepthException;
-import gov.usgs.traveltime.TauUtil;
+import gov.usgs.traveltime.TauUtilities;
 import gov.usgs.traveltime.tables.TauIntegralException;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -653,7 +653,7 @@ public class Stepper {
    * @return Best Bayesian depth
    */
   private BayesianDepth bestBayesDepth(ArrayList<BayesianDepth> bayesList, double depth) {
-    double slabDiff = TauUtil.DMAX;
+    double slabDiff = TauUtilities.MAXIMUMDOUBLE;
     BayesianDepth slabDepth = null;
 
     if (bayesList.size() > 1) {

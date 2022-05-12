@@ -1,6 +1,6 @@
 package gov.usgs.locator;
 
-import gov.usgs.traveltime.TauUtil;
+import gov.usgs.traveltime.TauUtilities;
 
 /**
  * Keep all data for one seismic station here.
@@ -133,7 +133,7 @@ public class Station {
     this.elevation = elevation;
 
     // Set up the sines and cosines.
-    coLatitude = TauUtil.geoCen(latitude);
+    coLatitude = TauUtilities.computeGeocentricColatitude(latitude);
     coLatitudeSine = Math.sin(Math.toRadians(coLatitude));
     coLatitudeCosine = Math.cos(Math.toRadians(coLatitude));
     longitudeSine = Math.sin(Math.toRadians(longitude));

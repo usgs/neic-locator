@@ -1,7 +1,7 @@
 package gov.usgs.locator;
 
 import gov.usgs.locaux.LocUtil;
-import gov.usgs.traveltime.TauUtil;
+import gov.usgs.traveltime.TauUtilities;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Map;
@@ -902,7 +902,7 @@ public class Event {
     numPhasesAssociated = 0;
     numPhasesUsed = 0;
     numLocalPhasesUsed = 0;
-    minStationDistance = TauUtil.DMAX;
+    minStationDistance = TauUtilities.MAXIMUMDOUBLE;
 
     for (int j = 0; j < pickGroupList.size(); j++) {
       PickGroup group = pickGroupList.get(j);
@@ -1276,7 +1276,7 @@ public class Event {
     if (humanReadable) {
       hydraInput +=
           String.format(
-              "%22s %8.4f %9.4f %6.2f %5b %5b %5b " + "%5.1f %5.1f %5b\n",
+              "%22s %8.4f %9.4f %6.2f %5b %5b %5b %5.1f %5.1f %5b\n",
               LocUtil.getDateTimeString(hypo.getOriginTime()),
               hypo.getLatitude(),
               hypo.getLongitude(),
@@ -1291,7 +1291,7 @@ public class Event {
     } else {
       hydraInput +=
           String.format(
-              "%14.3f %8.4f %9.4f %6.2f %c %c %c " + "%5.1f %5.1f %c \n",
+              "%14.3f %8.4f %9.4f %6.2f %c %c %c %5.1f %5.1f %c %c %c\n",
               hypo.getOriginTime(),
               hypo.getLatitude(),
               hypo.getLongitude(),
@@ -1303,7 +1303,9 @@ public class Event {
               !Double.isNaN(hypo.getBayesianDepthSpread())
                   ? 3d * hypo.getBayesianDepthSpread()
                   : 0d,
-              LocUtil.getBoolChar(!useDecorrelation));
+              LocUtil.getBoolChar(false), // no rstt
+              LocUtil.getBoolChar(!useDecorrelation),
+              LocUtil.getBoolChar(isLocationHeld));
     }
 
     for (int j = 0; j < pickGroupList.size(); j++) {

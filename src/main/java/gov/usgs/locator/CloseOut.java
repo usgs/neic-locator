@@ -3,7 +3,7 @@ package gov.usgs.locator;
 import Jama.EigenvalueDecomposition;
 import Jama.Matrix;
 import gov.usgs.locaux.LocUtil;
-import gov.usgs.traveltime.TauUtil;
+import gov.usgs.traveltime.TauUtilities;
 import java.util.ArrayList;
 import java.util.Arrays;
 import org.apache.logging.log4j.LogManager;
@@ -274,7 +274,8 @@ public class CloseOut {
 
         // Do the azimuth.
         double azimuth = 0d;
-        if (Math.abs(eigenvectors[0][j]) + Math.abs(eigenvectors[1][j]) > TauUtil.DTOL) {
+        if (Math.abs(eigenvectors[0][j]) + Math.abs(eigenvectors[1][j])
+            > TauUtilities.DOUBLETOLERANCE) {
           azimuth = Math.toDegrees(Math.atan2(eigenvectors[1][j], -eigenvectors[0][j]));
         }
 
@@ -310,7 +311,8 @@ public class CloseOut {
 
         // Do the azimuth.
         double azimuth = 0d;
-        if (Math.abs(eigenvectors[0][j]) + Math.abs(eigenvectors[1][j]) > TauUtil.DTOL) {
+        if (Math.abs(eigenvectors[0][j]) + Math.abs(eigenvectors[1][j])
+            > TauUtilities.DOUBLETOLERANCE) {
           azimuth =
               Math.toDegrees(Math.atan2(signum * eigenvectors[1][j], -signum * eigenvectors[0][j]));
         }
@@ -319,7 +321,7 @@ public class CloseOut {
         if (azimuth < 0d) {
           azimuth += 360d;
         }
-        if (Math.abs(eigenvectors[2][j]) <= TauUtil.DTOL && azimuth > 180d) {
+        if (Math.abs(eigenvectors[2][j]) <= TauUtilities.DOUBLETOLERANCE && azimuth > 180d) {
           azimuth -= 180d;
         }
 

@@ -10,8 +10,8 @@ import gov.usgs.locaux.Slabs;
 import gov.usgs.locaux.TiltedArea;
 import gov.usgs.locaux.ZoneStats;
 import gov.usgs.traveltime.FileChanged;
-import gov.usgs.traveltime.TTSessionLocal;
-import gov.usgs.traveltime.TauUtil;
+import gov.usgs.traveltime.TauUtilities;
+import gov.usgs.traveltime.TravelTimeSession;
 import java.io.BufferedInputStream;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -92,7 +92,7 @@ public class LocSessionLocal {
    * @throws ClassNotFoundException If the serialized slab master object doesn't exist
    * @throws IOException If the serialized I/O fails in any way
    */
-  public Locate getLocate(Event event, TTSessionLocal ttLocal, String slabRes)
+  public Locate getLocate(Event event, TravelTimeSession ttLocal, String slabRes)
       throws ClassNotFoundException, IOException {
     // If the slab resolution is the same as last time, we're done.
     if (!slabRes.contentEquals(lastSlabRes)) {
@@ -260,10 +260,10 @@ public class LocSessionLocal {
       }
 
       // Look for the end of a latitude row.
-      if (Math.abs(point.getLon() - lastLon) > slabInc + TauUtil.DTOL) {
+      if (Math.abs(point.getLon() - lastLon) > slabInc + TauUtilities.DOUBLETOLERANCE) {
         // Print out the first and last points in each area.
         if (LOGGER.isDebugEnabled()) {
-          if (first || Math.abs(point.getLon() - firstLon) > TauUtil.DTOL) {
+          if (first || Math.abs(point.getLon() - firstLon) > TauUtilities.DOUBLETOLERANCE) {
             LOGGER.debug(row.toString());
             row.printRaw();
 
@@ -279,7 +279,7 @@ public class LocSessionLocal {
         row.squeeze(slabInc);
 
         // Look for the start of a new area.
-        if (Math.abs(point.getLon() - firstLon) > TauUtil.DTOL) {
+        if (Math.abs(point.getLon() - firstLon) > TauUtilities.DOUBLETOLERANCE) {
           // Add the last row.
           area.add(row);
 

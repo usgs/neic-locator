@@ -27,6 +27,7 @@ public class LocatorRegressionTest {
    */
   @Test
   public void runLocalTest() {
+    System.out.println("runLocalTest:");
     // Texas 3.0
     runLocTest(
         "build/resources/test/localInput.json", "build/resources/test/localVerification.json");
@@ -34,6 +35,7 @@ public class LocatorRegressionTest {
 
   @Test
   public void runGlobalTest() {
+    System.out.println("runGlobalTest:");
     // Chile 4.5
     runLocTest(
         "build/resources/test/globalInput.json", "build/resources/test/globalVerification.json");
@@ -41,12 +43,14 @@ public class LocatorRegressionTest {
 
   @Test
   public void runDeepTest() {
+    System.out.println("runDeepTest:");
     // Fiji 5.5 520km
     runLocTest("build/resources/test/deepInput.json", "build/resources/test/deepVerification.json");
   }
 
   @Test
   public void runBigTest() {
+    System.out.println("runBigTest:");
     // South Sandwich Islands 7.5
     runLocTest("build/resources/test/bigInput.json", "build/resources/test/bigVerification.json");
   }
@@ -85,6 +89,9 @@ public class LocatorRegressionTest {
       Assertions.fail(e.toString());
     }
     Assertions.assertNotNull(result, "Location Result");
+
+    // print result
+    System.out.println(Utility.toJSONString(result.toJSON()));
 
     // check location result parameters against verification result
     Assertions.assertEquals(

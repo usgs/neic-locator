@@ -3,7 +3,7 @@ package gov.usgs.locator;
 import Jama.EigenvalueDecomposition;
 import Jama.Matrix;
 import gov.usgs.locaux.LocUtil;
-import gov.usgs.traveltime.TauUtil;
+import gov.usgs.traveltime.TauUtilities;
 import java.util.ArrayList;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -405,7 +405,7 @@ public class Decorrelator {
     double depthSum = 0d;
 
     for (int j = 0; j < numPickData; j++) {
-      if (Math.abs(eigenvectors[j][index]) > TauUtil.DTOL) {
+      if (Math.abs(eigenvectors[j][index]) > TauUtilities.DOUBLETOLERANCE) {
         double corr = weightedResidualsOrg.get(j).calculateCorrelation(weightedResiduals);
         corrMax = Math.max(corrMax, corr);
         corrMin = Math.min(corrMin, corr);
@@ -477,7 +477,7 @@ public class Decorrelator {
       Matrix result = test.times(vectors.getMatrix(0, numValues - 1, j, j));
 
       // Only print something if it doesn't look right.
-      if (result.norm2() > TauUtil.DTOL) {
+      if (result.norm2() > TauUtilities.DOUBLETOLERANCE) {
         if (!bad) {
           bad = true;
           results += "Bad eigenvector(s):";

@@ -4,7 +4,7 @@ import gov.usgs.locator.HypoAudit;
 import gov.usgs.locator.Hypocenter;
 import gov.usgs.locator.Pick;
 import gov.usgs.locator.Station;
-import gov.usgs.traveltime.TauUtil;
+import gov.usgs.traveltime.TauUtilities;
 import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -462,7 +462,7 @@ public class LocUtil {
    */
   public static double computeDistAzm(Hypocenter hypo, Station sta) {
     // South Pole (only tests the station because the South Pole is aseismic).
-    if (sta.getCoLatitudeSine() <= TauUtil.DTOL) {
+    if (sta.getCoLatitudeSine() <= TauUtilities.DOUBLETOLERANCE) {
       azimuth = 180d;
       return Math.toDegrees(Math.PI - Math.acos(hypo.getCoLatitudeCosine()));
     }
@@ -491,7 +491,8 @@ public class LocUtil {
     double sindel = Math.sqrt(Math.pow(tm1, 2d) + Math.pow(tm2, 2d));
 
     // Compute the azimuth.
-    if (Math.abs(tm1) <= TauUtil.DTOL && Math.abs(tm2) <= TauUtil.DTOL) {
+    if (Math.abs(tm1) <= TauUtilities.DOUBLETOLERANCE
+        && Math.abs(tm2) <= TauUtilities.DOUBLETOLERANCE) {
       // North Pole.
       azimuth = 0d;
     } else {
@@ -503,7 +504,8 @@ public class LocUtil {
     }
 
     // Compute distance (delta).
-    if (sindel <= TauUtil.DTOL && Math.abs(cosdel) <= TauUtil.DTOL) {
+    if (sindel <= TauUtilities.DOUBLETOLERANCE
+        && Math.abs(cosdel) <= TauUtilities.DOUBLETOLERANCE) {
       return 0d;
     } else {
       return Math.toDegrees(Math.atan2(sindel, cosdel));
@@ -543,7 +545,8 @@ public class LocUtil {
     double sindel = Math.sqrt(Math.pow(tm1, 2d) + Math.pow(tm2, 2d));
 
     // Compute distance (delta).
-    if (sindel <= TauUtil.DTOL && Math.abs(cosdel) <= TauUtil.DTOL) {
+    if (sindel <= TauUtilities.DOUBLETOLERANCE
+        && Math.abs(cosdel) <= TauUtilities.DOUBLETOLERANCE) {
       return 0d;
     } else {
       return DEG2KM * Math.toDegrees(Math.atan2(sindel, cosdel));
@@ -590,9 +593,9 @@ public class LocUtil {
 
     // South Pole.
     double delta;
-    if (sta1.getCoLatitudeSine() <= TauUtil.DTOL) {
+    if (sta1.getCoLatitudeSine() <= TauUtilities.DOUBLETOLERANCE) {
       delta = Math.toDegrees(Math.PI - Math.acos(sta2.getCoLatitudeCosine()));
-    } else if (sta2.getCoLatitudeSine() <= TauUtil.DTOL) {
+    } else if (sta2.getCoLatitudeSine() <= TauUtilities.DOUBLETOLERANCE) {
       delta = Math.toDegrees(Math.PI - Math.acos(sta1.getCoLatitudeCosine()));
     } else {
       // Compute some intermediate variables.
@@ -619,7 +622,8 @@ public class LocUtil {
       double sindel = Math.sqrt(Math.pow(tm1, 2d) + Math.pow(tm2, 2d));
 
       // Compute distance (delta).
-      if (sindel <= TauUtil.DTOL && Math.abs(cosdel) <= TauUtil.DTOL) {
+      if (sindel <= TauUtilities.DOUBLETOLERANCE
+          && Math.abs(cosdel) <= TauUtilities.DOUBLETOLERANCE) {
         delta = 0d;
       } else {
         delta = Math.toDegrees(Math.atan2(sindel, cosdel));

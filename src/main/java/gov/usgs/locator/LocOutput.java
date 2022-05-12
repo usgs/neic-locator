@@ -95,7 +95,7 @@ public class LocOutput extends LocationResult {
    * @param timeStandardError A double containing the standard error of the origin time in seconds.
    * @param latitudeStandardError A double containing the standard error of the latitude in
    *     kilometers.
-   * @param longitudeStandardError A double containing the standard error of the latitude in
+   * @param longitudeStandardError A double containing the standard error of the longitude in
    *     kilometers.
    * @param depthStandardError A double containing the standard error of the depth in kilometers.
    * @param residualsStandardError A double containing the standard error of the residuals in
