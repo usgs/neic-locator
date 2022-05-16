@@ -55,6 +55,13 @@ public class LocatorRegressionTest {
     runLocTest("build/resources/test/bigInput.json", "build/resources/test/bigVerification.json");
   }
 
+  @Test
+  public void runCUSTest() {
+    System.out.println("runCUSTest:");
+    // CUS model event
+    runLocTest("build/resources/test/cusInput.json", "build/resources/test/cusVerification.json");
+  }
+
   public void runLocTest(String inputFile, String verificationFile) {
     // parse input string into request
     String inputString = loadFromFile(inputFile);
