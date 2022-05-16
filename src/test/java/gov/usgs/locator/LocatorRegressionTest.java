@@ -25,8 +25,6 @@ public class LocatorRegressionTest {
    * locator is changed in such a that the location results are expected to change, these tests
    * (specifically the *verification.json files) will need to be updated
    */
-
-
   @Test
   public void runGlobalTest() {
     System.out.println("runGlobalTest:");
@@ -53,8 +51,7 @@ public class LocatorRegressionTest {
   public void runWUSTest() {
     System.out.println("runWUSTest:");
     // Texas 3.0
-    runLocTest(
-        "build/resources/test/wusInput.json", "build/resources/test/wusVerification.json");
+    runLocTest("build/resources/test/wusInput.json", "build/resources/test/wusVerification.json");
   }
 
   @Test
