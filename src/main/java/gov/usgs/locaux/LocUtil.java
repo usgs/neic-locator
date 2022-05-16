@@ -11,6 +11,8 @@ import java.io.IOException;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.TimeZone;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.json.simple.JSONObject;
 
 /**
@@ -20,21 +22,21 @@ import org.json.simple.JSONObject;
  */
 public class LocUtil {
   /**
-   * A double constant representing the maximum distance the epicenter can move and still be
-   * considered to be the same as the starting epicenter.
+   * A double constant representing the maximum distance in kilometers the epicenter can move and
+   * still be considered to be the same as the starting epicenter.
    */
   public static final double DISTANCETOLERANCE = 3d;
 
   /**
-   * A double constant representing the maximum distance the depth can move and still be considered
-   * to be the same as the starting depth.
+   * A double constant representing the maximum distance the depth in kilometers can move and still
+   * be considered to be the same as the starting depth.
    */
   public static final double DEPTHTOLERANCE = 5d;
 
-  /** A double constant representing the minimum depth the Locator will allow. */
-  public static final double DEPTHMIN = 1d;
+  /** A double constant representing the minimum depth in kilometers the Locator will allow. */
+  public static final double DEPTHMIN = 0d;
 
-  /** A double constant representing the maximum depth the Locator will allow. */
+  /** A double constant representing the maximum depth in kilometers the Locator will allow. */
   public static final double DEPTHMAX = 700d;
 
   /**
@@ -439,6 +441,9 @@ public class LocUtil {
    * startLocationTimer and endLocationTimer.
    */
   private static long locationTime;
+
+  /** Private logging object. */
+  private static final Logger LOGGER = LogManager.getLogger(LocUtil.class.getName());
 
   /**
    * This function computes the source-receiver distance and the receiver azimuth. An historically
@@ -1102,20 +1107,20 @@ public class LocUtil {
         try {
           recordOut = new BufferedWriter(new FileWriter("../../LocRun/output/Record.txt"));
         } catch (IOException e) {
-          System.out.println("Unable to open the Record.txt file");
+          LOGGER.error("Unable to open the Record.txt file");
         }
       }
       try {
         recordOut.write(line + "\n");
       } catch (IOException e) {
-        System.out.println("Unable to record: " + line);
+        LOGGER.error("Unable to record: " + line);
       }
     } else {
       if (recordOut != null) {
         try {
           recordOut.close();
         } catch (IOException e) {
-          System.out.println("Unable to close the Record.txt file");
+          LOGGER.error("Unable to close the Record.txt file");
         }
       }
     }
@@ -1161,6 +1166,20 @@ public class LocUtil {
     String timerString =
         String.format(
             "Compute time %7.3f seconds", 0.001 * (System.currentTimeMillis() - locationTime));
+
+    return (timerString);
+  }
+
+  /**
+   * This timer function returns a string holding the result in seconds.
+   *
+   * @param label A String used to identify the timer
+   * @param startTime A long value containing the start time of the timer
+   * @return A String containing the timer results
+   */
+  public static String endTimer(String label, long startTime) {
+    long currentTime = System.currentTimeMillis();
+    String timerString = String.format("%s: %7.3f", label, 0.001 * (currentTime - startTime));
 
     return (timerString);
   }

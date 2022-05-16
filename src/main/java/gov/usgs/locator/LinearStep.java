@@ -2,7 +2,8 @@ package gov.usgs.locator;
 
 import gov.usgs.locaux.LocUtil;
 import java.util.ArrayList;
-import java.util.logging.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
  * The LinearStep class simplifies travel time computations. Computing seismic travel times is
@@ -42,7 +43,7 @@ public class LinearStep {
   private Decorrelator decorrelator;
 
   /** Private logging object. */
-  private static final Logger LOGGER = Logger.getLogger(LinearStep.class.getName());
+  private static final Logger LOGGER = LogManager.getLogger(LinearStep.class.getName());
 
   /**
    * The LinearStep constructor. This constructor sets the event (and thus the hypo, residuals, rank
@@ -106,7 +107,7 @@ public class LinearStep {
         if (sample[2].getStepLength() >= maxStepLen) {
           createTrialStepVector(sample[2].getStepLength());
 
-          LOGGER.fine(
+          LOGGER.debug(
               String.format(
                   "Lintry: x dsp = %6.2f %9.4f %5.2f",
                   sample[2].getStepLength(),
@@ -139,7 +140,7 @@ public class LinearStep {
 
           createTrialStepVector(sample[1].getStepLength());
 
-          LOGGER.fine(
+          LOGGER.debug(
               String.format(
                   "Lintry: x dsp = %7.3f %9.4f %5.2f",
                   sample[1].getStepLength(),
@@ -183,7 +184,7 @@ public class LinearStep {
     // Done.
     createTrialStepVector(sample[1].getStepLength());
 
-    LOGGER.fine(
+    LOGGER.debug(
         String.format(
             "Lintry: x dsp = %7.3f %9.4f %5.2f",
             sample[1].getStepLength(), sample[1].getDispersion(), sample[1].getMedianResidual()));
@@ -229,7 +230,7 @@ public class LinearStep {
       double dispProj =
           projectedRankSumEstimator.computeEstDispersionValue(true); // Went live with true 9/16/19.
 
-      LOGGER.fine(
+      LOGGER.debug(
           String.format(
               "Estlin: x dsp = %7.3f %9.4f %9.4f %5.2f",
               currentStepLen, dispProj, dispRaw, median));
@@ -237,7 +238,7 @@ public class LinearStep {
       return new RSumEstResult(currentStepLen, median, 0d, dispProj);
     } else {
       // Otherwise, we're pretty much done.
-      LOGGER.fine(
+      LOGGER.debug(
           String.format("Estlin: x dsp = %7.3f %9.4f %5.2f", currentStepLen, dispRaw, median));
 
       return new RSumEstResult(currentStepLen, median, 0d, dispRaw);

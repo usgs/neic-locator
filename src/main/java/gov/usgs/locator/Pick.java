@@ -4,7 +4,8 @@ import gov.usgs.locaux.AuthorType;
 import gov.usgs.locaux.LocUtil;
 import gov.usgs.traveltime.TTimeData;
 import java.util.ArrayList;
-import java.util.logging.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
  * The Pick class stores the data making up one pick.
@@ -106,7 +107,7 @@ public class Pick implements Comparable<Pick> {
   private WeightedResidual weightedResidual;
 
   /** Private logging object. */
-  private static final Logger LOGGER = Logger.getLogger(Pick.class.getName());
+  private static final Logger LOGGER = LogManager.getLogger(Pick.class.getName());
 
   /**
    * Function to return the pick identifier.
@@ -595,7 +596,7 @@ public class Pick implements Comparable<Pick> {
       }
 
       if (reID) {
-        LOGGER.fine(
+        LOGGER.debug(
             String.format(
                 "=====> Phase re-ID: %-5s %s -> %s",
                 station.getStationID().getStationCode(), currentPhaseCode, ttCode));
@@ -627,7 +628,7 @@ public class Pick implements Comparable<Pick> {
           Double weightCheck = weight;
           if (weightCheck.isNaN()) {
             weight = 0d;
-            LOGGER.fine(
+            LOGGER.debug(
                 "IDphas: Computed weight from travel time spread is NaN, so set weight 0 and isUsed to false");
             isUsed = false;
           }
@@ -652,7 +653,7 @@ public class Pick implements Comparable<Pick> {
       } else {
         // Otherwise, see if it was used before.
         if (isUsed) {
-          LOGGER.fine(
+          LOGGER.debug(
               String.format(
                   "=====> Phase no use set (wt): %s %s %5b %5.2f",
                   station.getStationID().getStationCode(),
@@ -674,7 +675,7 @@ public class Pick implements Comparable<Pick> {
     } else {
       // We don't have an identification.
       if (!"".equals(currentPhaseCode)) {
-        LOGGER.fine(
+        LOGGER.debug(
             String.format(
                 "=====> Phase re-ID: %s %s -> null",
                 station.getStationID().getStationCode(), currentPhaseCode));
@@ -682,7 +683,7 @@ public class Pick implements Comparable<Pick> {
 
       // See if it was used before.
       if (isUsed) {
-        LOGGER.fine(
+        LOGGER.debug(
             String.format(
                 "=====> Phase no use set (no ID): %s %s",
                 station.getStationID().getStationCode(), currentPhaseCode));
@@ -703,7 +704,7 @@ public class Pick implements Comparable<Pick> {
       weight = 0d;
     }
 
-    LOGGER.finer(
+    LOGGER.trace(
         String.format(
             "IDphas: %s %s %6.2f %7.4f %b",
             station.getStationID().getStationCode(), currentPhaseCode, residual, weight, isUsed));

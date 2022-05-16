@@ -80,8 +80,6 @@ public class TiltedArea {
     lonRange[0] = slabInc * (int) ((lonRange[0] + slabHalfInc) / slabInc);
     lonRange[1] = slabInc * (int) ((lonRange[1] + slabHalfInc) / slabInc);
 
-    //	System.out.format("\tGrid: (%6.2f, %6.2f) - (%6.2f, %6.2f)\n",
-    //			latRange[0], lonRange[0], latRange[1], lonRange[1]);
     grid =
         new TiltedSample[(int) ((latRange[1] - latRange[0]) / slabInc + 1)]
             [(int) ((lonRange[1] - lonRange[0]) / slabInc + 1)];

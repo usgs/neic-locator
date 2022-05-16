@@ -5,8 +5,8 @@ import Jama.Matrix;
 import gov.usgs.locaux.LocUtil;
 import gov.usgs.traveltime.TauUtil;
 import java.util.ArrayList;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
  * The Decorrelator class handles the decorrelation of the pick data. This involves a singular
@@ -52,7 +52,7 @@ public class Decorrelator {
   private Matrix covMatrixFinal;
 
   /** Private logging object. */
-  private static final Logger LOGGER = Logger.getLogger(Decorrelator.class.getName());
+  private static final Logger LOGGER = LogManager.getLogger(Decorrelator.class.getName());
 
   /**
    * The Decorrelator constructor. This constructor initializes the event and projected residuals to
@@ -71,8 +71,8 @@ public class Decorrelator {
     // because it keeps changing when cloned.
     weightedResidualsOrg = event.getOriginalWeightedResiduals();
 
-    if (LOGGER.getLevel() == Level.FINER) {
-      LOGGER.finer(event.printWeightedResiduals("Org", true));
+    if (LOGGER.isTraceEnabled()) {
+      LOGGER.trace(event.printWeightedResiduals("Org", true));
     }
 
     // We'll use the dimension of the picks a lot!
@@ -139,8 +139,8 @@ public class Decorrelator {
     // the original order to project the estimated residuals.
     weightedResidualsProjOrg = (ArrayList<WeightedResidual>) weightedResidualsProj.clone();
 
-    if (LOGGER.getLevel() == Level.FINEST) {
-      LOGGER.finest(event.printWeightedResiduals("Proj", true));
+    if (LOGGER.isTraceEnabled()) {
+      LOGGER.trace(event.printWeightedResiduals("Proj", true));
     }
   }
 
@@ -199,8 +199,8 @@ public class Decorrelator {
     if (weightedResidualsOrg.size() > LocUtil.MAXPICKSTODECORRELATE) {
 
       LocUtil.startTimer();
-      if (LOGGER.getLevel() == Level.FINEST) {
-        LOGGER.finest(LocUtil.printMatrix(covMatrix, "Raw Covariance Matrix"));
+      if (LOGGER.isTraceEnabled()) {
+        LOGGER.trace(LocUtil.printMatrix(covMatrix, "Raw Covariance Matrix"));
       }
 
       // Reset all the triage flags.
@@ -228,16 +228,16 @@ public class Decorrelator {
 
       // Eliminate the biggest correlation sums.
       for (int i = corrSums.size() - 1; i >= LocUtil.MAXPICKSTODECORRELATE; i--) {
-        if (LOGGER.getLevel() == Level.FINEST) {
+        if (LOGGER.isTraceEnabled()) {
           String corrSumsStr = "F:";
           for (int j = 0; j < corrSums.size(); j++) {
             corrSumsStr += "\t" + corrSums.get(j);
           }
-          LOGGER.finest(corrSumsStr);
+          LOGGER.trace(corrSumsStr);
         }
 
-        if (LOGGER.getLevel() == Level.FINER) {
-          LOGGER.finer(String.format("\tTriage: eliminate %3d %s", i, corrSums.get(i)));
+        if (LOGGER.isTraceEnabled()) {
+          LOGGER.trace(String.format("\tTriage: eliminate %3d %s", i, corrSums.get(i)));
         }
 
         int k = corrSums.get(i).getRowIndex();
@@ -274,8 +274,8 @@ public class Decorrelator {
       covRaw = null;
       covMatrix = covMatrixFinal.getArray();
 
-      if (LOGGER.getLevel() == Level.FINEST) {
-        LOGGER.finest(LocUtil.printMatrix(covMatrix, "Final Covariance Matrix"));
+      if (LOGGER.isTraceEnabled()) {
+        LOGGER.trace(LocUtil.printMatrix(covMatrix, "Final Covariance Matrix"));
       }
 
       // We're not quite done.  We need to eliminate the same picks
@@ -302,10 +302,10 @@ public class Decorrelator {
       numData = weightedResidualsOrg.size();
       numPickData = numData - 1;
 
-      if (LOGGER.getLevel() == Level.FINER) {
-        LOGGER.finer(event.printWeightedResiduals("Org", true));
+      if (LOGGER.isTraceEnabled()) {
+        LOGGER.trace(event.printWeightedResiduals("Org", true));
       }
-      LOGGER.fine(LocUtil.endTimer("Triage"));
+      LOGGER.debug(LocUtil.endTimer("Triage"));
     } else {
       // We're OK.  Just create the correlation matrix in a form
       // suitable for extracting the eigenvalues.
@@ -327,18 +327,18 @@ public class Decorrelator {
     LocUtil.startTimer();
     EigenvalueDecomposition eig = covMatrixFinal.eig();
 
-    LOGGER.fine(LocUtil.endTimer("Eigenvalue"));
+    LOGGER.debug(LocUtil.endTimer("Eigenvalue"));
 
     double[] eigenvalues = eig.getRealEigenvalues();
 
-    if (LOGGER.getLevel() == Level.FINER) {
-      LOGGER.finer(LocUtil.printVector(eigenvalues, "Eigenvalues"));
+    if (LOGGER.isTraceEnabled()) {
+      LOGGER.trace(LocUtil.printVector(eigenvalues, "Eigenvalues"));
     }
 
     eigenvectors = eig.getV().getArray();
 
-    if (LOGGER.getLevel() == Level.FINEST) {
-      LOGGER.finest(testEig(covMatrixFinal, eig));
+    if (LOGGER.isTraceEnabled()) {
+      LOGGER.trace(testEig(covMatrixFinal, eig));
     }
 
     // We don't need the covariance matrix any more.
@@ -372,7 +372,7 @@ public class Decorrelator {
     numProjectedData++;
 
     // Print it out.
-    LOGGER.fine(
+    LOGGER.debug(
         String.format(
             "Project: wsum wlim elim: %10.3e %10.3e %10.3e numProjectedData: %5d",
             evSum, evLim, evThresh, numProjectedData));
