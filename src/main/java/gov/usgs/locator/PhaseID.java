@@ -97,7 +97,7 @@ public class PhaseID {
     this.travelTimeSession = travelTimeSession;
 
     if (travelTimeSession != null) {
-      this.auxiliaryTTInfo = travelTimeSession.getAuxTT();
+      this.auxiliaryTTInfo = travelTimeSession.getAuxTTData();
     } else {
       this.auxiliaryTTInfo = null;
     }
