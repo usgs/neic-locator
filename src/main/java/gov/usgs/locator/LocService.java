@@ -5,15 +5,17 @@ import gov.usgs.processingformats.LocationException;
 import gov.usgs.processingformats.LocationRequest;
 import gov.usgs.processingformats.LocationResult;
 import gov.usgs.processingformats.LocationService;
-import gov.usgs.traveltime.TTSessionLocal;
+import gov.usgs.traveltime.TravelTimeSession;
+import java.io.FileWriter;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.ArrayList;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 public class LocService implements LocationService {
   /** Class to manage the travel-time external files. */
-  private TTSessionLocal ttLocal = null;
+  private TravelTimeSession ttLocal = null;
 
   /** Class to manage the locator external files. */
   private LocSessionLocal locLocal = null;
@@ -35,7 +37,7 @@ public class LocService implements LocationService {
     long ttStartTime = System.currentTimeMillis();
     // init the tt models
     try {
-      ttLocal = new TTSessionLocal(true, true, true, modelPath, serializedPath);
+      ttLocal = new TravelTimeSession(true, true, true, modelPath, serializedPath);
     } catch (IOException | ClassNotFoundException e) {
       LOGGER.fatal("Unable to read travel-time auxiliary data.");
       e.printStackTrace();
@@ -135,6 +137,16 @@ public class LocService implements LocationService {
     // print input for debugging
     if (LOGGER.isDebugEnabled()) {
       LOGGER.debug("Input: \n" + event.getHydraInput(false));
+
+      // this is debug code to output a fortran formatted input file for testing
+      try {
+        FileWriter fileWriter = new FileWriter("./" + "RayLocInput" + in.ID + ".txt", false);
+        PrintWriter printWriter = new PrintWriter(fileWriter);
+        printWriter.println(event.getHydraInput(false));
+        printWriter.close();
+      } catch (Exception e) {
+        LOGGER.fatal(e.toString());
+      }
     }
 
     // make sure we have a slab resolution

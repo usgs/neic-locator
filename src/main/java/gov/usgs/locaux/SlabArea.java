@@ -1,6 +1,6 @@
 package gov.usgs.locaux;
 
-import gov.usgs.traveltime.TauUtil;
+import gov.usgs.traveltime.TauUtilities;
 import java.io.Serializable;
 import java.util.ArrayList;
 import org.apache.logging.log4j.LogManager;
@@ -340,7 +340,7 @@ public class SlabArea implements Serializable {
     double lastLat = latBase - slabInc;
 
     for (int j = 0; j < slabRows.size(); j++) {
-      if (slabRows.get(j).getLat() - lastLat > slabInc + TauUtil.DTOL) {
+      if (slabRows.get(j).getLat() - lastLat > slabInc + TauUtilities.DOUBLETOLERANCE) {
         lastLat += slabInc;
         slabRows.add(j, new SlabRow(lastLat));
 
@@ -360,7 +360,7 @@ public class SlabArea implements Serializable {
       for (int j = 0; j < slabRows.size(); j++) {
         lat += slabInc;
 
-        while (Math.abs(slabRows.get(j).getLat() - lat) > TauUtil.DTOL) {
+        while (Math.abs(slabRows.get(j).getLat() - lat) > TauUtilities.DOUBLETOLERANCE) {
           LOGGER.debug(String.format("Missing row (lat = %6.2f)", lat));
           lat += slabInc;
         }

@@ -1,0 +1,628 @@
+{
+    "MinimumDistance": 0.46226194417909544,
+    "SupportingData": [
+      {
+        "Site": {
+          "Station": "TVNC2",
+          "Elevation": 0.735,
+          "Network": "ET",
+          "Channel": "EHZ",
+          "Latitude": 36.03300094604492,
+          "Longitude": -81.21279907226562,
+          "Location": "00"
+        },
+        "PickedPhase": "P",
+        "Use": true,
+        "AssociatedPhase": "Pg",
+        "Time": "2021-07-30T14:36:19.470Z",
+        "Residual": -0.122741218080483,
+        "Source": {
+          "Type": "ContributedHuman",
+          "AgencyID": "CERI",
+          "Author": "Default_Human"
+        },
+        "Weight": 2.37041575504681,
+        "Importance": 0.18712838887389774,
+        "Azimuth": 195.6994544606461,
+        "Quality": 0.0,
+        "Affinity": 1.5,
+        "ID": "39799868",
+        "LocatedPhase": "Pg",
+        "Distance": 0.46226194417909544
+      },
+      {
+        "Site": {
+          "Station": "TVNC2",
+          "Elevation": 0.735,
+          "Network": "ET",
+          "Channel": "EHE",
+          "Latitude": 36.03300094604492,
+          "Longitude": -81.21279907226562,
+          "Location": "00"
+        },
+        "PickedPhase": "S",
+        "Use": true,
+        "AssociatedPhase": "Sg",
+        "Time": "2021-07-30T14:36:24.620Z",
+        "Residual": -1.2503306879498446,
+        "Source": {
+          "Type": "ContributedHuman",
+          "AgencyID": "CERI",
+          "Author": "Default_Human"
+        },
+        "Weight": 1.1930446778152504,
+        "Importance": 0.14235681007447198,
+        "Azimuth": 195.6994544606461,
+        "Quality": 0.0,
+        "Affinity": 1.5,
+        "ID": "39799869",
+        "LocatedPhase": "Sg",
+        "Distance": 0.46226194417909544
+      },
+      {
+        "Site": {
+          "Station": "U56A",
+          "Elevation": 0.363,
+          "Network": "N4",
+          "Channel": "HHZ",
+          "Latitude": 36.347198486328125,
+          "Longitude": -80.38289642333984,
+          "Location": "00"
+        },
+        "PickedPhase": "Pg",
+        "Use": true,
+        "AssociatedPhase": "Pg",
+        "Time": "2021-07-30T14:36:21.360Z",
+        "Residual": 0.00010786736937795638,
+        "Source": {
+          "Type": "LocalHuman",
+          "AgencyID": "NEIC",
+          "Author": "jturner"
+        },
+        "Weight": 2.143525561032788,
+        "Importance": 0.19707692805597765,
+        "Azimuth": 103.37263851031331,
+        "Quality": 0.0,
+        "Affinity": 3.0,
+        "ID": "39799859",
+        "LocatedPhase": "Pg",
+        "Distance": 0.5606192630704101
+      },
+      {
+        "Site": {
+          "Station": "U56A",
+          "Elevation": 0.363,
+          "Network": "N4",
+          "Channel": "HH1",
+          "Latitude": 36.347198486328125,
+          "Longitude": -80.38289642333984,
+          "Location": "00"
+        },
+        "PickedPhase": "Sg",
+        "Use": true,
+        "AssociatedPhase": "Sg",
+        "Time": "2021-07-30T14:36:28.650Z",
+        "Residual": -0.29644227842901216,
+        "Source": {
+          "Type": "LocalHuman",
+          "AgencyID": "NEIC",
+          "Author": "jturner"
+        },
+        "Weight": 1.1504616474783633,
+        "Importance": 0.17048927995252564,
+        "Azimuth": 103.37263851031331,
+        "Quality": 0.0,
+        "Affinity": 3.0,
+        "ID": "39799861",
+        "LocatedPhase": "Sg",
+        "Distance": 0.5606192630704101
+      },
+      {
+        "Site": {
+          "Station": "U54A",
+          "Elevation": 0.837,
+          "Network": "N4",
+          "Channel": "HHZ",
+          "Latitude": 36.52090072631836,
+          "Longitude": -81.82039642333984,
+          "Location": "00"
+        },
+        "PickedPhase": "Pg",
+        "Use": true,
+        "AssociatedPhase": "Pg",
+        "Time": "2021-07-30T14:36:22.340Z",
+        "Residual": -0.04088849320951837,
+        "Source": {
+          "Type": "LocalHuman",
+          "AgencyID": "NEIC",
+          "Author": "jturner"
+        },
+        "Weight": 2.0351468983246246,
+        "Importance": 0.16324299854829885,
+        "Azimuth": 274.1198901000547,
+        "Quality": 0.0,
+        "Affinity": 3.0,
+        "ID": "39799874",
+        "LocatedPhase": "Pg",
+        "Distance": 0.6153414576427033
+      },
+      {
+        "Site": {
+          "Station": "U54A",
+          "Elevation": 0.837,
+          "Network": "N4",
+          "Channel": "HH1",
+          "Latitude": 36.52090072631836,
+          "Longitude": -81.82039642333984,
+          "Location": "00"
+        },
+        "PickedPhase": "Sg",
+        "Use": true,
+        "AssociatedPhase": "Sg",
+        "Time": "2021-07-30T14:36:30.830Z",
+        "Residual": 0.13231459633395204,
+        "Source": {
+          "Type": "LocalHuman",
+          "AgencyID": "NEIC",
+          "Author": "rlsanders"
+        },
+        "Weight": 1.1280605603179623,
+        "Importance": 0.15061977672561216,
+        "Azimuth": 274.1198901000547,
+        "Quality": 0.0,
+        "Affinity": 3.0,
+        "ID": "39799863",
+        "LocatedPhase": "Sg",
+        "Distance": 0.6153414576427033
+      },
+      {
+        "Site": {
+          "Station": "V55A",
+          "Elevation": 0.313,
+          "Network": "N4",
+          "Channel": "HHZ",
+          "Latitude": 35.85179901123047,
+          "Longitude": -81.21489715576172,
+          "Location": "00"
+        },
+        "PickedPhase": "Pg",
+        "Use": true,
+        "AssociatedPhase": "Pg",
+        "Time": "2021-07-30T14:36:22.720Z",
+        "Residual": -0.055266290616641456,
+        "Source": {
+          "Type": "LocalHuman",
+          "AgencyID": "NEIC",
+          "Author": "rlsanders"
+        },
+        "Weight": 1.992322629022828,
+        "Importance": 0.13785051702334677,
+        "Azimuth": 191.47775294211633,
+        "Quality": 0.0,
+        "Affinity": 3.0,
+        "ID": "39799860",
+        "LocatedPhase": "Pg",
+        "Distance": 0.6386051517376701
+      },
+      {
+        "Site": {
+          "Station": "V55A",
+          "Elevation": 0.313,
+          "Network": "N4",
+          "Channel": "HH2",
+          "Latitude": 35.85179901123047,
+          "Longitude": -81.21489715576172,
+          "Location": "00"
+        },
+        "PickedPhase": "Sg",
+        "Use": true,
+        "AssociatedPhase": "Sg",
+        "Time": "2021-07-30T14:36:30.780Z",
+        "Residual": -0.6210371173681217,
+        "Source": {
+          "Type": "LocalHuman",
+          "AgencyID": "NEIC",
+          "Author": "rlsanders"
+        },
+        "Weight": 1.1187994223002784,
+        "Importance": 0.13054728736048823,
+        "Azimuth": 191.47775294211633,
+        "Quality": 0.0,
+        "Affinity": 3.0,
+        "ID": "39799862",
+        "LocatedPhase": "Sg",
+        "Distance": 0.6386051517376701
+      },
+      {
+        "Site": {
+          "Station": "GFM",
+          "Elevation": 1.726,
+          "Network": "ET",
+          "Channel": "HHZ",
+          "Latitude": 36.111000061035156,
+          "Longitude": -81.80699920654297,
+          "Location": "00"
+        },
+        "PickedPhase": "P",
+        "Use": true,
+        "AssociatedPhase": "Pg",
+        "Time": "2021-07-30T14:36:23.470Z",
+        "Residual": -0.6354646439693301,
+        "Source": {
+          "Type": "ContributedHuman",
+          "AgencyID": "CERI",
+          "Author": "Default_Human"
+        },
+        "Weight": 1.8754489755814823,
+        "Importance": 0.10157532827931015,
+        "Azimuth": 238.9478102803049,
+        "Quality": 0.0,
+        "Affinity": 1.5,
+        "ID": "39799870",
+        "LocatedPhase": "Pg",
+        "Distance": 0.707501443384259
+      },
+      {
+        "Site": {
+          "Station": "GFM",
+          "Elevation": 1.726,
+          "Network": "ET",
+          "Channel": "HHN",
+          "Latitude": 36.111000061035156,
+          "Longitude": -81.80699920654297,
+          "Location": "00"
+        },
+        "PickedPhase": "S",
+        "Use": false,
+        "AssociatedPhase": "Sg",
+        "Time": "2021-07-30T14:36:32.310Z",
+        "Residual": -1.342099721017199,
+        "Source": {
+          "Type": "ContributedHuman",
+          "AgencyID": "CERI",
+          "Author": "Default_Human"
+        },
+        "Weight": 0.0,
+        "Importance": 0.0,
+        "Azimuth": 238.9478102803049,
+        "Quality": 0.0,
+        "Affinity": 1.5,
+        "ID": "39799871",
+        "LocatedPhase": "Sg",
+        "Distance": 0.707501443384259
+      },
+      {
+        "Site": {
+          "Station": "BLA",
+          "Elevation": 0.634,
+          "Network": "US",
+          "Channel": "BHZ",
+          "Latitude": 37.211299896240234,
+          "Longitude": -80.42050170898438,
+          "Location": "00"
+        },
+        "PickedPhase": "Pg",
+        "Use": true,
+        "AssociatedPhase": "Pg",
+        "Time": "2021-07-30T14:36:27.080Z",
+        "Residual": -0.26557219350134176,
+        "Source": {
+          "Type": "LocalHuman",
+          "AgencyID": "NEIC",
+          "Author": "jturner"
+        },
+        "Weight": 2.274101130581157,
+        "Importance": 0.14622807681917802,
+        "Azimuth": 34.81056463278912,
+        "Quality": 0.0,
+        "Affinity": 3.0,
+        "ID": "39799875",
+        "LocatedPhase": "Pg",
+        "Distance": 0.8922388893501599
+      },
+      {
+        "Site": {
+          "Station": "DSNC",
+          "Elevation": 0.762,
+          "Network": "ET",
+          "Channel": "EHZ",
+          "Latitude": 35.583099365234375,
+          "Longitude": -81.63610076904297,
+          "Location": "00"
+        },
+        "PickedPhase": "P",
+        "Use": true,
+        "AssociatedPhase": "Pg",
+        "Time": "2021-07-30T14:36:29.460Z",
+        "Residual": 0.09508043775351638,
+        "Source": {
+          "Type": "ContributedHuman",
+          "AgencyID": "CERI",
+          "Author": "Default_Human"
+        },
+        "Weight": 2.1445890436909174,
+        "Importance": 0.1353749241914048,
+        "Azimuth": 207.8098601758883,
+        "Quality": 0.0,
+        "Affinity": 1.5,
+        "ID": "39799872",
+        "LocatedPhase": "Pg",
+        "Distance": 1.009226731760824
+      },
+      {
+        "Site": {
+          "Station": "KMSC",
+          "Elevation": 0.24,
+          "Network": "N4",
+          "Channel": "HHZ",
+          "Latitude": 35.141998291015625,
+          "Longitude": -81.33329772949219,
+          "Location": "00"
+        },
+        "PickedPhase": "Pg",
+        "Use": false,
+        "AssociatedPhase": "Pg",
+        "Time": "2021-07-30T14:36:36.960Z",
+        "Residual": 1.673560995291922,
+        "Source": {
+          "Type": "LocalHuman",
+          "AgencyID": "NEIC",
+          "Author": "jturner"
+        },
+        "Weight": 0.0,
+        "Importance": 0.0,
+        "Azimuth": 189.58492721241626,
+        "Quality": 0.0,
+        "Affinity": 3.0,
+        "ID": "39799876",
+        "LocatedPhase": "Pg",
+        "Distance": 1.3527400479463954
+      },
+      {
+        "Site": {
+          "Station": "VHTN",
+          "Elevation": 0.648,
+          "Network": "ET",
+          "Channel": "EHZ",
+          "Latitude": 36.39899826049805,
+          "Longitude": -82.802001953125,
+          "Location": "00"
+        },
+        "PickedPhase": "P",
+        "Use": false,
+        "AssociatedPhase": "Pg",
+        "Time": "2021-07-30T14:36:38.150Z",
+        "Residual": 1.8660941951975012,
+        "Source": {
+          "Type": "ContributedHuman",
+          "AgencyID": "CERI",
+          "Author": "Default_Human"
+        },
+        "Weight": 0.0,
+        "Importance": 0.0,
+        "Azimuth": 267.2645349233638,
+        "Quality": 0.0,
+        "Affinity": 1.5,
+        "ID": "39799873",
+        "LocatedPhase": "Pg",
+        "Distance": 1.4082052497931594
+      },
+      {
+        "Site": {
+          "Station": "T57A",
+          "Elevation": 0.23,
+          "Network": "N4",
+          "Channel": "HHZ",
+          "Latitude": 36.99829864501953,
+          "Longitude": -79.25379943847656,
+          "Location": "00"
+        },
+        "PickedPhase": "Pn",
+        "Use": true,
+        "AssociatedPhase": "Pn",
+        "Time": "2021-07-30T14:36:38.630Z",
+        "Residual": 0.09557809459265698,
+        "Source": {
+          "Type": "LocalHuman",
+          "AgencyID": "NEIC",
+          "Author": "rlsanders"
+        },
+        "Weight": 1.704564848660018,
+        "Importance": 0.0879712893368088,
+        "Azimuth": 69.79184855446731,
+        "Quality": 0.0,
+        "Affinity": 3.0,
+        "ID": "39799864",
+        "LocatedPhase": "Pg",
+        "Distance": 1.5395116246006773
+      },
+      {
+        "Site": {
+          "Station": "W57A",
+          "Elevation": 0.085,
+          "Network": "N4",
+          "Channel": "HHZ",
+          "Latitude": 35.15290069580078,
+          "Longitude": -79.9927978515625,
+          "Location": "00"
+        },
+        "PickedPhase": "Pn",
+        "Use": true,
+        "AssociatedPhase": "Pn",
+        "Time": "2021-07-30T14:36:39.490Z",
+        "Residual": 0.24504093523949777,
+        "Source": {
+          "Type": "LocalHuman",
+          "AgencyID": "NEIC",
+          "Author": "rlsanders"
+        },
+        "Weight": 1.6772991350953161,
+        "Importance": 0.12815234378433887,
+        "Azimuth": 146.48200567508002,
+        "Quality": 0.0,
+        "Affinity": 3.0,
+        "ID": "39799865",
+        "LocatedPhase": "Pg",
+        "Distance": 1.5815250844884605
+      },
+      {
+        "Site": {
+          "Station": "V53A",
+          "Elevation": 0.681,
+          "Network": "N4",
+          "Channel": "HHZ",
+          "Latitude": 35.66939926147461,
+          "Longitude": -82.8124008178711,
+          "Location": "00"
+        },
+        "PickedPhase": "Pn",
+        "Use": true,
+        "AssociatedPhase": "Pn",
+        "Time": "2021-07-30T14:36:40.140Z",
+        "Residual": -0.06916080784964151,
+        "Source": {
+          "Type": "LocalHuman",
+          "AgencyID": "NEIC",
+          "Author": "rlsanders"
+        },
+        "Weight": 1.6441356470125972,
+        "Importance": 0.07875609411036345,
+        "Azimuth": 240.89317161627287,
+        "Quality": 0.0,
+        "Affinity": 3.0,
+        "ID": "39799866",
+        "LocatedPhase": "Pg",
+        "Distance": 1.6345046690478877
+      },
+      {
+        "Site": {
+          "Station": "V58A",
+          "Elevation": 0.127,
+          "Network": "N4",
+          "Channel": "HHZ",
+          "Latitude": 35.79399871826172,
+          "Longitude": -79.11499786376953,
+          "Location": "00"
+        },
+        "PickedPhase": "Pn",
+        "Use": true,
+        "AssociatedPhase": "Pn",
+        "Time": "2021-07-30T14:36:41.960Z",
+        "Residual": 0.6577976909673495,
+        "Source": {
+          "Type": "LocalHuman",
+          "AgencyID": "NEIC",
+          "Author": "rlsanders"
+        },
+        "Weight": 1.1744260774902364,
+        "Importance": 0.04857078903698394,
+        "Azimuth": 112.9134937184902,
+        "Quality": 0.0,
+        "Affinity": 3.0,
+        "ID": "39799867",
+        "LocatedPhase": "Pn",
+        "Distance": 1.7152990304648712
+      },
+      {
+        "Site": {
+          "Station": "PAULI",
+          "Elevation": 0.179,
+          "Network": "CO",
+          "Channel": "HHZ",
+          "Latitude": 34.82099914550781,
+          "Longitude": -81.81439971923828,
+          "Location": "00"
+        },
+        "PickedPhase": "Pn",
+        "Use": true,
+        "AssociatedPhase": "Pn",
+        "Time": "2021-07-30T14:36:42.850Z",
+        "Residual": 0.8659082726668359,
+        "Source": {
+          "Type": "LocalHuman",
+          "AgencyID": "NEIC",
+          "Author": "jturner"
+        },
+        "Weight": 1.1677721394328924,
+        "Importance": 0.03867293601312605,
+        "Azimuth": 200.63164443368865,
+        "Quality": 0.0,
+        "Affinity": 3.0,
+        "ID": "39799877",
+        "LocatedPhase": "Pn",
+        "Distance": 1.765243647667144
+      },
+      {
+        "Site": {
+          "Station": "TZTN",
+          "Elevation": 0.394,
+          "Network": "US",
+          "Channel": "BHZ",
+          "Latitude": 36.54389953613281,
+          "Longitude": -83.54900360107422,
+          "Location": "00"
+        },
+        "PickedPhase": "Pn",
+        "Use": true,
+        "AssociatedPhase": "Pn",
+        "Time": "2021-07-30T14:36:46.570Z",
+        "Residual": 1.2718556485812584,
+        "Source": {
+          "Type": "LocalHuman",
+          "AgencyID": "NEIC",
+          "Author": "jturner"
+        },
+        "Weight": 1.1365434035343969,
+        "Importance": 0.04323962684757379,
+        "Azimuth": 272.58567203339305,
+        "Quality": 0.0,
+        "Affinity": 3.0,
+        "ID": "39799878",
+        "LocatedPhase": "Pn",
+        "Distance": 2.0074607443836734
+      }
+    ],
+    "NumberOfUsedStations": 13,
+    "LocatorExitCode": "DidNotMove",
+    "BayesianRange": 3.0,
+    "ErrorEllipse": {
+      "MaximumVerticalProjection": 2.6723006017191517,
+      "EquivalentHorizontalRadius": 1.3110668004423218,
+      "MaximumHorizontalProjection": 2.998816868569716,
+      "E0": {
+        "Azimuth": 331.1929971439427,
+        "Error": 2.9989331279787046,
+        "Dip": 0.5045099058469333
+      },
+      "E1": {
+        "Azimuth": 63.81403027815015,
+        "Error": 2.721391867013404,
+        "Dip": 79.10068445423734
+      },
+      "E2": {
+        "Azimuth": 241.09595683898897,
+        "Error": 1.2429197935085652,
+        "Dip": 10.887346649409857
+      }
+    },
+    "Hypocenter": {
+      "LatitudeError": 1.7780015133761868,
+      "DepthError": 1.7648770493919301,
+      "TimeError": 0.6757221633242168,
+      "Latitude": 36.479025758695826,
+      "Time": "2021-07-30T14:36:10.948Z",
+      "Longitude": -81.05848094809976,
+      "Depth": 5.0,
+      "LongitudeError": 1.2206921904441475
+    },
+    "DepthImportance": 0.9121466049662935,
+    "Quality": "A G",
+    "Gap": 120.69067453273442,
+    "BayesianDepth": 5.0,
+    "SecondaryGap": 155.67195845441262,
+    "RMS": 0.33311156037865153,
+    "ID": "0",
+    "NumberOfAssociatedStations": 15,
+    "NumberOfAssociatedPhases": 20,
+    "NumberOfUsedPhases": 17
+  }

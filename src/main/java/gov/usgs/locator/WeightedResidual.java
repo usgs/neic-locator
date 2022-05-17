@@ -1,6 +1,6 @@
 package gov.usgs.locator;
 
-import gov.usgs.traveltime.TauUtil;
+import gov.usgs.traveltime.TauUtilities;
 import java.util.Arrays;
 
 /**
@@ -331,7 +331,7 @@ public class WeightedResidual implements Comparable<WeightedResidual> {
    */
   public void setSortValue() {
     if (isBayesianDepth) {
-      sortValue = TauUtil.DMAX;
+      sortValue = TauUtilities.MAXIMUMDOUBLE;
     } else {
       sortValue = residual;
     }
@@ -346,7 +346,7 @@ public class WeightedResidual implements Comparable<WeightedResidual> {
    */
   public void setSortValueSpread(double median) {
     if (isBayesianDepth) {
-      sortValue = TauUtil.DMAX;
+      sortValue = TauUtilities.MAXIMUMDOUBLE;
     } else {
       sortValue = Math.abs(residual - median);
     }
@@ -372,7 +372,7 @@ public class WeightedResidual implements Comparable<WeightedResidual> {
    */
   public void setSortValueLinEstRes() {
     if (isBayesianDepth) {
-      sortValue = TauUtil.DMAX;
+      sortValue = TauUtilities.MAXIMUMDOUBLE;
     } else {
       sortValue = linEstResidual;
     }

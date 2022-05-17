@@ -4,7 +4,7 @@ import gov.usgs.locaux.AuxLocRef;
 import gov.usgs.locaux.LocUtil;
 import gov.usgs.locaux.Slabs;
 import gov.usgs.traveltime.BadDepthException;
-import gov.usgs.traveltime.TTSessionLocal;
+import gov.usgs.traveltime.TravelTimeSession;
 import gov.usgs.traveltime.tables.TauIntegralException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
@@ -55,19 +55,20 @@ public class Locate {
    * The Locate constructor. Sets up the class to locate a single event.
    *
    * @param event An Event object containing the Event to locate
-   * @param ttLocalSession A TTSessionLocal object containing the travel-time information for a
-   *     local implementation to use in computing the location
+   * @param travelTimeSession A TravelTimeSession object containing the travel-time information for
+   *     a local implementation to use in computing the location
    * @param auxLoc An AuxLocRef object containing auxiliary location information such as continental
    *     craton boundaries and earthquake statistics
    * @param slabs A Slabs object containing the slab part of the auxiliary data
    */
-  public Locate(Event event, TTSessionLocal ttLocalSession, AuxLocRef auxLoc, Slabs slabStats) {
+  public Locate(
+      Event event, TravelTimeSession travelTimeSession, AuxLocRef auxLoc, Slabs slabStats) {
     this.event = event;
     hypo = event.getHypo();
     hypoAuditList = event.getHypoAuditList();
-    PhaseID phaseID = new PhaseID(event, ttLocalSession);
+    PhaseID phaseID = new PhaseID(event, travelTimeSession);
     stepper = new Stepper(event, phaseID, auxLoc, slabStats);
-    initialPhaseID = new InitialPhaseID(event, ttLocalSession, phaseID, stepper);
+    initialPhaseID = new InitialPhaseID(event, travelTimeSession, phaseID, stepper);
     close = new CloseOut(event);
     LocUtil.useDecorrelation = false;
   }

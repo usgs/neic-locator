@@ -1,0 +1,497 @@
+{
+    "SourceLatitude": 36.47990036010742,
+    "SourceLongitude": -81.05860137939453,
+    "SourceDepth": 5.0,
+    "SourceOriginTime": "2021-07-30T14:36:10.992Z",
+    "InputData": [
+      {
+        "ID": "39799875",
+        "Site": {
+          "Station": "BLA",
+          "Network": "US",
+          "Channel": "BHZ",
+          "Location": "00",
+          "Latitude": 37.211299896240234,
+          "Longitude": -80.42050170898438,
+          "Elevation": 634.0
+        },
+        "Source": {
+          "AgencyID": "NEIC",
+          "Author": "jturner",
+          "Type": "LocalHuman"
+        },
+        "Time": "2021-07-30T14:36:27.080Z",
+        "Affinity": 3.0,
+        "Quality": 0.0,
+        "Use": true,
+        "PickedPhase": "Pg",
+        "AssociatedPhase": "Pg",
+        "LocatedPhase": "Pg"
+      },
+      {
+        "ID": "39799872",
+        "Site": {
+          "Station": "DSNC",
+          "Network": "ET",
+          "Channel": "EHZ",
+          "Location": "00",
+          "Latitude": 35.583099365234375,
+          "Longitude": -81.63610076904297,
+          "Elevation": 762.0
+        },
+        "Source": {
+          "AgencyID": "CERI",
+          "Author": "Default_Human",
+          "Type": "ContributedHuman"
+        },
+        "Time": "2021-07-30T14:36:29.460Z",
+        "Affinity": 1.5,
+        "Quality": 0.0,
+        "Use": true,
+        "PickedPhase": "P",
+        "AssociatedPhase": "Pg",
+        "LocatedPhase": "Pg"
+      },
+      {
+        "ID": "39799870",
+        "Site": {
+          "Station": "GFM",
+          "Network": "ET",
+          "Channel": "HHZ",
+          "Location": "00",
+          "Latitude": 36.111000061035156,
+          "Longitude": -81.80699920654297,
+          "Elevation": 1726.0
+        },
+        "Source": {
+          "AgencyID": "CERI",
+          "Author": "Default_Human",
+          "Type": "ContributedHuman"
+        },
+        "Time": "2021-07-30T14:36:23.470Z",
+        "Affinity": 1.5,
+        "Quality": 0.0,
+        "Use": true,
+        "PickedPhase": "P",
+        "AssociatedPhase": "Pg",
+        "LocatedPhase": "Pg"
+      },
+      {
+        "ID": "39799871",
+        "Site": {
+          "Station": "GFM",
+          "Network": "ET",
+          "Channel": "HHN",
+          "Location": "00",
+          "Latitude": 36.111000061035156,
+          "Longitude": -81.80699920654297,
+          "Elevation": 1726.0
+        },
+        "Source": {
+          "AgencyID": "CERI",
+          "Author": "Default_Human",
+          "Type": "ContributedHuman"
+        },
+        "Time": "2021-07-30T14:36:32.310Z",
+        "Affinity": 1.5,
+        "Quality": 0.0,
+        "Use": false,
+        "PickedPhase": "S",
+        "AssociatedPhase": "Sg",
+        "LocatedPhase": "Sg"
+      },
+      {
+        "ID": "39799876",
+        "Site": {
+          "Station": "KMSC",
+          "Network": "N4",
+          "Channel": "HHZ",
+          "Location": "00",
+          "Latitude": 35.141998291015625,
+          "Longitude": -81.33329772949219,
+          "Elevation": 240.0
+        },
+        "Source": {
+          "AgencyID": "NEIC",
+          "Author": "jturner",
+          "Type": "LocalHuman"
+        },
+        "Time": "2021-07-30T14:36:36.960Z",
+        "Affinity": 3.0,
+        "Quality": 0.0,
+        "Use": false,
+        "PickedPhase": "Pg",
+        "AssociatedPhase": "Pg",
+        "LocatedPhase": "Pg"
+      },
+      {
+        "ID": "39799877",
+        "Site": {
+          "Station": "PAULI",
+          "Network": "CO",
+          "Channel": "HHZ",
+          "Location": "00",
+          "Latitude": 34.82099914550781,
+          "Longitude": -81.81439971923828,
+          "Elevation": 179.0
+        },
+        "Source": {
+          "AgencyID": "NEIC",
+          "Author": "jturner",
+          "Type": "LocalHuman"
+        },
+        "Time": "2021-07-30T14:36:42.850Z",
+        "Affinity": 3.0,
+        "Quality": 0.0,
+        "Use": true,
+        "PickedPhase": "Pn",
+        "AssociatedPhase": "Pn",
+        "LocatedPhase": "Pn"
+      },
+      {
+        "ID": "39799864",
+        "Site": {
+          "Station": "T57A",
+          "Network": "N4",
+          "Channel": "HHZ",
+          "Location": "00",
+          "Latitude": 36.99829864501953,
+          "Longitude": -79.25379943847656,
+          "Elevation": 230.0
+        },
+        "Source": {
+          "AgencyID": "NEIC",
+          "Author": "rlsanders",
+          "Type": "LocalHuman"
+        },
+        "Time": "2021-07-30T14:36:38.630Z",
+        "Affinity": 3.0,
+        "Quality": 0.0,
+        "Use": true,
+        "PickedPhase": "Pn",
+        "AssociatedPhase": "Pn",
+        "LocatedPhase": "Pg"
+      },
+      {
+        "ID": "39799868",
+        "Site": {
+          "Station": "TVNC2",
+          "Network": "ET",
+          "Channel": "EHZ",
+          "Location": "00",
+          "Latitude": 36.03300094604492,
+          "Longitude": -81.21279907226562,
+          "Elevation": 735.0
+        },
+        "Source": {
+          "AgencyID": "CERI",
+          "Author": "Default_Human",
+          "Type": "ContributedHuman"
+        },
+        "Time": "2021-07-30T14:36:19.470Z",
+        "Affinity": 1.5,
+        "Quality": 0.0,
+        "Use": true,
+        "PickedPhase": "P",
+        "AssociatedPhase": "Pg",
+        "LocatedPhase": "Pg"
+      },
+      {
+        "ID": "39799869",
+        "Site": {
+          "Station": "TVNC2",
+          "Network": "ET",
+          "Channel": "EHE",
+          "Location": "00",
+          "Latitude": 36.03300094604492,
+          "Longitude": -81.21279907226562,
+          "Elevation": 735.0
+        },
+        "Source": {
+          "AgencyID": "CERI",
+          "Author": "Default_Human",
+          "Type": "ContributedHuman"
+        },
+        "Time": "2021-07-30T14:36:24.620Z",
+        "Affinity": 1.5,
+        "Quality": 0.0,
+        "Use": true,
+        "PickedPhase": "S",
+        "AssociatedPhase": "Sg",
+        "LocatedPhase": "Sg"
+      },
+      {
+        "ID": "39799878",
+        "Site": {
+          "Station": "TZTN",
+          "Network": "US",
+          "Channel": "BHZ",
+          "Location": "00",
+          "Latitude": 36.54389953613281,
+          "Longitude": -83.54900360107422,
+          "Elevation": 394.0
+        },
+        "Source": {
+          "AgencyID": "NEIC",
+          "Author": "jturner",
+          "Type": "LocalHuman"
+        },
+        "Time": "2021-07-30T14:36:46.570Z",
+        "Affinity": 3.0,
+        "Quality": 0.0,
+        "Use": true,
+        "PickedPhase": "Pn",
+        "AssociatedPhase": "Pn",
+        "LocatedPhase": "Pn"
+      },
+      {
+        "ID": "39799874",
+        "Site": {
+          "Station": "U54A",
+          "Network": "N4",
+          "Channel": "HHZ",
+          "Location": "00",
+          "Latitude": 36.52090072631836,
+          "Longitude": -81.82039642333984,
+          "Elevation": 837.0
+        },
+        "Source": {
+          "AgencyID": "NEIC",
+          "Author": "jturner",
+          "Type": "LocalHuman"
+        },
+        "Time": "2021-07-30T14:36:22.340Z",
+        "Affinity": 3.0,
+        "Quality": 0.0,
+        "Use": true,
+        "PickedPhase": "Pg",
+        "AssociatedPhase": "Pg",
+        "LocatedPhase": "Pg"
+      },
+      {
+        "ID": "39799863",
+        "Site": {
+          "Station": "U54A",
+          "Network": "N4",
+          "Channel": "HH1",
+          "Location": "00",
+          "Latitude": 36.52090072631836,
+          "Longitude": -81.82039642333984,
+          "Elevation": 837.0
+        },
+        "Source": {
+          "AgencyID": "NEIC",
+          "Author": "rlsanders",
+          "Type": "LocalHuman"
+        },
+        "Time": "2021-07-30T14:36:30.830Z",
+        "Affinity": 3.0,
+        "Quality": 0.0,
+        "Use": true,
+        "PickedPhase": "Sg",
+        "AssociatedPhase": "Sg",
+        "LocatedPhase": "Sg"
+      },
+      {
+        "ID": "39799859",
+        "Site": {
+          "Station": "U56A",
+          "Network": "N4",
+          "Channel": "HHZ",
+          "Location": "00",
+          "Latitude": 36.347198486328125,
+          "Longitude": -80.38289642333984,
+          "Elevation": 363.0
+        },
+        "Source": {
+          "AgencyID": "NEIC",
+          "Author": "jturner",
+          "Type": "LocalHuman"
+        },
+        "Time": "2021-07-30T14:36:21.360Z",
+        "Affinity": 3.0,
+        "Quality": 0.0,
+        "Use": true,
+        "PickedPhase": "Pg",
+        "AssociatedPhase": "Pg",
+        "LocatedPhase": "Pg"
+      },
+      {
+        "ID": "39799861",
+        "Site": {
+          "Station": "U56A",
+          "Network": "N4",
+          "Channel": "HH1",
+          "Location": "00",
+          "Latitude": 36.347198486328125,
+          "Longitude": -80.38289642333984,
+          "Elevation": 363.0
+        },
+        "Source": {
+          "AgencyID": "NEIC",
+          "Author": "jturner",
+          "Type": "LocalHuman"
+        },
+        "Time": "2021-07-30T14:36:28.650Z",
+        "Affinity": 3.0,
+        "Quality": 0.0,
+        "Use": true,
+        "PickedPhase": "Sg",
+        "AssociatedPhase": "Sg",
+        "LocatedPhase": "Sg"
+      },
+      {
+        "ID": "39799866",
+        "Site": {
+          "Station": "V53A",
+          "Network": "N4",
+          "Channel": "HHZ",
+          "Location": "00",
+          "Latitude": 35.66939926147461,
+          "Longitude": -82.8124008178711,
+          "Elevation": 681.0
+        },
+        "Source": {
+          "AgencyID": "NEIC",
+          "Author": "rlsanders",
+          "Type": "LocalHuman"
+        },
+        "Time": "2021-07-30T14:36:40.140Z",
+        "Affinity": 3.0,
+        "Quality": 0.0,
+        "Use": true,
+        "PickedPhase": "Pn",
+        "AssociatedPhase": "Pn",
+        "LocatedPhase": "Pg"
+      },
+      {
+        "ID": "39799860",
+        "Site": {
+          "Station": "V55A",
+          "Network": "N4",
+          "Channel": "HHZ",
+          "Location": "00",
+          "Latitude": 35.85179901123047,
+          "Longitude": -81.21489715576172,
+          "Elevation": 313.0
+        },
+        "Source": {
+          "AgencyID": "NEIC",
+          "Author": "rlsanders",
+          "Type": "LocalHuman"
+        },
+        "Time": "2021-07-30T14:36:22.720Z",
+        "Affinity": 3.0,
+        "Quality": 0.0,
+        "Use": true,
+        "PickedPhase": "Pg",
+        "AssociatedPhase": "Pg",
+        "LocatedPhase": "Pg"
+      },
+      {
+        "ID": "39799862",
+        "Site": {
+          "Station": "V55A",
+          "Network": "N4",
+          "Channel": "HH2",
+          "Location": "00",
+          "Latitude": 35.85179901123047,
+          "Longitude": -81.21489715576172,
+          "Elevation": 313.0
+        },
+        "Source": {
+          "AgencyID": "NEIC",
+          "Author": "rlsanders",
+          "Type": "LocalHuman"
+        },
+        "Time": "2021-07-30T14:36:30.780Z",
+        "Affinity": 3.0,
+        "Quality": 0.0,
+        "Use": true,
+        "PickedPhase": "Sg",
+        "AssociatedPhase": "Sg",
+        "LocatedPhase": "Sg"
+      },
+      {
+        "ID": "39799867",
+        "Site": {
+          "Station": "V58A",
+          "Network": "N4",
+          "Channel": "HHZ",
+          "Location": "00",
+          "Latitude": 35.79399871826172,
+          "Longitude": -79.11499786376953,
+          "Elevation": 127.0
+        },
+        "Source": {
+          "AgencyID": "NEIC",
+          "Author": "rlsanders",
+          "Type": "LocalHuman"
+        },
+        "Time": "2021-07-30T14:36:41.960Z",
+        "Affinity": 3.0,
+        "Quality": 0.0,
+        "Use": true,
+        "PickedPhase": "Pn",
+        "AssociatedPhase": "Pn",
+        "LocatedPhase": "Pn"
+      },
+      {
+        "ID": "39799873",
+        "Site": {
+          "Station": "VHTN",
+          "Network": "ET",
+          "Channel": "EHZ",
+          "Location": "00",
+          "Latitude": 36.39899826049805,
+          "Longitude": -82.802001953125,
+          "Elevation": 648.0
+        },
+        "Source": {
+          "AgencyID": "CERI",
+          "Author": "Default_Human",
+          "Type": "ContributedHuman"
+        },
+        "Time": "2021-07-30T14:36:38.150Z",
+        "Affinity": 1.5,
+        "Quality": 0.0,
+        "Use": false,
+        "PickedPhase": "P",
+        "AssociatedPhase": "Pg",
+        "LocatedPhase": "Pg"
+      },
+      {
+        "ID": "39799865",
+        "Site": {
+          "Station": "W57A",
+          "Network": "N4",
+          "Channel": "HHZ",
+          "Location": "00",
+          "Latitude": 35.15290069580078,
+          "Longitude": -79.9927978515625,
+          "Elevation": 85.0
+        },
+        "Source": {
+          "AgencyID": "NEIC",
+          "Author": "rlsanders",
+          "Type": "LocalHuman"
+        },
+        "Time": "2021-07-30T14:36:39.490Z",
+        "Affinity": 3.0,
+        "Quality": 0.0,
+        "Use": true,
+        "PickedPhase": "Pn",
+        "AssociatedPhase": "Pn",
+        "LocatedPhase": "Pg"
+      }
+    ],
+    "ID": "0",
+    "EarthModel": "cus",
+    "SlabResolution": "2spd",
+    "IsLocationNew": false,
+    "IsLocationHeld": false,
+    "IsDepthHeld": true,
+    "IsBayesianDepth": false,
+    "UseSVD": true,
+    "ReassessInitialPhaseIDs": false
+  }

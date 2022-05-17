@@ -2,9 +2,9 @@ package gov.usgs.locator;
 
 import gov.usgs.locaux.LocUtil;
 import gov.usgs.traveltime.BadDepthException;
-import gov.usgs.traveltime.TTSessionLocal;
-import gov.usgs.traveltime.TTime;
-import gov.usgs.traveltime.TTimeData;
+import gov.usgs.traveltime.TravelTime;
+import gov.usgs.traveltime.TravelTimeData;
+import gov.usgs.traveltime.TravelTimeSession;
 import gov.usgs.traveltime.tables.TauIntegralException;
 import java.util.ArrayList;
 import org.apache.logging.log4j.LogManager;
@@ -30,10 +30,10 @@ public class InitialPhaseID {
   private Hypocenter hypo;
 
   /**
-   * A TTSessionLocal object containing a local travel-time manager used to perform initial phase
+   * A TravelTimeSession object containing a local travel-time manager used to perform initial phase
    * identification.
    */
-  private TTSessionLocal ttLocalSession;
+  private TravelTimeSession travelTimeSession;
 
   /**
    * A PhaseID object containing Phase identification logic used in performing initial phase
@@ -67,16 +67,16 @@ public class InitialPhaseID {
    *
    * @param event An Event object containing the information for the event to perform initial phase
    *     identification upon.
-   * @param ttLocalSession A TTSessionLocal object holding the local travel-time manager
+   * @param travelTimeSession A TravelTimeSession object holding the local travel-time manager
    * @param phaseID A PhaseID object containing the phase identification logic for initial phase
    *     identification
    * @param stepper A RankSumEstimator object containing the rank-sum estimation driver logic
    */
   public InitialPhaseID(
-      Event event, TTSessionLocal ttLocalSession, PhaseID phaseID, Stepper stepper) {
+      Event event, TravelTimeSession travelTimeSession, PhaseID phaseID, Stepper stepper) {
     this.event = event;
     hypo = event.getHypo();
-    this.ttLocalSession = ttLocalSession;
+    this.travelTimeSession = travelTimeSession;
     this.phaseID = phaseID;
     weightedResiduals = event.getRawWeightedResiduals();
     rankSumEstimator = event.getRawRankSumEstimator();
@@ -99,7 +99,7 @@ public class InitialPhaseID {
     }
 
     // Set up a new travel-time session if the depth has changed.
-    ttLocalSession.newSession(
+    travelTimeSession.newSession(
         event.getEarthModel(),
         hypo.getDepth(),
         LocUtil.PHASELIST,
@@ -107,8 +107,7 @@ public class InitialPhaseID {
         hypo.getLongitude(),
         LocUtil.SUPRESSUNLIKELYPHASES,
         LocUtil.SUPRESSBACKBRANCHES,
-        LocUtil.isTectonic,
-        false);
+        LocUtil.isTectonic);
 
     // Loop over picks in the groups.
     for (int j = 0; j < event.getNumStations(); j++) {
@@ -120,9 +119,9 @@ public class InitialPhaseID {
         LOGGER.trace("InitialPhaseID: " + station + ":");
 
         // Do the travel-time calculation.
-        TTime ttList;
+        TravelTime ttList;
         ttList =
-            ttLocalSession.getTT(
+            travelTimeSession.getTravelTimes(
                 station.getLatitude(),
                 station.getLongitude(),
                 station.getElevation(),
@@ -131,7 +130,7 @@ public class InitialPhaseID {
 
         // Print them.
         // ttList.print(event.hypo.depth, group.getDistance());
-        TTimeData travelTime = ttList.getPhase(0);
+        TravelTimeData travelTime = ttList.getPhase(0);
 
         // Based on a tentative ID, just compute residuals and weights so
         // that a robust estimate of the origin time correction can be
@@ -157,16 +156,17 @@ public class InitialPhaseID {
                         && !"Lg".equals(phCode)))) {
               travelTime = ttList.getPhase(0);
 
-              if (!phCode.equals(travelTime.getPhCode())) {
+              if (!phCode.equals(travelTime.getPhaseCode())) {
                 badPs++;
               }
 
-              pick.setResidual(pick.getTravelTime() - travelTime.getTT());
-              pick.setWeight(1d / travelTime.getSpread());
+              pick.setResidual(pick.getTravelTime() - travelTime.getTravelTime());
+              pick.setWeight(1d / travelTime.getStatisticalSpread());
 
-              if (!phCode.equals(travelTime.getPhCode())) {
+              if (!phCode.equals(travelTime.getPhaseCode())) {
                 LOGGER.trace(
-                    String.format("InitialPhaseID: %s -> %s auto", phCode, travelTime.getPhCode()));
+                    String.format(
+                        "InitialPhaseID: %s -> %s auto", phCode, travelTime.getPhaseCode()));
               }
             } else {
               found = false;
@@ -174,11 +174,11 @@ public class InitialPhaseID {
               for (int i = 0; i < ttList.getNumPhases(); i++) {
                 travelTime = ttList.getPhase(i);
 
-                if (phCode.equals(travelTime.getPhCode())) {
+                if (phCode.equals(travelTime.getPhaseCode())) {
                   // Note that this is slightly different from the Fortran
                   // version where the weight is always from the first arrival.
-                  pick.setResidual(pick.getTravelTime() - travelTime.getTT());
-                  pick.setWeight(1d / travelTime.getSpread());
+                  pick.setResidual(pick.getTravelTime() - travelTime.getTravelTime());
+                  pick.setWeight(1d / travelTime.getStatisticalSpread());
                   found = true;
                   break;
                 }
@@ -186,12 +186,12 @@ public class InitialPhaseID {
 
               if (!found) {
                 travelTime = ttList.getPhase(0);
-                pick.setResidual(pick.getTravelTime() - travelTime.getTT());
-                pick.setWeight(1d / travelTime.getSpread());
+                pick.setResidual(pick.getTravelTime() - travelTime.getTravelTime());
+                pick.setWeight(1d / travelTime.getStatisticalSpread());
 
                 LOGGER.trace(
                     String.format(
-                        "InitialPhaseID: " + "%s -> %s human", phCode, travelTime.getPhCode()));
+                        "InitialPhaseID: " + "%s -> %s human", phCode, travelTime.getPhaseCode()));
               }
             }
 
@@ -206,8 +206,8 @@ public class InitialPhaseID {
                     pick.getCurrentPhaseCode(),
                     pick.getResidual(),
                     pick.getWeight(),
-                    travelTime.getTT(),
-                    travelTime.getSpread()));
+                    travelTime.getTravelTime(),
+                    travelTime.getStatisticalSpread()));
           }
         }
       }
@@ -364,8 +364,8 @@ public class InitialPhaseID {
             LOGGER.trace("" + station + ":");
 
             // Do the travel-time calculation.
-            TTime ttList =
-                ttLocalSession.getTT(
+            TravelTime ttList =
+                travelTimeSession.getTravelTimes(
                     station.getLatitude(),
                     station.getLongitude(),
                     station.getElevation(),
@@ -376,14 +376,14 @@ public class InitialPhaseID {
             // ttList.print(event.hypo.depth, group.getDistance());
 
             // Set the phase code.  The travel time was already set in phaseID.
-            pick.updatePhaseIdentification(ttList.getPhase(0).getPhCode());
+            pick.updatePhaseIdentification(ttList.getPhase(0).getPhaseCode());
 
             LOGGER.trace(
                 String.format(
                     "IdHard: %s %s -> %s auto",
                     group.getStation().getStationID().getStationCode(),
                     phCode,
-                    ttList.getPhase(0).getPhCode()));
+                    ttList.getPhase(0).getPhaseCode()));
           } else {
             // If it's a core phase or not a common mis-identification, just
             // don't use it.

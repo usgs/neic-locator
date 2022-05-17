@@ -618,7 +618,7 @@ public class LocMain {
     long requestStartTime = System.currentTimeMillis();
     LocationRequest request = null;
     if ("json".equals(inputType)) {
-      LOGGER.debug("Parsing a json file.");
+      LOGGER.debug("Parsing a json file: " + inputFile);
 
       // parse into request
       try {
@@ -645,8 +645,12 @@ public class LocMain {
       // Use LocInput to get access to proper constructor
       LocInput detectIn = new LocInput(detection, locationConfig);
       request = (LocationRequest) detectIn;
+
+      if (request.ID == "") {
+        request.ID = getFileName(inputFile);
+      }
     } else {
-      LOGGER.debug("Parsing a hydra file.");
+      LOGGER.debug("Parsing a hydra file: " + inputFile);
 
       // Use LocInput to get access to read routine
       LocInput hydraIn = new LocInput();

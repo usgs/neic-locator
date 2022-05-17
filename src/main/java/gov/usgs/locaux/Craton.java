@@ -1,6 +1,6 @@
 package gov.usgs.locaux;
 
-import gov.usgs.traveltime.TauUtil;
+import gov.usgs.traveltime.TauUtilities;
 import java.io.Serializable;
 
 /**
@@ -56,13 +56,13 @@ public class Craton implements Serializable {
 
     // Stay away from the poles and the date line.
     double trialLatitude = latitude;
-    if (Math.abs(Math.abs(trialLatitude) - 90d) < TauUtil.DTOL) {
-      trialLatitude -= Math.copySign(TauUtil.DTOL, trialLatitude);
+    if (Math.abs(Math.abs(trialLatitude) - 90d) < TauUtilities.DOUBLETOLERANCE) {
+      trialLatitude -= Math.copySign(TauUtilities.DOUBLETOLERANCE, trialLatitude);
     }
 
     double trialLongitude = longitude;
-    if (Math.abs(Math.abs(trialLongitude) - 180d) < TauUtil.DTOL) {
-      trialLongitude -= Math.copySign(TauUtil.DTOL, trialLongitude);
+    if (Math.abs(Math.abs(trialLongitude) - 180d) < TauUtilities.DOUBLETOLERANCE) {
+      trialLongitude -= Math.copySign(TauUtilities.DOUBLETOLERANCE, trialLongitude);
     }
 
     // Count crossings of the polygon's sides.

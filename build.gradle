@@ -25,7 +25,7 @@ plugins {
 
 sourceCompatibility = "1.11"
 targetCompatibility = "1.11"
-version = "0.3.7"
+version = "0.4.0"
 
 repositories {
     mavenCentral()
@@ -94,10 +94,10 @@ ext.addExternalProject = { path, url, branch, srcDir ->
     main {
       java {
           srcDirs "$path/$srcDir"
-          // Exclude TtMain.java
+          // Exclude TravelTimeMain.java
           // We do this to avoid build errors due to the
           // unwanted traveltime web service code
-          exclude '*TtMain.java*'
+          exclude '*TravelTimeMain.java*'
       }
     }
   }

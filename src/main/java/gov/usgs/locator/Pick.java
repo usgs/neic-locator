@@ -2,7 +2,7 @@ package gov.usgs.locator;
 
 import gov.usgs.locaux.AuthorType;
 import gov.usgs.locaux.LocUtil;
-import gov.usgs.traveltime.TTimeData;
+import gov.usgs.traveltime.TravelTimeData;
 import java.util.ArrayList;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -86,10 +86,10 @@ public class Pick implements Comparable<Pick> {
   private boolean isTriage;
 
   /**
-   * A TTimeData object holding the theoretical arrival with the minimum statisticalFoM used in
+   * A TravelTimeData object holding the theoretical arrival with the minimum statisticalFoM used in
    * phase identification.
    */
-  private TTimeData ttStatisticalMinFoM;
+  private TravelTimeData ttStatisticalMinFoM;
 
   /** A double containing the current statistical figure-of-merit used in phase identification. */
   private double statisticalFoM;
@@ -305,9 +305,9 @@ public class Pick implements Comparable<Pick> {
   /**
    * Function to get the theoretical arrival object with the minimum statisticalFoM.
    *
-   * @return A TTimeData object holding the theoretical arrival with the minimum statisticalFoM
+   * @return A TravelTimeData object holding the theoretical arrival with the minimum statisticalFoM
    */
-  public TTimeData getTTStatisticalMinFoM() {
+  public TravelTimeData getTTStatisticalMinFoM() {
     return ttStatisticalMinFoM;
   }
 
@@ -389,10 +389,10 @@ public class Pick implements Comparable<Pick> {
   /**
    * Function to set the theoretical arrival object with the minimum statisticalFoM.
    *
-   * @param ttStatisticalMinFoM A TTimeData object holding the theoretical arrival with the minimum
-   *     statisticalFoM
+   * @param ttStatisticalMinFoM A TravelTimeData object holding the theoretical arrival with the
+   *     minimum statisticalFoM
    */
-  public void setTTStatisticalMinFoM(TTimeData ttStatisticalMinFoM) {
+  public void setTTStatisticalMinFoM(TravelTimeData ttStatisticalMinFoM) {
     this.ttStatisticalMinFoM = ttStatisticalMinFoM;
   }
 
@@ -408,10 +408,10 @@ public class Pick implements Comparable<Pick> {
   /**
    * This function sets the statistical figure-of-merit variables.
    *
-   * @param statisticalTravelTime A TTimeData object containing the travel-time information
+   * @param statisticalTravelTime A TravelTimeData object containing the travel-time information
    * @param statisticalFoM A double containing the statistical Figure-of-merit metric
    */
-  public void setStatisticalFoM(TTimeData statisticalTravelTime, double statisticalFoM) {
+  public void setStatisticalFoM(TravelTimeData statisticalTravelTime, double statisticalFoM) {
     ttStatisticalMinFoM = statisticalTravelTime;
     this.statisticalFoM = statisticalFoM;
   }
@@ -588,7 +588,7 @@ public class Pick implements Comparable<Pick> {
 
     if (ttStatisticalMinFoM != null) {
       // We have an identification.  Set up some key variables.
-      String ttCode = ttStatisticalMinFoM.getPhCode();
+      String ttCode = ttStatisticalMinFoM.getPhaseCode();
 
       boolean reID = false;
       if (!currentPhaseCode.equals(ttCode)) {
@@ -609,18 +609,19 @@ public class Pick implements Comparable<Pick> {
       }
 
       if (!"LR".equals(currentPhaseCode)) {
-        residual = travelTime - ttStatisticalMinFoM.getTT();
+        residual = travelTime - ttStatisticalMinFoM.getTravelTime();
       } else {
         residual = 0d;
       }
 
       // If this phase is still being used, set it for processing.
       if (isUsed
-          && ttStatisticalMinFoM.canUse()
-          && (statisticalFoM <= LocUtil.computeValidityLimit(ttStatisticalMinFoM.getSpread())
+          && ttStatisticalMinFoM.getLocationCanUse()
+          && (statisticalFoM
+                  <= LocUtil.computeValidityLimit(ttStatisticalMinFoM.getStatisticalSpread())
               || forceAssociation)) {
         if (shouldReweight) {
-          weight = 1d / Math.max(ttStatisticalMinFoM.getSpread(), 0.2d);
+          weight = 1d / Math.max(ttStatisticalMinFoM.getStatisticalSpread(), 0.2d);
 
           // Check if weight is NaN. If so warn and set to zero.
           // NOTE: This indicates something went wrong in the travel time libraries
@@ -640,11 +641,11 @@ public class Pick implements Comparable<Pick> {
             residual,
             weight,
             false,
-            LocUtil.computeTTLatDerivative(ttStatisticalMinFoM.getDTdD(), azimuth),
-            LocUtil.computeTTLonDerivative(ttStatisticalMinFoM.getDTdD(), azimuth),
-            ttStatisticalMinFoM.getDTdZ(),
-            LocUtil.computeTTLatDerivative(ttStatisticalMinFoM.getDSdD(), azimuth),
-            LocUtil.computeTTLonDerivative(ttStatisticalMinFoM.getDSdD(), azimuth));
+            LocUtil.computeTTLatDerivative(ttStatisticalMinFoM.getDistanceDerivitive(), azimuth),
+            LocUtil.computeTTLonDerivative(ttStatisticalMinFoM.getDistanceDerivitive(), azimuth),
+            ttStatisticalMinFoM.getDepthDerivitive(),
+            LocUtil.computeTTLatDerivative(ttStatisticalMinFoM.getSpreadDerivative(), azimuth),
+            LocUtil.computeTTLonDerivative(ttStatisticalMinFoM.getSpreadDerivative(), azimuth));
         weightedResiduals.add(weightedResidual);
 
         if (reID) {
@@ -658,8 +659,8 @@ public class Pick implements Comparable<Pick> {
                   "=====> Phase no use set (wt): %s %s %5b %5.2f",
                   station.getStationID().getStationCode(),
                   currentPhaseCode,
-                  ttStatisticalMinFoM.canUse(),
-                  ttStatisticalMinFoM.getSpread()));
+                  ttStatisticalMinFoM.getLocationCanUse(),
+                  ttStatisticalMinFoM.getStatisticalSpread()));
 
           isUsed = false;
 

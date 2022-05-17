@@ -1,7 +1,7 @@
 package gov.usgs.locator;
 
 import gov.usgs.locaux.LocUtil;
-import gov.usgs.traveltime.TauUtil;
+import gov.usgs.traveltime.TauUtilities;
 
 /**
  * Keep all the data for one hypocenter together.
@@ -439,7 +439,7 @@ public class Hypocenter {
     this.depth = depth;
 
     // compute the colatitude
-    coLatitude = TauUtil.geoCen(latitude);
+    coLatitude = TauUtilities.computeGeocentricColatitude(latitude);
 
     // Update the sines and cosines.
     computeSinesAndCosines();
@@ -499,7 +499,7 @@ public class Hypocenter {
     }
 
     // Compute the geographic latitude.
-    latitude = TauUtil.geoLat(coLatitude);
+    latitude = TauUtilities.computeGeographicLatitude(coLatitude);
 
     // Update the sines and cosines.
     computeSinesAndCosines();
@@ -557,7 +557,7 @@ public class Hypocenter {
     depth = backup.getDepth();
 
     // compute the colatitude
-    coLatitude = TauUtil.geoCen(latitude);
+    coLatitude = TauUtilities.computeGeocentricColatitude(latitude);
 
     // Update the sines and cosines.
     computeSinesAndCosines();
