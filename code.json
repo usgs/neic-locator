@@ -1,30 +1,33 @@
-{
-  "name": "neic-locator",
-  "organization": "U.S. Geological Survey",
-  "description": "REPOSITORY_DESCRIPTION",
-  "status": "Beta",
-  "homepage": "https://github.com/usgs/neic-locator",
-  "downloadURL": "https://github.com/usgs/neic-locator/archive/master.zip",
-
-  "openSourceProject": 1,
-  "license": "https://github.com/usgs/neic-locator/blob/master/LICENSE.md",
-  "vcs": "git",
-  "repository": "https://github.com/usgs/neic-locator.git",
-
-  "tags": [
-    "earthquake",
-    "location",
-    "processing"
-  ],
-  "languages": [
-    "java"
-  ],
-
-  "contact": {
-    "name": "John Patton",
-    "email": "jpatton@usgs.gov"
-  },
-  "updated": {
-    "metadataLastUpdated": "2017-12-04"
+[
+  {
+    "name": "neic-locator",
+    "organization": "U.S. Geological Survey",
+    "description": "Earthquake relocation software utilized by the USGS National Earthquake Information Center",
+    "version": "0.4.0",
+    "status": "Development",
+    "permissions": {
+      "usageType": "openSource",
+      "licenses": [
+        {
+          "name": "Public Domain, CC0-1.0",
+          "URL": "https://code.usgs.gov/ghsc/neic/algorithms/neic-locator/-/raw/master/LICENSE.md"
+        }
+      ]
+    },
+    "homepageURL": "https://code.usgs.gov/ghsc/neic/algorithms/neic-locator",
+    "downloadURL": "https://code.usgs.gov/ghsc/neic/algorithms/neic-locator/-/archive/master/neic-locator-master.zip",
+    "disclaimerURL": "https://code.usgs.gov/ghsc/neic/algorithms/neic-locator/-/raw/master/DISCLAIMER.md",
+    "repositoryURL": "https://code.usgs.gov/ghsc/neic/algorithms/neic-locator.git",
+    "vcs": "git",
+    "laborHours": 0,
+    "tags": ["Open Source", "Earthquake", "Location", "Seismic Processing", "NEIC" ],
+    "languages": ["java"],
+    "contact": {
+      "name": "John Patton",
+      "email": "jpatton@usgs.gov"
+    },
+    "date": {
+      "metadataLastUpdated": "2022-5-26"
+    }
   }
-}
+]
