@@ -1,0 +1,8 @@
+version: "3.7"
+services:
+  webloc:
+    build: .
+    volumes:
+        - /tmp:/neic-locator/local
+    ports:
+        - 8080:8080 

@@ -90,7 +90,7 @@ public class Stepper {
    * @param phaseIDLogic A PhaseID object containing the phase identification logic.
    * @param auxLoc An AuxLocRef object containing auxiliary locator information used when performing
    *     Stepper calculations.
-   * @param slabs A Slabs object containing the slab part of the auxiliary data
+   * @param slabStats A Slabs object containing the slab part of the auxiliary data
    */
   public Stepper(Event event, PhaseID phaseIDLogic, AuxLocRef auxLoc, Slabs slabStats) {
     this.event = event;

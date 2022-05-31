@@ -1,43 +1,44 @@
-ARG BUILD_IMAGE=usgs/centos:7
-ARG FROM_IMAGE=usgs/centos:7
+ARG BUILD_IMAGE=usgs/java:11
+ARG FROM_IMAGE=usgs/java:11
 
+# === Stage 1: Compile and Build java codebase ===
 FROM ${BUILD_IMAGE} as build
 
-# install java; which is used by gradle to find java
-RUN yum install -y java-11-openjdk-devel which
-
 # install gradle
-COPY ./gradlew /project/
-COPY ./gradle /project/gradle
-COPY ./build.gradle /project/.
-WORKDIR /project
+COPY ./gradlew /neic-locator/
+COPY ./gradle /neic-locator/gradle
+COPY ./build.gradle /neic-locator/.
+WORKDIR /neic-locator
 RUN ./gradlew tasks
 
 # see .dockerignore for what is not COPYed
-COPY . /project
-RUN ./gradlew --no-daemon build
+COPY . /neic-locator
+
+# don't run tests and checks since this is a deployment
+# container, we run these elsewhere in the pipeline
+RUN ./gradlew --no-daemon build -x test -x check
 
 # use consistent jar name
-RUN cp /project/build/libs/neic-locator-*-all.jar /project/build/neic-locator-service.jar
+RUN cp /neic-locator/build/libs/neic-locator-*-all.jar /neic-locator/build/neic-locator-service.jar
 
-
+# === Stage 2: Create image to serve java locator service app ===
 FROM ${FROM_IMAGE}
 
-# install java
-RUN yum install -y java-11-openjdk-headless
-
 # copy shadow jar
-COPY --from=build /project/build/neic-locator-service.jar /project/
+COPY --from=build /neic-locator/build/neic-locator-service.jar /neic-locator/
 # copy models
-COPY --from=build /project/build/models /project/models
+COPY --from=build /neic-locator/build/models /neic-locator/models
+# copy entrypoint
+COPY --from=build /neic-locator/docker-entrypoint.sh /neic-locator/
 
 # set environment
-ENV locator.model.path=/project/models/
-ENV locator.serialized.path=/project/local/
+ENV locator.model.path=/neic-locator/models/
+ENV locator.serialized.path=/neic-locator/local/
 
 # run as root to avoid volume writing issues
 USER root
+WORKDIR /neic-locator
+
+# create entrypoint, needs double quotes
+ENTRYPOINT [ "/neic-locator/docker-entrypoint.sh" ]
 EXPOSE 8080
-WORKDIR /project
-ENTRYPOINT [ "/usr/bin/java", "-jar", "neic-locator-service.jar" ]
-CMD [ "--mode=service" ]

@@ -140,7 +140,11 @@ public class BayesianDepth implements Comparable<BayesianDepth> {
     factor = 1d;
   }
 
-  /** Create an empty BayesianDepth to be filled in using the setByIndex method. */
+  /**
+   * Create an empty BayesianDepth to be filled in using the setByIndex method.
+   *
+   * @param source A DepthSource object identifying the depth source
+   */
   public BayesianDepth(DepthSource source) {
     depth = Double.NaN;
     lower = Double.NaN;

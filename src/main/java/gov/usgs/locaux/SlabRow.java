@@ -101,16 +101,23 @@ public class SlabRow implements Serializable {
     // Squeeze out points where the earthquake depth is NaN.
     lat = slabPoints.get(0).getLat();
 
+    // look for the start of the points
     for (int j = 0; j < slabPoints.size(); j++) {
       if (!Double.isNaN(slabPoints.get(j).getEqDepth())) {
         start = j++;
+        int end = j++;
 
-        for (; j < slabPoints.size(); j++) {
-          if (Double.isNaN(slabPoints.get(j).getEqDepth())) {
-            addSegment(start, j, slabInc);
+        // look for the end of the points
+        for (int k = j; k < slabPoints.size(); k++) {
+          if (Double.isNaN(slabPoints.get(k).getEqDepth())) {
+            end = k;
+            addSegment(start, end, slabInc);
+
             break;
           }
         }
+
+        j = end;
       }
     }
 
@@ -239,7 +246,11 @@ public class SlabRow implements Serializable {
     lonRange[1] = slabPoints.get(end - 1).getLon() + slabInc / 2d;
   }
 
-  /** Function to generate a string containing a summary of the points before squeezing. */
+  /**
+   * Function to generate a string containing a summary of the points before squeezing.
+   *
+   * @return A string containing the summary of the points before squeezing
+   */
   public String printRaw() {
     String pointString = "";
 
@@ -258,7 +269,11 @@ public class SlabRow implements Serializable {
     return pointString;
   }
 
-  /** Function to generate a string containing a summary of the segments created by squeezing. */
+  /**
+   * Function to generate a string containing a summary of the segments created by squeezing.
+   *
+   * @return A string containing a summary of the segments created by squeezing.
+   */
   public String printRow() {
     String rowString = "";
 

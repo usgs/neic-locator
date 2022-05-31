@@ -30,6 +30,7 @@ public class LocService implements LocationService {
    * The LocService constructor. Sets up the travel-times and locator external files.
    *
    * @param modelPath A String containing the earth model path to use
+   * @param serializedPath A String containing the serialization path to use
    * @throws gov.usgs.processingformats.LocationException Throws a LocationException upon certain
    *     severe errors.
    */
