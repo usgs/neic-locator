@@ -59,7 +59,7 @@ public class Locate {
    *     a local implementation to use in computing the location
    * @param auxLoc An AuxLocRef object containing auxiliary location information such as continental
    *     craton boundaries and earthquake statistics
-   * @param slabs A Slabs object containing the slab part of the auxiliary data
+   * @param slabStats A Slabs object containing the slab part of the auxiliary data
    */
   public Locate(
       Event event, TravelTimeSession travelTimeSession, AuxLocRef auxLoc, Slabs slabStats) {

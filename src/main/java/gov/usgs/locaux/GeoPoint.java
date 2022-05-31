@@ -27,42 +27,74 @@ public class GeoPoint implements Comparable<GeoPoint> {
   /** Bayesian depth statistics. */
   private BayesianDepth bayesDepth;
 
-  /** @return Geographical colatitude (0-180 degrees) */
+  /**
+   * Function to get the geographical colatitude
+   *
+   * @return Geographical colatitude (0-180 degrees)
+   */
   public double getLat() {
     return lat;
   }
 
-  /** @return Geographical longitude (0-360 degrees) */
+  /**
+   * Function to get the geographical longitude
+   *
+   * @return Geographical longitude (0-360 degrees)
+   */
   public double getLon() {
     return lon;
   }
 
-  /** @return The Earth flattened x coordinate in degrees. */
+  /**
+   * \Function to get the earth flattened x coordinate
+   *
+   * @return The Earth flattened x coordinate in degrees.
+   */
   public double getX() {
     return x;
   }
 
-  /** @return The Earth flattened y coordinate in degrees. */
+  /**
+   * Function to get the earth flattened y coordinate
+   *
+   * @return The Earth flattened y coordinate in degrees.
+   */
   public double getY() {
     return y;
   }
 
-  /** @return The Earth flattened Cartesian distance from the trial point in degrees */
+  /**
+   * Function to get the earth flattened Cartesian distance
+   *
+   * @return The Earth flattened Cartesian distance from the trial point in degrees
+   */
   public double getDist() {
     return dist;
   }
 
-  /** @param depth Bayesian depth in kilometers to set */
+  /**
+   * Function to set the Bayesian depth
+   *
+   * @param bayesDepth Bayesian depth in kilometers to set
+   */
   public void setBayesDepth(BayesianDepth bayesDepth) {
     this.bayesDepth = bayesDepth;
   }
 
-  /** @return Bayesian depth in kilometers */
+  /**
+   * Function to get the Bayesian depth
+   *
+   * @return Bayesian depth in kilometers
+   */
   public BayesianDepth getBayesDepth() {
     return bayesDepth;
   }
 
-  /** @return The Bayesian depth in kilometers */
+  /**
+   * Function to get the depth
+   *
+   * @return The depth in kilometers
+   */
   public double getDepth() {
     if (bayesDepth != null) {
       return bayesDepth.getDepth();

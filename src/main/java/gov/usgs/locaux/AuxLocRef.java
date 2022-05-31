@@ -76,7 +76,7 @@ public class AuxLocRef {
    * Read the cratons and zone statistics files and make the data available to the Locator.
    *
    * @param modelPath A string containing the path to model files, null to use default
-   * @param modelPath A string containing the path to the serialized files, null to use default
+   * @param serializedPath A string containing the path to the serialized files, null to use default
    * @throws IOException On any read error
    * @throws ClassNotFoundException In input serialization is hosed
    */

@@ -1,0 +1,188 @@
+image: ${DEVOPS_REGISTRY}usgs/centos:latest
+
+stages:
+  - test
+  - build
+  - deploy
+
+variables:
+  ALGORITHMS_CI_REGISTRY_IMAGE: ${ALGORITHMS_REGISTRY_ADDRESS}
+  # docker variables
+  DOCKER_DRIVER: overlay2
+  FROM_IMAGE: ${DEVOPS_REGISTRY}usgs/centos:7
+  # environment variables
+  APP_NAME: neic-locator
+  UPSTREAM_PATH: ghsc/neic/algorithms/neic-locator
+
+## --------------------------------------------------
+# Templates
+## --------------------------------------------------
+.adjust_image_names:
+  before_script:
+    - IMAGE_NAME=${APP_NAME}:${CI_COMMIT_REF_SLUG}
+    - INTERNAL_IMAGE_NAME=${ALGORITHMS_CI_REGISTRY_IMAGE}/${IMAGE_NAME}
+    - STACK_NAME=${APP_NAME}
+
+.deploy:
+  cache: {}
+  extends:
+    - .adjust_image_names
+  image: ${CODE_REGISTRY}/ghsc/hazdev/container-deploy:latest
+  script:
+    # upstream check
+    - if [ "${CI_PROJECT_PATH}" != "${UPSTREAM_PATH}" ]; then
+      echo "Skipping deploy on non-upstream (${CI_PROJECT_PATH})";
+      exit 0;
+      fi
+
+    - mkdir scripts
+    # get configuration from the config repository
+    - git clone ${ALGORITHMS_CONFIG_REPO_ADDRESS}/${APP_NAME}.git config
+    - cp -v
+      config/custom.config.sh
+      config/custom.funcs.sh
+      config/${APP_NAME}.yml
+      scripts/.    
+    # get the deploy scripts
+    - cp -v
+      /container-deploy/default.config.sh
+      /container-deploy/default.funcs.sh
+      /container-deploy/deploy.sh
+      scripts/.
+    # set varibles
+    - export APP_NAME=${APP_NAME}
+    - export IMAGE_NAME=${IMAGE_NAME}      
+    - export REGISTRY=${ALGORITHMS_CI_REGISTRY_IMAGE}
+    - export STACK_NAME=${APP_NAME}
+    - export DEBUG='true'
+    # do the deployment
+    - ./scripts/deploy.sh
+
+  stage: deploy
+  tags:
+    - deploy
+
+## --------------------------------------------------
+# Build Stage
+## --------------------------------------------------
+Build Docker Image:
+  cache: {}
+  extends:
+    - .adjust_image_names
+  image: ${CI_REGISTRY}/devops/images/usgs/docker:20
+  script:
+    - LOCAL_IMAGE="local/${IMAGE_NAME}"
+    # Build the container
+    - docker build
+      --pull
+      --build-arg FROM_IMAGE=${FROM_IMAGE}
+      --build-arg BUILD_IMAGE=${BUILD_IMAGE}
+      --build-arg GIT_BRANCH_NAME=${CI_COMMIT_REF_NAME}
+      --build-arg GIT_COMMIT_SHA=${CI_COMMIT_SHA}
+      --tag "${LOCAL_IMAGE}" 
+      "."
+   
+    ## trivy scan before push
+    - wget https://github.com/aquasecurity/trivy/releases/download/v${TRIVY_VERSION}/trivy_${TRIVY_VERSION}_Linux-64bit.tar.gz
+    - tar zxvf trivy_${TRIVY_VERSION}_Linux-64bit.tar.gz
+    # fail LOW,MEDIUM vulnerabilities that have a fix available
+    - ./trivy image --exit-code 1 --ignore-unfixed --severity LOW,MEDIUM "${LOCAL_IMAGE}";
+    # fail HIGH,CRITICAL vulnerabilities
+    - ./trivy image --exit-code 1 --severity HIGH,CRITICAL "${LOCAL_IMAGE}";
+
+    # upstream check
+    - if [ "${CI_PROJECT_PATH}" != "${UPSTREAM_PATH}" ]; then
+      echo "Skipping push on non-upstream (${CI_PROJECT_PATH})";
+      exit 0;
+      fi
+
+    # Tag and Push image to algorithms registry
+    - docker tag local/${IMAGE_NAME} ${INTERNAL_IMAGE_NAME}
+    - docker push ${INTERNAL_IMAGE_NAME}
+    - docker image rm ${INTERNAL_IMAGE_NAME}
+
+  services:
+    - alias: docker
+      name: ${CI_REGISTRY}/devops/images/usgs/docker:20-dind
+  stage: build
+  tags:
+    - build
+  variables:
+    APP_NAME: neic-locator
+    DOCKER_DRIVER: overlay2
+    TRIVY_VERSION: "0.27.1"
+    FROM_IMAGE: ${DEVOPS_REGISTRY}usgs/amazoncorretto:11
+    BUILD_IMAGE: ${DEVOPS_REGISTRY}usgs/amazoncorretto:11
+
+
+## --------------------------------------------------
+# Test Stage
+## --------------------------------------------------
+Java Test:
+  after_script:
+    # runs before cache is saved (copying from .travis.yml)
+    - rm -f  "${CI_PROJECT_DIR}/.gradle/caches/modules-2/modules-2.lock"
+    - rm -fr "${CI_PROJECT_DIR}/.gradle/caches/*/plugin-resolution/"
+  artifacts:
+    reports:
+      coverage_report:
+        coverage_format: cobertura
+        path: build/reports/cobertura/cobertura.xml
+      junit: build/test-results/test/TEST-*.xml
+  cache:
+    paths:
+      - .gradle/caches
+      - .gradle/wrapper
+  image: ${DEVOPS_REGISTRY}usgs/java:11-jdk
+  script:
+    # run gradle and javadoc
+    - export GRADLE_USER_HOME="${CI_PROJECT_DIR}/.gradle"
+    - ./gradlew build javadoc
+  stage: test
+  tags:
+    - development
+
+## --------------------------------------------------
+# Deploy Stage
+## --------------------------------------------------
+# Dev deploy
+dvbl2 webttt Service:
+  extends:
+    - .deploy
+  tags:
+    - deploy
+    - development
+    - dvbl2
+  variables:
+    APP_NAME: neic-locator
+  only:
+    - development@ghsc/neic/algorithms/neic-locator
+
+# no staging deployment needed
+# Staging (test) deploy 
+#dvbld webttt Service:
+#  extends:
+#    - .deploy
+#  tags:
+#    - deploy
+#    - staging
+#    - dvbld
+#  variables:
+#    APP_NAME: neic-locator
+#  only:
+#    - staging@ghsc/neic/algorithms/neic-locator
+
+# no production deployment needed
+# Production deployment:
+#mot1 webttt Service:
+#  extends:
+#    - .deploy
+#  tags:
+#    - deploy
+#    - production 
+#    - mot1
+#  variables:
+#    APP_NAME: neic-locator
+#  only:
+#    - production@ghsc/neic/algorithms/neic-locator
+

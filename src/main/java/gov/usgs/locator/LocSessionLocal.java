@@ -61,6 +61,7 @@ public class LocSessionLocal {
    * Read in the invariant external Locator files.
    *
    * @param modelPath Path to the Locator model files
+   * @param serializedPath A String containing the serialization path to use
    * @throws ClassNotFoundException If the serialized file objects don't exist
    * @throws IOException If the serialized I/O fails in any way
    */

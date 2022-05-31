@@ -13,8 +13,10 @@ plugins {
     id "com.github.johnrengelman.shadow" version "7.1.2"
     // code coverage
     id "jacoco"
+    //
+    id "com.kageiit.jacobo" version "2.1.0"
     // static code analysis
-    // id "pmd"
+    id "pmd"
     // git clone, etc.
     id "org.ajoberstar.grgit" version "2.3.0"
     // google java format
@@ -37,7 +39,7 @@ configurations {
 
 dependencyManagement {
     imports {
-        mavenBom "io.micronaut:micronaut-bom:3.2.3"
+        mavenBom "io.micronaut:micronaut-bom:3.4.4"
     }
 }
 
@@ -52,7 +54,7 @@ dependencies {
     implementation "io.micronaut:micronaut-http-client"
     implementation "io.micronaut:micronaut-http-server-netty"
     implementation "io.swagger.core.v3:swagger-annotations"
-    implementation "ch.qos.logback:logback-classic:1.2.3"
+    implementation "ch.qos.logback:logback-classic:1.2.9"
 
     // com.googlecode.json.simple
     implementation "com.googlecode.json-simple:json-simple:1.1.1"
@@ -124,6 +126,9 @@ jacoco {
 }
 jacocoTestReport {
   reports {
+    // Note I think these will need to be changed 
+    // to .required = true when/if we move to 
+    // gradle 8
     html.enabled true
     xml.enabled true
   }
@@ -140,6 +145,13 @@ jacocoTestReport {
     }
 }
 check.dependsOn jacocoTestReport
+
+pmd {
+  toolVersion = "6.29.0"
+  ruleSets = [
+    file("pmd-ruleset.xml")
+  ]
+}
 
 test {
   useJUnitPlatform()
@@ -217,24 +229,11 @@ javadoc {
   }
 }
 
-// Tasks for TravisCI
-
-// run with "gradle build --scan" to post build output online
-//buildScan {
-//  termsOfServiceUrl = "https://gradle.com/terms-of-service"
-//  termsOfServiceAgree = "yes"
-//}
-
-// .travis.yml uses this to upload coverage
-//task sendCoverageToCodacy(type: JavaExec, dependsOn: jacocoTestReport) {
-//  description = "Upload coverage to codacy (used by TravisCI)"
-//  main = "com.codacy.CodacyCoverageReporter"
-//  classpath = configurations.codacy
-//  args = [
-//    "report",
-//    "-l",
-//    "Java",
-//    "-r",
-//    "${buildDir}/reports/jacoco/test/jacocoTestReport.xml"
-//  ]
-//}
+// convert jacoco to cobertura
+import com.kageiit.jacobo.JacoboTask
+tasks.create("jacobo", JacoboTask, {
+    it.jacocoReport = file("${project.buildDir}/reports/jacoco/test/jacocoTestReport.xml")
+    it.coberturaReport = file("${project.buildDir}/reports/cobertura/cobertura.xml")
+    it.srcDirs = sourceSets.main.java.srcDirs
+}).dependsOn(jacocoTestReport)
+project.tasks.check.dependsOn jacobo
