@@ -23,14 +23,21 @@ plugins {
     id "com.github.sherter.google-java-format" version "0.9"
     // manage micronaut dependencies
     id "io.spring.dependency-management" version "1.0.11.RELEASE"
+    // support publishing to maven repositories
+    id 'maven-publish'    
 }
 
 sourceCompatibility = "1.11"
 targetCompatibility = "1.11"
-version = "0.4.0"
+version = "0.4.1"
 
 repositories {
     mavenCentral()
+
+  maven {
+    // The general NEIC package registry
+    url 'https://code.usgs.gov/api/v4/projects/8197/packages/maven'
+  }    
 }
 
 configurations {
@@ -62,6 +69,12 @@ dependencies {
     implementation "org.apache.commons:commons-math3:3.6.1"
     // gov.nist.math.jama
     implementation "gov.nist.math:jama:1.0.3"
+    // travel times
+    implementation 'gov.usgs:neic-traveltime:0.9.0'
+    // earthquake processing formats
+    implementation 'gov.usgs:processingformats:0.1.0'
+    // earthquake detection formats
+    implementation 'gov.usgs:detectionformats:0.1.0'
 
     // log4j2 (must be greater than 2.17.0)
     implementation 'org.apache.logging.log4j:log4j-core:2.17.2'
@@ -96,10 +109,6 @@ ext.addExternalProject = { path, url, branch, srcDir ->
     main {
       java {
           srcDirs "$path/$srcDir"
-          // Exclude TravelTimeMain.java
-          // We do this to avoid build errors due to the
-          // unwanted traveltime web service code
-          exclude '*TravelTimeMain.java*'
       }
     }
   }
@@ -107,12 +116,6 @@ ext.addExternalProject = { path, url, branch, srcDir ->
 
 // mainClassName = "gov.usgs.locatorservice.Application"
 mainClassName = "gov.usgs.locator.LocMain"
-
-// Note: To reformat all java code (not in lib) into the
-// google java style, run ./gradlew goJF
-googleJavaFormat {
-  exclude "lib/**"
-}
 
 // always format to google style prior to the build
 compileJava.dependsOn 'googleJavaFormat'
@@ -132,17 +135,6 @@ jacocoTestReport {
     html.enabled true
     xml.enabled true
   }
-
-  // exclude librarys
-  afterEvaluate {
-        getClassDirectories().from(files(classDirectories.files.collect {
-            fileTree(dir: it, exclude: [
-                    "gov/usgs/traveltime/**",
-                    "gov/usgs/processingformats/**",
-                    "gov/usgs/detectionformats/**"
-            ])
-        }))
-    }
 }
 check.dependsOn jacocoTestReport
 
@@ -160,31 +152,9 @@ test {
   }
 }
 
-// clone/update external libs from github, at least until they're available in
-// maven
-task cloneExternalProjects {
-  description "Clones/Updates external project(s)."
-
-  doFirst {
-    // neic-traveltime
-    // grab src/main/java/gov/usgs/traveltime subdir of src to avoid compiling tests and the webservice code
-    addExternalProject("$projectDir/lib/neic-traveltime",
-      "https://github.com/usgs/neic-traveltime.git", "master", "src/main/java/gov/usgs/traveltime")
-
-    // earthquake-processing-formats
-    // grab the main subdir of src to avoid compiling tests
-    addExternalProject("$projectDir/lib/earthquake-processing-formats",
-      "https://github.com/usgs/earthquake-processing-formats.git", "master", "java/src/main")
-
-    // earthquake-detection-formats
-    // grab the main subdir of src to avoid compiling tests
-    addExternalProject("$projectDir/lib/earthquake-detection-formats",
-      "https://github.com/usgs/earthquake-detection-formats.git", "master", "java/src/main")
-  }
-}
-
 // unzip large model files
 task unzipModelFiles(type: Copy) {
+    description "Decompresses large slab model files."
     def zipFile = file('models/slabmaster.zip')
     def outputDir = file('models')
  
@@ -195,18 +165,16 @@ task unzipModelFiles(type: Copy) {
 // copy required model files
 task copyModelFiles(type: Copy) {
   description "Copies required model files to build directory."
-  dependsOn "cloneExternalProjects"
-  from "models", "$projectDir/lib/neic-traveltime/models/"
+  from "models"
   exclude "README.txt"
   into "$buildDir/models"
 }
 
 // make sure we always update the external projects and copy models prior to
 // complile
-defaultTasks "cloneExternalProjects", "unzipModelFiles", "copyModelFiles"
-unzipModelFiles.dependsOn "cloneExternalProjects"
+defaultTasks "unzipModelFiles", "copyModelFiles"
 copyModelFiles.dependsOn "unzipModelFiles"
-compileJava.dependsOn "cloneExternalProjects", "copyModelFiles", "unzipModelFiles"
+compileJava.dependsOn  "copyModelFiles", "unzipModelFiles"
 
 // show compile warnings
 tasks.withType(JavaCompile) {
@@ -222,8 +190,6 @@ shadowJar {
 
 // create javadocs
 javadoc {
-  exclude "**/gov/usgs/processingformats/**"
-  exclude "**/gov/usgs/detectionformats/**"
   if(JavaVersion.current() != JavaVersion.VERSION_1_8) {
     options.addBooleanOption('html5', true)
   }
@@ -237,3 +203,37 @@ tasks.create("jacobo", JacoboTask, {
     it.srcDirs = sourceSets.main.java.srcDirs
 }).dependsOn(jacocoTestReport)
 project.tasks.check.dependsOn jacobo
+
+// create model file zip for distribution
+task zipModels(type: Zip, dependsOn: jar) {
+  archiveFileName = "Models.zip"
+
+  // example listeners
+  from ("models") {  include "*.txt", "*.mod", "*.json", "*.dat"}
+}
+
+// publish to our maven package repository
+// note this will only work from within the pipeline
+publishing {
+    publications {
+        library(MavenPublication) {
+            from components.java
+        }
+    }
+    repositories {
+        maven {
+          // The general NEIC package registry
+          url "https://code.usgs.gov/api/v4/projects/8197/packages/maven"
+          name "GitLab"
+          credentials(HttpHeaderCredentials) {
+              name = 'Job-Token'
+              value = System.getenv("CI_JOB_TOKEN")
+          }
+          authentication {
+              header(HttpHeaderAuthentication)
+          }
+        }
+    }
+}
+
+publish.dependsOn  "zipModels"
