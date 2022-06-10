@@ -63,6 +63,17 @@ variables:
   tags:
     - deploy
 
+# rules to define which branches should trigger actions
+.dev-env: &dev-env
+  if: $CI_PROJECT_PATH != $UPSTREAM_PATH
+  variables:
+    ENVIRONMENT: dev
+
+.publish-env: &publish-env
+  if: $CI_PROJECT_PATH == $UPSTREAM_PATH
+  variables:
+    ENVIRONMENT: publish
+
 ## --------------------------------------------------
 # Build Stage
 ## --------------------------------------------------
@@ -106,6 +117,11 @@ Build Docker Image:
     - alias: docker
       name: ${CI_REGISTRY}/devops/images/usgs/docker:20-dind
   stage: build
+  rules:
+      - <<: *dev-env
+        when: always
+      - <<: *publish-env
+        when: always  
   tags:
     - build
   variables:
@@ -143,6 +159,11 @@ Java Test:
     - export GRADLE_USER_HOME="${CI_PROJECT_DIR}/.gradle"
     - ./gradlew build javadoc
   stage: test
+  rules:
+      - <<: *dev-env
+        when: always
+      - <<: *publish-env
+        when: always  
   tags:
     - development
 
@@ -208,6 +229,11 @@ Java Publish:
       - java/.gradle/wrapper
   image: ${JAVA_IMAGE}
   script:
+    # upstream check
+    - if [ "${CI_PROJECT_PATH}" != "${UPSTREAM_PATH}" ]; then
+      echo "Skipping publish on non-upstream (${CI_PROJECT_PATH})";
+      exit 0;
+      fi
     - cd java
     # use gradle to publish to our maven repository
     - export GRADLE_USER_HOME="${CI_PROJECT_DIR}/.gradle"
@@ -217,4 +243,4 @@ Java Publish:
     variables:
       - ($CI_PROJECT_PATH == $UPSTREAM_PATH)
   tags:
-    - development
+    - build
