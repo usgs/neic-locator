@@ -10,6 +10,7 @@ variables:
   ALGORITHMS_CI_REGISTRY_IMAGE: ${ALGORITHMS_REGISTRY_ADDRESS}
   # docker variables
   DOCKER_DRIVER: overlay2
+  JAVA_IMAGE: ${DEVOPS_REGISTRY}usgs/java:11-jdk
   FROM_IMAGE: ${DEVOPS_REGISTRY}usgs/centos:7
   # environment variables
   APP_NAME: neic-locator
@@ -153,7 +154,7 @@ Java Test:
     paths:
       - .gradle/caches
       - .gradle/wrapper
-  image: ${DEVOPS_REGISTRY}usgs/java:11-jdk
+  image: ${JAVA_IMAGE}
   script:
     # run gradle and javadoc
     - export GRADLE_USER_HOME="${CI_PROJECT_DIR}/.gradle"
