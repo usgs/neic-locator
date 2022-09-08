@@ -1,3 +1,7 @@
+> **THIS PROJECT HAS BEEN ARCHIVED**
+> 
+> Please see [https://code.usgs.gov/ghsc/neic/algorithms/neic-locator)
+
 # neic-locator
 The neic-locator project is a direct port of the [United States Geolgical Survey National Earthquake Information Center](https://earthquake.usgs.gov/contactus/golden/neic.php) production earthquake location software from FORTRAN to Java. 
 
